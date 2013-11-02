@@ -45,6 +45,16 @@ public:
    */
   void remove_socket_handler(const socket_t socket);
   /**
+   * Signal the poller that he needs to watch for send events for the given
+   * SocketHandler.
+   */
+  void watch_send_events(const SocketHandler* const socket_handler);
+  /**
+   * Signal the poller that he needs to stop watching for send events for
+   * this SocketHandler.
+   */
+  void stop_watching_send_events(const SocketHandler* const socket_handler);
+  /**
    * Wait for all watched events, and call the SocketHandlers' callbacks
    * when one is ready.
    */

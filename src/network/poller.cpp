@@ -59,12 +59,39 @@ void Poller::remove_socket_handler(const socket_t socket)
     }
 }
 
+void Poller::watch_send_events(const SocketHandler* const socket_handler)
+{
+#if POLLER == POLL
+  for (size_t i = 0; i <= this->nfds; ++i)
+    {
+      if (this->fds[i].fd == socket_handler->get_socket())
+        {
+          this->fds[i].events = POLLIN|POLLOUT;
+          return;
+        }
+    }
+#endif
+  throw std::runtime_error("Cannot watch a non-registered socket for send events");
+}
+
+void Poller::stop_watching_send_events(const SocketHandler* const socket_handler)
+{
+#if POLLER == POLL
+  for (size_t i = 0; i <= this->nfds; ++i)
+    {
+      if (this->fds[i].fd == socket_handler->get_socket())
+        {
+          this->fds[i].events = POLLIN;
+          return;
+        }
+    }
+#endif
+  throw std::runtime_error("Cannot watch a non-registered socket for send events");
+}
+
 void Poller::poll()
 {
 #if POLLER == POLL
-  std::cout << "Polling:" << std::endl;
-  for (size_t i = 0; i < this->nfds; ++i)
-    std::cout << "pollfd[" << i << "]: (" << this->fds[i].fd << ")" << std::endl;
   int res = ::poll(this->fds, this->nfds, -1);
   if (res < 0)
     {
@@ -93,4 +120,3 @@ void Poller::poll()
     }
 #endif
 }
-

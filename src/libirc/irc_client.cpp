@@ -1,4 +1,5 @@
 #include <libirc/irc_client.hpp>
+#include <libirc/irc_message.hpp>
 #include <network/poller.hpp>
 #include <utils/scopeguard.hpp>
 
@@ -41,6 +42,18 @@ void IrcClient::on_recv()
 
 void IrcClient::on_send()
 {
+  const ssize_t res = ::send(this->socket, this->out_buf.data(), this->out_buf.size(), 0);
+  if (res == -1)
+    {
+      perror("send");
+      this->close();
+    }
+  else
+    {
+      this->out_buf = this->out_buf.substr(res, std::string::npos);
+      if (this->out_buf.empty())
+        this->poller->stop_watching_send_events(this);
+    }
 }
 
 socket_t IrcClient::get_socket() const
@@ -75,6 +88,7 @@ void IrcClient::connect(const std::string& address, const std::string& port)
       if (::connect(this->socket, rp->ai_addr, rp->ai_addrlen) == 0)
         {
           std::cout << "Connection success." << std::endl;
+          this->on_connected();
           return ;
         }
       std::cout << "Connection failed:" << std::endl;
@@ -82,6 +96,10 @@ void IrcClient::connect(const std::string& address, const std::string& port)
     }
   std::cout << "All connection attempts failed." << std::endl;
   this->close();
+}
+
+void IrcClient::on_connected()
+{
 }
 
 void IrcClient::on_connection_close()
@@ -98,5 +116,51 @@ void IrcClient::close()
 
 void IrcClient::parse_in_buffer()
 {
-  std::cout << "Parsing: [" << this->in_buf << "]" << std::endl;
+  while (true)
+    {
+      auto pos = this->in_buf.find("\r\n");
+      if (pos == std::string::npos)
+        break ;
+      IrcMessage message(this->in_buf.substr(0, pos));
+      this->in_buf = this->in_buf.substr(pos + 2, std::string::npos);
+      std::cout << message << std::endl;
+    }
+}
+
+void IrcClient::send_message(IrcMessage&& message)
+{
+  std::string res;
+  if (!message.prefix.empty())
+    res += ":" + std::move(message.prefix) + " ";
+  res += std::move(message.command);
+  for (const std::string& arg: message.arguments)
+    {
+      if (arg.find(" ") != std::string::npos)
+        {
+          res += " :" + arg;
+          break;
+        }
+      res += " " + arg;
+    }
+  res += "\r\n";
+  this->out_buf += res;
+  if (!this->out_buf.empty())
+    {
+      this->poller->watch_send_events(this);
+    }
+}
+
+void IrcClient::send_user_command(const std::string& username, const std::string& realname)
+{
+  this->send_message(IrcMessage("USER", {username, "NONE", "NONE", realname}));
+}
+
+void IrcClient::send_nick_command(const std::string& nick)
+{
+  this->send_message(IrcMessage("NICK", {nick}));
+}
+
+void IrcClient::send_join_command(const std::string& chan_name)
+{
+  this->send_message(IrcMessage("JOIN", {chan_name}));
 }

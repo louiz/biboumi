@@ -1,6 +1,8 @@
 #ifndef IRC_CLIENT_INCLUDED
 # define IRC_CLIENT_INCLUDED
 
+#include <libirc/irc_message.hpp>
+
 #include <network/socket_handler.hpp>
 
 #include <string>
@@ -31,6 +33,10 @@ public:
    */
   void connect(const std::string& address, const std::string& port);
   /**
+   * Called when successfully connected to the server
+   */
+  void on_connected();
+  /**
    * Close the connection, remove us from the poller
    */
   void close();
@@ -43,6 +49,24 @@ public:
    * complete messages from it.
    */
   void parse_in_buffer();
+  /**
+   * Serialize the given message into a line, and send that into the socket
+   * (actually, into our out_buf and signal the poller that we want to wach
+   * for send events to be ready)
+   */
+  void send_message(IrcMessage&& message);
+  /**
+   * Send the USER irc command
+   */
+  void send_user_command(const std::string& username, const std::string& realname);
+  /**
+   * Send the NICK irc command
+   */
+  void send_nick_command(const std::string& username);
+  /**
+   * Send the JOIN irc command
+   */
+  void send_join_command(const std::string& chan_name);
 
 private:
   socket_t socket;
