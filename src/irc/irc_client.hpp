@@ -1,7 +1,7 @@
 #ifndef IRC_CLIENT_INCLUDED
 # define IRC_CLIENT_INCLUDED
 
-#include <libirc/irc_message.hpp>
+#include <irc/irc_message.hpp>
 
 #include <network/socket_handler.hpp>
 

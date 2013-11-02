@@ -1,4 +1,4 @@
-#include <libirc/irc_message.hpp>
+#include <irc/irc_message.hpp>
 #include <iostream>
 
 IrcMessage::IrcMessage(std::string&& line)

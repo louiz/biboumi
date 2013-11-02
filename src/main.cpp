@@ -1,4 +1,4 @@
-#include <libirc/irc_client.hpp>
+#include <irc/irc_client.hpp>
 #include <network/poller.hpp>
 
 int main()

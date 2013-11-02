@@ -20,20 +20,20 @@ add_library(network STATIC ${source_network})
 #
 ## irclib
 #
-file(GLOB source_libirc
-  src/libirc/*.[hc]pp)
-add_library(libirc STATIC ${source_libirc})
-target_link_libraries(libirc network)
+file(GLOB source_irc
+  src/irc/*.[hc]pp)
+add_library(irc STATIC ${source_irc})
+target_link_libraries(irc network ${CRYPTO++_LIBRARIES})
 
 #
 ## xmpplib
 #
-file(GLOB source_libxmpp
-  src/libxmpp/*.[hc]pp)
-add_library(libxmpp STATIC ${source_libxmpp})
-target_link_libraries(libxmpp network)
+file(GLOB source_xmpp
+  src/xmpp/*.[hc]pp)
+add_library(xmpp STATIC ${source_xmpp})
+target_link_libraries(xmpp network )
 
 add_executable(${PROJECT_NAME} src/main.cpp)
 target_link_libraries(${PROJECT_NAME}
-  libxmpp
-  libirc)
+  xmpp
+  irc)

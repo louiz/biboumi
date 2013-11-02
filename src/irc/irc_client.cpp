@@ -1,5 +1,5 @@
-#include <libirc/irc_client.hpp>
-#include <libirc/irc_message.hpp>
+#include <irc/irc_client.hpp>
+#include <irc/irc_message.hpp>
 
 #include <iostream>
 #include <stdexcept>
