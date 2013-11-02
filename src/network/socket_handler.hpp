@@ -1,6 +1,8 @@
 #ifndef SOCKET_HANDLER_INCLUDED
 # define SOCKET_HANDLER_INCLUDED
 
+#include <string>
+
 typedef int socket_t;
 
 class Poller;
@@ -14,34 +16,65 @@ class Poller;
 class SocketHandler
 {
 public:
-  explicit SocketHandler():
-    poller(nullptr)
-  {}
+  explicit SocketHandler();
+  virtual ~SocketHandler() {}
+  /**
+   * Connect to the remote server, and call on_connected() if this succeeds
+   */
+  void connect(const std::string& address, const std::string& port);
   /**
    * Set the pointer to the given Poller, to communicate with it.
    */
-  void set_poller(Poller* poller)
-  {
-    this->poller = poller;
-  };
+  void set_poller(Poller* poller);
   /**
-   * Happens when the socket is ready to be received from.
+   * Reads data in our in_buf and the call parse_in_buf, for the implementor
+   * to handle the data received so far.
    */
-  virtual void on_recv() = 0;
+  void on_recv();
   /**
-   * Happens when the socket is ready to be written to.
+   * Write as much data from out_buf as possible, in the socket.
    */
-  virtual void on_send() = 0;
+  void on_send();
+  /**
+   * Add the given data to out_buf and tell our poller that we want to be
+   * notified when a send event is ready.
+   */
+  void send_data(std::string&& data);
   /**
    * Returns the socket that should be handled by the poller.
    */
-  virtual socket_t get_socket() const = 0;
+  socket_t get_socket() const;
   /**
-   * Close the connection.
+   * Close the connection, remove us from the poller
    */
-  virtual void close() = 0;
+  void close();
+  /**
+   * Called when the connection is successful.
+   */
+  virtual void on_connected() = 0;
+  /**
+   * Called when we detect a disconnection from the remote host.
+   */
+  virtual void on_connection_close() = 0;
+  /**
+   * Handle/consume (some of) the data received so far. If some data is used, the in_buf
+   * should be truncated, only the unused data should be left untouched.
+   */
+  virtual void parse_in_buffer() = 0;
 
 protected:
+  socket_t socket;
+  /**
+   * Where data read from the socket is added, until we can parse a whole
+   * IRC message, the used data is then removed from that buffer.
+   *
+   * TODO: something more efficient than a string.
+   */
+  std::string in_buf;
+  /**
+   * Where data is added, when we want to send something to the client.
+   */
+  std::string out_buf;
   /**
    * A pointer to the poller that manages us, because we need to communicate
    * with it, sometimes (for example to tell it that he now needs to watch

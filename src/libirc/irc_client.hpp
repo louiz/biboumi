@@ -19,29 +19,11 @@ public:
   explicit IrcClient();
   ~IrcClient();
   /**
-   * We read the data, try to parse it and generate some event if
-   * one or more full message is available.
-   */
-  void on_recv();
-  /**
-   * Just write as much data as possible on the socket.
-   */
-  void on_send();
-  socket_t get_socket() const;
-  /**
-   * Connect to the remote server
-   */
-  void connect(const std::string& address, const std::string& port);
-  /**
    * Called when successfully connected to the server
    */
   void on_connected();
   /**
    * Close the connection, remove us from the poller
-   */
-  void close();
-  /**
-   * Called when we detect an orderly close by the remote endpoint.
    */
   void on_connection_close();
   /**
@@ -69,19 +51,6 @@ public:
   void send_join_command(const std::string& chan_name);
 
 private:
-  socket_t socket;
-  /**
-   * Where data read from the socket is added, until we can parse a whole
-   * IRC message, the used data is then removed from that buffer.
-   *
-   * TODO: something more efficient than a string.
-   */
-  std::string in_buf;
-  /**
-   * Where data is added, when we want to send something to the client.
-   */
-  std::string out_buf;
-
   IrcClient(const IrcClient&) = delete;
   IrcClient(IrcClient&&) = delete;
   IrcClient& operator=(const IrcClient&) = delete;
