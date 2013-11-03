@@ -8,7 +8,16 @@ set(${PROJECT_NAME}_VERSION_MINOR 1)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -pedantic -Wall -Wextra")
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Og -fsanitize=address")
 
+#
+## Look for external libraries
+#
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
+find_package(Cryptopp REQUIRED)
+
 include_directories("src/")
+# the SYSTEM flag tells the compiler that we don't care about warnings
+# coming from these headers.
+include_directories(SYSTEM ${CRYPTO++_INCLUDE_DIR})
 
 #
 ## network
