@@ -89,9 +89,11 @@ void Poller::stop_watching_send_events(const SocketHandler* const socket_handler
   throw std::runtime_error("Cannot watch a non-registered socket for send events");
 }
 
-void Poller::poll()
+bool Poller::poll()
 {
 #if POLLER == POLL
+  if (this->nfds == 0)
+    return false;
   int res = ::poll(this->fds, this->nfds, -1);
   if (res < 0)
     {
@@ -119,4 +121,5 @@ void Poller::poll()
         }
     }
 #endif
+  return true;
 }

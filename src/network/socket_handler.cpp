@@ -66,7 +66,10 @@ void SocketHandler::on_recv()
 
   ssize_t size = ::recv(this->socket, buf, 4096, 0);
   if (0 == size)
-    this->on_connection_close();
+    {
+      this->on_connection_close();
+      this->close();
+    }
   else if (-1 == static_cast<ssize_t>(size))
     throw std::runtime_error("Error reading from socket");
   else

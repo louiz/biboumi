@@ -57,8 +57,9 @@ public:
   /**
    * Wait for all watched events, and call the SocketHandlers' callbacks
    * when one is ready.
+   * Returns false if there are 0 SocketHandler in the list.
    */
-  void poll();
+  bool poll();
 
 private:
   /**

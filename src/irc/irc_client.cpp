@@ -21,7 +21,6 @@ void IrcClient::on_connected()
 void IrcClient::on_connection_close()
 {
   std::cout << "Connection closed by remote server." << std::endl;
-  this->close();
 }
 
 void IrcClient::parse_in_buffer()
