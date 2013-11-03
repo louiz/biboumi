@@ -23,7 +23,7 @@ add_library(network STATIC ${source_network})
 file(GLOB source_irc
   src/irc/*.[hc]pp)
 add_library(irc STATIC ${source_irc})
-target_link_libraries(irc network ${CRYPTO++_LIBRARIES})
+target_link_libraries(irc network ${CRYPTO++_LIBRARIES} expatpp)
 
 #
 ## xmpplib
