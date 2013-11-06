@@ -1,5 +1,16 @@
 #include <irc/irc_client.hpp>
+#include <xmpp/xmpp_component.hpp>
 #include <network/poller.hpp>
+
+#include <xmpp/xmpp_parser.hpp>
+#include <xmpp/xmpp_stanza.hpp>
+
+#include <memory>
+
+#include <xmpp/jid.hpp>
+#include <irc/iid.hpp>
+
+#include <iostream>
 
 int main()
 {

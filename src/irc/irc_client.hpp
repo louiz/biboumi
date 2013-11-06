@@ -2,10 +2,15 @@
 # define IRC_CLIENT_INCLUDED
 
 #include <irc/irc_message.hpp>
+#include <irc/irc_channel.hpp>
+#include <irc/iid.hpp>
 
 #include <network/socket_handler.hpp>
 
+#include <unordered_map>
 #include <string>
+
+class Bridge;
 
 /**
  * Represent one IRC client, i.e. an endpoint connected to a single IRC
@@ -16,8 +21,12 @@
 class IrcClient: public SocketHandler
 {
 public:
-  explicit IrcClient();
+  explicit IrcClient(const std::string& hostname, const std::string& username, Bridge* bridge);
   ~IrcClient();
+  /**
+   * Connect to the IRC server
+   */
+  void start();
   /**
    * Called when successfully connected to the server
    */
@@ -32,11 +41,19 @@ public:
    */
   void parse_in_buffer();
   /**
+   * Return the channel with this name, create it if it does not yet exist
+   */
+  IrcChannel* get_channel(const std::string& name);
+  /**
    * Serialize the given message into a line, and send that into the socket
    * (actually, into our out_buf and signal the poller that we want to wach
    * for send events to be ready)
    */
   void send_message(IrcMessage&& message);
+  /**
+   * Send the PONG irc command
+   */
+  void send_pong_command();
   /**
    * Send the USER irc command
    */
@@ -49,8 +66,49 @@ public:
    * Send the JOIN irc command
    */
   void send_join_command(const std::string& chan_name);
+  /**
+   * Forward the server message received from IRC to the XMPP component
+   */
+  void forward_server_message(const IrcMessage& message);
+  /**
+   * Forward the join of an other user into an IRC channel, and save the
+   * IrcUsers in the IrcChannel
+   */
+  void set_and_forward_user_list(const IrcMessage& message);
+  /**
+   * Remember our nick and host, when we are joined to the channel. The list
+   * of user comes after so we do not send the self-presence over XMPP yet.
+   */
+  void on_self_channel_join(const IrcMessage& message);
+  /**
+   * Save the topic in the IrcChannel
+   */
+  void on_topic_received(const IrcMessage& message);
+  /**
+   * The channel has been completely joined (self presence, topic, all names
+   * received etc), send the self presence and topic to the XMPP user.
+   */
+  void on_channel_completely_joined(const IrcMessage& message);
 
 private:
+  /**
+   * The hostname of the server we are connected to.
+   */
+  const std::string hostname;
+  /**
+   * The user name used in the USER irc command
+   */
+  const std::string username;
+  /**
+   * Raw pointer because the bridge owns us.
+   */
+  Bridge* bridge;
+
+  /**
+   * The list of joined channels, indexed by name
+   */
+  std::unordered_map<std::string, std::unique_ptr<IrcChannel>> channels;
+
   IrcClient(const IrcClient&) = delete;
   IrcClient(IrcClient&&) = delete;
   IrcClient& operator=(const IrcClient&) = delete;
