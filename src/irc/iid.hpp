@@ -20,6 +20,7 @@ class Iid
 {
 public:
   explicit Iid(const std::string& iid);
+  explicit Iid();
 
   std::string chan;
   std::string server;

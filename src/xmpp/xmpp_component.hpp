@@ -72,10 +72,15 @@ public:
    */
   void send_topic(const std::string& from, const std::string& topic, const std::string& to);
   /**
+   * Send a (non-private) message to the MUC
+   */
+  void send_muc_message(const std::string& muc_name, const std::string& nick, const std::string body_str, const std::string& jid_to);
+  /**
    * Handle the various stanza types
    */
   void handle_handshake(const Stanza& stanza);
   void handle_presence(const Stanza& stanza);
+  void handle_message(const Stanza& stanza);
 
 private:
   /**

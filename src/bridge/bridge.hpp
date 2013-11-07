@@ -30,6 +30,7 @@ public:
    **/
 
   void join_irc_channel(const Iid& iid, const std::string& username);
+  void send_channel_message(const Iid& iid, const std::string& body);
 
   /***
    **
@@ -54,7 +55,10 @@ public:
    * Send the topic of the MUC to the user
    */
   void send_topic(const std::string& hostname, const std::string& chan_name, const std::string topic);
-
+  /**
+   * Send a MUC message from some participant
+   */
+  void send_muc_message(const Iid& iid, const std::string& nick, const std::string& body);
 private:
   /**
    * Returns the client for the given hostname, create one (and use the
@@ -62,6 +66,11 @@ private:
    * client immediately.
    */
   IrcClient* get_irc_client(const std::string& hostname, const std::string& username);
+  /**
+   * This version does not create the IrcClient if it does not exist, and
+   * returns nullptr in that case
+   */
+  IrcClient* get_irc_client(const std::string& hostname);
   /**
    * The JID of the user associated with this bridge. Messages from/to this
    * JID are only managed by this bridge.

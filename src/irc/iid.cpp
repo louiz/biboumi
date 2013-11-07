@@ -15,3 +15,7 @@ Iid::Iid(const std::string& iid)
     }
   this->server = iid.substr(sep);
 }
+
+Iid::Iid()
+{
+}

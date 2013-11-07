@@ -2,6 +2,26 @@
 
 #include <iostream>
 
+std::string xml_escape(const std::string& data)
+{
+  std::string res;
+  buffer.reserve(data.size());
+  for(size_t pos = 0; pos != data.size(); ++pos)
+    {
+      switch(data[pos])
+        {
+        case '&':  buffer += "&amp;";       break;
+        case '\"': buffer += "&quot;";      break;
+        case '\'': buffer += "&apos;";      break;
+        case '<':  buffer += "&lt;";        break;
+        case '>':  buffer += "&gt;";        break;
+        default:   buffer += data[pos]; break;
+        }
+    }
+  return buffer;
+}
+
+
 XmlNode::XmlNode(const std::string& name, XmlNode* parent):
   name(name),
   parent(parent),
@@ -40,7 +60,22 @@ void XmlNode::set_tail(const std::string& data)
 
 void XmlNode::set_inner(const std::string& data)
 {
-  this->inner = data;
+  this->inner = xml_escape(data);
+}
+
+std::string XmlNode::get_inner() const
+{
+  return this->inner;
+}
+
+XmlNode* XmlNode::get_child(const std::string& name) const
+{
+  for (auto& child: this->children)
+    {
+      if (child->name == name)
+        return child;
+    }
+  return nullptr;
 }
 
 void XmlNode::add_child(XmlNode* child)

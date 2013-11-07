@@ -7,6 +7,8 @@
 
 #include <expatpp.h>
 
+std::string xml_escape(const std::string& data);
+
 /**
  * Raised on operator[] when the attribute does not exist
  */
@@ -51,8 +53,18 @@ public:
   void set_tail(const std::string& data);
   /**
    * Set the content of the inner, that is the text inside this node
+   * TODO: escape it here.
    */
   void set_inner(const std::string& data);
+  /**
+   * Get the content of inner
+   * TODO: unescape it here.
+   */
+  std::string get_inner() const;
+  /**
+   * Get a pointer to the first child element with that name
+   */
+  XmlNode* get_child(const std::string& name) const;
   void add_child(XmlNode* child);
   void add_child(XmlNode&& child);
   XmlNode* get_last_child() const;

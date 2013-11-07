@@ -12,7 +12,9 @@
 IrcClient::IrcClient(const std::string& hostname, const std::string& username, Bridge* bridge):
   hostname(hostname),
   username(username),
-  bridge(bridge)
+  current_nick(username),
+  bridge(bridge),
+  welcomed(false)
 {
   std::cout << "IrcClient()" << std::endl;
 }
@@ -51,6 +53,11 @@ IrcChannel* IrcClient::get_channel(const std::string& name)
     }
 }
 
+std::string IrcClient::get_own_nick() const
+{
+  return this->current_nick;
+}
+
 void IrcClient::parse_in_buffer()
 {
   while (true)
@@ -63,19 +70,23 @@ void IrcClient::parse_in_buffer()
       std::cout << message << std::endl;
       // TODO map function and command name properly
       if (message.command == "PING")
-        this->send_pong_command();
+        this->send_pong_command(message);
       else if (message.command == "NOTICE" ||
                message.command == "375" ||
                message.command == "372")
         this->forward_server_message(message);
       else if (message.command == "JOIN")
         this->on_self_channel_join(message);
+      else if (message.command == "PRIVMSG")
+        this->on_channel_message(message);
       else if (message.command == "353")
         this->set_and_forward_user_list(message);
       else if (message.command == "332")
         this->on_topic_received(message);
       else if (message.command == "366")
         this->on_channel_completely_joined(message);
+      else if (message.command == "001")
+        this->on_welcome_message(message);
     }
 }
 
@@ -102,7 +113,7 @@ void IrcClient::send_message(IrcMessage&& message)
 
 void IrcClient::send_user_command(const std::string& username, const std::string& realname)
 {
-  this->send_message(IrcMessage("USER", {username, "NONE", "NONE", realname}));
+  this->send_message(IrcMessage("USER", {username, "ignored", "ignored", realname}));
 }
 
 void IrcClient::send_nick_command(const std::string& nick)
@@ -112,14 +123,32 @@ void IrcClient::send_nick_command(const std::string& nick)
 
 void IrcClient::send_join_command(const std::string& chan_name)
 {
+  if (this->welcomed == false)
+    {
+      this->channels_to_join.push_back(chan_name);
+      return ;
+    }
   IrcChannel* channel = this->get_channel(chan_name);
   if (channel->joined == false)
     this->send_message(IrcMessage("JOIN", {chan_name}));
 }
 
-void IrcClient::send_pong_command()
+bool IrcClient::send_channel_message(const std::string& chan_name, const std::string& body)
 {
-  this->send_message(IrcMessage("PONG", {}));
+  IrcChannel* channel = this->get_channel(chan_name);
+  if (channel->joined == false)
+    {
+      std::cout << "Cannot send message to channel " << chan_name << ", it is not joined" << std::endl;
+      return false;
+    }
+  this->send_message(IrcMessage("PRIVMSG", {chan_name, body}));
+  return true;
+}
+
+void IrcClient::send_pong_command(const IrcMessage& message)
+{
+  const std::string id = message.arguments[0];
+  this->send_message(IrcMessage("PONG", {id}));
 }
 
 void IrcClient::forward_server_message(const IrcMessage& message)
@@ -154,6 +183,17 @@ void IrcClient::on_self_channel_join(const IrcMessage& message)
   channel->set_self(message.prefix);
 }
 
+void IrcClient::on_channel_message(const IrcMessage& message)
+{
+  const IrcUser user(message.prefix);
+  const std::string nick = user.nick;
+  Iid iid;
+  iid.chan = message.arguments[0];
+  iid.server = this->hostname;
+  const std::string body = message.arguments[1];
+  this->bridge->send_muc_message(iid, nick, body);
+}
+
 void IrcClient::on_topic_received(const IrcMessage& message)
 {
   const std::string chan_name = message.arguments[1];
@@ -167,4 +207,13 @@ void IrcClient::on_channel_completely_joined(const IrcMessage& message)
   IrcChannel* channel = this->get_channel(chan_name);
   this->bridge->send_self_join(this->hostname, chan_name, channel->get_self()->nick);
   this->bridge->send_topic(this->hostname, chan_name, channel->topic);
+}
+
+void IrcClient::on_welcome_message(const IrcMessage& message)
+{
+  this->current_nick = message.arguments[0];
+  this->welcomed = true;
+  for (const std::string& chan_name: this->channels_to_join)
+    this->send_join_command(chan_name);
+  this->channels_to_join.clear();
 }

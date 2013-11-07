@@ -25,6 +25,8 @@ XmppComponent::XmppComponent(const std::string& hostname, const std::string& sec
                                 std::bind(&XmppComponent::handle_handshake, this,std::placeholders::_1));
   this->stanza_handlers.emplace("presence",
                                 std::bind(&XmppComponent::handle_presence, this,std::placeholders::_1));
+  this->stanza_handlers.emplace("message",
+                                std::bind(&XmppComponent::handle_message, this,std::placeholders::_1));
 }
 
 XmppComponent::~XmppComponent()
@@ -151,6 +153,20 @@ void XmppComponent::handle_presence(const Stanza& stanza)
     bridge->join_irc_channel(iid, to.resource);
 }
 
+void XmppComponent::handle_message(const Stanza& stanza)
+{
+  Bridge* bridge = this->get_user_bridge(stanza["from"]);
+  Jid to(stanza["to"]);
+  Iid iid(to.local);
+  XmlNode* body = stanza.get_child("body");
+  if (stanza["type"] == "groupchat")
+    {
+      if (to.resource.empty())
+        if (body && !body->get_inner().empty())
+          bridge->send_channel_message(iid, body->get_inner());
+    }
+}
+
 Bridge* XmppComponent::get_user_bridge(const std::string& user_jid)
 {
   try
@@ -236,6 +252,20 @@ void XmppComponent::send_topic(const std::string& from, const std::string& topic
   subject.set_inner(topic);
   subject.close();
   message.add_child(std::move(subject));
+  message.close();
+  this->send_stanza(message);
+}
+
+void XmppComponent::send_muc_message(const std::string& muc_name, const std::string& nick, const std::string body_str, const std::string& jid_to)
+{
+  Stanza message("message");
+  message["to"] = jid_to;
+  message["from"] = muc_name + "@" + this->served_hostname + "/" + nick;
+  message["type"] = "groupchat";
+  XmlNode body("body");
+  body.set_inner(body_str);
+  body.close();
+  message.add_child(std::move(body));
   message.close();
   this->send_stanza(message);
 }

@@ -45,6 +45,10 @@ public:
    */
   IrcChannel* get_channel(const std::string& name);
   /**
+   * Return our own nick
+   */
+  std::string get_own_nick() const;
+  /**
    * Serialize the given message into a line, and send that into the socket
    * (actually, into our out_buf and signal the poller that we want to wach
    * for send events to be ready)
@@ -53,7 +57,7 @@ public:
   /**
    * Send the PONG irc command
    */
-  void send_pong_command();
+  void send_pong_command(const IrcMessage& message);
   /**
    * Send the USER irc command
    */
@@ -66,6 +70,11 @@ public:
    * Send the JOIN irc command
    */
   void send_join_command(const std::string& chan_name);
+  /**
+   * Send a PRIVMSG command for a channel
+   * Return true if the message was actually sent
+   */
+  bool send_channel_message(const std::string& chan_name, const std::string& body);
   /**
    * Forward the server message received from IRC to the XMPP component
    */
@@ -81,6 +90,10 @@ public:
    */
   void on_self_channel_join(const IrcMessage& message);
   /**
+   * When a channel message is received
+   */
+  void on_channel_message(const IrcMessage& message);
+  /**
    * Save the topic in the IrcChannel
    */
   void on_topic_received(const IrcMessage& message);
@@ -89,6 +102,10 @@ public:
    * received etc), send the self presence and topic to the XMPP user.
    */
   void on_channel_completely_joined(const IrcMessage& message);
+  /**
+   * When a message 001 is received, join the rooms we wanted to join, and set our actual nickname
+   */
+  void on_welcome_message(const IrcMessage& message);
 
 private:
   /**
@@ -100,14 +117,25 @@ private:
    */
   const std::string username;
   /**
+   * Our current nickname on the server
+   */
+  std::string current_nick;
+  /**
    * Raw pointer because the bridge owns us.
    */
   Bridge* bridge;
-
   /**
    * The list of joined channels, indexed by name
    */
   std::unordered_map<std::string, std::unique_ptr<IrcChannel>> channels;
+  /**
+   * A list of chan we want to join, but we need a response 001 from
+   * the server before sending the actual JOIN commands. So we just keep the
+   * channel names in a list, and send the JOIN commands for each of them
+   * whenever the WELCOME message is received.
+   */
+  std::vector<std::string> channels_to_join;
+  bool welcomed;
 
   IrcClient(const IrcClient&) = delete;
   IrcClient(IrcClient&&) = delete;
