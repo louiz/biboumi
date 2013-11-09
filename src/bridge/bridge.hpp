@@ -23,6 +23,7 @@ public:
   explicit Bridge(const std::string& user_jid, XmppComponent* xmpp, Poller* poller);
   ~Bridge();
 
+  static std::string sanitize_for_xmpp(const std::string& str);
   /***
    **
    ** From XMPP to IRC.
