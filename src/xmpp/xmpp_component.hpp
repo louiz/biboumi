@@ -76,6 +76,10 @@ public:
    */
   void send_muc_message(const std::string& muc_name, const std::string& nick, const std::string body_str, const std::string& jid_to);
   /**
+   * Send an unavailable presence for this nick
+   */
+  void send_muc_leave(std::string&& muc_name, std::string&& nick, std::string&& message, const std::string& jid_to, const bool self);
+  /**
    * Handle the various stanza types
    */
   void handle_handshake(const Stanza& stanza);

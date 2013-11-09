@@ -1,5 +1,7 @@
 #include <xmpp/xmpp_stanza.hpp>
 
+#include <utils/encoding.hpp>
+
 #include <iostream>
 
 std::string xml_escape(const std::string& data)

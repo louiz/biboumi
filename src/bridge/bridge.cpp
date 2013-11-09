@@ -82,9 +82,21 @@ void Bridge::send_channel_message(const Iid& iid, const std::string& body)
   this->xmpp->send_muc_message(iid.chan + "%" + iid.server, irc->get_own_nick(), body, this->user_jid);
 }
 
+void Bridge::leave_irc_channel(Iid&& iid, std::string&& status_message)
+{
+  IrcClient* irc = this->get_irc_client(iid.server);
+  if (irc)
+    irc->send_part_command(iid.chan, status_message);
+}
+
 void Bridge::send_muc_message(const Iid& iid, const std::string& nick, const std::string& body)
 {
   this->xmpp->send_muc_message(iid.chan + "%" + iid.server, nick, this->sanitize_for_xmpp(body), this->user_jid);
+}
+
+void Bridge::send_muc_leave(Iid&& iid, std::string&& nick, std::string&& message, const bool self)
+{
+  this->xmpp->send_muc_leave(std::move(iid.chan) + "%" + std::move(iid.server), std::move(nick), this->sanitize_for_xmpp(message), this->user_jid, self);
 }
 
 void Bridge::send_xmpp_message(const std::string& from, const std::string& author, const std::string& msg)

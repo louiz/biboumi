@@ -76,7 +76,7 @@ void IrcClient::parse_in_buffer()
                message.command == "372")
         this->forward_server_message(message);
       else if (message.command == "JOIN")
-        this->on_self_channel_join(message);
+        this->on_channel_join(message);
       else if (message.command == "PRIVMSG")
         this->on_channel_message(message);
       else if (message.command == "353")
@@ -87,6 +87,8 @@ void IrcClient::parse_in_buffer()
         this->on_channel_completely_joined(message);
       else if (message.command == "001")
         this->on_welcome_message(message);
+      else if (message.command == "PART")
+        this->on_part(message);
     }
 }
 
@@ -128,9 +130,7 @@ void IrcClient::send_join_command(const std::string& chan_name)
       this->channels_to_join.push_back(chan_name);
       return ;
     }
-  IrcChannel* channel = this->get_channel(chan_name);
-  if (channel->joined == false)
-    this->send_message(IrcMessage("JOIN", {chan_name}));
+  this->send_message(IrcMessage("JOIN", {chan_name}));
 }
 
 bool IrcClient::send_channel_message(const std::string& chan_name, const std::string& body)
@@ -143,6 +143,15 @@ bool IrcClient::send_channel_message(const std::string& chan_name, const std::st
     }
   this->send_message(IrcMessage("PRIVMSG", {chan_name, body}));
   return true;
+}
+
+void IrcClient::send_part_command(const std::string& chan_name, const std::string& status_message)
+{
+  IrcChannel* channel = this->get_channel(chan_name);
+  if (channel->joined == true)
+    {
+      this->send_message(IrcMessage("PART", {chan_name, status_message}));
+    }
 }
 
 void IrcClient::send_pong_command(const IrcMessage& message)
@@ -175,12 +184,21 @@ void IrcClient::set_and_forward_user_list(const IrcMessage& message)
     }
 }
 
-void IrcClient::on_self_channel_join(const IrcMessage& message)
+void IrcClient::on_channel_join(const IrcMessage& message)
 {
   const std::string chan_name = message.arguments[0];
   IrcChannel* channel = this->get_channel(chan_name);
-  channel->joined = true;
-  channel->set_self(message.prefix);
+  const std::string nick = message.prefix;
+  if (channel->joined == false)
+    {
+      channel->joined = true;
+      channel->set_self(nick);
+    }
+  else
+    {
+      IrcUser* user = channel->add_user(nick);
+      this->bridge->send_user_join(this->hostname, chan_name, user->nick);
+    }
 }
 
 void IrcClient::on_channel_message(const IrcMessage& message)
@@ -216,4 +234,26 @@ void IrcClient::on_welcome_message(const IrcMessage& message)
   for (const std::string& chan_name: this->channels_to_join)
     this->send_join_command(chan_name);
   this->channels_to_join.clear();
+}
+
+void IrcClient::on_part(const IrcMessage& message)
+{
+  const std::string chan_name = message.arguments[0];
+  IrcChannel* channel = this->get_channel(chan_name);
+  std::string txt;
+  if (message.arguments.size() >= 2)
+    txt = message.arguments[1];
+  const IrcUser* user = channel->find_user(message.prefix);
+  if (user)
+    {
+      std::string nick = user->nick;
+      channel->remove_user(user);
+      Iid iid;
+      iid.chan = chan_name;
+      iid.server = this->hostname;
+      bool self = channel->get_self()->nick == nick;
+      this->bridge->send_muc_leave(std::move(iid), std::move(nick), std::move(txt), self);
+      if (self)
+        channel->joined = false;
+    }
 }

@@ -20,6 +20,8 @@ public:
   void set_self(const std::string& name);
   IrcUser* get_self() const;
   IrcUser* add_user(const std::string& name);
+  IrcUser* find_user(const std::string& name);
+  void remove_user(const IrcUser* user);
 
 private:
   std::unique_ptr<IrcUser> self;

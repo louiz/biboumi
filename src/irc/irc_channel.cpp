@@ -22,3 +22,27 @@ IrcUser* IrcChannel::get_self() const
 {
   return this->self.get();
 }
+
+IrcUser* IrcChannel::find_user(const std::string& name)
+{
+  IrcUser user(name);
+  for (const auto& u: this->users)
+    {
+      if (u->nick == user.nick)
+        return u.get();
+    }
+  return nullptr;
+}
+
+void IrcChannel::remove_user(const IrcUser* user)
+{
+  for (auto it = this->users.begin(); it != this->users.end(); ++it)
+    {
+      IrcUser* u = it->get();
+      if (u->nick == user->nick)
+        {
+          this->users.erase(it);
+          break ;
+        }
+    }
+}

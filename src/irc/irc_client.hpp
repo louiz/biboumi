@@ -76,6 +76,10 @@ public:
    */
   bool send_channel_message(const std::string& chan_name, const std::string& body);
   /**
+   * Send the PART irc command
+   */
+  void send_part_command(const std::string& chan_name, const std::string& status_message);
+  /**
    * Forward the server message received from IRC to the XMPP component
    */
   void forward_server_message(const IrcMessage& message);
@@ -88,7 +92,7 @@ public:
    * Remember our nick and host, when we are joined to the channel. The list
    * of user comes after so we do not send the self-presence over XMPP yet.
    */
-  void on_self_channel_join(const IrcMessage& message);
+  void on_channel_join(const IrcMessage& message);
   /**
    * When a channel message is received
    */
@@ -106,6 +110,10 @@ public:
    * When a message 001 is received, join the rooms we wanted to join, and set our actual nickname
    */
   void on_welcome_message(const IrcMessage& message);
+  /**
+   * When a PART message is received
+   */
+  void on_part(const IrcMessage& message);
 
 private:
   /**
