@@ -5,20 +5,32 @@
 std::string xml_escape(const std::string& data)
 {
   std::string res;
-  buffer.reserve(data.size());
-  for(size_t pos = 0; pos != data.size(); ++pos)
+  res.reserve(data.size());
+  for (size_t pos = 0; pos != data.size(); ++pos)
     {
       switch(data[pos])
         {
-        case '&':  buffer += "&amp;";       break;
-        case '\"': buffer += "&quot;";      break;
-        case '\'': buffer += "&apos;";      break;
-        case '<':  buffer += "&lt;";        break;
-        case '>':  buffer += "&gt;";        break;
-        default:   buffer += data[pos]; break;
+        case '&':
+          res += "&amp;";
+          break;
+        case '<':
+          res += "&lt;";
+          break;
+        case '>':
+          res += "&gt;";
+          break;
+        case '\"':
+          res += "&quot;";
+          break;
+        case '\'':
+          res += "&apos;";
+          break;
+        default:
+          res += data[pos];
+          break;
         }
     }
-  return buffer;
+  return res;
 }
 
 
