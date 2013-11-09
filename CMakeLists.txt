@@ -20,6 +20,13 @@ include_directories("src/")
 include_directories(SYSTEM ${CRYPTO++_INCLUDE_DIR})
 
 #
+## utils
+#
+file(GLOB source_utils
+  src/utils/*.[hc]pp)
+add_library(utils STATIC ${source_utils})
+
+#
 ## network
 #
 file(GLOB source_network
@@ -32,7 +39,7 @@ add_library(network STATIC ${source_network})
 file(GLOB source_irc
   src/irc/*.[hc]pp)
 add_library(irc STATIC ${source_irc})
-target_link_libraries(irc network)
+target_link_libraries(irc network utils)
 
 #
 ## xmpplib
@@ -40,7 +47,7 @@ target_link_libraries(irc network)
 file(GLOB source_xmpp
   src/xmpp/*.[hc]pp)
 add_library(xmpp STATIC ${source_xmpp})
-target_link_libraries(xmpp bridge network ${CRYPTO++_LIBRARIES} expatpp)
+target_link_libraries(xmpp bridge network utils ${CRYPTO++_LIBRARIES} expatpp)
 
 #
 ## bridge
@@ -55,3 +62,14 @@ target_link_libraries(${PROJECT_NAME}
   xmpp
   irc
   bridge)
+
+#
+## Tests
+#
+
+add_executable(test src/test.cpp)
+target_link_libraries(test
+  xmpp
+  irc
+  bridge
+  utils)
