@@ -89,6 +89,8 @@ void IrcClient::parse_in_buffer()
         this->on_welcome_message(message);
       else if (message.command == "PART")
         this->on_part(message);
+      else if (message.command == "QUIT")
+        this->on_quit(message);
     }
 }
 
@@ -255,5 +257,27 @@ void IrcClient::on_part(const IrcMessage& message)
       this->bridge->send_muc_leave(std::move(iid), std::move(nick), std::move(txt), self);
       if (self)
         channel->joined = false;
+    }
+}
+
+void IrcClient::on_quit(const IrcMessage& message)
+{
+  std::string txt;
+  if (message.arguments.size() >= 1)
+    txt = message.arguments[0];
+  for (auto it = this->channels.begin(); it != this->channels.end(); ++it)
+    {
+      const std::string chan_name = it->first;
+      IrcChannel* channel = it->second.get();
+      const IrcUser* user = channel->find_user(message.prefix);
+      if (user)
+        {
+          std::string nick = user->nick;
+          channel->remove_user(user);
+          Iid iid;
+          iid.chan = chan_name;
+          iid.server = this->hostname;
+          this->bridge->send_muc_leave(std::move(iid), std::move(nick), std::move(txt), false);
+        }
     }
 }

@@ -114,6 +114,10 @@ public:
    * When a PART message is received
    */
   void on_part(const IrcMessage& message);
+  /**
+   * When a QUIT message is received
+   */
+  void on_quit(const IrcMessage& message);
 
 private:
   /**
