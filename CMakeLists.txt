@@ -80,3 +80,5 @@ target_link_libraries(test
   irc
   bridge
   utils)
+
+CONFIGURE_FILE(config.h.cmake config.h @ONLY)

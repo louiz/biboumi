@@ -7,6 +7,8 @@
 #include <string.h>
 #include <iconv.h>
 
+#include "config.h"
+
 /**
  * The UTF-8-encoded character used as a place holder when a character conversion fails.
  * This is U+FFFD � "replacement character"
