@@ -167,7 +167,13 @@ void XmppComponent::handle_presence(const Stanza& stanza)
   if (!iid.chan.empty() && !iid.chan.empty())
     { // presence toward a MUC that corresponds to an irc channel
       if (type.empty())
-        bridge->join_irc_channel(iid, to.resource);
+        {
+          const std::string own_nick = bridge->get_own_nick(iid);
+          if (!own_nick.empty() && own_nick != to.resource)
+            bridge->send_irc_nick_change(iid, to.resource);
+          else
+            bridge->join_irc_channel(iid, to.resource);
+        }
       else if (type == "unavailable")
         {
           XmlNode* status = stanza.get_child(MUC_USER_NS":status");
@@ -316,4 +322,38 @@ void XmppComponent::send_muc_leave(std::string&& muc_name, std::string&& nick, s
     }
   presence.close();
   this->send_stanza(presence);
+}
+
+void XmppComponent::send_nick_change(const std::string& muc_name, const std::string& old_nick, const std::string& new_nick, const std::string& jid_to, const bool self)
+{
+  Stanza presence("presence");
+  presence["to"] = jid_to;
+  presence["from"] = muc_name + "@" + this->served_hostname + "/" + old_nick;
+  presence["type"] = "unavailable";
+  XmlNode x("x");
+  x["xmlns"] = MUC_USER_NS;
+  XmlNode item("item");
+  item["nick"] = new_nick;
+  item.close();
+  x.add_child(std::move(item));
+  XmlNode status("status");
+  status["code"] = "303";
+  status.close();
+  x.add_child(std::move(status));
+  if (self)
+    {
+      XmlNode status2("status");
+      status2["code"] = "110";
+      status2.close();
+      x.add_child(std::move(status2));
+    }
+  x.close();
+  presence.add_child(std::move(x));
+  presence.close();
+  this->send_stanza(presence);
+
+  if (self)
+    this->send_self_join(muc_name, new_nick, jid_to);
+  else
+    this->send_user_join(muc_name, new_nick, jid_to);
 }

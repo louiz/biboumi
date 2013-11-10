@@ -30,10 +30,15 @@ public:
    **
    **/
 
-  void join_irc_channel(const Iid& iid, const std::string& username);
+  /**
+   * Try to join an irc_channel, does nothing and return true if the channel
+   * was already joined.
+   */
+  bool join_irc_channel(const Iid& iid, const std::string& username);
   void send_channel_message(const Iid& iid, const std::string& body);
   void send_private_message(const Iid& iid, const std::string& body);
   void leave_irc_channel(Iid&& iid, std::string&& status_message);
+  void send_irc_nick_change(const Iid& iid, const std::string& new_nick);
 
   /***
    **
@@ -65,7 +70,17 @@ public:
   /**
    * Send an unavailable presence from this participant
    */
-  void send_muc_leave(Iid&& iid, std::string&& nick, std::string&& message, const bool self);
+  void send_muc_leave(Iid&& iid, std::string&& nick, const std::string& message, const bool self);
+  /**
+   * Send presences to indicate that an user old_nick (ourself if self ==
+   * true) changed his nick to new_nick
+   */
+  void send_nick_change(Iid&& iid, const std::string& old_nick, const std::string& new_nick, const bool self);
+
+  /**
+   * Misc
+   */
+  std::string get_own_nick(const Iid& iid);
 
 private:
   /**

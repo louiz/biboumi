@@ -53,6 +53,12 @@ IrcChannel* IrcClient::get_channel(const std::string& name)
     }
 }
 
+bool IrcClient::is_channel_joined(const std::string& name)
+{
+  IrcChannel* client = this->get_channel(name);
+  return client->joined;
+}
+
 std::string IrcClient::get_own_nick() const
 {
   return this->current_nick;
@@ -91,6 +97,8 @@ void IrcClient::parse_in_buffer()
         this->on_part(message);
       else if (message.command == "QUIT")
         this->on_quit(message);
+      else if (message.command == "NICK")
+        this->on_nick(message);
     }
 }
 
@@ -128,11 +136,9 @@ void IrcClient::send_nick_command(const std::string& nick)
 void IrcClient::send_join_command(const std::string& chan_name)
 {
   if (this->welcomed == false)
-    {
-      this->channels_to_join.push_back(chan_name);
-      return ;
-    }
-  this->send_message(IrcMessage("JOIN", {chan_name}));
+    this->channels_to_join.push_back(chan_name);
+  else
+    this->send_message(IrcMessage("JOIN", {chan_name}));
 }
 
 bool IrcClient::send_channel_message(const std::string& chan_name, const std::string& body)
@@ -288,7 +294,34 @@ void IrcClient::on_quit(const IrcMessage& message)
           Iid iid;
           iid.chan = chan_name;
           iid.server = this->hostname;
-          this->bridge->send_muc_leave(std::move(iid), std::move(nick), std::move(txt), false);
+          this->bridge->send_muc_leave(std::move(iid), std::move(nick), txt, false);
         }
     }
 }
+
+void IrcClient::on_nick(const IrcMessage& message)
+{
+  const std::string new_nick = message.arguments[0];
+  for (auto it = this->channels.begin(); it != this->channels.end(); ++it)
+    {
+      const std::string chan_name = it->first;
+      IrcChannel* channel = it->second.get();
+      IrcUser* user = channel->find_user(message.prefix);
+      if (user)
+        {
+          std::string old_nick = user->nick;
+          Iid iid;
+          iid.chan = chan_name;
+          iid.server = this->hostname;
+          bool self = channel->get_self()->nick == old_nick;
+          this->bridge->send_nick_change(std::move(iid), old_nick, new_nick, self);
+          user->nick = new_nick;
+          if (self)
+            {
+              channel->get_self()->nick = new_nick;
+              this->current_nick = new_nick;
+            }
+        }
+    }
+}
+

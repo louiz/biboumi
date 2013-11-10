@@ -59,10 +59,15 @@ IrcClient* Bridge::get_irc_client(const std::string& hostname)
     }
 }
 
-void Bridge::join_irc_channel(const Iid& iid, const std::string& username)
+bool Bridge::join_irc_channel(const Iid& iid, const std::string& username)
 {
   IrcClient* irc = this->get_irc_client(iid.server, username);
-  irc->send_join_command(iid.chan);
+  if (irc->is_channel_joined(iid.chan) == false)
+    {
+      irc->send_join_command(iid.chan);
+      return true;
+    }
+  return false;
 }
 
 void Bridge::send_channel_message(const Iid& iid, const std::string& body)
@@ -103,6 +108,13 @@ void Bridge::leave_irc_channel(Iid&& iid, std::string&& status_message)
     irc->send_part_command(iid.chan, status_message);
 }
 
+void Bridge::send_irc_nick_change(const Iid& iid, const std::string& new_nick)
+{
+  IrcClient* irc = this->get_irc_client(iid.server);
+  if (irc)
+    irc->send_nick_command(new_nick);
+}
+
 void Bridge::send_message(const Iid& iid, const std::string& nick, const std::string& body, const bool muc)
 {
   std::string utf8_body = this->sanitize_for_xmpp(body);
@@ -118,9 +130,15 @@ void Bridge::send_message(const Iid& iid, const std::string& nick, const std::st
     this->xmpp->send_message(iid.chan + "%" + iid.server, utf8_body, this->user_jid);
 }
 
-void Bridge::send_muc_leave(Iid&& iid, std::string&& nick, std::string&& message, const bool self)
+void Bridge::send_muc_leave(Iid&& iid, std::string&& nick, const std::string& message, const bool self)
 {
   this->xmpp->send_muc_leave(std::move(iid.chan) + "%" + std::move(iid.server), std::move(nick), this->sanitize_for_xmpp(message), this->user_jid, self);
+}
+
+void Bridge::send_nick_change(Iid&& iid, const std::string& old_nick, const std::string& new_nick, const bool self)
+{
+  this->xmpp->send_nick_change(std::move(iid.chan) + "%" + std::move(iid.server),
+                               old_nick, new_nick, this->user_jid, self);
 }
 
 void Bridge::send_xmpp_message(const std::string& from, const std::string& author, const std::string& msg)
@@ -146,4 +164,12 @@ void Bridge::send_self_join(const std::string& hostname, const std::string& chan
 void Bridge::send_topic(const std::string& hostname, const std::string& chan_name, const std::string topic)
 {
   this->xmpp->send_topic(chan_name + "%" + hostname, this->sanitize_for_xmpp(topic), this->user_jid);
+}
+
+std::string Bridge::get_own_nick(const Iid& iid)
+{
+  IrcClient* irc = this->get_irc_client(iid.server);
+  if (irc)
+    return irc->get_own_nick();
+  return "";
 }

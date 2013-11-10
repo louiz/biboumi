@@ -45,6 +45,10 @@ public:
    */
   IrcChannel* get_channel(const std::string& name);
   /**
+   * Returns true if the channel is joined
+   */
+  bool is_channel_joined(const std::string& name);
+  /**
    * Return our own nick
    */
   std::string get_own_nick() const;
@@ -67,7 +71,7 @@ public:
    */
   void send_nick_command(const std::string& username);
   /**
-   * Send the JOIN irc command
+   * Send the JOIN irc command.
    */
   void send_join_command(const std::string& chan_name);
   /**
@@ -118,6 +122,10 @@ public:
    * When a PART message is received
    */
   void on_part(const IrcMessage& message);
+  /**
+   * When a NICK message is received
+   */
+  void on_nick(const IrcMessage& message);
   /**
    * When a QUIT message is received
    */

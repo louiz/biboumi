@@ -80,6 +80,10 @@ public:
    */
   void send_muc_leave(std::string&& muc_name, std::string&& nick, std::string&& message, const std::string& jid_to, const bool self);
   /**
+   * Indicate that a participant changed his nick
+   */
+  void send_nick_change(const std::string& muc_name, const std::string& old_nick, const std::string& new_nick, const std::string& jid_to, const bool self);
+  /**
    * Handle the various stanza types
    */
   void handle_handshake(const Stanza& stanza);
