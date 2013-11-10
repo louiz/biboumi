@@ -4,8 +4,10 @@
 #include <network/poller.hpp>
 #include <utils/encoding.hpp>
 
-
 #include <iostream>
+
+static const char* action_prefix = "\01ACTION ";
+static const size_t action_prefix_len = 8;
 
 Bridge::Bridge(const std::string& user_jid, XmppComponent* xmpp, Poller* poller):
   user_jid(user_jid),
@@ -76,7 +78,10 @@ void Bridge::send_channel_message(const Iid& iid, const std::string& body)
       std::cout << "Cannot send message: no client exist for server " << iid.server << std::endl;
       return;
     }
-  irc->send_channel_message(iid.chan, body);
+  if (body.substr(0, 4) == "/me ")
+    irc->send_channel_message(iid.chan, action_prefix + body.substr(4) + "\01");
+  else
+    irc->send_channel_message(iid.chan, body);
   // We do not need to convert body to utf-8: it comes from our XMPP server,
   // so it's ok to send it back
   this->xmpp->send_muc_message(iid.chan + "%" + iid.server, irc->get_own_nick(), body, this->user_jid);
@@ -91,7 +96,16 @@ void Bridge::leave_irc_channel(Iid&& iid, std::string&& status_message)
 
 void Bridge::send_muc_message(const Iid& iid, const std::string& nick, const std::string& body)
 {
-  this->xmpp->send_muc_message(iid.chan + "%" + iid.server, nick, this->sanitize_for_xmpp(body), this->user_jid);
+  const std::string& utf8_body = this->sanitize_for_xmpp(body);
+  if (utf8_body.substr(0, action_prefix_len) == action_prefix)
+    { // Special case for ACTION (/me) messages:
+      // "\01ACTION goes out\01" == "/me goes out"
+      this->xmpp->send_muc_message(iid.chan + "%" + iid.server, nick,
+        std::string("/me ") + utf8_body.substr(action_prefix_len, utf8_body.size() - action_prefix_len - 1),
+        this->user_jid);
+    }
+  else
+    this->xmpp->send_muc_message(iid.chan + "%" + iid.server, nick, utf8_body, this->user_jid);
 }
 
 void Bridge::send_muc_leave(Iid&& iid, std::string&& nick, std::string&& message, const bool self)
