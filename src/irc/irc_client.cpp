@@ -147,6 +147,11 @@ bool IrcClient::send_channel_message(const std::string& chan_name, const std::st
   return true;
 }
 
+void IrcClient::send_private_message(const std::string& username, const std::string& body)
+{
+  this->send_message(IrcMessage("PRIVMSG", {username, body}));
+}
+
 void IrcClient::send_part_command(const std::string& chan_name, const std::string& status_message)
 {
   IrcChannel* channel = this->get_channel(chan_name);
@@ -211,7 +216,13 @@ void IrcClient::on_channel_message(const IrcMessage& message)
   iid.chan = message.arguments[0];
   iid.server = this->hostname;
   const std::string body = message.arguments[1];
-  this->bridge->send_muc_message(iid, nick, body);
+  bool muc = true;
+  if (!this->get_channel(iid.chan)->joined)
+    {
+      iid.chan = nick;
+      muc = false;
+    }
+  this->bridge->send_message(iid, nick, body, muc);
 }
 
 void IrcClient::on_topic_received(const IrcMessage& message)

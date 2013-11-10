@@ -87,6 +87,15 @@ void Bridge::send_channel_message(const Iid& iid, const std::string& body)
   this->xmpp->send_muc_message(iid.chan + "%" + iid.server, irc->get_own_nick(), body, this->user_jid);
 }
 
+void Bridge::send_private_message(const Iid& iid, const std::string& body)
+{
+  if (iid.chan.empty() || iid.server.empty())
+    return ;
+  IrcClient* irc = this->get_irc_client(iid.server);
+  if (irc)
+    irc->send_private_message(iid.chan, body);
+}
+
 void Bridge::leave_irc_channel(Iid&& iid, std::string&& status_message)
 {
   IrcClient* irc = this->get_irc_client(iid.server);
@@ -94,18 +103,19 @@ void Bridge::leave_irc_channel(Iid&& iid, std::string&& status_message)
     irc->send_part_command(iid.chan, status_message);
 }
 
-void Bridge::send_muc_message(const Iid& iid, const std::string& nick, const std::string& body)
+void Bridge::send_message(const Iid& iid, const std::string& nick, const std::string& body, const bool muc)
 {
-  const std::string& utf8_body = this->sanitize_for_xmpp(body);
+  std::string utf8_body = this->sanitize_for_xmpp(body);
   if (utf8_body.substr(0, action_prefix_len) == action_prefix)
     { // Special case for ACTION (/me) messages:
       // "\01ACTION goes out\01" == "/me goes out"
-      this->xmpp->send_muc_message(iid.chan + "%" + iid.server, nick,
-        std::string("/me ") + utf8_body.substr(action_prefix_len, utf8_body.size() - action_prefix_len - 1),
-        this->user_jid);
+      utf8_body = std::string("/me ") +
+        utf8_body.substr(action_prefix_len, utf8_body.size() - action_prefix_len - 1);
     }
-  else
+  if (muc)
     this->xmpp->send_muc_message(iid.chan + "%" + iid.server, nick, utf8_body, this->user_jid);
+  else
+    this->xmpp->send_message(iid.chan + "%" + iid.server, utf8_body, this->user_jid);
 }
 
 void Bridge::send_muc_leave(Iid&& iid, std::string&& nick, std::string&& message, const bool self)

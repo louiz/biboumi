@@ -188,6 +188,11 @@ void XmppComponent::handle_message(const Stanza& stanza)
         if (body && !body->get_inner().empty())
           bridge->send_channel_message(iid, body->get_inner());
     }
+  else
+    {
+      if (body && !body->get_inner().empty())
+        bridge->send_private_message(iid, body->get_inner());
+    }
 }
 
 Bridge* XmppComponent::get_user_bridge(const std::string& user_jid)

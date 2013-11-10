@@ -32,6 +32,7 @@ public:
 
   void join_irc_channel(const Iid& iid, const std::string& username);
   void send_channel_message(const Iid& iid, const std::string& body);
+  void send_private_message(const Iid& iid, const std::string& body);
   void leave_irc_channel(Iid&& iid, std::string&& status_message);
 
   /***
@@ -60,7 +61,7 @@ public:
   /**
    * Send a MUC message from some participant
    */
-  void send_muc_message(const Iid& iid, const std::string& nick, const std::string& body);
+  void send_message(const Iid& iid, const std::string& nick, const std::string& body, const bool muc);
   /**
    * Send an unavailable presence from this participant
    */

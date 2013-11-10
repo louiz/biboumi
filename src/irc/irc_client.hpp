@@ -76,6 +76,10 @@ public:
    */
   bool send_channel_message(const std::string& chan_name, const std::string& body);
   /**
+   * Send a PRIVMSG command for an user
+   */
+  void send_private_message(const std::string& username, const std::string& body);
+  /**
    * Send the PART irc command
    */
   void send_part_command(const std::string& chan_name, const std::string& status_message);
