@@ -33,6 +33,14 @@ add_library(utils STATIC ${source_utils})
 target_link_libraries(utils ${ICONV_LIBRARIES})
 
 #
+## config
+#
+file(GLOB source_config
+  src/config/*.[hc]pp)
+add_library(config STATIC ${source_config})
+target_link_libraries(config utils)
+
+#
 ## network
 #
 file(GLOB source_network
@@ -64,11 +72,16 @@ file(GLOB source_bridge
 add_library(bridge STATIC ${source_bridge})
 target_link_libraries(bridge xmpp irc)
 
+#
+## Main executable
+#
 add_executable(${PROJECT_NAME} src/main.cpp)
 target_link_libraries(${PROJECT_NAME}
   xmpp
   irc
-  bridge)
+  bridge
+  utils
+  config)
 
 #
 ## Tests
@@ -79,6 +92,7 @@ target_link_libraries(test
   xmpp
   irc
   bridge
-  utils)
+  utils
+  config)
 
 CONFIGURE_FILE(config.h.cmake src/config.h @ONLY)

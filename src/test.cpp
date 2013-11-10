@@ -10,6 +10,8 @@
 #include <utils/encoding.hpp>
 #include <string.h>
 
+#include <config/config.hpp>
+
 #include <xmpp/xmpp_parser.hpp>
 
 int main()
@@ -49,7 +51,7 @@ int main()
    * XML parsing
    */
   XmppParser xml;
-  const std::string doc = "<stream xmlns='stream_ns'><stanza b='c'>inner<child1/><child2 xmlns='child2_ns'/>tail</stanza></stream>";
+  const std::string doc = "<stream xmlns='stream_ns'><stanza b='c'>inner<child1><grandchild/></child1><child2 xmlns='child2_ns'/>tail</stanza></stream>";
   xml.add_stanza_callback([](const Stanza& stanza)
       {
         assert(stanza.get_name() == "stream_ns:stanza");
@@ -62,5 +64,27 @@ int main()
         assert(stanza.get_child("child2_ns:child2")->get_tail() == "tail");
       });
   xml.feed(doc.data(), doc.size(), true);
+
+  /**
+   * Config
+   */
+  Config::filename = "test.cfg";
+  Config::file_must_exist = false;
+  Config::set("coucou", "bonjour");
+  Config::close();
+
+  bool error = false;
+  try
+    {
+      Config::file_must_exist = true;
+      assert(Config::get("coucou", "") == "bonjour");
+      assert(Config::get("does not exist", "default") == "default");
+      Config::close();
+    }
+  catch (const std::ios::failure& e)
+    {
+      error = true;
+    }
+  assert(error == false);
   return 0;
 }
