@@ -10,7 +10,7 @@
 #include <utils/encoding.hpp>
 #include <string.h>
 
-#include <fstream>
+#include <xmpp/xmpp_parser.hpp>
 
 int main()
 {
@@ -44,5 +44,23 @@ int main()
   std::string coucou("\u0002\u0002COUCOU\u0003");
   remove_irc_colors(coucou);
   assert(coucou == "COUCOU");
+
+  /**
+   * XML parsing
+   */
+  XmppParser xml;
+  const std::string doc = "<stream xmlns='stream_ns'><stanza b='c'>inner<child1/><child2 xmlns='child2_ns'/>tail</stanza></stream>";
+  xml.add_stanza_callback([](const Stanza& stanza)
+      {
+        assert(stanza.get_name() == "stream_ns:stanza");
+        assert(stanza["b"] == "c");
+        assert(stanza.get_inner() == "inner");
+        assert(stanza.get_tail() == "");
+        assert(stanza.get_child("stream_ns:child1") != nullptr);
+        assert(stanza.get_child("stream_ns:child2") == nullptr);
+        assert(stanza.get_child("child2_ns:child2") != nullptr);
+        assert(stanza.get_child("child2_ns:child2")->get_tail() == "tail");
+      });
+  xml.feed(doc.data(), doc.size(), true);
   return 0;
 }

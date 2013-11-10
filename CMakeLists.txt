@@ -13,11 +13,14 @@ set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Og -fsanitize=address")
 #
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 find_package(Cryptopp REQUIRED)
+include(FindEXPAT)
+find_package(EXPAT REQUIRED)
 
 include_directories("src/")
 # the SYSTEM flag tells the compiler that we don't care about warnings
 # coming from these headers.
 include_directories(SYSTEM ${CRYPTO++_INCLUDE_DIR})
+include_directories(SYSTEM ${EXPAT_INCLUDE_DIRS})
 
 #
 ## utils
@@ -47,7 +50,8 @@ target_link_libraries(irc network utils)
 file(GLOB source_xmpp
   src/xmpp/*.[hc]pp)
 add_library(xmpp STATIC ${source_xmpp})
-target_link_libraries(xmpp bridge network utils ${CRYPTO++_LIBRARIES} expatpp)
+target_link_libraries(xmpp bridge network utils
+  ${CRYPTO++_LIBRARIES} ${EXPAT_LIBRARIES})
 
 #
 ## bridge

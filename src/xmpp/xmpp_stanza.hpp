@@ -5,8 +5,6 @@
 #include <string>
 #include <vector>
 
-#include <expatpp.h>
-
 std::string xml_escape(const std::string& data);
 
 /**
@@ -52,15 +50,29 @@ public:
    */
   void set_tail(const std::string& data);
   /**
-   * Set the content of the inner, that is the text inside this node
-   * TODO: escape it here.
+   * Append the given data to the content of the tail. This exists because
+   * the expat library may provide the complete text of an element in more
+   * than one call
+   */
+  void add_to_tail(const std::string& data);
+  /**
+   * Set the content of the inner, that is the text inside this node.
    */
   void set_inner(const std::string& data);
+  /**
+   * Append the given data to the content of the inner. For the reason
+   * described in add_to_tail comment.
+   */
+  void add_to_inner(const std::string& data);
   /**
    * Get the content of inner
    * TODO: unescape it here.
    */
   std::string get_inner() const;
+  /**
+   * Get the content of the tail
+   */
+  std::string get_tail() const;
   /**
    * Get a pointer to the first child element with that name
    */

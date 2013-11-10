@@ -1,21 +1,56 @@
 #include <xmpp/xmpp_parser.hpp>
 #include <xmpp/xmpp_stanza.hpp>
 
-#include <iostream>
+/**
+ * Expat handlers. Called by the Expat library, never by ourself.
+ * They just forward the call to the XmppParser corresponding methods.
+ */
+
+static void start_element_handler(void* user_data, const XML_Char* name, const XML_Char** atts)
+{
+  static_cast<XmppParser*>(user_data)->start_element(name, atts);
+}
+
+static void end_element_handler(void* user_data, const XML_Char* name)
+{
+  static_cast<XmppParser*>(user_data)->end_element(name);
+}
+
+static void character_data_handler(void *user_data, const XML_Char *s, int len)
+{
+  static_cast<XmppParser*>(user_data)->char_data(s, len);
+}
+
+/**
+ * XmppParser class
+ */
 
 XmppParser::XmppParser():
   level(0),
   current_node(nullptr)
 {
+  // Create the expat parser
+  this->parser = XML_ParserCreateNS("UTF-8", ':');
+  XML_SetUserData(this->parser, static_cast<void*>(this));
+
+  // Install Expat handlers
+  XML_SetElementHandler(this->parser, &start_element_handler, &end_element_handler);
+  XML_SetCharacterDataHandler(this->parser, &character_data_handler);
 }
 
 XmppParser::~XmppParser()
 {
   if (this->current_node)
     delete this->current_node;
+  XML_ParserFree(this->parser);
 }
 
-void XmppParser::startElement(const XML_Char* name, const XML_Char** attribute)
+void XmppParser::feed(const char* data, const int len, const bool is_final)
+{
+  XML_Parse(this->parser, data, len, is_final);
+}
+
+void XmppParser::start_element(const XML_Char* name, const XML_Char** attribute)
 {
   level++;
 
@@ -29,9 +64,9 @@ void XmppParser::startElement(const XML_Char* name, const XML_Char** attribute)
     this->stream_open_event(*this->current_node);
 }
 
-void XmppParser::endElement(const XML_Char* name)
+void XmppParser::end_element(const XML_Char* name)
 {
-  assert(name == this->current_node->get_name());
+  (void)name;
   level--;
   this->current_node->close();
   if (level == 1)
@@ -50,18 +85,12 @@ void XmppParser::endElement(const XML_Char* name)
     this->current_node->delete_all_children();
 }
 
-void XmppParser::charData(const XML_Char* data, int len)
+void XmppParser::char_data(const XML_Char* data, int len)
 {
   if (this->current_node->has_children())
-    this->current_node->get_last_child()->set_tail(std::string(data, len));
+    this->current_node->get_last_child()->add_to_tail(std::string(data, len));
   else
-    this->current_node->set_inner(std::string(data, len));
-}
-
-void XmppParser::startNamespace(const XML_Char* prefix, const XML_Char* uri)
-{
-  std::cout << "startNamespace: " << prefix << ":" << uri << std::endl;
-  this->namespaces.emplace(std::make_pair(prefix, uri));
+    this->current_node->add_to_inner(std::string(data, len));
 }
 
 void XmppParser::stanza_event(const Stanza& stanza) const
@@ -80,11 +109,6 @@ void XmppParser::stream_close_event(const XmlNode& node) const
 {
   for (const auto& callback: this->stream_close_callbacks)
     callback(node);
-}
-
-void XmppParser::endNamespace(const XML_Char* coucou)
-{
-  std::cout << "endNamespace: " << coucou << std::endl;
 }
 
 void XmppParser::add_stanza_callback(std::function<void(const Stanza&)>&& callback)

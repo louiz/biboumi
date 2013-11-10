@@ -10,6 +10,15 @@
 #include <hex.h>
 #include <sha.h>
 
+#define STREAM_NS        "http://etherx.jabber.org/streams"
+#define COMPONENT_NS     "jabber:component:accept"
+#define MUC_NS           "http://jabber.org/protocol/muc"
+#define MUC_USER_NS      MUC_NS"#user"
+#define DISCO_NS         "http://jabber.org/protocol/disco"
+#define DISCO_ITEMS_NS   DISCO_NS"#items"
+#define DISCO_INFO_NS    DISCO_NS"#info"
+
+
 XmppComponent::XmppComponent(const std::string& hostname, const std::string& secret):
   served_hostname(hostname),
   secret(secret),
@@ -21,11 +30,11 @@ XmppComponent::XmppComponent(const std::string& hostname, const std::string& sec
                                                   std::placeholders::_1));
   this->parser.add_stream_close_callback(std::bind(&XmppComponent::on_remote_stream_close, this,
                                                   std::placeholders::_1));
-  this->stanza_handlers.emplace("handshake",
+  this->stanza_handlers.emplace(COMPONENT_NS":handshake",
                                 std::bind(&XmppComponent::handle_handshake, this,std::placeholders::_1));
-  this->stanza_handlers.emplace("presence",
+  this->stanza_handlers.emplace(COMPONENT_NS":presence",
                                 std::bind(&XmppComponent::handle_presence, this,std::placeholders::_1));
-  this->stanza_handlers.emplace("message",
+  this->stanza_handlers.emplace(COMPONENT_NS":message",
                                 std::bind(&XmppComponent::handle_message, this,std::placeholders::_1));
 }
 
@@ -49,8 +58,8 @@ void XmppComponent::on_connected()
 {
   std::cout << "connected to XMPP server" << std::endl;
   XmlNode node("stream:stream", nullptr);
-  node["xmlns"] = "jabber:component:accept";
-  node["xmlns:stream"] = "http://etherx.jabber.org/streams";
+  node["xmlns"] = COMPONENT_NS;
+  node["xmlns:stream"] = STREAM_NS;
   node["to"] = "irc.abricot";
   this->send_stanza(node);
 }
@@ -62,7 +71,7 @@ void XmppComponent::on_connection_close()
 
 void XmppComponent::parse_in_buffer()
 {
-  this->parser.XML_Parse(this->in_buf.data(), this->in_buf.size(), false);
+  this->parser.feed(this->in_buf.data(), this->in_buf.size(), false);
   this->in_buf.clear();
 }
 
@@ -122,7 +131,7 @@ void XmppComponent::send_stream_error(const std::string& name, const std::string
 {
   XmlNode node("stream:error", nullptr);
   XmlNode error(name, nullptr);
-  error["xmlns"] = "urn:ietf:params:xml:ns:xmpp-streams";
+  error["xmlns"] = STREAM_NS;
   if (!explanation.empty())
     error.set_inner(explanation);
   error.close();
@@ -161,7 +170,7 @@ void XmppComponent::handle_presence(const Stanza& stanza)
         bridge->join_irc_channel(iid, to.resource);
       else if (type == "unavailable")
         {
-          XmlNode* status = stanza.get_child("status");
+          XmlNode* status = stanza.get_child(MUC_USER_NS":status");
           bridge->leave_irc_channel(std::move(iid), status ? std::move(status->get_inner()) : "");
         }
     }
@@ -172,7 +181,7 @@ void XmppComponent::handle_message(const Stanza& stanza)
   Bridge* bridge = this->get_user_bridge(stanza["from"]);
   Jid to(stanza["to"]);
   Iid iid(to.local);
-  XmlNode* body = stanza.get_child("body");
+  XmlNode* body = stanza.get_child(COMPONENT_NS":body");
   if (stanza["type"] == "groupchat")
     {
       if (to.resource.empty())
@@ -214,7 +223,7 @@ void XmppComponent::send_user_join(const std::string& from, const std::string& n
   node["from"] = from + "@" + this->served_hostname + "/" + nick;
 
   XmlNode x("x");
-  x["xmlns"] = "http://jabber.org/protocol/muc#user";
+  x["xmlns"] = MUC_USER_NS;
 
   // TODO: put real values here
   XmlNode item("item");
@@ -235,7 +244,7 @@ void XmppComponent::send_self_join(const std::string& from, const std::string& n
   node["from"] = from + "@" + this->served_hostname + "/" + nick;
 
   XmlNode x("x");
-  x["xmlns"] = "http://jabber.org/protocol/muc#user";
+  x["xmlns"] = MUC_USER_NS;
 
   // TODO: put real values here
   XmlNode item("item");
