@@ -44,7 +44,7 @@ XmppComponent::~XmppComponent()
 
 void XmppComponent::start()
 {
-  this->connect(this->served_hostname, "5347");
+  this->connect("127.0.0.1", "5347");
 }
 
 void XmppComponent::send_stanza(const Stanza& stanza)
@@ -60,7 +60,7 @@ void XmppComponent::on_connected()
   XmlNode node("stream:stream", nullptr);
   node["xmlns"] = COMPONENT_NS;
   node["xmlns:stream"] = STREAM_NS;
-  node["to"] = "irc.abricot";
+  node["to"] = this->served_hostname;
   this->send_stanza(node);
 }
 
