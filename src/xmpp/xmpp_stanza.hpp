@@ -6,6 +6,7 @@
 #include <vector>
 
 std::string xml_escape(const std::string& data);
+std::string xml_unescape(const std::string& data);
 
 /**
  * Raised on operator[] when the attribute does not exist
@@ -66,7 +67,6 @@ public:
   void add_to_inner(const std::string& data);
   /**
    * Get the content of inner
-   * TODO: unescape it here.
    */
   std::string get_inner() const;
   /**
