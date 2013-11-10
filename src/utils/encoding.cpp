@@ -75,10 +75,15 @@ namespace utils
     // Make sure cd is always closed when we leave this function
     ScopeGuard sg([&]{ iconv_close(cd); });
 
-    // iconv will not attempt to modify this buffer, but it still requires
-    // a char**.
     size_t inbytesleft = str.size();
+
+    // iconv will not attempt to modify this buffer, but some plateform
+    // require a char** anyway
+#ifdef ICONV_SECOND_ARGUMENT_IS_CONST
+    const char* inbuf_ptr = str.c_str();
+#else
     char* inbuf_ptr = const_cast<char*>(str.c_str());
+#endif
 
     size_t outbytesleft = str.size() * 4;
     char* outbuf = new char[outbytesleft];

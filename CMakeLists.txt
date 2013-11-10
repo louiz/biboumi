@@ -13,14 +13,16 @@ set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Og -fsanitize=address")
 #
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 find_package(Cryptopp REQUIRED)
+find_package(Iconv REQUIRED)
 include(FindEXPAT)
 find_package(EXPAT REQUIRED)
 
 include_directories("src/")
+include_directories(${EXPAT_INCLUDE_DIRS})
+include_directories(${ICONV_INCLUDE_DIR})
 # the SYSTEM flag tells the compiler that we don't care about warnings
 # coming from these headers.
 include_directories(SYSTEM ${CRYPTO++_INCLUDE_DIR})
-include_directories(SYSTEM ${EXPAT_INCLUDE_DIRS})
 
 #
 ## utils
@@ -28,6 +30,7 @@ include_directories(SYSTEM ${EXPAT_INCLUDE_DIRS})
 file(GLOB source_utils
   src/utils/*.[hc]pp)
 add_library(utils STATIC ${source_utils})
+target_link_libraries(utils ${ICONV_LIBRARIES})
 
 #
 ## network
