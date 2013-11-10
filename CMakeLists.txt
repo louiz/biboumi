@@ -81,4 +81,4 @@ target_link_libraries(test
   bridge
   utils)
 
-CONFIGURE_FILE(config.h.cmake config.h @ONLY)
+CONFIGURE_FILE(config.h.cmake src/config.h @ONLY)
