@@ -74,31 +74,11 @@ void IrcClient::parse_in_buffer()
       IrcMessage message(this->in_buf.substr(0, pos));
       this->in_buf = this->in_buf.substr(pos + 2, std::string::npos);
       std::cout << message << std::endl;
-      // TODO map function and command name properly
-      if (message.command == "PING")
-        this->send_pong_command(message);
-      else if (message.command == "NOTICE" ||
-               message.command == "375" ||
-               message.command == "372")
-        this->forward_server_message(message);
-      else if (message.command == "JOIN")
-        this->on_channel_join(message);
-      else if (message.command == "PRIVMSG")
-        this->on_channel_message(message);
-      else if (message.command == "353")
-        this->set_and_forward_user_list(message);
-      else if (message.command == "332")
-        this->on_topic_received(message);
-      else if (message.command == "366")
-        this->on_channel_completely_joined(message);
-      else if (message.command == "001")
-        this->on_welcome_message(message);
-      else if (message.command == "PART")
-        this->on_part(message);
-      else if (message.command == "QUIT")
-        this->on_quit(message);
-      else if (message.command == "NICK")
-        this->on_nick(message);
+      auto cb = irc_callbacks.find(message.command);
+      if (cb != irc_callbacks.end())
+        (this->*(cb->second))(message);
+      else
+        std::cout << "No handler for command " << message.command << std::endl;
     }
 }
 

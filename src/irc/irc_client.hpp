@@ -167,11 +167,33 @@ private:
    */
   std::vector<std::string> channels_to_join;
   bool welcomed;
-
   IrcClient(const IrcClient&) = delete;
   IrcClient(IrcClient&&) = delete;
   IrcClient& operator=(const IrcClient&) = delete;
   IrcClient& operator=(IrcClient&&) = delete;
+};
+
+/**
+ * Define a map of functions to be called for each IRC command we can
+ * handle.
+ */
+typedef void (IrcClient::*irc_callback_t)(const IrcMessage&);
+
+static const std::unordered_map<std::string, irc_callback_t> irc_callbacks = {
+  {"NOTICE", &IrcClient::forward_server_message},
+  {"375", &IrcClient::forward_server_message},
+  {"372", &IrcClient::forward_server_message},
+  {"JOIN", &IrcClient::on_channel_join},
+  {"PRIVMSG", &IrcClient::on_channel_message},
+  {"353", &IrcClient::set_and_forward_user_list},
+  {"332", &IrcClient::on_topic_received},
+  {"366", &IrcClient::on_channel_completely_joined},
+  {"001", &IrcClient::on_welcome_message},
+  {"PART", &IrcClient::on_part},
+  {"QUIT", &IrcClient::on_quit},
+  {"NICK", &IrcClient::on_nick},
+  {"MODE", &IrcClient::on_mode},
+  {"PING", &IrcClient::send_pong_command},
 };
 
 #endif // IRC_CLIENT_INCLUDED
