@@ -162,9 +162,15 @@ void IrcClient::send_part_command(const std::string& chan_name, const std::strin
 {
   IrcChannel* channel = this->get_channel(chan_name);
   if (channel->joined == true)
-    {
-      this->send_message(IrcMessage("PART", {chan_name, status_message}));
-    }
+    this->send_message(IrcMessage("PART", {chan_name, status_message}));
+}
+
+void IrcClient::send_mode_command(const std::string& chan_name, const std::vector<std::string>& arguments)
+{
+  std::vector<std::string> args(arguments);
+  args.insert(args.begin(), chan_name);
+  IrcMessage m("MODE", std::move(args));
+  this->send_message(std::move(m));
 }
 
 void IrcClient::send_pong_command(const IrcMessage& message)
@@ -325,3 +331,34 @@ void IrcClient::on_nick(const IrcMessage& message)
     }
 }
 
+void IrcClient::on_mode(const IrcMessage& message)
+{
+  const std::string target = message.arguments[0];
+  if (target[0] == '&' || target[0] == '#' ||
+      target[0] == '!' || target[0] == '+')
+    this->on_channel_mode(message);
+  else
+    this->on_user_mode(message);
+}
+
+void IrcClient::on_channel_mode(const IrcMessage& message)
+{
+  // For now, just transmit the modes so the user can know what happens
+  // TODO, actually interprete the mode.
+  Iid iid;
+  iid.chan = message.arguments[0];
+  iid.server = this->hostname;
+  IrcUser user(message.prefix);
+  this->bridge->send_message(iid, "", std::string("Mode ") + iid.chan +
+                                      " [" + message.arguments[1] +
+                                      (message.arguments.size() > 2 ? (" " + message.arguments[2]): "")
+                                      + "] by " + user.nick,
+                             true);
+}
+
+void IrcClient::on_user_mode(const IrcMessage& message)
+{
+  this->bridge->send_xmpp_message(this->hostname, "",
+                                  std::string("User mode for ") + message.arguments[0] +
+                                  " is [" + message.arguments[1] + "]");
+}

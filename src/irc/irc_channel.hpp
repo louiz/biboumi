@@ -26,7 +26,6 @@ public:
 private:
   std::unique_ptr<IrcUser> self;
   std::vector<std::unique_ptr<IrcUser>> users;
-
   IrcChannel(const IrcChannel&) = delete;
   IrcChannel(IrcChannel&&) = delete;
   IrcChannel& operator=(const IrcChannel&) = delete;

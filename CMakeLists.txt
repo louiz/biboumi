@@ -70,7 +70,7 @@ target_link_libraries(xmpp bridge network utils
 file(GLOB source_bridge
   src/bridge/*.[hc]pp)
 add_library(bridge STATIC ${source_bridge})
-target_link_libraries(bridge xmpp irc)
+target_link_libraries(bridge xmpp irc utils)
 
 #
 ## Main executable

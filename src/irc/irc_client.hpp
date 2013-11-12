@@ -88,6 +88,10 @@ public:
    */
   void send_part_command(const std::string& chan_name, const std::string& status_message);
   /**
+   * Send the MODE irc command
+   */
+  void send_mode_command(const std::string& chan_name, const std::vector<std::string>& arguments);
+  /**
    * Forward the server message received from IRC to the XMPP component
    */
   void forward_server_message(const IrcMessage& message);
@@ -118,17 +122,20 @@ public:
    * When a message 001 is received, join the rooms we wanted to join, and set our actual nickname
    */
   void on_welcome_message(const IrcMessage& message);
-  /**
-   * When a PART message is received
-   */
   void on_part(const IrcMessage& message);
-  /**
-   * When a NICK message is received
-   */
   void on_nick(const IrcMessage& message);
+  void on_mode(const IrcMessage& message);
   /**
-   * When a QUIT message is received
+   * A mode towards our own user is received (note, that is different from a
+   * channel mode towards or own nick, see
+   * http://tools.ietf.org/html/rfc2812#section-3.1.5 VS #section-3.2.3)
    */
+  void on_user_mode(const IrcMessage& message);
+  /**
+   * A mode towards a channel. Note that this can change the mode of the
+   * channel itself or an IrcUser in it.
+   */
+  void on_channel_mode(const IrcMessage& message);
   void on_quit(const IrcMessage& message);
 
 private:

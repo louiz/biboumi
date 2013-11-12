@@ -294,7 +294,10 @@ void XmppComponent::send_muc_message(const std::string& muc_name, const std::str
 {
   Stanza message("message");
   message["to"] = jid_to;
-  message["from"] = muc_name + "@" + this->served_hostname + "/" + nick;
+  if (!nick.empty())
+    message["from"] = muc_name + "@" + this->served_hostname + "/" + nick;
+  else // Message from the room itself
+    message["from"] = muc_name + "@" + this->served_hostname;
   message["type"] = "groupchat";
   XmlNode body("body");
   body.set_inner(body_str);

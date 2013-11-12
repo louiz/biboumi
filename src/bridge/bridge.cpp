@@ -4,6 +4,7 @@
 #include <network/poller.hpp>
 #include <utils/encoding.hpp>
 
+#include <utils/split.hpp>
 #include <iostream>
 
 static const char* action_prefix = "\01ACTION ";
@@ -81,6 +82,12 @@ void Bridge::send_channel_message(const Iid& iid, const std::string& body)
   if (!irc)
     {
       std::cout << "Cannot send message: no client exist for server " << iid.server << std::endl;
+      return;
+    }
+  if (body.substr(0, 6) == "/mode ")
+    {
+      std::vector<std::string> args = utils::split(body.substr(6), ' ', false);
+      irc->send_mode_command(iid.chan, args);
       return;
     }
   if (body.substr(0, 4) == "/me ")
