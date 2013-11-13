@@ -84,11 +84,20 @@ public:
    */
   void send_nick_change(const std::string& muc_name, const std::string& old_nick, const std::string& new_nick, const std::string& jid_to, const bool self);
   /**
+   * An user is kicked from a room
+   */
+  void kick_user(const std::string& muc_name,
+                     const std::string& target,
+                     const std::string& reason,
+                     const std::string& author,
+                     const std::string& jid_to);
+  /**
    * Handle the various stanza types
    */
   void handle_handshake(const Stanza& stanza);
   void handle_presence(const Stanza& stanza);
   void handle_message(const Stanza& stanza);
+  void handle_iq(const Stanza& stanza);
 
 private:
   /**

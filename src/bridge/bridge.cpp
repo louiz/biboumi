@@ -122,6 +122,13 @@ void Bridge::send_irc_nick_change(const Iid& iid, const std::string& new_nick)
     irc->send_nick_command(new_nick);
 }
 
+void Bridge::send_irc_kick(const Iid& iid, const std::string& target, const std::string& reason)
+{
+  IrcClient* irc = this->get_irc_client(iid.server);
+  if (irc)
+    irc->send_kick_command(iid.chan, target, reason);
+}
+
 void Bridge::send_message(const Iid& iid, const std::string& nick, const std::string& body, const bool muc)
 {
   std::string utf8_body = this->sanitize_for_xmpp(body);
@@ -179,4 +186,9 @@ std::string Bridge::get_own_nick(const Iid& iid)
   if (irc)
     return irc->get_own_nick();
   return "";
+}
+
+void Bridge::kick_muc_user(Iid&& iid, const std::string& target, const std::string& reason, const std::string& author)
+{
+  this->xmpp->kick_user(iid.chan + "%" + iid.server, target, reason, author, this->user_jid);
 }

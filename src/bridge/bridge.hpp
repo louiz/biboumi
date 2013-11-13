@@ -39,6 +39,7 @@ public:
   void send_private_message(const Iid& iid, const std::string& body);
   void leave_irc_channel(Iid&& iid, std::string&& status_message);
   void send_irc_nick_change(const Iid& iid, const std::string& new_nick);
+  void send_irc_kick(const Iid& iid, const std::string& target, const std::string& reason);
 
   /***
    **
@@ -76,6 +77,7 @@ public:
    * true) changed his nick to new_nick
    */
   void send_nick_change(Iid&& iid, const std::string& old_nick, const std::string& new_nick, const bool self);
+  void kick_muc_user(Iid&& iid, const std::string& target, const std::string& reason, const std::string& author);
 
   /**
    * Misc

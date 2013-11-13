@@ -113,6 +113,11 @@ void IrcClient::send_nick_command(const std::string& nick)
   this->send_message(IrcMessage("NICK", {nick}));
 }
 
+void IrcClient::send_kick_command(const std::string& chan_name, const std::string& target, const std::string& reason)
+{
+  this->send_message(IrcMessage("KICK", {chan_name, target, reason}));
+}
+
 void IrcClient::send_join_command(const std::string& chan_name)
 {
   if (this->welcomed == false)
@@ -309,6 +314,21 @@ void IrcClient::on_nick(const IrcMessage& message)
             }
         }
     }
+}
+
+void IrcClient::on_kick(const IrcMessage& message)
+{
+  const std::string target = message.arguments[1];
+  const std::string reason = message.arguments[2];
+  const std::string chan_name = message.arguments[0];
+  IrcChannel* channel = this->get_channel(chan_name);
+  if (channel->get_self()->nick == target)
+    channel->joined = false;
+  IrcUser author(message.prefix);
+  Iid iid;
+  iid.chan = chan_name;
+  iid.server = this->hostname;
+  this->bridge->kick_muc_user(std::move(iid), target, reason, author.nick);
 }
 
 void IrcClient::on_mode(const IrcMessage& message)

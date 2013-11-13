@@ -14,6 +14,7 @@
 #define COMPONENT_NS     "jabber:component:accept"
 #define MUC_NS           "http://jabber.org/protocol/muc"
 #define MUC_USER_NS      MUC_NS"#user"
+#define MUC_ADMIN_NS     MUC_NS"#admin"
 #define DISCO_NS         "http://jabber.org/protocol/disco"
 #define DISCO_ITEMS_NS   DISCO_NS"#items"
 #define DISCO_INFO_NS    DISCO_NS"#info"
@@ -36,6 +37,8 @@ XmppComponent::XmppComponent(const std::string& hostname, const std::string& sec
                                 std::bind(&XmppComponent::handle_presence, this,std::placeholders::_1));
   this->stanza_handlers.emplace(COMPONENT_NS":message",
                                 std::bind(&XmppComponent::handle_message, this,std::placeholders::_1));
+  this->stanza_handlers.emplace(COMPONENT_NS":iq",
+                                std::bind(&XmppComponent::handle_iq, this,std::placeholders::_1));
 }
 
 XmppComponent::~XmppComponent()
@@ -201,6 +204,46 @@ void XmppComponent::handle_message(const Stanza& stanza)
     }
 }
 
+void XmppComponent::handle_iq(const Stanza& stanza)
+{
+  Bridge* bridge = this->get_user_bridge(stanza["from"]);
+  Jid to(stanza["to"]);
+  std::string type;
+  try {
+    type = stanza["type"];
+  }
+  catch (const AttributeNotFound&)
+    { return; }
+  if (type == "set")
+    {
+      XmlNode* query;
+      if ((query = stanza.get_child(MUC_ADMIN_NS":query")))
+        {
+          XmlNode* child;
+          if ((child = query->get_child(MUC_ADMIN_NS":item")))
+            {
+              std::string nick;
+              std::string role;
+              try {
+                nick = (*child)["nick"];
+                role = (*child)["role"];
+              }
+              catch (const AttributeNotFound&)
+                { return; }
+              if (!nick.empty() && role == "none")
+                {
+                  std::string reason;
+                  XmlNode* reason_el = child->get_child(MUC_ADMIN_NS":reason");
+                  if (reason_el)
+                    reason = reason_el->get_inner();
+                  Iid iid(to.local);
+                  bridge->send_irc_kick(iid, nick, reason);
+                }
+            }
+        }
+    }
+}
+
 Bridge* XmppComponent::get_user_bridge(const std::string& user_jid)
 {
   try
@@ -359,4 +402,40 @@ void XmppComponent::send_nick_change(const std::string& muc_name, const std::str
     this->send_self_join(muc_name, new_nick, jid_to);
   else
     this->send_user_join(muc_name, new_nick, jid_to);
+}
+
+void XmppComponent::kick_user(const std::string& muc_name,
+                                  const std::string& target,
+                                  const std::string& txt,
+                                  const std::string& author,
+                                  const std::string& jid_to)
+{
+  Stanza presence("presence");
+  presence["from"] = muc_name + "@" + this->served_hostname + "/" + target;
+  presence["to"] = jid_to;
+  presence["type"] = "unavailable";
+  XmlNode x("x");
+  x["xmlns"] = MUC_USER_NS;
+  XmlNode item("item");
+  item["affiliation"] = "none";
+  item["role"] = "none";
+  XmlNode actor("actor");
+  actor["nick"] = author;
+  actor["jid"] = author; // backward compatibility with old clients
+  actor.close();
+  item.add_child(std::move(actor));
+  XmlNode reason("reason");
+  reason.set_inner(txt);
+  reason.close();
+  item.add_child(std::move(reason));
+  item.close();
+  x.add_child(std::move(item));
+  XmlNode status("status");
+  status["code"] = "307";
+  status.close();
+  x.add_child(std::move(status));
+  x.close();
+  presence.add_child(std::move(x));
+  presence.close();
+  this->send_stanza(presence);
 }
