@@ -4,6 +4,8 @@
 #include <iostream>
 #include <sstream>
 
+#include <stdlib.h>
+
 std::string Config::filename = "./biboumi.cfg";
 bool Config::file_must_exist = false;
 
