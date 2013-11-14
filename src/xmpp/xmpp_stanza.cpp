@@ -42,7 +42,7 @@ std::string xml_unescape(const std::string& data)
   std::string res;
   res.reserve(data.size());
   const char* str = data.c_str();
-  while (str && *str && (str - data.c_str()) < data.size())
+  while (str && *str && static_cast<size_t>(str - data.c_str()) < data.size())
     {
       if (*str == '&')
         {
