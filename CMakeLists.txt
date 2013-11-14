@@ -62,7 +62,7 @@ file(GLOB source_xmpp
   src/xmpp/*.[hc]pp)
 add_library(xmpp STATIC ${source_xmpp})
 target_link_libraries(xmpp bridge network utils
-  ${CRYPTO++_LIBRARIES} ${EXPAT_LIBRARIES})
+  ${CRYPTO++_LIBRARIES} ${EXPAT_LIBRARIES} pthread)
 
 #
 ## bridge
