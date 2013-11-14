@@ -12,6 +12,7 @@
 
 #include <config/config.hpp>
 
+#include <xmpp/jid.hpp>
 #include <xmpp/xmpp_parser.hpp>
 
 int main()
@@ -64,6 +65,23 @@ int main()
         assert(stanza.get_child("child2_ns:child2")->get_tail() == "tail");
       });
   xml.feed(doc.data(), doc.size(), true);
+
+  /**
+   * JID parsing
+   */
+  // Full JID
+  Jid jid1("♥@ツ.coucou/coucou@coucou/coucou");
+  std::cerr << jid1.local << " @ " << jid1.domain << " / " << jid1.resource << std::endl;
+  assert(jid1.local == "♥");
+  assert(jid1.domain == "ツ.coucou");
+  assert(jid1.resource == "coucou@coucou/coucou");
+
+  // Domain and resource
+  Jid jid2("ツ.coucou/coucou@coucou/coucou");
+  std::cerr << jid2.local << " @ " << jid2.domain << " / " << jid2.resource << std::endl;
+  assert(jid2.local == "");
+  assert(jid2.domain == "ツ.coucou");
+  assert(jid2.resource == "coucou@coucou/coucou");
 
   /**
    * Config
