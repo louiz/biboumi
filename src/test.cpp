@@ -67,6 +67,13 @@ int main()
   xml.feed(doc.data(), doc.size(), true);
 
   /**
+   * XML escape/escape
+   */
+  const std::string unescaped = "'coucou'<cc>/&\"gaga\"";
+  assert(xml_escape(unescaped) == "&apos;coucou&apos;&lt;cc&gt;/&amp;&quot;gaga&quot;");
+  assert(xml_unescape(xml_escape(unescaped)) == unescaped);
+
+  /**
    * JID parsing
    */
   // Full JID
