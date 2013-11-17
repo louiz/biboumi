@@ -12,6 +12,13 @@ Poller::Poller()
 #if POLLER == POLL
   memset(this->fds, 0, sizeof(this->fds));
   this->nfds = 0;
+#elif POLLER == EPOLL
+  this->epfd = ::epoll_create1(0);
+  if (this->epfd == -1)
+    {
+      perror("epoll");
+      throw std::runtime_error("Could not create epoll instance");
+    }
 #endif
 }
 
@@ -36,6 +43,17 @@ void Poller::add_socket_handler(std::shared_ptr<SocketHandler> socket_handler)
   this->fds[this->nfds].events = POLLIN;
   this->nfds++;
 #endif
+#if POLLER == EPOLL
+  struct epoll_event event;
+  event.data.ptr = socket_handler.get();
+  event.events = EPOLLIN;
+  const int res = ::epoll_ctl(this->epfd, EPOLL_CTL_ADD, socket_handler->get_socket(), &event);
+  if (res == -1)
+    {
+      perror("epoll_ctl");
+      throw std::runtime_error("Could not add socket to epoll");
+    }
+#endif
 }
 
 void Poller::remove_socket_handler(const socket_t socket)
@@ -44,6 +62,8 @@ void Poller::remove_socket_handler(const socket_t socket)
   if (it == this->socket_handlers.end())
     throw std::runtime_error("Trying to remove a SocketHandler that is not managed");
   this->socket_handlers.erase(it);
+
+#if POLLER == POLL
   for (size_t i = 0; i < this->nfds; i++)
     {
       if (this->fds[i].fd == socket)
@@ -58,9 +78,17 @@ void Poller::remove_socket_handler(const socket_t socket)
           this->nfds--;
         }
     }
+#elif POLLER == EPOLL
+  const int res = ::epoll_ctl(this->epfd, EPOLL_CTL_DEL, socket, nullptr);
+  if (res == -1)
+    {
+      perror("epoll_ctl");
+      throw std::runtime_error("Could not remove socket from epoll");
+    }
+#endif
 }
 
-void Poller::watch_send_events(const SocketHandler* const socket_handler)
+void Poller::watch_send_events(SocketHandler* socket_handler)
 {
 #if POLLER == POLL
   for (size_t i = 0; i <= this->nfds; ++i)
@@ -71,11 +99,21 @@ void Poller::watch_send_events(const SocketHandler* const socket_handler)
           return;
         }
     }
-#endif
   throw std::runtime_error("Cannot watch a non-registered socket for send events");
+#elif POLLER == EPOLL
+  struct epoll_event event;
+  event.data.ptr = socket_handler;
+  event.events = EPOLLIN|EPOLLOUT;
+  const int res = ::epoll_ctl(this->epfd, EPOLL_CTL_MOD, socket_handler->get_socket(), &event);
+  if (res == -1)
+    {
+      perror("epoll_ctl");
+      throw std::runtime_error("Could not modify socket flags in epoll");
+    }
+#endif
 }
 
-void Poller::stop_watching_send_events(const SocketHandler* const socket_handler)
+void Poller::stop_watching_send_events(SocketHandler* socket_handler)
 {
 #if POLLER == POLL
   for (size_t i = 0; i <= this->nfds; ++i)
@@ -86,8 +124,18 @@ void Poller::stop_watching_send_events(const SocketHandler* const socket_handler
           return;
         }
     }
-#endif
   throw std::runtime_error("Cannot watch a non-registered socket for send events");
+#elif POLLER == EPOLL
+  struct epoll_event event;
+  event.data.ptr = socket_handler;
+  event.events = EPOLLIN;
+  const int res = ::epoll_ctl(this->epfd, EPOLL_CTL_MOD, socket_handler->get_socket(), &event);
+  if (res == -1)
+    {
+      perror("epoll_ctl");
+      throw std::runtime_error("Could not modify socket flags in epoll");
+    }
+#endif
 }
 
 bool Poller::poll()
@@ -120,6 +168,23 @@ bool Poller::poll()
           socket_handler->on_send();
           res--;
         }
+    }
+#elif POLLER == EPOLL
+  static const size_t max_events = 12;
+  struct epoll_event revents[max_events];
+  const int nb_events = epoll_wait(this->epfd, revents, max_events, -1);
+  if (nb_events == -1)
+    {
+      perror("epoll_wait");
+      throw std::runtime_error("Epoll_wait failed");
+    }
+  for (int i = 0; i < nb_events; ++i)
+    {
+      auto socket_handler = static_cast<SocketHandler*>(revents[i].data.ptr);
+      if (revents[i].events & EPOLLIN)
+        socket_handler->on_recv();
+      if (revents[i].events & EPOLLOUT)
+        socket_handler->on_send();
     }
 #endif
   return true;

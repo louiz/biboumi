@@ -10,25 +10,27 @@
 #define EPOLL 2
 #define KQUEUE 3
 
-#define POLLER POLL
+#include <config.h>
+#ifndef POLLER
+  // Default standard poller
+  #define POLLER EPOLL
+#endif
 
 #if POLLER == POLL
  #include <poll.h>
- // TODO, dynamic size, without artificial limit
  #define MAX_POLL_FD_NUMBER 4096
+#elif POLLER == EPOLL
+  #include <sys/epoll.h>
 #endif
 
 /**
- * We pass some SocketHandlers to this the Poller, which uses
+ * We pass some SocketHandlers to this Poller, which uses
  * poll/epoll/kqueue/select etc to wait for events on these SocketHandlers,
  * and call the callbacks when event occurs.
  *
- * TODO: support for all these pollers:
- * - poll(2) (mandatory)
- * - epoll(7)
+ * TODO: support these pollers:
  * - kqueue(2)
  */
-
 
 class Poller
 {
@@ -48,12 +50,12 @@ public:
    * Signal the poller that he needs to watch for send events for the given
    * SocketHandler.
    */
-  void watch_send_events(const SocketHandler* const socket_handler);
+  void watch_send_events(SocketHandler* socket_handler);
   /**
    * Signal the poller that he needs to stop watching for send events for
    * this SocketHandler.
    */
-  void stop_watching_send_events(const SocketHandler* const socket_handler);
+  void stop_watching_send_events(SocketHandler* socket_handler);
   /**
    * Wait for all watched events, and call the SocketHandlers' callbacks
    * when one is ready.
@@ -72,6 +74,8 @@ private:
 #if POLLER == POLL
   struct pollfd fds[MAX_POLL_FD_NUMBER];
   nfds_t nfds;
+#elif POLLER == EPOLL
+  int epfd;
 #endif
 
   Poller(const Poller&) = delete;
