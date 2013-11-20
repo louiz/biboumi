@@ -100,6 +100,18 @@ public:
    */
   void forward_server_message(const IrcMessage& message);
   /**
+   * Just empty the motd we kept as a string
+   */
+  void empty_motd(const IrcMessage& message);
+  /**
+   * Send the MOTD string as one single "big" message
+   */
+  void send_motd(const IrcMessage& message);
+  /**
+   * Append this line to the MOTD
+   */
+  void on_motd_line(const IrcMessage& message);
+  /**
    * Forward the join of an other user into an IRC channel, and save the
    * IrcUsers in the IrcChannel
    */
@@ -172,6 +184,11 @@ private:
    */
   std::vector<std::string> channels_to_join;
   bool welcomed;
+  /**
+   * Each motd line received is appended to this string, which we send when
+   * the motd is completely received
+   */
+  std::string motd;
   IrcClient(const IrcClient&) = delete;
   IrcClient(IrcClient&&) = delete;
   IrcClient& operator=(const IrcClient&) = delete;
@@ -186,8 +203,12 @@ typedef void (IrcClient::*irc_callback_t)(const IrcMessage&);
 
 static const std::unordered_map<std::string, irc_callback_t> irc_callbacks = {
   {"NOTICE", &IrcClient::forward_server_message},
-  {"375", &IrcClient::forward_server_message},
-  {"372", &IrcClient::forward_server_message},
+  {"RPL_MOTDSTART", &IrcClient::empty_motd},
+  {"375", &IrcClient::empty_motd},
+  {"RPL_MOTD", &IrcClient::on_motd_line},
+  {"372", &IrcClient::on_motd_line},
+  {"RPL_MOTDEND", &IrcClient::send_motd},
+  {"376", &IrcClient::send_motd},
   {"JOIN", &IrcClient::on_channel_join},
   {"PRIVMSG", &IrcClient::on_channel_message},
   {"353", &IrcClient::set_and_forward_user_list},

@@ -24,6 +24,12 @@ include_directories(${ICONV_INCLUDE_DIR})
 # coming from these headers.
 include_directories(SYSTEM ${CRYPTO++_INCLUDE_DIR})
 
+set(POLLER "POLL" CACHE STRING
+  "Choose the poller between POLL and EPOLL (Linux-only)")
+if((NOT ${POLLER} MATCHES "POLL") AND
+    (NOT ${POLLER} MATCHES "EPOLL"))
+  message(FATAL_ERROR "POLLER must be either POLL or EPOLL")
+endif()
 #
 ## utils
 #
@@ -95,4 +101,4 @@ target_link_libraries(test
   utils
   config)
 
-CONFIGURE_FILE(config.h.cmake src/config.h @ONLY)
+configure_file(config.h.cmake src/config.h)

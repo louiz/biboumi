@@ -222,6 +222,27 @@ void IrcClient::on_channel_message(const IrcMessage& message)
   this->bridge->send_message(iid, nick, body, muc);
 }
 
+void IrcClient::empty_motd(const IrcMessage& message)
+{
+  (void)message;
+  this->motd.erase();
+}
+
+void IrcClient::on_motd_line(const IrcMessage& message)
+{
+  const std::string body = message.arguments[1];
+  // We could send the MOTD without a line break between each IRC-message,
+  // but sometimes it contains some ASCII art, we use line breaks to keep
+  // them intact.
+  this->motd += body+"\n";
+}
+
+void IrcClient::send_motd(const IrcMessage& message)
+{
+  (void)message;
+  this->bridge->send_xmpp_message(this->hostname, "", this->motd);
+}
+
 void IrcClient::on_topic_received(const IrcMessage& message)
 {
   const std::string chan_name = message.arguments[1];
