@@ -9,11 +9,9 @@
 #define POLL 1
 #define EPOLL 2
 #define KQUEUE 3
-
 #include <config.h>
 #ifndef POLLER
-  // Default standard poller
-  #define POLLER EPOLL
+ #define POLLER POLL
 #endif
 
 #if POLLER == POLL
@@ -21,6 +19,8 @@
  #define MAX_POLL_FD_NUMBER 4096
 #elif POLLER == EPOLL
   #include <sys/epoll.h>
+#else
+  #error Invalid POLLER value
 #endif
 
 /**

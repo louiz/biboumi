@@ -1,1 +1,2 @@
 #cmakedefine ICONV_SECOND_ARGUMENT_IS_CONST
+#cmakedefine POLLER ${POLLER}
