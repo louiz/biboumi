@@ -2,7 +2,7 @@
 
 namespace utils
 {
-  std::vector<std::string> split(const std::string &s, const char delim, const bool allow_empty)
+  std::vector<std::string> split(const std::string& s, const char delim, const bool allow_empty)
   {
     std::vector<std::string> ret;
     std::stringstream ss(s);

@@ -2,18 +2,18 @@
  * Just a very simple test suite, by hand, using assert()
  */
 
-#include <assert.h>
-
-#include <iostream>
-
-#include <bridge/colors.hpp>
+#include <xmpp/xmpp_parser.hpp>
 #include <utils/encoding.hpp>
+#include <config/config.hpp>
+#include <bridge/colors.hpp>
+#include <utils/split.hpp>
+#include <xmpp/jid.hpp>
 #include <string.h>
 
-#include <config/config.hpp>
+#include <iostream>
+#include <vector>
 
-#include <xmpp/jid.hpp>
-#include <xmpp/xmpp_parser.hpp>
+#include <assert.h>
 
 int main()
 {
@@ -47,6 +47,21 @@ int main()
   std::string coucou("\u0002\u0002COUCOU\u0003");
   remove_irc_colors(coucou);
   assert(coucou == "COUCOU");
+
+  /**
+   * Utils
+   */
+  std::vector<std::string> splitted = utils::split("a::a", ':', false);
+  assert(splitted.size() == 2);
+  splitted = utils::split("a::a", ':', true);
+  assert(splitted.size() == 3);
+  assert(splitted[0] == "a");
+  assert(splitted[1] == "");
+  assert(splitted[2] == "a");
+  splitted = utils::split("\na", '\n', true);
+  assert(splitted.size() == 2);
+  assert(splitted[0] == "");
+  assert(splitted[1] == "a");
 
   /**
    * XML parsing
