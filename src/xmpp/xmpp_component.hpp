@@ -20,9 +20,9 @@ class XmppComponent: public SocketHandler
 public:
   explicit XmppComponent(const std::string& hostname, const std::string& secret);
   ~XmppComponent();
-  void on_connected();
-  void on_connection_close();
-  void parse_in_buffer();
+  void on_connected() override final;
+  void on_connection_close() override final;
+  void parse_in_buffer() override final;
 
   /**
    * Connect to the XMPP server

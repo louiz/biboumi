@@ -30,16 +30,16 @@ public:
   /**
    * Called when successfully connected to the server
    */
-  void on_connected();
+  void on_connected() override final;
   /**
    * Close the connection, remove us from the poller
    */
-  void on_connection_close();
+  void on_connection_close() override final;
   /**
    * Parse the data we have received so far and try to get one or more
    * complete messages from it.
    */
-  void parse_in_buffer();
+  void parse_in_buffer() override final;
   /**
    * Return the channel with this name, create it if it does not yet exist
    */
