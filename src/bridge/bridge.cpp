@@ -28,7 +28,6 @@ std::string Bridge::sanitize_for_xmpp(const std::string& str)
     res = str;
   else
     res = utils::convert_to_utf8(str, "ISO-8859-1");
-  remove_irc_colors(res);
   return res;
 }
 

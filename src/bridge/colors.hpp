@@ -16,6 +16,5 @@
 #define IRC_COLOR_ITALIC_CHAR     '\x1D'
 #define IRC_COLOR_UNDERLINE_CHAR  '\x1F'
 
-void remove_irc_colors(std::string& str);
 
 #endif // COLORS_INCLUDED

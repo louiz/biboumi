@@ -44,10 +44,6 @@ int main()
   std::string from_ascii = utils::convert_to_utf8(original_latin1, "US-ASCII");
   assert(from_ascii == "couc�ou");
 
-  std::string coucou("\u0002\u0002COUCOU\u0003");
-  remove_irc_colors(coucou);
-  assert(coucou == "COUCOU");
-
   /**
    * Utils
    */
