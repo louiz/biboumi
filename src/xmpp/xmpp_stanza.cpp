@@ -152,15 +152,17 @@ XmlNode* XmlNode::get_child(const std::string& name) const
   return nullptr;
 }
 
-void XmlNode::add_child(XmlNode* child)
+XmlNode* XmlNode::add_child(XmlNode* child)
 {
+  child->parent = this;
   this->children.push_back(child);
+  return child;
 }
 
-void XmlNode::add_child(XmlNode&& child)
+XmlNode* XmlNode::add_child(XmlNode&& child)
 {
   XmlNode* new_node = new XmlNode(std::move(child));
-  this->add_child(new_node);
+  return this->add_child(new_node);
 }
 
 XmlNode* XmlNode::get_last_child() const

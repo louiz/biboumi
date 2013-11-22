@@ -77,8 +77,15 @@ public:
    * Get a pointer to the first child element with that name
    */
   XmlNode* get_child(const std::string& name) const;
-  void add_child(XmlNode* child);
-  void add_child(XmlNode&& child);
+  /**
+   * Add a node child to this node. Assign this node to the child’s parent.
+   * Returns a pointer to the newly added child.
+   */
+  XmlNode* add_child(XmlNode* child);
+  XmlNode* add_child(XmlNode&& child);
+  /**
+   * Returns the last of the children
+   */
   XmlNode* get_last_child() const;
   /**
    * Mark this node as closed, nothing else
