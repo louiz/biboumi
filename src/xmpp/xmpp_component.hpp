@@ -58,7 +58,7 @@ public:
   /**
    * Send a message from from@served_hostname, with the given body
    */
-  void send_message(const std::string& from, const std::string& body, const std::string& to);
+  void send_message(const std::string& from, Xmpp::body&& body, const std::string& to);
   /**
    * Send a join from a new participant
    */
@@ -70,15 +70,15 @@ public:
   /**
    * Send the MUC topic to the user
    */
-  void send_topic(const std::string& from, const std::string& topic, const std::string& to);
+  void send_topic(const std::string& from, Xmpp::body&& xmpp_topic, const std::string& to);
   /**
    * Send a (non-private) message to the MUC
    */
-  void send_muc_message(const std::string& muc_name, const std::string& nick, const std::string body_str, const std::string& jid_to);
+  void send_muc_message(const std::string& muc_name, const std::string& nick, Xmpp::body&& body, const std::string& jid_to);
   /**
    * Send an unavailable presence for this nick
    */
-  void send_muc_leave(std::string&& muc_name, std::string&& nick, std::string&& message, const std::string& jid_to, const bool self);
+  void send_muc_leave(std::string&& muc_name, std::string&& nick, Xmpp::body&& message, const std::string& jid_to, const bool self);
   /**
    * Indicate that a participant changed his nick
    */

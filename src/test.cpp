@@ -85,6 +85,31 @@ int main()
   assert(xml_unescape(xml_escape(unescaped)) == unescaped);
 
   /**
+   * Colors conversion
+   */
+  std::unique_ptr<XmlNode> xhtml;
+  std::string cleaned_up;
+
+  std::tie(cleaned_up, xhtml) =
+    irc_format_to_xhtmlim("normalboldunder-and-boldbold normal"
+                          "5red,5default-on-red10,2cyan-on-blue");
+  assert(xhtml);
+  assert(xhtml->to_string() == "<body xmlns='http://www.w3.org/1999/xhtml'>normal<span style='font-weight:bold;'>bold</span><span style='font-weight:bold;text-decoration:underline;'>under-and-bold</span><span style='font-weight:bold;'>bold</span> normal<span style='color:red;'>red</span><span style='background-color:red;'>default-on-red</span><span style='color:cyan;background-color:blue;'>cyan-on-blue</span></body>");
+  assert(cleaned_up == "normalboldunder-and-boldbold normalreddefault-on-redcyan-on-blue");
+
+  std::tie(cleaned_up, xhtml) = irc_format_to_xhtmlim("normal");
+  assert(!xhtml && cleaned_up == "normal");
+
+  std::tie(cleaned_up, xhtml) = irc_format_to_xhtmlim("");
+  assert(xhtml && !xhtml->has_children() && cleaned_up.empty());
+
+  std::tie(cleaned_up, xhtml) = irc_format_to_xhtmlim(",a");
+  assert(xhtml && !xhtml->has_children() && cleaned_up == "a");
+
+  std::tie(cleaned_up, xhtml) = irc_format_to_xhtmlim(",");
+  assert(xhtml && !xhtml->has_children() && cleaned_up.empty());
+
+  /**
    * JID parsing
    */
   // Full JID

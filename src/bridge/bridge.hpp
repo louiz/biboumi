@@ -2,6 +2,7 @@
 # define BRIDGE_INCLUDED
 
 #include <irc/irc_client.hpp>
+#include <bridge/colors.hpp>
 #include <irc/iid.hpp>
 
 #include <unordered_map>
@@ -23,7 +24,7 @@ public:
   explicit Bridge(const std::string& user_jid, XmppComponent* xmpp, Poller* poller);
   ~Bridge();
 
-  static std::string sanitize_for_xmpp(const std::string& str);
+  static Xmpp::body make_xmpp_body(const std::string& str);
   /***
    **
    ** From XMPP to IRC.

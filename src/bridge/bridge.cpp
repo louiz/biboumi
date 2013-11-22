@@ -21,14 +21,14 @@ Bridge::~Bridge()
 {
 }
 
-std::string Bridge::sanitize_for_xmpp(const std::string& str)
+Xmpp::body Bridge::make_xmpp_body(const std::string& str)
 {
   std::string res;
   if (utils::is_valid_utf8(str.c_str()))
     res = str;
   else
     res = utils::convert_to_utf8(str, "ISO-8859-1");
-  return res;
+  return irc_format_to_xhtmlim(res);
 }
 
 IrcClient* Bridge::get_irc_client(const std::string& hostname, const std::string& username)
@@ -102,7 +102,8 @@ void Bridge::send_channel_message(const Iid& iid, const std::string& body)
     irc->send_channel_message(iid.chan, *it);
   // We do not need to convert body to utf-8: it comes from our XMPP server,
   // so it's ok to send it back
-  this->xmpp->send_muc_message(iid.chan + "%" + iid.server, irc->get_own_nick(), body, this->user_jid);
+  this->xmpp->send_muc_message(iid.chan + "%" + iid.server, irc->get_own_nick(),
+                               this->make_xmpp_body(body), this->user_jid);
 }
 
 void Bridge::send_private_message(const Iid& iid, const std::string& body)
@@ -137,22 +138,17 @@ void Bridge::send_irc_kick(const Iid& iid, const std::string& target, const std:
 
 void Bridge::send_message(const Iid& iid, const std::string& nick, const std::string& body, const bool muc)
 {
-  std::string utf8_body = this->sanitize_for_xmpp(body);
-  if (utf8_body.substr(0, action_prefix_len) == action_prefix)
-    { // Special case for ACTION (/me) messages:
-      // "\01ACTION goes out\01" == "/me goes out"
-      utf8_body = std::string("/me ") +
-        utf8_body.substr(action_prefix_len, utf8_body.size() - action_prefix_len - 1);
-    }
   if (muc)
-    this->xmpp->send_muc_message(iid.chan + "%" + iid.server, nick, utf8_body, this->user_jid);
+    this->xmpp->send_muc_message(iid.chan + "%" + iid.server, nick,
+                                 this->make_xmpp_body(body), this->user_jid);
   else
-    this->xmpp->send_message(iid.chan + "%" + iid.server, utf8_body, this->user_jid);
+    this->xmpp->send_message(iid.chan + "%" + iid.server,
+                             this->make_xmpp_body(body), this->user_jid);
 }
 
 void Bridge::send_muc_leave(Iid&& iid, std::string&& nick, const std::string& message, const bool self)
 {
-  this->xmpp->send_muc_leave(std::move(iid.chan) + "%" + std::move(iid.server), std::move(nick), this->sanitize_for_xmpp(message), this->user_jid, self);
+  this->xmpp->send_muc_leave(std::move(iid.chan) + "%" + std::move(iid.server), std::move(nick), this->make_xmpp_body(message), this->user_jid, self);
 }
 
 void Bridge::send_nick_change(Iid&& iid, const std::string& old_nick, const std::string& new_nick, const bool self)
@@ -168,7 +164,7 @@ void Bridge::send_xmpp_message(const std::string& from, const std::string& autho
     body = std::string("[") + author + std::string("] ") + msg;
   else
     body = msg;
-  this->xmpp->send_message(from, this->sanitize_for_xmpp(body), this->user_jid);
+  this->xmpp->send_message(from, this->make_xmpp_body(body), this->user_jid);
 }
 
 void Bridge::send_user_join(const std::string& hostname, const std::string& chan_name, const std::string nick)
@@ -183,7 +179,7 @@ void Bridge::send_self_join(const std::string& hostname, const std::string& chan
 
 void Bridge::send_topic(const std::string& hostname, const std::string& chan_name, const std::string topic)
 {
-  this->xmpp->send_topic(chan_name + "%" + hostname, this->sanitize_for_xmpp(topic), this->user_jid);
+  this->xmpp->send_topic(chan_name + "%" + hostname, this->make_xmpp_body(topic), this->user_jid);
 }
 
 std::string Bridge::get_own_nick(const Iid& iid)

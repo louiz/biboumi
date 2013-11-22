@@ -21,9 +21,9 @@ class AttributeNotFound: public std::exception
      nullptr)
  * - zero, one or more children XML nodes
  * - A name
- * - attributes
- * - inner data (inside the node)
- * - tail data (just after the node)
+ * - A map of attributes
+ * - inner data (text inside the node)
+ * - tail data (text just after the node)
  */
 class XmlNode
 {
@@ -32,8 +32,8 @@ public:
   explicit XmlNode(const std::string& name);
   XmlNode(XmlNode&& node):
     name(std::move(node.name)),
-    parent(std::move(node.parent)),
-    closed(std::move(node.closed)),
+    parent(node.parent),
+    closed(node.closed),
     attributes(std::move(node.attributes)),
     children(std::move(node.children)),
     inner(std::move(node.inner)),

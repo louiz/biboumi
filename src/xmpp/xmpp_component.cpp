@@ -18,7 +18,7 @@
 #define DISCO_NS         "http://jabber.org/protocol/disco"
 #define DISCO_ITEMS_NS   DISCO_NS"#items"
 #define DISCO_INFO_NS    DISCO_NS"#info"
-
+#define XHTMLIM_NS       "http://jabber.org/protocol/xhtml-im"
 
 XmppComponent::XmppComponent(const std::string& hostname, const std::string& secret):
   served_hostname(hostname),
@@ -257,13 +257,13 @@ Bridge* XmppComponent::get_user_bridge(const std::string& user_jid)
     }
 }
 
-void XmppComponent::send_message(const std::string& from, const std::string& body, const std::string& to)
+void XmppComponent::send_message(const std::string& from, Xmpp::body&& body, const std::string& to)
 {
   XmlNode node("message");
   node["to"] = to;
   node["from"] = from + "@" + this->served_hostname;
   XmlNode body_node("body");
-  body_node.set_inner(body);
+  body_node.set_inner(std::get<0>(body));
   body_node.close();
   node.add_child(std::move(body_node));
   node.close();
@@ -319,21 +319,21 @@ void XmppComponent::send_self_join(const std::string& from, const std::string& n
   this->send_stanza(node);
 }
 
-void XmppComponent::send_topic(const std::string& from, const std::string& topic, const std::string& to)
+void XmppComponent::send_topic(const std::string& from, Xmpp::body&& topic, const std::string& to)
 {
   XmlNode message("message");
   message["to"] = to;
   message["from"] = from + "@" + this->served_hostname;
   message["type"] = "groupchat";
   XmlNode subject("subject");
-  subject.set_inner(topic);
+  subject.set_inner(std::get<0>(topic));
   subject.close();
   message.add_child(std::move(subject));
   message.close();
   this->send_stanza(message);
 }
 
-void XmppComponent::send_muc_message(const std::string& muc_name, const std::string& nick, const std::string body_str, const std::string& jid_to)
+void XmppComponent::send_muc_message(const std::string& muc_name, const std::string& nick, Xmpp::body&& xmpp_body, const std::string& jid_to)
 {
   Stanza message("message");
   message["to"] = jid_to;
@@ -343,24 +343,34 @@ void XmppComponent::send_muc_message(const std::string& muc_name, const std::str
     message["from"] = muc_name + "@" + this->served_hostname;
   message["type"] = "groupchat";
   XmlNode body("body");
-  body.set_inner(body_str);
+  body.set_inner(std::get<0>(xmpp_body));
   body.close();
   message.add_child(std::move(body));
+  if (std::get<1>(xmpp_body))
+    {
+      XmlNode html("html");
+      html["xmlns"] = XHTMLIM_NS;
+      // Pass the ownership of the pointer to this xmlnode
+      html.add_child(std::get<1>(xmpp_body).release());
+      html.close();
+      message.add_child(std::move(html));
+    }
   message.close();
   this->send_stanza(message);
 }
 
-void XmppComponent::send_muc_leave(std::string&& muc_name, std::string&& nick, std::string&& message, const std::string& jid_to, const bool self)
+void XmppComponent::send_muc_leave(std::string&& muc_name, std::string&& nick, Xmpp::body&& message, const std::string& jid_to, const bool self)
 {
   Stanza presence("presence");
   presence["to"] = jid_to;
   presence["from"] = muc_name + "@" + this->served_hostname + "/" + nick;
   presence["type"] = "unavailable";
-  if (!message.empty() || self)
+  const std::string message_str = std::get<0>(message);
+  if (message_str.empty() || self)
     {
       XmlNode status("status");
-      if (!message.empty())
-        status.set_inner(std::move(message));
+      if (!message_str.empty())
+        status.set_inner(message_str);
       if (self)
         status["code"] = "110";
       status.close();
