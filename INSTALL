@@ -1,0 +1,75 @@
+==============
+ Dependencies
+==============
+
+Build and runtime dependencies:
+
+Libraries:
+- crypto++
+ Sometimes packaged as cryptopp.  This library is used to generate MD5
+ hashes.
+ http://www.cryptopp.com/
+- expat
+ Used to parse XML from the XMPP server.
+ http://expat.sourceforge.net/
+- libiconv
+ Encoding from anything into UTF-8
+ http://www.gnu.org/software/libiconv/
+
+Tools:
+- A C++11 compiler.
+- CMake
+
+
+==============
+  Configure
+==============
+
+Configure the build system using cmake, there are many solutions to do
+  that, the simplest is to just run
+
+% cmake .
+
+in the current directory
+
+You can also configure many parameters of the build (like personnalize
+CFLAGS, the install path, choose the compiler, or enabling some options
+like the POLLER to use), using:
+
+% ccmake .
+
+In ccmake, first use 'c' to configure the build system, edit the values you
+need and finaly use 'g' to generate the Makefiles to build the system and
+quit ccmake.
+
+or
+
+% cmake -i .
+
+and respond to the questions when you are prompted to.
+
+You can select the poller used by biboumi, at compile-time, using the POLLER
+cmake option.  Available values are:
+ POLL: use the standard poll(2). This is the default value because it works on all supported plateforms
+ EPOLL: use the Linux-specific epoll(7)
+
+Example, configure the poller with cmake:
+% cmake . -DPOLLER=EPOLL
+
+
+==============
+    Build
+==============
+
+- Build the project
+
+% make
+
+
+=============
+   Install
+=============
+
+- Install the software system-wide
+
+# make install
