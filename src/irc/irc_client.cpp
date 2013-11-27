@@ -219,7 +219,14 @@ void IrcClient::on_channel_message(const IrcMessage& message)
       iid.chan = nick;
       muc = false;
     }
-  this->bridge->send_message(iid, nick, body, muc);
+  if (!body.empty() && body[0] == '\01')
+    {
+      if (body.substr(1, 6) == "ACTION")
+        this->bridge->send_message(iid, nick,
+                  std::string("/me") + body.substr(7, body.size() - 8), muc);
+    }
+  else
+    this->bridge->send_message(iid, nick, body, muc);
 }
 
 void IrcClient::empty_motd(const IrcMessage& message)
