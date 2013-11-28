@@ -4,6 +4,7 @@
 #include <irc/irc_user.hpp>
 
 #include <utils/make_unique.hpp>
+#include <utils/tolower.hpp>
 #include <utils/split.hpp>
 
 #include <iostream>
@@ -174,7 +175,7 @@ void IrcClient::forward_server_message(const IrcMessage& message)
 
 void IrcClient::set_and_forward_user_list(const IrcMessage& message)
 {
-  const std::string chan_name = message.arguments[2];
+  const std::string chan_name = utils::tolower(message.arguments[2]);
   IrcChannel* channel = this->get_channel(chan_name);
   std::vector<std::string> nicks = utils::split(message.arguments[3], ' ');
   for (const std::string& nick: nicks)
@@ -190,7 +191,7 @@ void IrcClient::set_and_forward_user_list(const IrcMessage& message)
 
 void IrcClient::on_channel_join(const IrcMessage& message)
 {
-  const std::string chan_name = message.arguments[0];
+  const std::string chan_name = utils::tolower(message.arguments[0]);
   IrcChannel* channel = this->get_channel(chan_name);
   const std::string nick = message.prefix;
   if (channel->joined == false)
@@ -252,14 +253,14 @@ void IrcClient::send_motd(const IrcMessage& message)
 
 void IrcClient::on_topic_received(const IrcMessage& message)
 {
-  const std::string chan_name = message.arguments[1];
+  const std::string chan_name = utils::tolower(message.arguments[1]);
   IrcChannel* channel = this->get_channel(chan_name);
   channel->topic = message.arguments[2];
 }
 
 void IrcClient::on_channel_completely_joined(const IrcMessage& message)
 {
-  const std::string chan_name = message.arguments[1];
+  const std::string chan_name = utils::tolower(message.arguments[1]);
   IrcChannel* channel = this->get_channel(chan_name);
   this->bridge->send_self_join(this->hostname, chan_name, channel->get_self()->nick);
   this->bridge->send_topic(this->hostname, chan_name, channel->topic);
@@ -276,7 +277,7 @@ void IrcClient::on_welcome_message(const IrcMessage& message)
 
 void IrcClient::on_part(const IrcMessage& message)
 {
-  const std::string chan_name = message.arguments[0];
+  const std::string chan_name = utils::tolower(message.arguments[0]);
   IrcChannel* channel = this->get_channel(chan_name);
   std::string txt;
   if (message.arguments.size() >= 2)
@@ -348,7 +349,7 @@ void IrcClient::on_kick(const IrcMessage& message)
 {
   const std::string target = message.arguments[1];
   const std::string reason = message.arguments[2];
-  const std::string chan_name = message.arguments[0];
+  const std::string chan_name = utils::tolower(message.arguments[0]);
   IrcChannel* channel = this->get_channel(chan_name);
   if (channel->get_self()->nick == target)
     channel->joined = false;

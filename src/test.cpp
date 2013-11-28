@@ -6,6 +6,7 @@
 #include <utils/encoding.hpp>
 #include <config/config.hpp>
 #include <bridge/colors.hpp>
+#include <utils/tolower.hpp>
 #include <utils/split.hpp>
 #include <xmpp/jid.hpp>
 #include <string.h>
@@ -65,6 +66,10 @@ int main()
   assert(splitted.size() == 2);
   assert(splitted[0] == "");
   assert(splitted[1] == "a");
+
+  const std::string lowercase = utils::tolower("CoUcOu LeS CoPaiNs ♥");
+  std::cout << lowercase << std::endl;
+  assert(lowercase == "coucou les copains ♥");
 
   /**
    * XML parsing
