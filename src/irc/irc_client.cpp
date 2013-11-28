@@ -91,7 +91,8 @@ void IrcClient::send_message(IrcMessage&& message)
   res += std::move(message.command);
   for (const std::string& arg: message.arguments)
     {
-      if (arg.find(" ") != std::string::npos)
+      if (arg.find(" ") != std::string::npos ||
+          (!arg.empty()) && arg[0] == ':')
         {
           res += " :" + arg;
           break;
