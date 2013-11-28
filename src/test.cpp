@@ -15,11 +15,15 @@
 
 #include <assert.h>
 
+static const std::string color("[35m");
+static const std::string reset("[m");
+
 int main()
 {
   /**
    * Encoding
    */
+  std::cout << color << "Testing encoding…" << reset << std::endl;
   const char* valid = "C̡͔͕̩͙̽ͫ̈́ͥ̿̆ͧ̚r̸̩̘͍̻͖̆͆͛͊̉̕͡o͇͈̳̤̱̊̈͢q̻͍̦̮͕ͥͬͬ̽ͭ͌̾ͅǔ͉͕͇͚̙͉̭͉̇̽ȇ͈̮̼͍͔ͣ͊͞͝ͅ ͫ̾ͪ̓ͥ̆̋̔҉̢̦̠͈͔̖̲̯̦ụ̶̯͐̃̋ͮ͆͝n̬̱̭͇̻̱̰̖̤̏͛̏̿̑͟ë́͐҉̸̥̪͕̹̻̙͉̰ ̹̼̱̦̥ͩ͑̈́͑͝ͅt͍̥͈̹̝ͣ̃̔̈̔ͧ̕͝ḙ̸̖̟̙͙ͪ͢ų̯̞̼̲͓̻̞͛̃̀́b̮̰̗̩̰̊̆͗̾̎̆ͯ͌͝.̗̙͎̦ͫ̈́ͥ͌̈̓ͬ";
   assert(utils::is_valid_utf8(valid) == true);
   const char* invalid = "\xF0\x0F";
@@ -27,7 +31,8 @@ int main()
   const char* invalid2 = "\xFE\xFE\xFF\xFF";
   assert(utils::is_valid_utf8(invalid2) == false);
 
-  std::string in = "coucou les copains  ♥ ";
+  std::string in = "Biboumi ╯°□°）╯︵ ┻━┻";
+  std::cout << in << std::endl;
   assert(utils::is_valid_utf8(in.c_str()) == true);
   std::string res = utils::convert_to_utf8(in, "UTF-8");
   assert(utils::is_valid_utf8(res.c_str()) == true && res == in);
@@ -43,10 +48,12 @@ int main()
   // wrong charset)
   std::string from_ascii = utils::convert_to_utf8(original_latin1, "US-ASCII");
   assert(from_ascii == "couc�ou");
+  std::cout << from_ascii << std::endl;
 
   /**
    * Utils
    */
+  std::cout << color << "Testing utils…" << reset << std::endl;
   std::vector<std::string> splitted = utils::split("a::a", ':', false);
   assert(splitted.size() == 2);
   splitted = utils::split("a::a", ':', true);
@@ -62,10 +69,12 @@ int main()
   /**
    * XML parsing
    */
+  std::cout << color << "Testing XML parsing…" << reset << std::endl;
   XmppParser xml;
   const std::string doc = "<stream xmlns='stream_ns'><stanza b='c'>inner<child1><grandchild/></child1><child2 xmlns='child2_ns'/>tail</stanza></stream>";
   xml.add_stanza_callback([](const Stanza& stanza)
       {
+        std::cout << stanza.to_string() << std::endl;
         assert(stanza.get_name() == "stream_ns:stanza");
         assert(stanza["b"] == "c");
         assert(stanza.get_inner() == "inner");
@@ -80,6 +89,7 @@ int main()
   /**
    * XML escape/escape
    */
+  std::cout << color << "Testing XML escaping…" << reset << std::endl;
   const std::string unescaped = "'coucou'<cc>/&\"gaga\"";
   assert(xml_escape(unescaped) == "&apos;coucou&apos;&lt;cc&gt;/&amp;&quot;gaga&quot;");
   assert(xml_unescape(xml_escape(unescaped)) == unescaped);
@@ -87,8 +97,13 @@ int main()
   /**
    * Colors conversion
    */
+  std::cout << color << "Testing IRC colors conversion…" << reset << std::endl;
   std::unique_ptr<XmlNode> xhtml;
   std::string cleaned_up;
+
+  std::tie(cleaned_up, xhtml) = irc_format_to_xhtmlim("bold");
+  std::cout << xhtml->to_string() << std::endl;
+  assert(xhtml && xhtml->to_string() == "<body xmlns='http://www.w3.org/1999/xhtml'><span style='font-weight:bold;'>bold</span></body>");
 
   std::tie(cleaned_up, xhtml) =
     irc_format_to_xhtmlim("normalboldunder-and-boldbold normal"
@@ -112,16 +127,17 @@ int main()
   /**
    * JID parsing
    */
+  std::cout << color << "Testing JID parsing…" << reset << std::endl;
   // Full JID
   Jid jid1("♥@ツ.coucou/coucou@coucou/coucou");
-  std::cerr << jid1.local << " @ " << jid1.domain << " / " << jid1.resource << std::endl;
+  std::cout << jid1.local << "@" << jid1.domain << "/" << jid1.resource << std::endl;
   assert(jid1.local == "♥");
   assert(jid1.domain == "ツ.coucou");
   assert(jid1.resource == "coucou@coucou/coucou");
 
   // Domain and resource
   Jid jid2("ツ.coucou/coucou@coucou/coucou");
-  std::cerr << jid2.local << " @ " << jid2.domain << " / " << jid2.resource << std::endl;
+  std::cout << jid2.local << "@" << jid2.domain << "/" << jid2.resource << std::endl;
   assert(jid2.local == "");
   assert(jid2.domain == "ツ.coucou");
   assert(jid2.resource == "coucou@coucou/coucou");
@@ -129,6 +145,7 @@ int main()
   /**
    * Config
    */
+  std::cout << color << "Testing JID parsing…" << reset << std::endl;
   Config::filename = "test.cfg";
   Config::file_must_exist = false;
   Config::set("coucou", "bonjour");
@@ -147,5 +164,6 @@ int main()
       error = true;
     }
   assert(error == false);
+
   return 0;
 }
