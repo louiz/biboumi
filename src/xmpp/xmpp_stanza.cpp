@@ -114,12 +114,12 @@ void XmlNode::set_attribute(const std::string& name, const std::string& value)
 
 void XmlNode::set_tail(const std::string& data)
 {
-  this->tail = data;
+  this->tail = xml_escape(data);
 }
 
 void XmlNode::add_to_tail(const std::string& data)
 {
-  this->tail += data;
+  this->tail += xml_escape(data);
 }
 
 void XmlNode::set_inner(const std::string& data)
