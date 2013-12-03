@@ -4,6 +4,7 @@
 
 #include <xmpp/xmpp_parser.hpp>
 #include <utils/encoding.hpp>
+#include <logger/logger.hpp>
 #include <config/config.hpp>
 #include <bridge/colors.hpp>
 #include <utils/tolower.hpp>
@@ -169,6 +170,14 @@ int main()
       error = true;
     }
   assert(error == false);
+
+  Config::set("log_level", "3");
+  Config::set("log_file", "");
+
+  log_debug("coucou");
+  log_info("coucou");
+  log_warning("coucou");
+  log_error("coucou");
 
   return 0;
 }

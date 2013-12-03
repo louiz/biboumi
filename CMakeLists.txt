@@ -8,6 +8,10 @@ set(${PROJECT_NAME}_VERSION_MINOR 1)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -pedantic -Wall -Wextra")
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Og")
 
+# Define a __FILENAME__ macro to get the filename of each file, instead of
+# the full path as in __FILE__
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D__FILENAME__='\"$(subst ${CMAKE_SOURCE_DIR}/,,$(abspath $<))\"'")
+
 #
 ## Look for external libraries
 #
@@ -45,6 +49,14 @@ file(GLOB source_config
   src/config/*.[hc]pp)
 add_library(config STATIC ${source_config})
 target_link_libraries(config utils)
+
+#
+## logger
+#
+file(GLOB source_logger
+  src/logger/*.[hc]pp)
+add_library(logger STATIC ${source_logger})
+target_link_libraries(logger config)
 
 #
 ## network
@@ -99,6 +111,7 @@ target_link_libraries(test
   irc
   bridge
   utils
-  config)
+  config
+  logger)
 
 configure_file(config.h.cmake src/config.h)
