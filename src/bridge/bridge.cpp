@@ -3,7 +3,7 @@
 #include <xmpp/xmpp_component.hpp>
 #include <network/poller.hpp>
 #include <utils/encoding.hpp>
-
+#include <logger/logger.hpp>
 #include <utils/split.hpp>
 #include <iostream>
 
@@ -78,13 +78,13 @@ void Bridge::send_channel_message(const Iid& iid, const std::string& body)
   const std::string first_line = lines[0];
   if (iid.chan.empty() || iid.server.empty())
     {
-      std::cout << "Cannot send message to channel: [" << iid.chan << "] on server [" << iid.server << "]" << std::endl;
+      log_warning("Cannot send message to channel: [" << iid.chan << "] on server [" << iid.server << "]");
       return;
     }
   IrcClient* irc = this->get_irc_client(iid.server);
   if (!irc)
     {
-      std::cout << "Cannot send message: no client exist for server " << iid.server << std::endl;
+      log_warning("Cannot send message: no client exist for server " << iid.server);
       return;
     }
   if (first_line.substr(0, 6) == "/mode ")

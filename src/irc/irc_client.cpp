@@ -4,7 +4,7 @@
 #include <irc/irc_user.hpp>
 
 #include <utils/make_unique.hpp>
-// #include <logger/logger.hpp>
+#include <logger/logger.hpp>
 #include <utils/tolower.hpp>
 #include <utils/split.hpp>
 
@@ -18,12 +18,10 @@ IrcClient::IrcClient(const std::string& hostname, const std::string& username, B
   bridge(bridge),
   welcomed(false)
 {
-  std::cout << "IrcClient()" << std::endl;
 }
 
 IrcClient::~IrcClient()
 {
-  std::cout << "~IrcClient()" << std::endl;
 }
 
 void IrcClient::start()
@@ -39,7 +37,7 @@ void IrcClient::on_connected()
 
 void IrcClient::on_connection_close()
 {
-  std::cout << "Connection closed by remote server." << std::endl;
+  log_warning("Connection closed by remote server.");
 }
 
 IrcChannel* IrcClient::get_channel(const std::string& name)
@@ -74,18 +72,19 @@ void IrcClient::parse_in_buffer()
       if (pos == std::string::npos)
         break ;
       IrcMessage message(this->in_buf.substr(0, pos));
+      log_debug("IRC RECEIVING: " << message);
       this->in_buf = this->in_buf.substr(pos + 2, std::string::npos);
-      std::cout << message << std::endl;
       auto cb = irc_callbacks.find(message.command);
       if (cb != irc_callbacks.end())
         (this->*(cb->second))(message);
       else
-        std::cout << "No handler for command " << message.command << std::endl;
+        log_info("No handler for command " << message.command);
     }
 }
 
 void IrcClient::send_message(IrcMessage&& message)
 {
+  log_debug("IRC SENDING: " << message);
   std::string res;
   if (!message.prefix.empty())
     res += ":" + std::move(message.prefix) + " ";
@@ -101,8 +100,6 @@ void IrcClient::send_message(IrcMessage&& message)
       res += " " + arg;
     }
   res += "\r\n";
-  std::cout << "=== IRC SENDING ===" << std::endl;
-  std::cout << res << std::endl;
   this->send_data(std::move(res));
 }
 
@@ -134,7 +131,7 @@ bool IrcClient::send_channel_message(const std::string& chan_name, const std::st
   IrcChannel* channel = this->get_channel(chan_name);
   if (channel->joined == false)
     {
-      std::cout << "Cannot send message to channel " << chan_name << ", it is not joined" << std::endl;
+      log_warning("Cannot send message to channel " << chan_name << ", it is not joined");
       return false;
     }
   this->send_message(IrcMessage("PRIVMSG", {chan_name, body}));
@@ -185,7 +182,7 @@ void IrcClient::set_and_forward_user_list(const IrcMessage& message)
       IrcUser* user = channel->add_user(nick);
       if (user->nick != channel->get_self()->nick)
         {
-          std::cout << "Adding user [" << nick << "] to chan " << chan_name << std::endl;
+          log_debug("Adding user [" << nick << "] to chan " << chan_name);
           this->bridge->send_user_join(this->hostname, chan_name, user->nick);
         }
     }

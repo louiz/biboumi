@@ -6,7 +6,6 @@ Logger::Logger(const int log_level):
   log_level(log_level),
   stream(std::cout.rdbuf())
 {
-  std::cout << "Logger(1)" << std::endl;
 }
 
 Logger::Logger(const int log_level, const std::string& log_file):
@@ -14,7 +13,6 @@ Logger::Logger(const int log_level, const std::string& log_file):
   ofstream(log_file.data(), std::ios_base::app),
   stream(ofstream.rdbuf())
 {
-  std::cout << "Logger(" << this->log_level << ")" << std::endl;
 }
 
 std::unique_ptr<Logger>& Logger::instance()

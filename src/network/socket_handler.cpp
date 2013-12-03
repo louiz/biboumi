@@ -3,6 +3,7 @@
 #include <utils/scopeguard.hpp>
 #include <network/poller.hpp>
 
+#include <logger/logger.hpp>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <unistd.h>
@@ -21,7 +22,7 @@ SocketHandler::SocketHandler():
 
 void SocketHandler::connect(const std::string& address, const std::string& port)
 {
-  std::cout << "Trying to connect to " << address << ":" << port << std::endl;
+  log_info("Trying to connect to " << address << ":" << port);
   struct addrinfo hints;
   memset(&hints, 0, sizeof(struct addrinfo));
   hints.ai_flags = 0;
@@ -42,17 +43,16 @@ void SocketHandler::connect(const std::string& address, const std::string& port)
     }
   for (struct addrinfo* rp = addr_res; rp; rp = rp->ai_next)
     {
-      std::cout << "One result" << std::endl;
       if (::connect(this->socket, rp->ai_addr, rp->ai_addrlen) == 0)
         {
-          std::cout << "Connection success." << std::endl;
+          log_info("Connection success.");
           this->on_connected();
           return ;
         }
-      std::cout << "Connection failed:" << std::endl;
+      log_info("Connection failed:");
       perror("connect");
     }
-  std::cout << "All connection attempts failed." << std::endl;
+  log_error("All connection attempts failed.");
   this->close();
 }
 

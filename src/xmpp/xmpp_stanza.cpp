@@ -209,11 +209,6 @@ std::string XmlNode::to_string() const
   return res;
 }
 
-void XmlNode::display() const
-{
-  std::cout << this->to_string() << std::endl;
-}
-
 bool XmlNode::has_children() const
 {
   return !this->children.empty();

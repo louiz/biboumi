@@ -24,5 +24,4 @@ IrcUser::IrcUser(const std::string& name)
         this->nick = name.substr(0, sep);
       this->host = name.substr(sep+1);
     }
-  std::cout << "Created user: [" << this->nick << "!" << this->host << std::endl;
 }

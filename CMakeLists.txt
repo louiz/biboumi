@@ -64,6 +64,7 @@ target_link_libraries(logger config)
 file(GLOB source_network
   src/network/*.[hc]pp)
 add_library(network STATIC ${source_network})
+target_link_libraries(network logger)
 
 #
 ## irclib
@@ -71,7 +72,7 @@ add_library(network STATIC ${source_network})
 file(GLOB source_irc
   src/irc/*.[hc]pp)
 add_library(irc STATIC ${source_irc})
-target_link_libraries(irc network utils)
+target_link_libraries(irc network utils logger)
 
 #
 ## xmpplib
@@ -79,7 +80,7 @@ target_link_libraries(irc network utils)
 file(GLOB source_xmpp
   src/xmpp/*.[hc]pp)
 add_library(xmpp STATIC ${source_xmpp})
-target_link_libraries(xmpp bridge network utils
+target_link_libraries(xmpp bridge network utils logger
   ${CRYPTO++_LIBRARIES} ${EXPAT_LIBRARIES} pthread)
 
 #
@@ -88,7 +89,7 @@ target_link_libraries(xmpp bridge network utils
 file(GLOB source_bridge
   src/bridge/*.[hc]pp)
 add_library(bridge STATIC ${source_bridge})
-target_link_libraries(bridge xmpp irc utils)
+target_link_libraries(bridge xmpp irc utils logger)
 
 #
 ## Main executable

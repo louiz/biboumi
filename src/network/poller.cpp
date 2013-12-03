@@ -8,7 +8,6 @@
 
 Poller::Poller()
 {
-  std::cout << "Poller()" << std::endl;
 #if POLLER == POLL
   memset(this->fds, 0, sizeof(this->fds));
   this->nfds = 0;
@@ -24,7 +23,6 @@ Poller::Poller()
 
 Poller::~Poller()
 {
-  std::cout << "~Poller()" << std::endl;
 }
 
 void Poller::add_socket_handler(std::shared_ptr<SocketHandler> socket_handler)

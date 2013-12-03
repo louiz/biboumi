@@ -97,7 +97,6 @@ public:
    * Serialize the stanza into a string
    */
   std::string to_string() const;
-  void display() const;
   /**
    * Whether or not this node has at least one child (if not, this is a leaf
    * node)

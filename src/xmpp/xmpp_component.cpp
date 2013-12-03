@@ -1,4 +1,5 @@
 #include <utils/make_unique.hpp>
+#include <logger/logger.hpp>
 
 #include <xmpp/xmpp_component.hpp>
 #include <xmpp/jid.hpp>
@@ -52,14 +53,14 @@ void XmppComponent::start()
 
 void XmppComponent::send_stanza(const Stanza& stanza)
 {
-  std::cout << "====== Sending ========" << std::endl;
-  std::cout << stanza.to_string() << std::endl;
-  this->send_data(stanza.to_string());
+  std::string str = stanza.to_string();
+  log_debug("XMPP SENDING: " << str);
+  this->send_data(std::move(str));
 }
 
 void XmppComponent::on_connected()
 {
-  std::cout << "connected to XMPP server" << std::endl;
+  log_info("connected to XMPP server");
   XmlNode node("stream:stream", nullptr);
   node["xmlns"] = COMPONENT_NS;
   node["xmlns:stream"] = STREAM_NS;
@@ -69,7 +70,7 @@ void XmppComponent::on_connected()
 
 void XmppComponent::on_connection_close()
 {
-  std::cout << "XMPP server closed connection" << std::endl;
+  log_info("XMPP server closed connection");
 }
 
 void XmppComponent::parse_in_buffer()
@@ -80,15 +81,14 @@ void XmppComponent::parse_in_buffer()
 
 void XmppComponent::on_remote_stream_open(const XmlNode& node)
 {
-  std::cout << "====== DOCUMENT_OPEN =======" << std::endl;
-  std::cout << node.to_string() << std::endl;
+  log_debug("XMPP DOCUMENT OPEN: " << node.to_string());
   try
     {
       this->stream_id = node["id"];
     }
   catch (const AttributeNotFound& e)
     {
-      std::cout << "Error: no attribute 'id' found" << std::endl;
+      log_error("Error: no attribute 'id' found");
       this->send_stream_error("bad-format", "missing 'id' attribute");
       this->close_document();
       return ;
@@ -109,14 +109,12 @@ void XmppComponent::on_remote_stream_open(const XmlNode& node)
 
 void XmppComponent::on_remote_stream_close(const XmlNode& node)
 {
-  std::cout << "====== DOCUMENT_CLOSE =======" << std::endl;
-  std::cout << node.to_string() << std::endl;
+  log_debug("XMPP DOCUMENT CLOSE " << node.to_string());
 }
 
 void XmppComponent::on_stanza(const Stanza& stanza)
 {
-  std::cout << "=========== STANZA ============" << std::endl;
-  std::cout << stanza.to_string() << std::endl;
+  log_debug("XMPP RECEIVING: " << stanza.to_string());
   std::function<void(const Stanza&)> handler;
   try
     {
@@ -124,7 +122,7 @@ void XmppComponent::on_stanza(const Stanza& stanza)
     }
   catch (const std::out_of_range& exception)
     {
-      std::cout << "No handler for stanza of type " << stanza.get_name() << std::endl;
+      log_warning("No handler for stanza of type " << stanza.get_name());
       return;
     }
   handler(stanza);
@@ -145,8 +143,7 @@ void XmppComponent::send_stream_error(const std::string& name, const std::string
 
 void XmppComponent::close_document()
 {
-  std::cout << "====== Sending ========" << std::endl;
-  std::cout << "</stream:stream>" << std::endl;
+  log_debug("XMPP SENDING: </stream:stream>");
   this->send_data("</stream:stream>");
 }
 
