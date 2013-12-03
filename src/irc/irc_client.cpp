@@ -377,10 +377,18 @@ void IrcClient::on_channel_mode(const IrcMessage& message)
   iid.chan = message.arguments[0];
   iid.server = this->hostname;
   IrcUser user(message.prefix);
+  std::string mode_arguments;
+  for (size_t i = 1; i < message.arguments.size(); ++i)
+    {
+      if (!message.arguments[i].empty())
+        {
+          if (i != 1)
+            mode_arguments += " ";
+          mode_arguments += message.arguments[i];
+        }
+    }
   this->bridge->send_message(iid, "", std::string("Mode ") + iid.chan +
-                                      " [" + message.arguments[1] +
-                                      (message.arguments.size() > 2 ? (" " + message.arguments[2]): "")
-                                      + "] by " + user.nick,
+                                      " [" + mode_arguments + "] by " + user.nick,
                              true);
 }
 
