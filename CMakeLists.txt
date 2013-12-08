@@ -23,7 +23,7 @@ find_package(EXPAT REQUIRED)
 
 include_directories("src/")
 include_directories(${EXPAT_INCLUDE_DIRS})
-include_directories(${ICONV_INCLUDE_DIR})
+include_directories(${ICONV_INCLUDE_DIRS})
 # the SYSTEM flag tells the compiler that we don't care about warnings
 # coming from these headers.
 include_directories(SYSTEM ${CRYPTO++_INCLUDE_DIRS})
