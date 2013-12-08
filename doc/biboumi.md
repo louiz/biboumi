@@ -46,6 +46,16 @@ The configuration file uses a simple format of the form
   This password must be configured in the XMPP server, associated with the
   external component on *hostname*.
 
+`log_file`
+
+  A filename into which logs are written.  If none is provided, the logs are
+  written on standard output
+
+`log_level`
+
+  Indicate what type of log messages to write in the logs.  Values can be from 0 to 3.
+  0 is debug, 1 is info, 2 is warnig, 3 is error.
+
 USAGE
 -----
 

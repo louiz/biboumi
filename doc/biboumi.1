@@ -36,6 +36,18 @@ The hostname served by the XMPP gateway\. This domain must be configured in th
 .P
 The password used to authenticate the XMPP component to your XMPP server\. This password must be configured in the XMPP server, associated with the external component on \fIhostname\fR\.
 .
+.P
+\fBlog_file\fR
+.
+.P
+A filename into which logs are written\. If none is provided, the logs are written on standard output
+.
+.P
+\fBlog_level\fR
+.
+.P
+Indicate what type of log messages to write in the logs\. Values can be from 0 to 3\. 0 is debug, 1 is info, 2 is warnig, 3 is error\.
+.
 .SH "USAGE"
 When started, biboumi connects, without encryption (see \fISECURITY\fR), to the local XMPP server on the port \fB5347\fR and provides the configured password to authenticate\. Biboumi then serves the configured \fBhostname\fR, this means that all XMPP stanza with a \fBto\fR JID on that domain will be sent to biboumi, and biboumi will send only send messages coming from this hostname\.
 .
