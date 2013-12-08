@@ -80,6 +80,8 @@ this gets confusing when trying to understand the difference between
 *foo*, *#foo*, and *##foo*.
 
 If the name starts with any other character, this represents an IRC user.
+If compiled with Libidn, an IRC user has a bare JID representing the
+“hostname” provided by the IRC server.
 
 ### Join an IRC channel
 

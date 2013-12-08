@@ -52,7 +52,7 @@ IRC channels and IRC users JIDs have a localpart formed like this: \fBname\fR, t
 For an IRC channel, the name starts with \fB\'&\'\fR, \fB\'#\'\fR, \fB\'+\'\fR or \fB\'!\'\fR\. Some other gateway implementations, as well as some IRC clients, do not require them to be started by one of these characters, adding an implicit \fB\'#\'\fR in that case\. Biboumi does not do that because this gets confusing when trying to understand the difference between \fIfoo\fR, \fI#foo\fR, and \fI##foo\fR\.
 .
 .P
-If the name starts with any other character, this represents an IRC user\.
+If the name starts with any other character, this represents an IRC user\. If compiled with Libidn, an IRC user has a bare JID representing the “hostname” provided by the IRC server\.
 .
 .SS "Join an IRC channel"
 To join an IRC channel \fB#foo\fR on the IRC server \fBirc\.example\.com\fR, join the XMPP MUC \fB#foo%irc\.example\.com@hostname\fR\.

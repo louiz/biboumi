@@ -4,17 +4,27 @@
 
 Build and runtime dependencies:
 
+
 Libraries:
+
 - crypto++
  Sometimes packaged as cryptopp.  This library is used to generate MD5
  hashes.
  http://www.cryptopp.com/
+
 - expat
  Used to parse XML from the XMPP server.
  http://expat.sourceforge.net/
+
 - libiconv
  Encoding from anything into UTF-8
  http://www.gnu.org/software/libiconv/
+
+- libidn (optionnal, but recommended)
+ Provides the stringprep functionality. Without it, JIDs for IRC users are
+ not provided.
+ http://www.gnu.org/software/libidn/
+
 
 Tools:
 - A C++11 compiler.
