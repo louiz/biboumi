@@ -193,11 +193,11 @@ void IrcClient::set_and_forward_user_list(const IrcMessage& message)
   std::vector<std::string> nicks = utils::split(message.arguments[3], ' ');
   for (const std::string& nick: nicks)
     {
-      IrcUser* user = channel->add_user(nick);
+      const IrcUser* user = channel->add_user(nick);
       if (user->nick != channel->get_self()->nick)
         {
           log_debug("Adding user [" << nick << "] to chan " << chan_name);
-          this->bridge->send_user_join(this->hostname, chan_name, user->nick);
+          this->bridge->send_user_join(this->hostname, chan_name, user);
         }
     }
 }
@@ -214,8 +214,8 @@ void IrcClient::on_channel_join(const IrcMessage& message)
     }
   else
     {
-      IrcUser* user = channel->add_user(nick);
-      this->bridge->send_user_join(this->hostname, chan_name, user->nick);
+      const IrcUser* user = channel->add_user(nick);
+      this->bridge->send_user_join(this->hostname, chan_name, user);
     }
 }
 

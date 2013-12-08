@@ -3,6 +3,7 @@
 
 #include <irc/irc_client.hpp>
 #include <bridge/colors.hpp>
+#include <irc/irc_user.hpp>
 #include <irc/iid.hpp>
 
 #include <unordered_map>
@@ -56,7 +57,9 @@ public:
   /**
    * Send the presence of a new user in the MUC.
    */
-  void send_user_join(const std::string& hostname, const std::string& chan_name, const std::string nick);
+  void send_user_join(const std::string& hostname,
+                      const std::string& chan_name,
+                      const IrcUser* user);
   /**
    * Send the self presence of an user when the MUC is fully joined.
    */

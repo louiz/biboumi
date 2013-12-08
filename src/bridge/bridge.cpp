@@ -167,9 +167,11 @@ void Bridge::send_xmpp_message(const std::string& from, const std::string& autho
   this->xmpp->send_message(from, this->make_xmpp_body(body), this->user_jid);
 }
 
-void Bridge::send_user_join(const std::string& hostname, const std::string& chan_name, const std::string nick)
+void Bridge::send_user_join(const std::string& hostname,
+                            const std::string& chan_name,
+                            const IrcUser* user)
 {
-  this->xmpp->send_user_join(chan_name + "%" + hostname, nick, this->user_jid);
+  this->xmpp->send_user_join(chan_name + "%" + hostname, user->nick, user->host, this->user_jid);
 }
 
 void Bridge::send_self_join(const std::string& hostname, const std::string& chan_name, const std::string nick)

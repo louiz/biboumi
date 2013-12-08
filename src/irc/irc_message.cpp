@@ -9,7 +9,7 @@ IrcMessage::IrcMessage(std::string&& line)
   if (line[0] == ':')
     {
       pos = line.find(" ");
-      this->prefix = line.substr(1, pos);
+      this->prefix = line.substr(1, pos - 1);
       line = line.substr(pos + 1, std::string::npos);
     }
   // command

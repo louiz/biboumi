@@ -22,5 +22,15 @@ private:
   Jid& operator=(Jid&&) = delete;
 };
 
+/**
+ * Prepare the given UTF-8 string according to the XMPP node stringprep
+ * identifier profile.  This is used to send properly-formed JID to the XMPP
+ * server.
+ *
+ * If the stringprep library is not found, we return an empty string.  When
+ * this function is used, the result must always be checked for an empty
+ * value, and if this is the case it must not be used as a JID.
+ */
+std::string jidprep(const std::string& original);
 
 #endif // JID_INCLUDED

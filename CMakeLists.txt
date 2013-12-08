@@ -20,6 +20,7 @@ find_package(Cryptopp REQUIRED)
 find_package(Iconv REQUIRED)
 include(FindEXPAT)
 find_package(EXPAT REQUIRED)
+find_package(Libidn)
 
 include_directories("src/")
 include_directories(${EXPAT_INCLUDE_DIRS})
@@ -28,12 +29,19 @@ include_directories(${ICONV_INCLUDE_DIRS})
 # coming from these headers.
 include_directories(SYSTEM ${CRYPTO++_INCLUDE_DIRS})
 
+if(LIBIDN_FOUND)
+  include_directories(${LIBIDN_INCLUDE_DIRS})
+else()
+  message("Building without stringprep support.")
+endif()
+
 set(POLLER "POLL" CACHE STRING
   "Choose the poller between POLL and EPOLL (Linux-only)")
 if((NOT ${POLLER} MATCHES "POLL") AND
     (NOT ${POLLER} MATCHES "EPOLL"))
   message(FATAL_ERROR "POLLER must be either POLL or EPOLL")
 endif()
+
 
 #
 ## utils
@@ -83,6 +91,9 @@ file(GLOB source_xmpp
 add_library(xmpp STATIC ${source_xmpp})
 target_link_libraries(xmpp bridge network utils logger
   ${CRYPTO++_LIBRARIES} ${EXPAT_LIBRARIES} pthread)
+if(LIBIDN_FOUND)
+  target_link_libraries(xmpp ${LIBIDN_LIBRARIES})
+endif()
 
 #
 ## bridge

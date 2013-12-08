@@ -62,7 +62,10 @@ public:
   /**
    * Send a join from a new participant
    */
-  void send_user_join(const std::string& from, const std::string& nick, const std::string& to);
+  void send_user_join(const std::string& from,
+                      const std::string& nick,
+                      const std::string& realjid,
+                      const std::string& to);
   /**
    * Send the self join to the user
    */
