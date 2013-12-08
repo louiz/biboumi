@@ -34,6 +34,7 @@ if((NOT ${POLLER} MATCHES "POLL") AND
     (NOT ${POLLER} MATCHES "EPOLL"))
   message(FATAL_ERROR "POLLER must be either POLL or EPOLL")
 endif()
+
 #
 ## utils
 #
