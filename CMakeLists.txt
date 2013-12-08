@@ -26,7 +26,7 @@ include_directories(${EXPAT_INCLUDE_DIRS})
 include_directories(${ICONV_INCLUDE_DIR})
 # the SYSTEM flag tells the compiler that we don't care about warnings
 # coming from these headers.
-include_directories(SYSTEM ${CRYPTO++_INCLUDE_DIR})
+include_directories(SYSTEM ${CRYPTO++_INCLUDE_DIRS})
 
 set(POLLER "POLL" CACHE STRING
   "Choose the poller between POLL and EPOLL (Linux-only)")
