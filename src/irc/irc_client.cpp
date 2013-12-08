@@ -134,13 +134,27 @@ bool IrcClient::send_channel_message(const std::string& chan_name, const std::st
       log_warning("Cannot send message to channel " << chan_name << ", it is not joined");
       return false;
     }
-  this->send_message(IrcMessage("PRIVMSG", {chan_name, body}));
+  // Cut the message body into 400-bytes parts (because the whole command
+  // must fit into 512 bytes, that's an easy way to make sure the chan name
+  // + body fits. I’m lazy.)
+  std::string::size_type pos = 0;
+  while (pos < body.size())
+    {
+      this->send_message(IrcMessage("PRIVMSG", {chan_name, body.substr(pos, 400)}));
+      pos += 400;
+    }
   return true;
 }
 
 void IrcClient::send_private_message(const std::string& username, const std::string& body)
 {
-  this->send_message(IrcMessage("PRIVMSG", {username, body}));
+  std::string::size_type pos = 0;
+  while (pos < body.size())
+    {
+      this->send_message(IrcMessage("PRIVMSG", {username, body.substr(pos, 400)}));
+      pos += 400;
+    }
+
 }
 
 void IrcClient::send_part_command(const std::string& chan_name, const std::string& status_message)
