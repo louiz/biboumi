@@ -224,7 +224,7 @@ void IrcClient::on_channel_message(const IrcMessage& message)
   const IrcUser user(message.prefix);
   const std::string nick = user.nick;
   Iid iid;
-  iid.chan = message.arguments[0];
+  iid.chan = utils::tolower(message.arguments[0]);
   iid.server = this->hostname;
   const std::string body = message.arguments[1];
   bool muc = true;
@@ -388,7 +388,7 @@ void IrcClient::on_channel_mode(const IrcMessage& message)
   // For now, just transmit the modes so the user can know what happens
   // TODO, actually interprete the mode.
   Iid iid;
-  iid.chan = message.arguments[0];
+  iid.chan = utils::tolower(message.arguments[0]);
   iid.server = this->hostname;
   IrcUser user(message.prefix);
   std::string mode_arguments;
