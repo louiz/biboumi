@@ -192,12 +192,13 @@ std::string XmlNode::to_string() const
   std::string res("<");
   res += this->name;
   for (const auto& it: this->attributes)
-    res += " " + it.first + "='" + it.second + "'";
+    res += " " + utils::remove_invalid_xml_chars(it.first) + "='" +
+      utils::remove_invalid_xml_chars(it.second) + "'";
   if (this->closed && !this->has_children() && this->inner.empty())
     res += "/>";
   else
     {
-      res += ">" + this->inner;
+      res += ">" + utils::remove_invalid_xml_chars(this->inner);
       for (const auto& child: this->children)
         res += child->to_string();
       if (this->closed)
@@ -205,7 +206,7 @@ std::string XmlNode::to_string() const
           res += "</" + this->name + ">";
         }
     }
-  res += this->tail;
+  res += utils::remove_invalid_xml_chars(this->tail);
   return res;
 }
 

@@ -97,6 +97,14 @@ int main()
       });
   xml.feed(doc.data(), doc.size(), true);
 
+  const std::string doc2 = "<stream xmlns='s'><stanza>coucou\r\n\a</stanza></stream>";
+  xml.add_stanza_callback([](const Stanza& stanza)
+      {
+        std::cout << stanza.to_string() << std::endl;
+        assert(stanza.get_inner() == "coucou\r\n");
+      });
+  xml.feed(doc2.data(), doc.size(), true);
+
   /**
    * XML escape/escape
    */
