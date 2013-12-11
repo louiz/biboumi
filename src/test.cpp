@@ -52,6 +52,11 @@ int main()
   assert(from_ascii == "couc�ou");
   std::cout << from_ascii << std::endl;
 
+  std::string without_ctrl_char("𤭢€¢$");
+  assert(utils::remove_invalid_xml_chars(without_ctrl_char) == without_ctrl_char);
+  assert(utils::remove_invalid_xml_chars(in) == in);
+  assert(utils::remove_invalid_xml_chars("\acouco\u0008u\uFFFEt\uFFFFe\r\n♥") == "coucoute\r\n♥");
+
   /**
    * Utils
    */
@@ -156,7 +161,7 @@ int main()
   /**
    * Config
    */
-  std::cout << color << "Testing JID parsing…" << reset << std::endl;
+  std::cout << color << "Testing config…" << reset << std::endl;
   Config::filename = "test.cfg";
   Config::file_must_exist = false;
   Config::set("coucou", "bonjour");
