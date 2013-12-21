@@ -20,7 +20,7 @@ SocketHandler::SocketHandler():
     throw std::runtime_error("Could not create socket");
 }
 
-void SocketHandler::connect(const std::string& address, const std::string& port)
+bool SocketHandler::connect(const std::string& address, const std::string& port)
 {
   log_info("Trying to connect to " << address << ":" << port);
   struct addrinfo hints;
@@ -47,13 +47,14 @@ void SocketHandler::connect(const std::string& address, const std::string& port)
         {
           log_info("Connection success.");
           this->on_connected();
-          return ;
+          return true;
         }
       log_info("Connection failed:");
       perror("connect");
     }
   log_error("All connection attempts failed.");
   this->close();
+  return false;
 }
 
 void SocketHandler::set_poller(Poller* poller)

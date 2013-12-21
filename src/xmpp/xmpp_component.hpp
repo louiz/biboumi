@@ -25,9 +25,10 @@ public:
   void parse_in_buffer() override final;
 
   /**
-   * Connect to the XMPP server
+   * Connect to the XMPP server.
+   * Returns false if we failed to connect
    */
-  void start();
+  bool start();
   /**
    * Serialize the stanza and add it to the out_buf to be sent to the
    * server.

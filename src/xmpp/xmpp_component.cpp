@@ -46,9 +46,9 @@ XmppComponent::~XmppComponent()
 {
 }
 
-void XmppComponent::start()
+bool XmppComponent::start()
 {
-  this->connect("127.0.0.1", "5347");
+  return this->connect("127.0.0.1", "5347");
 }
 
 void XmppComponent::send_stanza(const Stanza& stanza)

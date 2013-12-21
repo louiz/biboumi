@@ -21,7 +21,7 @@ public:
   /**
    * Connect to the remote server, and call on_connected() if this succeeds
    */
-  void connect(const std::string& address, const std::string& port);
+  bool connect(const std::string& address, const std::string& port);
   /**
    * Set the pointer to the given Poller, to communicate with it.
    */
