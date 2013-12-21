@@ -36,9 +36,9 @@ int main(int ac, char** av)
   }
   const std::string hostname = Config::get("hostname", "");
   if (password.empty())
-    return config_help("hostname");
-  if (hostname.empty())
     return config_help("password");
+  if (hostname.empty())
+    return config_help("hostname");
   std::shared_ptr<XmppComponent> xmpp_component =
     std::make_shared<XmppComponent>(hostname, password);
 
