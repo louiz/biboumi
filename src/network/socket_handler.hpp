@@ -30,7 +30,7 @@ public:
    * Reads data in our in_buf and the call parse_in_buf, for the implementor
    * to handle the data received so far.
    */
-  void on_recv();
+  void on_recv(const size_t nb = 4096);
   /**
    * Write as much data from out_buf as possible, in the socket.
    */

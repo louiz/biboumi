@@ -61,11 +61,11 @@ void SocketHandler::set_poller(Poller* poller)
   this->poller = poller;
 }
 
-void SocketHandler::on_recv()
+void SocketHandler::on_recv(const size_t nb)
 {
   char buf[4096];
 
-  ssize_t size = ::recv(this->socket, buf, 4096, 0);
+  ssize_t size = ::recv(this->socket, buf, nb, 0);
   if (0 == size)
     {
       this->on_connection_close();
