@@ -118,6 +118,11 @@ void IrcClient::send_kick_command(const std::string& chan_name, const std::strin
   this->send_message(IrcMessage("KICK", {chan_name, target, reason}));
 }
 
+void IrcClient::send_quit_command()
+{
+  this->send_message(IrcMessage("QUIT", {"gateway shutdown"}));
+}
+
 void IrcClient::send_join_command(const std::string& chan_name)
 {
   if (this->welcomed == false)
@@ -308,6 +313,21 @@ void IrcClient::on_part(const IrcMessage& message)
       if (self)
         channel->joined = false;
     }
+}
+
+void IrcClient::on_error(const IrcMessage& message)
+{
+  const std::string leave_message = message.arguments[0];
+  // The user is out of all the channels
+  for (auto it = this->channels.begin(); it != this->channels.end(); ++it)
+  {
+    Iid iid;
+    iid.chan = it->first;
+    iid.server = this->hostname;
+    IrcChannel* channel = it->second.get();
+    std::string own_nick = channel->get_self()->nick;
+    this->bridge->send_muc_leave(std::move(iid), std::move(own_nick), leave_message, true);
+  }
 }
 
 void IrcClient::on_quit(const IrcMessage& message)

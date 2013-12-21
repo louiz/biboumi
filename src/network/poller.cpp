@@ -9,7 +9,6 @@
 Poller::Poller()
 {
 #if POLLER == POLL
-  memset(this->fds, 0, sizeof(this->fds));
   this->nfds = 0;
 #elif POLLER == EPOLL
   this->epfd = ::epoll_create1(0);
@@ -42,9 +41,7 @@ void Poller::add_socket_handler(std::shared_ptr<SocketHandler> socket_handler)
   this->nfds++;
 #endif
 #if POLLER == EPOLL
-  struct epoll_event event;
-  event.data.ptr = socket_handler.get();
-  event.events = EPOLLIN;
+  struct epoll_event event = {EPOLLIN, {socket_handler.get()}};
   const int res = ::epoll_ctl(this->epfd, EPOLL_CTL_ADD, socket_handler->get_socket(), &event);
   if (res == -1)
     {
@@ -99,9 +96,7 @@ void Poller::watch_send_events(SocketHandler* socket_handler)
     }
   throw std::runtime_error("Cannot watch a non-registered socket for send events");
 #elif POLLER == EPOLL
-  struct epoll_event event;
-  event.data.ptr = socket_handler;
-  event.events = EPOLLIN|EPOLLOUT;
+  struct epoll_event event = {EPOLLIN|EPOLLOUT, {socket_handler}};
   const int res = ::epoll_ctl(this->epfd, EPOLL_CTL_MOD, socket_handler->get_socket(), &event);
   if (res == -1)
     {
@@ -124,9 +119,7 @@ void Poller::stop_watching_send_events(SocketHandler* socket_handler)
     }
   throw std::runtime_error("Cannot watch a non-registered socket for send events");
 #elif POLLER == EPOLL
-  struct epoll_event event;
-  event.data.ptr = socket_handler;
-  event.events = EPOLLIN;
+  struct epoll_event event = {EPOLLIN, {socket_handler}};
   const int res = ::epoll_ctl(this->epfd, EPOLL_CTL_MOD, socket_handler->get_socket(), &event);
   if (res == -1)
     {
@@ -136,21 +129,23 @@ void Poller::stop_watching_send_events(SocketHandler* socket_handler)
 #endif
 }
 
-bool Poller::poll()
+int Poller::poll(const std::chrono::milliseconds& timeout)
 {
+  if (this->socket_handlers.size() == 0)
+    return -1;
 #if POLLER == POLL
-  if (this->nfds == 0)
-    return false;
-  int res = ::poll(this->fds, this->nfds, -1);
-  if (res < 0)
+  int nb_events = ::poll(this->fds, this->nfds, timeout.count());
+  if (nb_events < 0)
     {
+      if (errno == EINTR)
+        return true;
       perror("poll");
       throw std::runtime_error("Poll failed");
     }
   // We cannot possibly have more ready events than the number of fds we are
   // watching
-  assert(static_cast<unsigned int>(res) <= this->nfds);
-  for (size_t i = 0; i <= this->nfds && res != 0; ++i)
+  assert(static_cast<unsigned int>(nb_events) <= this->nfds);
+  for (size_t i = 0; i <= this->nfds && nb_events != 0; ++i)
     {
       if (this->fds[i].revents == 0)
         continue;
@@ -158,21 +153,24 @@ bool Poller::poll()
         {
           auto socket_handler = this->socket_handlers.at(this->fds[i].fd);
           socket_handler->on_recv();
-          res--;
+          nb_events--;
         }
       else if (this->fds[i].revents & POLLOUT)
         {
           auto socket_handler = this->socket_handlers.at(this->fds[i].fd);
           socket_handler->on_send();
-          res--;
+          nb_events--;
         }
     }
+  return 1;
 #elif POLLER == EPOLL
   static const size_t max_events = 12;
   struct epoll_event revents[max_events];
-  const int nb_events = epoll_wait(this->epfd, revents, max_events, -1);
+  const int nb_events = ::epoll_wait(this->epfd, revents, max_events, timeout.count());
   if (nb_events == -1)
     {
+      if (errno == EINTR)
+        return 0;
       perror("epoll_wait");
       throw std::runtime_error("Epoll_wait failed");
     }
@@ -184,6 +182,11 @@ bool Poller::poll()
       if (revents[i].events & EPOLLOUT)
         socket_handler->on_send();
     }
+  return nb_events;
 #endif
-  return true;
+}
+
+size_t Poller::size() const
+{
+  return this->socket_handlers.size();
 }

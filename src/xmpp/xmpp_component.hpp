@@ -23,7 +23,14 @@ public:
   void on_connected() override final;
   void on_connection_close() override final;
   void parse_in_buffer() override final;
-
+  /**
+   * Send a "close" message to all our connected peers.  That message
+   * depends on the protocol used (this may be a QUIT irc message, or a
+   * <stream/>, etc).  We may also directly close the connection, or we may
+   * wait for the remote peer to acknowledge it before closing.
+   */
+  void shutdown();
+  bool is_document_open() const;
   /**
    * Connect to the XMPP server.
    * Returns false if we failed to connect
@@ -115,6 +122,10 @@ private:
   std::string served_hostname;
   std::string secret;
   bool authenticated;
+  /**
+   * Whether or not OUR XMPP document is open
+   */
+  bool doc_open;
 
   std::unordered_map<std::string, std::function<void(const Stanza&)>> stanza_handlers;
 

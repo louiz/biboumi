@@ -24,7 +24,8 @@
 XmppComponent::XmppComponent(const std::string& hostname, const std::string& secret):
   served_hostname(hostname),
   secret(secret),
-  authenticated(false)
+  authenticated(false),
+  doc_open(false)
 {
   this->parser.add_stream_open_callback(std::bind(&XmppComponent::on_remote_stream_open, this,
                                                   std::placeholders::_1));
@@ -51,6 +52,11 @@ bool XmppComponent::start()
   return this->connect("127.0.0.1", "5347");
 }
 
+bool XmppComponent::is_document_open() const
+{
+  return this->doc_open;
+}
+
 void XmppComponent::send_stanza(const Stanza& stanza)
 {
   std::string str = stanza.to_string();
@@ -66,6 +72,7 @@ void XmppComponent::on_connected()
   node["xmlns:stream"] = STREAM_NS;
   node["to"] = this->served_hostname;
   this->send_stanza(node);
+  this->doc_open = true;
 }
 
 void XmppComponent::on_connection_close()
@@ -77,6 +84,14 @@ void XmppComponent::parse_in_buffer()
 {
   this->parser.feed(this->in_buf.data(), this->in_buf.size(), false);
   this->in_buf.clear();
+}
+
+void XmppComponent::shutdown()
+{
+  for (auto it = this->bridges.begin(); it != this->bridges.end(); ++it)
+  {
+    it->second->shutdown();
+  }
 }
 
 void XmppComponent::on_remote_stream_open(const XmlNode& node)
@@ -145,6 +160,7 @@ void XmppComponent::close_document()
 {
   log_debug("XMPP SENDING: </stream:stream>");
   this->send_data("</stream:stream>");
+  this->doc_open = false;
 }
 
 void XmppComponent::handle_handshake(const Stanza& stanza)

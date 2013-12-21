@@ -21,6 +21,14 @@ Bridge::~Bridge()
 {
 }
 
+void Bridge::shutdown()
+{
+  for (auto it = this->irc_clients.begin(); it != this->irc_clients.end(); ++it)
+  {
+    it->second->send_quit_command();
+  }
+}
+
 Xmpp::body Bridge::make_xmpp_body(const std::string& str)
 {
   std::string res;

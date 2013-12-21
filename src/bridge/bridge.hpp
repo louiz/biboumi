@@ -24,6 +24,10 @@ class Bridge
 public:
   explicit Bridge(const std::string& user_jid, XmppComponent* xmpp, Poller* poller);
   ~Bridge();
+  /**
+   * QUIT all connected IRC servers.
+   */
+  void shutdown();
 
   static Xmpp::body make_xmpp_body(const std::string& str);
   /***

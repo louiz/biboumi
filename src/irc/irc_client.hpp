@@ -96,6 +96,10 @@ public:
    */
   void send_kick_command(const std::string& chan_name, const std::string& target, const std::string& reason);
   /**
+   * Send the QUIT irc command
+   */
+  void send_quit_command();
+  /**
    * Forward the server message received from IRC to the XMPP component
    */
   void forward_server_message(const IrcMessage& message);
@@ -139,6 +143,7 @@ public:
    */
   void on_welcome_message(const IrcMessage& message);
   void on_part(const IrcMessage& message);
+  void on_error(const IrcMessage& message);
   void on_nick(const IrcMessage& message);
   void on_kick(const IrcMessage& message);
   void on_mode(const IrcMessage& message);
@@ -216,6 +221,7 @@ static const std::unordered_map<std::string, irc_callback_t> irc_callbacks = {
   {"366", &IrcClient::on_channel_completely_joined},
   {"001", &IrcClient::on_welcome_message},
   {"PART", &IrcClient::on_part},
+  {"ERROR", &IrcClient::on_error},
   {"QUIT", &IrcClient::on_quit},
   {"NICK", &IrcClient::on_nick},
   {"MODE", &IrcClient::on_mode},

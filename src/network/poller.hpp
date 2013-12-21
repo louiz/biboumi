@@ -5,6 +5,7 @@
 
 #include <unordered_map>
 #include <memory>
+#include <chrono>
 
 #define POLL 1
 #define EPOLL 2
@@ -58,10 +59,17 @@ public:
   void stop_watching_send_events(SocketHandler* socket_handler);
   /**
    * Wait for all watched events, and call the SocketHandlers' callbacks
-   * when one is ready.
-   * Returns false if there are 0 SocketHandler in the list.
+   * when one is ready.  Returns if nothing happened before the provided
+   * timeout.  If the timeout is 0, it waits forever.  If there is no
+   * watched event, returns -1 immediately, ignoring the timeout value.
+   * Otherwise, returns the number of event handled. If 0 is returned this
+   * means that we were interrupted by a signal, or the timeout occured.
    */
-  bool poll();
+  int poll(const std::chrono::milliseconds& timeout);
+  /**
+   * Returns the number of SocketHandlers managed by the poller.
+   */
+  size_t size() const;
 
 private:
   /**
