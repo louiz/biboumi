@@ -176,7 +176,7 @@ void XmppComponent::handle_presence(const Stanza& stanza)
         }
       else if (type == "unavailable")
         {
-          XmlNode* status = stanza.get_child(MUC_USER_NS":status");
+          XmlNode* status = stanza.get_child(COMPONENT_NS":status");
           bridge->leave_irc_channel(std::move(iid), status ? std::move(status->get_inner()) : "");
         }
     }
