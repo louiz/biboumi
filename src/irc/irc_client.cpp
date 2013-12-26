@@ -274,6 +274,8 @@ void IrcClient::on_topic_received(const IrcMessage& message)
   const std::string chan_name = utils::tolower(message.arguments[1]);
   IrcChannel* channel = this->get_channel(chan_name);
   channel->topic = message.arguments[2];
+  if (channel->joined)
+    this->bridge->send_topic(this->hostname, chan_name, channel->topic);
 }
 
 void IrcClient::on_channel_completely_joined(const IrcMessage& message)

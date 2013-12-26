@@ -218,6 +218,7 @@ static const std::unordered_map<std::string, irc_callback_t> irc_callbacks = {
   {"PRIVMSG", &IrcClient::on_channel_message},
   {"353", &IrcClient::set_and_forward_user_list},
   {"332", &IrcClient::on_topic_received},
+  {"TOPIC", &IrcClient::on_topic_received},
   {"366", &IrcClient::on_channel_completely_joined},
   {"001", &IrcClient::on_welcome_message},
   {"PART", &IrcClient::on_part},
