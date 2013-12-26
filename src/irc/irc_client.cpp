@@ -297,6 +297,8 @@ void IrcClient::on_part(const IrcMessage& message)
 {
   const std::string chan_name = utils::tolower(message.arguments[0]);
   IrcChannel* channel = this->get_channel(chan_name);
+  if (!channel->joined)
+    return ;
   std::string txt;
   if (message.arguments.size() >= 2)
     txt = message.arguments[1];
@@ -325,6 +327,8 @@ void IrcClient::on_error(const IrcMessage& message)
     iid.chan = it->first;
     iid.server = this->hostname;
     IrcChannel* channel = it->second.get();
+    if (!channel->joined)
+      continue;
     std::string own_nick = channel->get_self()->nick;
     this->bridge->send_muc_leave(std::move(iid), std::move(own_nick), leave_message, true);
   }
@@ -384,6 +388,8 @@ void IrcClient::on_kick(const IrcMessage& message)
   const std::string reason = message.arguments[2];
   const std::string chan_name = utils::tolower(message.arguments[0]);
   IrcChannel* channel = this->get_channel(chan_name);
+  if (!channel->joined)
+    return ;
   if (channel->get_self()->nick == target)
     channel->joined = false;
   IrcUser author(message.prefix);
