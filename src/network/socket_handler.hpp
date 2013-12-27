@@ -61,6 +61,7 @@ public:
    * should be truncated, only the unused data should be left untouched.
    */
   virtual void parse_in_buffer() = 0;
+  bool is_connected() const;
 
 protected:
   socket_t socket;
@@ -84,6 +85,7 @@ protected:
    * (actually it is sharing our ownership with a Bridge).
    */
   Poller* poller;
+  bool connected;
 
 private:
   SocketHandler(const SocketHandler&) = delete;

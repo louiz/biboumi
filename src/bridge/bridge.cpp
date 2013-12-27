@@ -50,7 +50,6 @@ IrcClient* Bridge::get_irc_client(const std::string& hostname, const std::string
       this->irc_clients.emplace(hostname, std::make_shared<IrcClient>(hostname, username, this));
       std::shared_ptr<IrcClient> irc = this->irc_clients.at(hostname);
       this->poller->add_socket_handler(irc);
-      irc->start();
       return irc.get();
     }
 }

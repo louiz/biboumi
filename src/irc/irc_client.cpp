@@ -128,6 +128,8 @@ void IrcClient::send_quit_command()
 
 void IrcClient::send_join_command(const std::string& chan_name)
 {
+  if (!this->connected)
+    this->start();
   if (this->welcomed == false)
     this->channels_to_join.push_back(chan_name);
   else

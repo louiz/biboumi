@@ -14,7 +14,8 @@
 #include <iostream>
 
 SocketHandler::SocketHandler():
-  poller(nullptr)
+  poller(nullptr),
+  connected(false)
 {
   if ((this->socket = ::socket(AF_INET, SOCK_STREAM, 0)) == -1)
     throw std::runtime_error("Could not create socket");
@@ -46,6 +47,7 @@ bool SocketHandler::connect(const std::string& address, const std::string& port)
       if (::connect(this->socket, rp->ai_addr, rp->ai_addrlen) == 0)
         {
           log_info("Connection success.");
+          this->connected = true;
           this->on_connected();
           return true;
         }
@@ -99,8 +101,12 @@ void SocketHandler::on_send()
 
 void SocketHandler::close()
 {
+  this->connected = false;
   this->poller->remove_socket_handler(this->get_socket());
   ::close(this->socket);
+  // recreate the socket for a potential future usage
+  if ((this->socket = ::socket(AF_INET, SOCK_STREAM, 0)) == -1)
+    throw std::runtime_error("Could not create socket");
 }
 
 socket_t SocketHandler::get_socket() const
@@ -115,4 +121,9 @@ void SocketHandler::send_data(std::string&& data)
     {
       this->poller->watch_send_events(this);
     }
+}
+
+bool SocketHandler::is_connected() const
+{
+  return this->connected;
 }
