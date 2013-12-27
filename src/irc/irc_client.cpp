@@ -33,11 +33,14 @@ void IrcClient::on_connected()
 {
   this->send_nick_command(this->username);
   this->send_user_command(this->username, this->username);
+  this->send_gateway_message("Connected to IRC server.");
 }
 
 void IrcClient::on_connection_close()
 {
-  log_warning("Connection closed by remote server.");
+  static const std::string message = "Connection closed by remote server.";
+  this->send_gateway_message(message);
+  log_warning(message);
 }
 
 IrcChannel* IrcClient::get_channel(const std::string& name)
@@ -191,6 +194,11 @@ void IrcClient::forward_server_message(const IrcMessage& message)
   this->bridge->send_xmpp_message(this->hostname, from, body);
 }
 
+void IrcClient::send_gateway_message(const std::string& message, const std::string& from)
+{
+  this->bridge->send_xmpp_message(this->hostname, from, message);
+}
+
 void IrcClient::set_and_forward_user_list(const IrcMessage& message)
 {
   const std::string chan_name = utils::tolower(message.arguments[2]);
@@ -286,6 +294,20 @@ void IrcClient::on_channel_completely_joined(const IrcMessage& message)
   this->bridge->send_topic(this->hostname, chan_name, channel->topic);
 }
 
+void IrcClient::on_erroneous_nickname(const IrcMessage& message)
+{
+  const std::string error_msg = message.arguments.size() >= 3 ?
+    message.arguments[2]: "Erroneous nickname";
+  this->send_gateway_message(error_msg + ": " + message.arguments[1], message.prefix);
+}
+
+void IrcClient::on_generic_error(const IrcMessage& message)
+{
+  const std::string error_msg = message.arguments.size() >= 3 ?
+    message.arguments[2]: "Unspecified error";
+  this->send_gateway_message(message.arguments[1] + ": " + error_msg, message.prefix);
+}
+
 void IrcClient::on_welcome_message(const IrcMessage& message)
 {
   this->current_nick = message.arguments[0];
@@ -334,6 +356,7 @@ void IrcClient::on_error(const IrcMessage& message)
     std::string own_nick = channel->get_self()->nick;
     this->bridge->send_muc_leave(std::move(iid), std::move(own_nick), leave_message, true);
   }
+  this->send_gateway_message(std::string("ERROR: ") + leave_message);
 }
 
 void IrcClient::on_quit(const IrcMessage& message)
