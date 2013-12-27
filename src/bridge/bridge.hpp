@@ -89,6 +89,7 @@ public:
    */
   void send_nick_change(Iid&& iid, const std::string& old_nick, const std::string& new_nick, const bool self);
   void kick_muc_user(Iid&& iid, const std::string& target, const std::string& reason, const std::string& author);
+  void send_nickname_conflict_error(const Iid& iid, const std::string& nickname);
 
   /**
    * Misc

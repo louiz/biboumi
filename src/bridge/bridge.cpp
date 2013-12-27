@@ -216,3 +216,8 @@ void Bridge::kick_muc_user(Iid&& iid, const std::string& target, const std::stri
 {
   this->xmpp->kick_user(iid.chan + "%" + iid.server, target, reason, author, this->user_jid);
 }
+
+void Bridge::send_nickname_conflict_error(const Iid& iid, const std::string& nickname)
+{
+  this->xmpp->send_nickname_conflict_error(iid.chan + "%" + iid.server, nickname, this->user_jid);
+}

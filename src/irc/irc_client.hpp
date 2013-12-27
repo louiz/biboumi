@@ -149,6 +149,11 @@ public:
    */
   void on_erroneous_nickname(const IrcMessage& message);
   /**
+   * When the IRC servers denies our nickname because of a conflict.  Send a
+   * presence conflict from all channels, because the name is server-wide.
+   */
+  void on_nickname_conflict(const IrcMessage& message);
+  /**
    * Handles most errors from the server by just forwarding the message to the user.
    */
   void on_generic_error(const IrcMessage& message);
@@ -237,6 +242,7 @@ static const std::unordered_map<std::string, irc_callback_t> irc_callbacks = {
   {"TOPIC", &IrcClient::on_topic_received},
   {"366", &IrcClient::on_channel_completely_joined},
   {"432", &IrcClient::on_erroneous_nickname},
+  {"433", &IrcClient::on_nickname_conflict},
   {"461", &IrcClient::on_generic_error},
   {"001", &IrcClient::on_welcome_message},
   {"PART", &IrcClient::on_part},

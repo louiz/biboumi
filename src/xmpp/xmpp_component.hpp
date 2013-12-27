@@ -108,6 +108,12 @@ public:
                      const std::string& author,
                      const std::string& jid_to);
   /**
+   * Send a presence type=error with a conflict element
+   */
+  void send_nickname_conflict_error(const std::string& muc_name,
+                                    const std::string& nickname,
+                                    const std::string& jid_to);
+  /**
    * Handle the various stanza types
    */
   void handle_handshake(const Stanza& stanza);

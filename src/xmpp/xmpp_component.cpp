@@ -20,6 +20,7 @@
 #define DISCO_ITEMS_NS   DISCO_NS"#items"
 #define DISCO_INFO_NS    DISCO_NS"#info"
 #define XHTMLIM_NS       "http://jabber.org/protocol/xhtml-im"
+#define STANZA_NS        "urn:ietf:params:xml:ns:xmpp-stanzas"
 
 XmppComponent::XmppComponent(const std::string& hostname, const std::string& secret):
   served_hostname(hostname),
@@ -195,8 +196,7 @@ void XmppComponent::handle_presence(const Stanza& stanza)
           const std::string own_nick = bridge->get_own_nick(iid);
           if (!own_nick.empty() && own_nick != to.resource)
             bridge->send_irc_nick_change(iid, to.resource);
-          else
-            bridge->join_irc_channel(iid, to.resource);
+          bridge->join_irc_channel(iid, to.resource);
         }
       else if (type == "unavailable")
         {
@@ -476,6 +476,31 @@ void XmppComponent::kick_user(const std::string& muc_name,
   x.add_child(std::move(status));
   x.close();
   presence.add_child(std::move(x));
+  presence.close();
+  this->send_stanza(presence);
+}
+
+void XmppComponent::send_nickname_conflict_error(const std::string& muc_name,
+                                                 const std::string& nickname,
+                                                 const std::string& jid_to)
+{
+  Stanza presence("presence");
+  presence["from"] = muc_name + "@" + this->served_hostname + "/" + nickname;
+  presence["to"] = jid_to;
+  XmlNode x("x");
+  x["xmlns"] = MUC_NS;
+  x.close();
+  presence.add_child(std::move(x));
+  XmlNode error("error");
+  error["by"] = muc_name + "@" + this->served_hostname;
+  error["type"] = "cancel";
+  error["code"] = "409";
+  XmlNode conflict("conflict");
+  conflict["xmlns"] = STANZA_NS;
+  conflict.close();
+  error.add_child(std::move(conflict));
+  error.close();
+  presence.add_child(std::move(error));
   presence.close();
   this->send_stanza(presence);
 }

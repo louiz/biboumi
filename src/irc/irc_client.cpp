@@ -303,6 +303,19 @@ void IrcClient::on_erroneous_nickname(const IrcMessage& message)
   this->send_gateway_message(error_msg + ": " + message.arguments[1], message.prefix);
 }
 
+void IrcClient::on_nickname_conflict(const IrcMessage& message)
+{
+  const std::string nickname = message.arguments[1];
+  this->on_generic_error(message);
+  for (auto it = this->channels.begin(); it != this->channels.end(); ++it)
+  {
+    Iid iid;
+    iid.chan = it->first;
+    iid.server = this->hostname;
+    this->bridge->send_nickname_conflict_error(iid, nickname);
+  }
+}
+
 void IrcClient::on_generic_error(const IrcMessage& message)
 {
   const std::string error_msg = message.arguments.size() >= 3 ?
