@@ -8,7 +8,9 @@
 #include <network/socket_handler.hpp>
 
 #include <unordered_map>
+#include <vector>
 #include <string>
+#include <map>
 
 class Bridge;
 
@@ -110,6 +112,11 @@ public:
    */
   void forward_server_message(const IrcMessage& message);
   /**
+   * When receiving the isupport informations.  See
+   * http://www.irc.org/tech_docs/draft-brocklesby-irc-isupport-03.txt
+   */
+  void on_isupport_message(const IrcMessage& message);
+  /**
    * Just empty the motd we kept as a string
    */
   void empty_motd(const IrcMessage& message);
@@ -209,10 +216,23 @@ private:
   std::vector<std::string> channels_to_join;
   bool welcomed;
   /**
+   * See http://www.irc.org/tech_docs/draft-brocklesby-irc-isupport-03.txt section 3.3
+   * We store the possible chanmodes in this object.
+   * chanmodes[0] contains modes of type A, [1] of type B etc
+   */
+  std::vector<std::string> chanmodes;
+  /**
    * Each motd line received is appended to this string, which we send when
    * the motd is completely received
    */
   std::string motd;
+  /**
+   * See http://www.irc.org/tech_docs/draft-brocklesby-irc-isupport-03.txt section 3.14
+   * The example given would be transformed into
+   * modes_to_prefix = {{'a', '&'}, {'b', '*'}}
+   */
+  std::map<char, char> prefix_to_mode;
+
   IrcClient(const IrcClient&) = delete;
   IrcClient(IrcClient&&) = delete;
   IrcClient& operator=(const IrcClient&) = delete;
@@ -229,6 +249,7 @@ static const std::unordered_map<std::string, irc_callback_t> irc_callbacks = {
   {"NOTICE", &IrcClient::forward_server_message},
   {"002", &IrcClient::forward_server_message},
   {"003", &IrcClient::forward_server_message},
+  {"005", &IrcClient::on_isupport_message},
   {"RPL_MOTDSTART", &IrcClient::empty_motd},
   {"375", &IrcClient::empty_motd},
   {"RPL_MOTD", &IrcClient::on_motd_line},

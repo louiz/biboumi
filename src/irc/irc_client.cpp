@@ -16,7 +16,8 @@ IrcClient::IrcClient(const std::string& hostname, const std::string& username, B
   username(username),
   current_nick(username),
   bridge(bridge),
-  welcomed(false)
+  welcomed(false),
+  chanmodes({"", "", "", ""})
 {
 }
 
@@ -194,6 +195,32 @@ void IrcClient::forward_server_message(const IrcMessage& message)
   const std::string body = message.arguments[1];
 
   this->bridge->send_xmpp_message(this->hostname, from, body);
+}
+
+void IrcClient::on_isupport_message(const IrcMessage& message)
+{
+  const size_t len = message.arguments.size();
+  for (size_t i = 1; i < len; ++i)
+  {
+    const std::string token = message.arguments[i];
+    if (token.substr(0, 10) == "CHANMODES=")
+    {
+      this->chanmodes = utils::split(token.substr(11), ',');
+      // make sure we have 4 strings
+      this->chanmodes.resize(4);
+    }
+    else if (token.substr(0, 7) == "PREFIX=")
+      {
+        size_t i = 8;           // jump PREFIX=(
+        size_t j = 9;
+        // Find the ) char
+        while (j < token.size() && token[j] != ')')
+          j++;
+        j++;
+        while (j < token.size() && token[i] != ')')
+          this->prefix_to_mode[token[j++]] = token[i++];
+      }
+  }
 }
 
 void IrcClient::send_gateway_message(const std::string& message, const std::string& from)
