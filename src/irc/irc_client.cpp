@@ -58,8 +58,8 @@ IrcChannel* IrcClient::get_channel(const std::string& name)
 
 bool IrcClient::is_channel_joined(const std::string& name)
 {
-  IrcChannel* client = this->get_channel(name);
-  return client->joined;
+  IrcChannel* channel = this->get_channel(name);
+  return channel->joined;
 }
 
 std::string IrcClient::get_own_nick() const
@@ -339,7 +339,12 @@ void IrcClient::on_part(const IrcMessage& message)
       bool self = channel->get_self()->nick == nick;
       this->bridge->send_muc_leave(std::move(iid), std::move(nick), std::move(txt), self);
       if (self)
+      {
         channel->joined = false;
+        this->channels.erase(chan_name);
+        // channel pointer is now invalid
+        channel = nullptr;
+      }
     }
 }
 
@@ -358,6 +363,7 @@ void IrcClient::on_error(const IrcMessage& message)
     std::string own_nick = channel->get_self()->nick;
     this->bridge->send_muc_leave(std::move(iid), std::move(own_nick), leave_message, true);
   }
+  this->channels.clear();
   this->send_gateway_message(std::string("ERROR: ") + leave_message);
 }
 

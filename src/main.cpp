@@ -81,6 +81,9 @@ int main(int ac, char** av)
   const std::chrono::milliseconds timeout(-1);
   while (p.poll(timeout) != -1 || !exiting)
   {
+    // Check for empty irc_clients (not connected, or with no joined
+    // channel) and remove them
+    xmpp_component->clean();
     if (stop)
     {
       log_info("Signal received, exiting...");

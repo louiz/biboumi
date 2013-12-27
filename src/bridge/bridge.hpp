@@ -28,7 +28,10 @@ public:
    * QUIT all connected IRC servers.
    */
   void shutdown();
-
+  /**
+   * Remove all inactive IrcClients
+   */
+  void clean();
   static Xmpp::body make_xmpp_body(const std::string& str);
   /***
    **

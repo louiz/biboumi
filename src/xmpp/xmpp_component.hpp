@@ -32,6 +32,11 @@ public:
   void shutdown();
   bool is_document_open() const;
   /**
+   * Run a check on all bridges, to remove all disconnected (socket is
+   * closed, or no channel is joined) IrcClients. Some kind of garbage collector.
+   */
+  void clean();
+  /**
    * Connect to the XMPP server.
    * Returns false if we failed to connect
    */

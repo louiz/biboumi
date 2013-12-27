@@ -29,6 +29,19 @@ void Bridge::shutdown()
   }
 }
 
+void Bridge::clean()
+{
+  auto it = this->irc_clients.begin();
+  while (it != this->irc_clients.end())
+  {
+    IrcClient* client = it->second.get();
+    if (!client->is_connected())
+      it = this->irc_clients.erase(it);
+    else
+      ++it;
+  }
+}
+
 Xmpp::body Bridge::make_xmpp_body(const std::string& str)
 {
   std::string res;

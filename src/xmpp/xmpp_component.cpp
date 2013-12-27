@@ -94,6 +94,14 @@ void XmppComponent::shutdown()
   }
 }
 
+void XmppComponent::clean()
+{
+  for (auto it = this->bridges.begin(); it != this->bridges.end(); ++it)
+  {
+    it->second->clean();
+  }
+}
+
 void XmppComponent::on_remote_stream_open(const XmlNode& node)
 {
   log_debug("XMPP DOCUMENT OPEN: " << node.to_string());
