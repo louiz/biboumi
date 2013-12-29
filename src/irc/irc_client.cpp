@@ -235,11 +235,16 @@ void IrcClient::set_and_forward_user_list(const IrcMessage& message)
   std::vector<std::string> nicks = utils::split(message.arguments[3], ' ');
   for (const std::string& nick: nicks)
     {
-      const IrcUser* user = channel->add_user(nick);
+      const IrcUser* user = channel->add_user(nick, this->prefix_to_mode);
       if (user->nick != channel->get_self()->nick)
         {
           log_debug("Adding user [" << nick << "] to chan " << chan_name);
-          this->bridge->send_user_join(this->hostname, chan_name, user);
+          this->bridge->send_user_join(this->hostname, chan_name, user, false);
+        }
+      else
+        {
+          // we now know the modes of self, so copy the modes into self
+          channel->get_self()->modes = user->modes;
         }
     }
 }
@@ -256,8 +261,8 @@ void IrcClient::on_channel_join(const IrcMessage& message)
     }
   else
     {
-      const IrcUser* user = channel->add_user(nick);
-      this->bridge->send_user_join(this->hostname, chan_name, user);
+      const IrcUser* user = channel->add_user(nick, this->prefix_to_mode);
+      this->bridge->send_user_join(this->hostname, chan_name, user, false);
     }
 }
 
@@ -319,7 +324,7 @@ void IrcClient::on_channel_completely_joined(const IrcMessage& message)
 {
   const std::string chan_name = utils::tolower(message.arguments[1]);
   IrcChannel* channel = this->get_channel(chan_name);
-  this->bridge->send_self_join(this->hostname, chan_name, channel->get_self()->nick);
+  this->bridge->send_user_join(this->hostname, chan_name, channel->get_self(), true);
   this->bridge->send_topic(this->hostname, chan_name, channel->topic);
 }
 

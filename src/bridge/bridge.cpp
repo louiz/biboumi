@@ -189,14 +189,18 @@ void Bridge::send_xmpp_message(const std::string& from, const std::string& autho
 
 void Bridge::send_user_join(const std::string& hostname,
                             const std::string& chan_name,
-                            const IrcUser* user)
+                            const IrcUser* user,
+                            const bool self)
 {
-  this->xmpp->send_user_join(chan_name + "%" + hostname, user->nick, user->host, this->user_jid);
-}
-
-void Bridge::send_self_join(const std::string& hostname, const std::string& chan_name, const std::string nick)
-{
-  this->xmpp->send_self_join(chan_name + "%" + hostname, nick, this->user_jid);
+  std::string affiliation = "participant";
+  std::string role = "none";
+  if (user->modes.find('o') != user->modes.end())
+    {
+      affiliation = "admin";
+      role = "moderator";
+    }
+  this->xmpp->send_user_join(chan_name + "%" + hostname, user->nick, user->host,
+                             affiliation, role, this->user_jid, self);
 }
 
 void Bridge::send_topic(const std::string& hostname, const std::string& chan_name, const std::string topic)

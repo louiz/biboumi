@@ -12,9 +12,10 @@ void IrcChannel::set_self(const std::string& name)
   this->self = std::make_unique<IrcUser>(name);
 }
 
-IrcUser* IrcChannel::add_user(const std::string& name)
+IrcUser* IrcChannel::add_user(const std::string& name,
+                              const std::map<char, char> prefix_to_mode)
 {
-  this->users.emplace_back(std::make_unique<IrcUser>(name));
+  this->users.emplace_back(std::make_unique<IrcUser>(name, prefix_to_mode));
   return this->users.back().get();
 }
 

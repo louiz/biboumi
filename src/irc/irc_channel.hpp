@@ -5,6 +5,7 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <map>
 
 /**
  * Keep the state of a joined channel (the list of occupants with their
@@ -19,7 +20,8 @@ public:
   std::string topic;
   void set_self(const std::string& name);
   IrcUser* get_self() const;
-  IrcUser* add_user(const std::string& name);
+  IrcUser* add_user(const std::string& name,
+                    const std::map<char, char> prefix_to_mode);
   IrcUser* find_user(const std::string& name);
   void remove_user(const IrcUser* user);
 

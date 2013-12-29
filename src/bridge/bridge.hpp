@@ -66,11 +66,8 @@ public:
    */
   void send_user_join(const std::string& hostname,
                       const std::string& chan_name,
-                      const IrcUser* user);
-  /**
-   * Send the self presence of an user when the MUC is fully joined.
-   */
-  void send_self_join(const std::string& hostname, const std::string& chan_name, const std::string nick);
+                      const IrcUser* user,
+                      const bool self);
   /**
    * Send the topic of the MUC to the user
    */

@@ -78,11 +78,10 @@ public:
   void send_user_join(const std::string& from,
                       const std::string& nick,
                       const std::string& realjid,
-                      const std::string& to);
-  /**
-   * Send the self join to the user
-   */
-  void send_self_join(const std::string& from, const std::string& nick, const std::string& to);
+                      const std::string& affiliation,
+                      const std::string& role,
+                      const std::string& to,
+                      const bool self);
   /**
    * Send the MUC topic to the user
    */
