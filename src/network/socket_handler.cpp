@@ -75,7 +75,11 @@ void SocketHandler::on_recv(const size_t nb)
       this->close();
     }
   else if (-1 == static_cast<ssize_t>(size))
-    throw std::runtime_error("Error reading from socket");
+    {
+      log_warning("Error while reading from socket: " << strerror(errno));
+      this->on_connection_close();
+      this->close();
+    }
   else
     {
       this->in_buf += std::string(buf, size);
