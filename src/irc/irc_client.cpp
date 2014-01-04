@@ -321,9 +321,11 @@ void IrcClient::send_motd(const IrcMessage& message)
 
 void IrcClient::on_topic_received(const IrcMessage& message)
 {
-  const std::string chan_name = utils::tolower(message.arguments[1]);
+  if (message.arguments.size() < 2)
+    return;
+  const std::string chan_name = utils::tolower(message.arguments[message.arguments.size() - 2]);
   IrcChannel* channel = this->get_channel(chan_name);
-  channel->topic = message.arguments[2];
+  channel->topic = message.arguments[message.arguments.size() - 1];
   if (channel->joined)
     this->bridge->send_topic(this->hostname, chan_name, channel->topic);
 }
