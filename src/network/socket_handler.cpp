@@ -7,6 +7,7 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <errno.h>
 #include <cstring>
 #include <netdb.h>
 #include <stdio.h>
