@@ -217,6 +217,9 @@ void XmppComponent::handle_message(const Stanza& stanza)
       if (to.resource.empty())
         if (body && !body->get_inner().empty())
           bridge->send_channel_message(iid, body->get_inner());
+      XmlNode* subject = stanza.get_child(COMPONENT_NS":subject");
+      if (subject)
+        bridge->set_channel_topic(iid, subject->get_inner());
     }
   else
     {

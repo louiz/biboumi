@@ -156,6 +156,13 @@ void Bridge::send_irc_kick(const Iid& iid, const std::string& target, const std:
     irc->send_kick_command(iid.chan, target, reason);
 }
 
+void Bridge::set_channel_topic(const Iid& iid, const std::string& subject)
+{
+  IrcClient* irc = this->get_irc_client(iid.server);
+  if (irc)
+    irc->send_topic_command(iid.chan, subject);
+}
+
 void Bridge::send_message(const Iid& iid, const std::string& nick, const std::string& body, const bool muc)
 {
   if (muc)

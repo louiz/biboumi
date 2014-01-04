@@ -49,6 +49,7 @@ public:
   void leave_irc_channel(Iid&& iid, std::string&& status_message);
   void send_irc_nick_change(const Iid& iid, const std::string& new_nick);
   void send_irc_kick(const Iid& iid, const std::string& target, const std::string& reason);
+  void set_channel_topic(const Iid& iid, const std::string& subject);
 
   /***
    **

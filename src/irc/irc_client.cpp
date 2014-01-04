@@ -122,6 +122,11 @@ void IrcClient::send_kick_command(const std::string& chan_name, const std::strin
   this->send_message(IrcMessage("KICK", {chan_name, target, reason}));
 }
 
+void IrcClient::send_topic_command(const std::string& chan_name, const std::string& topic)
+{
+  this->send_message(IrcMessage("TOPIC", {chan_name, topic}));
+}
+
 void IrcClient::send_quit_command()
 {
   this->send_message(IrcMessage("QUIT", {"gateway shutdown"}));
