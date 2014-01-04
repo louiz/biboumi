@@ -184,17 +184,21 @@ notified of this XMPP event as well. For example if a mode “+o toto” is
 received, then toto’s role will be changed to moderator.  The mapping
 between IRC modes and XMPP features is as follow:
 
-`+o`
-
-  Sets the participant’s role to `moderator`.
-
 `+a`
 
-  Sets the participant’s role to `admin`.
+  Sets the participant’s role to `moderator` and its affiliation to `owner`.
+
+`+o`
+
+  Sets the participant’s role to `moderator` and its affiliation to  `admin`.
+
+`+h`
+
+  Sets the participant’s role to `moderator` and its affiliation to  `member`.
 
 `+v`
 
-  Sets the participant’s affiliation to `member`.
+  Sets the participant’s role to `participant` and its affiliation to `member`.
 
 SECURITY
 --------

@@ -113,6 +113,15 @@ public:
                                     const std::string& nickname,
                                     const std::string& jid_to);
   /**
+   * Send a presence from the MUC indicating a change in the role and/or
+   * affiliation of a participant
+   */
+  void send_affiliation_role_change(const std::string& muc_name,
+                                    const std::string& target,
+                                    const std::string& affiliation,
+                                    const std::string& role,
+                                    const std::string& jid_to);
+  /**
    * Handle the various stanza types
    */
   void handle_handshake(const Stanza& stanza);

@@ -218,7 +218,10 @@ void IrcClient::on_isupport_message(const IrcMessage& message)
           j++;
         j++;
         while (j < token.size() && token[i] != ')')
-          this->prefix_to_mode[token[j++]] = token[i++];
+          {
+            this->sorted_user_modes.push_back(token[i]);
+            this->prefix_to_mode[token[j++]] = token[i++];
+          }
       }
   }
 }
@@ -508,6 +511,76 @@ void IrcClient::on_channel_mode(const IrcMessage& message)
   this->bridge->send_message(iid, "", std::string("Mode ") + iid.chan +
                                       " [" + mode_arguments + "] by " + user.nick,
                              true);
+  const IrcChannel* channel = this->get_channel(iid.chan);
+  if (!channel)
+    return;
+
+  // parse the received modes, we need to handle things like "+m-oo coucou toutou"
+  const std::string modes = message.arguments[1];
+  // a list of modified IrcUsers. When we applied all modes, we check the
+  // modes that now applies to each of them, and send a notification for
+  // each one. This is to disallow sending two notifications or more when a
+  // single MODE command changes two or more modes on the same participant
+  std::set<const IrcUser*> modified_users;
+  // If it is true, the modes are added, if it’s false they are
+  // removed. When we encounter the '+' char, the value is changed to true,
+  // and with '-' it is changed to false.
+  bool add = true;
+  bool use_arg;
+  size_t arg_pos = 2;
+  for (const char c: modes)
+    {
+      if (c == '+')
+        add = true;
+      else if (c == '-')
+        add = false;
+      else
+        { // lookup the mode symbol in the 4 chanmodes lists, depending on
+          // the list where it is found, it takes an argument or not
+          size_t type;
+          for (type = 0; type < 4; ++type)
+            if (this->chanmodes[type].find(c) != std::string::npos)
+              break;
+          if (type == 4)        // if mode was not found
+            {
+              // That mode can also be of type B if it is present in the
+              // prefix_to_mode map
+              for (const std::pair<char, char>& pair: this->prefix_to_mode)
+                if (pair.second == c)
+                  {
+                    type = 1;
+                    break;
+                  }
+            }
+          // modes of type A, B or C (but only with add == true)
+          if (type == 0 || type == 1 ||
+              (type == 2 && add == true))
+            use_arg = true;
+          else // modes of type C (but only with add == false), D, or unknown
+            use_arg = false;
+          if (use_arg == true && message.arguments.size() > arg_pos)
+            {
+              const std::string target = message.arguments[arg_pos++];
+              IrcUser* user = channel->find_user(target);
+              if (!user)
+                {
+                  log_warning("Trying to set mode for non-existing user '" << target
+                              << "' in channel" << iid.chan);
+                  return;
+                }
+              if (add)
+                user->add_mode(c);
+              else
+                user->remove_mode(c);
+              modified_users.insert(user);
+            }
+        }
+    }
+  for (const IrcUser* u: modified_users)
+    {
+      char most_significant_mode = u->get_most_significant_mode(this->sorted_user_modes);
+      this->bridge->send_affiliation_role_change(iid, u->nick, most_significant_mode);
+    }
 }
 
 void IrcClient::on_user_mode(const IrcMessage& message)

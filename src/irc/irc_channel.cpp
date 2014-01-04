@@ -24,7 +24,7 @@ IrcUser* IrcChannel::get_self() const
   return this->self.get();
 }
 
-IrcUser* IrcChannel::find_user(const std::string& name)
+IrcUser* IrcChannel::find_user(const std::string& name) const
 {
   IrcUser user(name);
   for (const auto& u: this->users)

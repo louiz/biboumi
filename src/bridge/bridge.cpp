@@ -225,3 +225,35 @@ void Bridge::send_nickname_conflict_error(const Iid& iid, const std::string& nic
 {
   this->xmpp->send_nickname_conflict_error(iid.chan + "%" + iid.server, nickname, this->user_jid);
 }
+
+void Bridge::send_affiliation_role_change(const Iid& iid, const std::string& target, const char mode)
+{
+  std::string role;
+  std::string affiliation;
+  if (mode == 0)
+    {
+      role = "participant";
+      affiliation = "none";
+    }
+  else if (mode == 'a')
+    {
+      role = "moderator";
+      affiliation = "owner";
+    }
+  else if (mode == 'o')
+    {
+      role = "moderator";
+      affiliation = "admin";
+    }
+  else if (mode == 'h')
+    {
+      role = "moderator";
+      affiliation = "member";
+    }
+  else if (mode == 'v')
+    {
+      role = "participant";
+      affiliation = "member";
+    }
+  this->xmpp->send_affiliation_role_change(iid.chan + "%" + iid.server, target, affiliation, role, this->user_jid);
+}

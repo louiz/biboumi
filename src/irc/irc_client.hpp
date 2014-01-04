@@ -229,9 +229,14 @@ private:
   /**
    * See http://www.irc.org/tech_docs/draft-brocklesby-irc-isupport-03.txt section 3.14
    * The example given would be transformed into
-   * modes_to_prefix = {{'a', '&'}, {'b', '*'}}
+   * modes_to_prefix = {{'&', 'a'}, {'*', 'b'}}
    */
   std::map<char, char> prefix_to_mode;
+  /**
+   * Available user modes, sorted from most significant to least significant
+   * (for example 'ahov' is a common order).
+   */
+  std::vector<char> sorted_user_modes;
 
   IrcClient(const IrcClient&) = delete;
   IrcClient(IrcClient&&) = delete;

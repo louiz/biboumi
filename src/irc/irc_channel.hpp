@@ -22,7 +22,7 @@ public:
   IrcUser* get_self() const;
   IrcUser* add_user(const std::string& name,
                     const std::map<char, char> prefix_to_mode);
-  IrcUser* find_user(const std::string& name);
+  IrcUser* find_user(const std::string& name) const;
   void remove_user(const IrcUser* user);
 
 private:

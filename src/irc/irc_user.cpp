@@ -25,3 +25,23 @@ IrcUser::IrcUser(const std::string& name):
   IrcUser(name, {})
 {
 }
+
+void IrcUser::add_mode(const char mode)
+{
+  this->modes.insert(mode);
+}
+
+void IrcUser::remove_mode(const char mode)
+{
+  this->modes.erase(mode);
+}
+
+char IrcUser::get_most_significant_mode(const std::vector<char>& modes) const
+{
+  for (const char mode: modes)
+    {
+      if (this->modes.find(mode) != this->modes.end())
+        return mode;
+    }
+  return 0;
+}
