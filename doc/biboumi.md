@@ -73,6 +73,14 @@ the same IRC connection is used.  If, however, an other user wants to join
 an IRC channel on that same IRC server, biboumi opens a new connection to
 that server.  Biboumi connects once to each IRC server, for each user on it.
 
+To cleanly shutdown the component, send the SIGINT or SIGTERM signals to it.
+It will send messages to all connected IRC and XMPP servers to indicate a
+reason why the users are being disconnected.  Biboumi exits when all
+connections are closed because the remote aknowledged the end of
+communication.  If the remote server does not respond, biboumi does not
+exit, unless SIGINT or SIGTERM is received again, in which case biboumi
+closes the TCP connections and exits immediately.
+
 ### Addressing
 
 IRC entities are represented by XMPP JIDs.  The domain part of the JID is
