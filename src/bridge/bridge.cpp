@@ -6,6 +6,7 @@
 #include <logger/logger.hpp>
 #include <utils/split.hpp>
 #include <iostream>
+#include <tuple>
 
 static const char* action_prefix = "\01ACTION ";
 static const size_t action_prefix_len = 8;
@@ -19,6 +20,22 @@ Bridge::Bridge(const std::string& user_jid, XmppComponent* xmpp, Poller* poller)
 
 Bridge::~Bridge()
 {
+}
+
+/**
+ * Return the role and affiliation, corresponding to the given irc mode */
+static std::tuple<std::string, std::string> get_role_affiliation_from_irc_mode(const char mode)
+{
+  if (mode == 'a' || mode == 'q')
+    return std::make_tuple("moderator", "owner");
+  else if (mode == 'o')
+    return std::make_tuple("moderator", "admin");
+  else if (mode == 'h')
+    return std::make_tuple("moderator", "member");
+  else if (mode == 'v')
+    return std::make_tuple("participant", "member");
+  else
+    return std::make_tuple("participant", "none");
 }
 
 void Bridge::shutdown()
@@ -197,15 +214,13 @@ void Bridge::send_xmpp_message(const std::string& from, const std::string& autho
 void Bridge::send_user_join(const std::string& hostname,
                             const std::string& chan_name,
                             const IrcUser* user,
+                            const char user_mode,
                             const bool self)
 {
-  std::string affiliation = "participant";
-  std::string role = "none";
-  if (user->modes.find('o') != user->modes.end())
-    {
-      affiliation = "admin";
-      role = "moderator";
-    }
+  std::string affiliation;
+  std::string role;
+  std::tie(role, affiliation) = get_role_affiliation_from_irc_mode(user_mode);
+
   this->xmpp->send_user_join(chan_name + "%" + hostname, user->nick, user->host,
                              affiliation, role, this->user_jid, self);
 }
@@ -237,30 +252,7 @@ void Bridge::send_affiliation_role_change(const Iid& iid, const std::string& tar
 {
   std::string role;
   std::string affiliation;
-  if (mode == 0)
-    {
-      role = "participant";
-      affiliation = "none";
-    }
-  else if (mode == 'a')
-    {
-      role = "moderator";
-      affiliation = "owner";
-    }
-  else if (mode == 'o')
-    {
-      role = "moderator";
-      affiliation = "admin";
-    }
-  else if (mode == 'h')
-    {
-      role = "moderator";
-      affiliation = "member";
-    }
-  else if (mode == 'v')
-    {
-      role = "participant";
-      affiliation = "member";
-    }
+
+  std::tie(role, affiliation) = get_role_affiliation_from_irc_mode(mode);
   this->xmpp->send_affiliation_role_change(iid.chan + "%" + iid.server, target, affiliation, role, this->user_jid);
 }

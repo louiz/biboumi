@@ -68,6 +68,7 @@ public:
   void send_user_join(const std::string& hostname,
                       const std::string& chan_name,
                       const IrcUser* user,
+                      const char user_mode,
                       const bool self);
   /**
    * Send the topic of the MUC to the user
