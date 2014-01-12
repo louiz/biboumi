@@ -16,7 +16,6 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D__FILENAME__='\"$(subst ${CMAKE_SOURCE
 ## Look for external libraries
 #
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
-find_package(Cryptopp REQUIRED)
 find_package(Iconv REQUIRED)
 include(FindEXPAT)
 find_package(EXPAT REQUIRED)
@@ -25,9 +24,6 @@ find_package(Libidn)
 include_directories("src/")
 include_directories(${EXPAT_INCLUDE_DIRS})
 include_directories(${ICONV_INCLUDE_DIRS})
-# the SYSTEM flag tells the compiler that we don't care about warnings
-# coming from these headers.
-include_directories(SYSTEM ${CRYPTO++_INCLUDE_DIRS})
 
 if(LIBIDN_FOUND)
   include_directories(${LIBIDN_INCLUDE_DIRS})
@@ -90,7 +86,7 @@ file(GLOB source_xmpp
   src/xmpp/*.[hc]pp)
 add_library(xmpp STATIC ${source_xmpp})
 target_link_libraries(xmpp bridge network utils logger
-  ${CRYPTO++_LIBRARIES} ${EXPAT_LIBRARIES} pthread)
+  ${EXPAT_LIBRARIES} pthread)
 if(LIBIDN_FOUND)
   target_link_libraries(xmpp ${LIBIDN_LIBRARIES})
 endif()

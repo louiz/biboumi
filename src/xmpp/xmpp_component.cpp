@@ -4,12 +4,11 @@
 #include <xmpp/xmpp_component.hpp>
 #include <xmpp/jid.hpp>
 
+#include <utils/sha1.hpp>
+
 #include <iostream>
 
-// CryptoPP
-#include <filters.h>
-#include <hex.h>
-#include <sha.h>
+#include <stdio.h>
 
 #define STREAM_NS        "http://etherx.jabber.org/streams"
 #define COMPONENT_NS     "jabber:component:accept"
@@ -119,13 +118,17 @@ void XmppComponent::on_remote_stream_open(const XmlNode& node)
     }
 
   // Try to authenticate
-  CryptoPP::SHA1 sha1;
-  std::string digest;
-  CryptoPP::StringSource foo(this->stream_id + this->secret, true,
-                      new CryptoPP::HashFilter(sha1,
-                          new CryptoPP::HexEncoder(
-                              new CryptoPP::StringSink(digest), false)));
-  Stanza handshake("handshake", nullptr);
+  char digest[HASH_LENGTH * 2 + 1];
+  sha1nfo sha1;
+  sha1_init(&sha1);
+  sha1_write(&sha1, this->stream_id.data(), this->stream_id.size());
+  sha1_write(&sha1, this->secret.data(),  this->secret.size());
+  const uint8_t* result = sha1_result(&sha1);
+  for (int i=0; i < HASH_LENGTH; i++)
+    sprintf(digest + (i*2), "%02x", result[i]);
+  digest[HASH_LENGTH * 2] = '\0';
+
+  Stanza handshake("handshake");
   handshake.set_inner(digest);
   handshake.close();
   this->send_stanza(handshake);

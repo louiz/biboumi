@@ -7,11 +7,6 @@ Build and runtime dependencies:
 
 Libraries:
 
-- crypto++
- Sometimes packaged as cryptopp.  This library is used to generate MD5
- hashes.
- http://www.cryptopp.com/
-
 - expat
  Used to parse XML from the XMPP server.
  http://expat.sourceforge.net/
