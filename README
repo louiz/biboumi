@@ -4,14 +4,13 @@
 | |_) | | |_) | (_) | |_| | | | | | | |
 |_.__/|_|_.__/ \___/ \__,_|_| |_| |_|_|
 
-
-Homepage:       http://dev.louiz.org/projects/biboumi
+Homepage:       http://biboumi.louiz.org
 
 Biboumi is an XMPP gateway that connects to IRC servers and translates
 between the two protocols. It can be used to access IRC channels using any
 XMPP client as if these channels were XMPP MUCs.
 
-It is written in modern C++11 and make great efforts to have as little
+It is written in modern C++11 and makes great efforts to have as little
 dependencies and to be as simple as possible.
 
 The goal is to provide a way to access most of IRC features using any XMPP
@@ -42,7 +41,7 @@ Jabber ChatRoom:     biboumi@muc.poezio.eu
 Report a bug:        http://dev.louiz.org/projects/biboumi/issues/new
 
 =================
-    License
+    Licence
 =================
 Biboumi is Free Software.
 (learn more: http://www.gnu.org/philosophy/free-sw.html)
