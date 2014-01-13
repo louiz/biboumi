@@ -312,10 +312,11 @@ void XmppComponent::send_user_join(const std::string& from,
   XmlNode x("x");
   x["xmlns"] = MUC_USER_NS;
 
-  // TODO: put real values here
   XmlNode item("item");
-  item["affiliation"] = affiliation;
-  item["role"] = role;
+  if (!affiliation.empty())
+    item["affiliation"] = affiliation;
+  if (!role.empty())
+    item["role"] = role;
   if (!realjid.empty())
     {
       const std::string preped_jid = jidprep(realjid);
@@ -427,7 +428,7 @@ void XmppComponent::send_nick_change(const std::string& muc_name, const std::str
   presence.close();
   this->send_stanza(presence);
 
-  this->send_user_join(muc_name, new_nick, "", "participant", "none", jid_to, self);
+  this->send_user_join(muc_name, new_nick, "", "", "", jid_to, self);
 }
 
 void XmppComponent::kick_user(const std::string& muc_name,
