@@ -2,6 +2,7 @@
 
 #include <utils/encoding.hpp>
 
+#include <stdexcept>
 #include <iostream>
 
 #include <string.h>

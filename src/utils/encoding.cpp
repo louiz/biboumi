@@ -3,6 +3,8 @@
 
 #include <utils/scopeguard.hpp>
 
+#include <stdexcept>
+
 #include <assert.h>
 #include <string.h>
 #include <iconv.h>
