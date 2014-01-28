@@ -161,10 +161,15 @@ int main()
   assert(jid2.domain == "ツ.coucou");
   assert(jid2.resource == "coucou@coucou/coucou");
 
-  // Nodeprep
-  const std::string& badjid("~louiz@EpiK-7D9D1FDE.poez.io");
+  // Jidprep
+  const std::string& badjid("~zigougou@EpiK-7D9D1FDE.poez.io/Boujour/coucou/slt");
   const std::string correctjid = jidprep(badjid);
-  assert(correctjid == "~louiz@epik-7d9d1fde.poez.io");
+  assert(correctjid == "~zigougou@epik-7d9d1fde.poez.io/Boujour/coucou/slt");
+
+  const std::string& badjid2("Zigougou@poez.io");
+  const std::string correctjid2 = jidprep(badjid2);
+  std::cout << correctjid2 << std::endl;
+  assert(correctjid2 == "zigougou@poez.io");
 
   /**
    * Config

@@ -59,7 +59,22 @@ std::string jidprep(const std::string& original)
     return "";
   }
 
-  return std::string(local) + "@" + domain;
+  // If there is no resource, stop here
+  if (jid.resource.empty())
+    return std::string(local) + "@" + domain;
+
+  // Otherwise, also process the resource part
+  char resource[max_jid_part_len] = {};
+  memcpy(resource, jid.resource.data(), jid.resource.size());
+  rc = static_cast<Stringprep_rc>(::stringprep(resource, max_jid_part_len,
+       static_cast<Stringprep_profile_flags>(0), stringprep_xmpp_resourceprep));
+  if (rc != STRINGPREP_OK)
+    {
+      log_error(error_msg + stringprep_strerror(rc));
+      return "";
+    }
+  return std::string(local) + "@" + domain + "/" + resource;
+
 #else
   (void)original;
   return "";
