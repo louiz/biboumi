@@ -21,6 +21,9 @@ SocketHandler::SocketHandler():
 {
   if ((this->socket = ::socket(AF_INET, SOCK_STREAM, 0)) == -1)
     throw std::runtime_error("Could not create socket");
+  int optval = 1;
+  if (::setsockopt(this->socket, SOL_SOCKET, SO_KEEPALIVE, &optval, sizeof(optval)) == -1)
+    log_warning("Failed to enable TCP keepalive on socket: " << strerror(errno));
 }
 
 std::pair<bool, std::string> SocketHandler::connect(const std::string& address, const std::string& port)
