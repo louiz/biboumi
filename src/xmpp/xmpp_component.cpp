@@ -324,7 +324,8 @@ void XmppComponent::send_user_join(const std::string& from,
         item["jid"] = preped_jid;
     }
   item.close();
-  x.add_child(std::move(item));
+  if (item.has_children())
+    x.add_child(std::move(item));
 
   if (self)
     {
