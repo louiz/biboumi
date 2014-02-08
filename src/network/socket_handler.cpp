@@ -56,8 +56,7 @@ std::pair<bool, std::string> SocketHandler::connect(const std::string& address, 
           this->on_connected();
           return std::make_pair(true, "");
         }
-      log_info("Connection failed:");
-      perror("connect");
+      log_info("Connection failed:" << strerror(errno));
     }
   log_error("All connection attempts failed.");
   this->close();
@@ -97,7 +96,7 @@ void SocketHandler::on_send()
   const ssize_t res = ::send(this->socket, this->out_buf.data(), this->out_buf.size(), 0);
   if (res == -1)
     {
-      perror("send");
+      log_error("send failed: " << strerror(errno));
       this->close();
     }
   else

@@ -16,7 +16,7 @@ Poller::Poller()
   this->epfd = ::epoll_create1(0);
   if (this->epfd == -1)
     {
-      perror("epoll");
+      log_error("epoll failed: " << strerror(errno));
       throw std::runtime_error("Could not create epoll instance");
     }
 #endif
@@ -47,7 +47,7 @@ void Poller::add_socket_handler(std::shared_ptr<SocketHandler> socket_handler)
   const int res = ::epoll_ctl(this->epfd, EPOLL_CTL_ADD, socket_handler->get_socket(), &event);
   if (res == -1)
     {
-      perror("epoll_ctl");
+      log_error("epoll_ctl failed: " << strerror(errno));
       throw std::runtime_error("Could not add socket to epoll");
     }
 #endif
@@ -79,7 +79,7 @@ void Poller::remove_socket_handler(const socket_t socket)
   const int res = ::epoll_ctl(this->epfd, EPOLL_CTL_DEL, socket, nullptr);
   if (res == -1)
     {
-      perror("epoll_ctl");
+      log_error("epoll_ctl failed: " << strerror(errno));
       throw std::runtime_error("Could not remove socket from epoll");
     }
 #endif
@@ -102,7 +102,7 @@ void Poller::watch_send_events(SocketHandler* socket_handler)
   const int res = ::epoll_ctl(this->epfd, EPOLL_CTL_MOD, socket_handler->get_socket(), &event);
   if (res == -1)
     {
-      perror("epoll_ctl");
+      log_error("epoll_ctl failed: " << strerror(errno));
       throw std::runtime_error("Could not modify socket flags in epoll");
     }
 #endif
@@ -125,7 +125,7 @@ void Poller::stop_watching_send_events(SocketHandler* socket_handler)
   const int res = ::epoll_ctl(this->epfd, EPOLL_CTL_MOD, socket_handler->get_socket(), &event);
   if (res == -1)
     {
-      perror("epoll_ctl");
+      log_error("epoll_ctl failed: " << strerror(errno));
       throw std::runtime_error("Could not modify socket flags in epoll");
     }
 #endif
@@ -141,7 +141,7 @@ int Poller::poll(const std::chrono::milliseconds& timeout)
     {
       if (errno == EINTR)
         return true;
-      perror("poll");
+      log_error("poll failed: " << strerror(errno));
       throw std::runtime_error("Poll failed");
     }
   // We cannot possibly have more ready events than the number of fds we are
@@ -173,7 +173,7 @@ int Poller::poll(const std::chrono::milliseconds& timeout)
     {
       if (errno == EINTR)
         return 0;
-      perror("epoll_wait");
+      log_error("epoll wait: " << strerror(errno));
       throw std::runtime_error("Epoll_wait failed");
     }
   for (int i = 0; i < nb_events; ++i)
