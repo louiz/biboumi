@@ -49,7 +49,7 @@ XmppComponent::~XmppComponent()
 
 bool XmppComponent::start()
 {
-  return this->connect("127.0.0.1", "5347");
+  return this->connect("127.0.0.1", "5347").first;
 }
 
 bool XmppComponent::is_document_open() const

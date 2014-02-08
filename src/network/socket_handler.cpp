@@ -23,7 +23,7 @@ SocketHandler::SocketHandler():
     throw std::runtime_error("Could not create socket");
 }
 
-bool SocketHandler::connect(const std::string& address, const std::string& port)
+std::pair<bool, std::string> SocketHandler::connect(const std::string& address, const std::string& port)
 {
   log_info("Trying to connect to " << address << ":" << port);
   struct addrinfo hints;
@@ -35,15 +35,18 @@ bool SocketHandler::connect(const std::string& address, const std::string& port)
 
   struct addrinfo* addr_res;
   const int res = ::getaddrinfo(address.c_str(), port.c_str(), &hints, &addr_res);
+
+  if (res != 0)
+    {
+      log_warning(std::string("getaddrinfo failed: ") + gai_strerror(res));
+      this->close();
+      return std::make_pair(false, gai_strerror(res));
+    }
+
   // Make sure the alloced structure is always freed at the end of the
   // function
   utils::ScopeGuard sg([&addr_res](){ freeaddrinfo(addr_res); });
 
-  if (res != 0)
-    {
-      perror("getaddrinfo");
-      throw std::runtime_error("getaddrinfo failed");
-    }
   for (struct addrinfo* rp = addr_res; rp; rp = rp->ai_next)
     {
       if (::connect(this->socket, rp->ai_addr, rp->ai_addrlen) == 0)
@@ -51,14 +54,14 @@ bool SocketHandler::connect(const std::string& address, const std::string& port)
           log_info("Connection success.");
           this->connected = true;
           this->on_connected();
-          return true;
+          return std::make_pair(true, "");
         }
       log_info("Connection failed:");
       perror("connect");
     }
   log_error("All connection attempts failed.");
   this->close();
-  return false;
+  return std::make_pair(false, "");
 }
 
 void SocketHandler::set_poller(Poller* poller)
