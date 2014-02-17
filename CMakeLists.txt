@@ -126,3 +126,10 @@ target_link_libraries(test
   logger)
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/config.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/config.h)
+
+#
+## Install target
+#
+install(TARGETS ${PROJECT_NAME}
+  RUNTIME DESTINATION bin)
+install(FILES doc/${PROJECT_NAME}.1 DESTINATION man/man1)
