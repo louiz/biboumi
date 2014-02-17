@@ -40,6 +40,18 @@ if((NOT ${POLLER} MATCHES "POLL") AND
   message(FATAL_ERROR "POLLER must be either POLL or EPOLL")
 endif()
 
+#
+## Documentation
+#
+find_program(RONN_EXECUTABLE NAMES ronn
+  DOC "The ronn software, to build the man page from the markdown documentation")
+if(RONN_EXECUTABLE)
+  set(WITH_DOC true)
+  add_custom_target(doc
+    ${RONN_SOFTWARE} --roff ${CMAKE_CURRENT_BINARY_DIR}/doc/${PROJECT_NAME}.1.md
+    COMMENT "Generate the man page" VERBATIM)
+endif()
+
 
 #
 ## utils
@@ -111,6 +123,9 @@ target_link_libraries(${PROJECT_NAME}
   bridge
   utils
   config)
+if(WITH_DOC)
+  add_dependencies(${PROJECT_NAME} doc)
+endif()
 
 #
 ## Tests
@@ -132,4 +147,6 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/config.h.cmake ${CMAKE_CURRENT_BINARY
 #
 install(TARGETS ${PROJECT_NAME}
   RUNTIME DESTINATION bin)
-install(FILES doc/${PROJECT_NAME}.1 DESTINATION man/man1)
+if(WITH_DOC)
+  install(FILES doc/${PROJECT_NAME}.1 DESTINATION man/man1)
+endif()

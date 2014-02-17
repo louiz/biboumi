@@ -24,6 +24,7 @@ Libraries:
 Tools:
 - A C++11 compiler.
 - CMake
+- ronn (optional) to build the man page
 
 
 ==============
