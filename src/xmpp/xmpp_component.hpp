@@ -128,6 +128,7 @@ public:
   void handle_presence(const Stanza& stanza);
   void handle_message(const Stanza& stanza);
   void handle_iq(const Stanza& stanza);
+  void handle_error(const Stanza& stanza);
 
 private:
   /**

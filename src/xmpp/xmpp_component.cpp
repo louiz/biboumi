@@ -20,6 +20,7 @@
 #define DISCO_INFO_NS    DISCO_NS"#info"
 #define XHTMLIM_NS       "http://jabber.org/protocol/xhtml-im"
 #define STANZA_NS        "urn:ietf:params:xml:ns:xmpp-stanzas"
+#define STREAMS_NS       "urn:ietf:params:xml:ns:xmpp-streams"
 
 XmppComponent::XmppComponent(const std::string& hostname, const std::string& secret):
   served_hostname(hostname),
@@ -41,6 +42,8 @@ XmppComponent::XmppComponent(const std::string& hostname, const std::string& sec
                                 std::bind(&XmppComponent::handle_message, this,std::placeholders::_1));
   this->stanza_handlers.emplace(COMPONENT_NS":iq",
                                 std::bind(&XmppComponent::handle_iq, this,std::placeholders::_1));
+  this->stanza_handlers.emplace(STREAM_NS":error",
+                                std::bind(&XmppComponent::handle_error, this,std::placeholders::_1));
 }
 
 XmppComponent::~XmppComponent()
@@ -179,6 +182,7 @@ void XmppComponent::handle_handshake(const Stanza& stanza)
 {
   (void)stanza;
   this->authenticated = true;
+  log_info("Authenticated with the XMPP server");
 }
 
 void XmppComponent::handle_presence(const Stanza& stanza)
@@ -269,6 +273,15 @@ void XmppComponent::handle_iq(const Stanza& stanza)
             }
         }
     }
+}
+
+void XmppComponent::handle_error(const Stanza& stanza)
+{
+  XmlNode* text = stanza.get_child(STREAMS_NS":text");
+  std::string error_message("Unspecified error");
+  if (text)
+    error_message = text->get_inner();
+  log_error("Stream error received from the XMPP server: " << error_message);
 }
 
 Bridge* XmppComponent::get_user_bridge(const std::string& user_jid)
