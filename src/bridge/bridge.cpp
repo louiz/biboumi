@@ -195,10 +195,18 @@ void Bridge::send_muc_leave(Iid&& iid, std::string&& nick, const std::string& me
   this->xmpp->send_muc_leave(std::move(iid.chan) + "%" + std::move(iid.server), std::move(nick), this->make_xmpp_body(message), this->user_jid, self);
 }
 
-void Bridge::send_nick_change(Iid&& iid, const std::string& old_nick, const std::string& new_nick, const bool self)
+void Bridge::send_nick_change(Iid&& iid,
+                              const std::string& old_nick,
+                              const std::string& new_nick,
+                              const char user_mode,
+                              const bool self)
 {
+  std::string affiliation;
+  std::string role;
+  std::tie(role, affiliation) = get_role_affiliation_from_irc_mode(user_mode);
+
   this->xmpp->send_nick_change(std::move(iid.chan) + "%" + std::move(iid.server),
-                               old_nick, new_nick, this->user_jid, self);
+                               old_nick, new_nick, affiliation, role, this->user_jid, self);
 }
 
 void Bridge::send_xmpp_message(const std::string& from, const std::string& author, const std::string& msg)

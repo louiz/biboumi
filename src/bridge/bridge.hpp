@@ -84,9 +84,15 @@ public:
   void send_muc_leave(Iid&& iid, std::string&& nick, const std::string& message, const bool self);
   /**
    * Send presences to indicate that an user old_nick (ourself if self ==
-   * true) changed his nick to new_nick
+   * true) changed his nick to new_nick.  The user_mode is needed because
+   * the xmpp presence needs ton contain the role and affiliation of the
+   * user.
    */
-  void send_nick_change(Iid&& iid, const std::string& old_nick, const std::string& new_nick, const bool self);
+  void send_nick_change(Iid&& iid,
+                        const std::string& old_nick,
+                        const std::string& new_nick,
+                        const char user_mode,
+                        const bool self);
   void kick_muc_user(Iid&& iid, const std::string& target, const std::string& reason, const std::string& author);
   void send_nickname_conflict_error(const Iid& iid, const std::string& nickname);
   /**

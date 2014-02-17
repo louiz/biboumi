@@ -469,8 +469,9 @@ void IrcClient::on_nick(const IrcMessage& message)
           Iid iid;
           iid.chan = chan_name;
           iid.server = this->hostname;
-          bool self = channel->get_self()->nick == old_nick;
-          this->bridge->send_nick_change(std::move(iid), old_nick, new_nick, self);
+          const bool self = channel->get_self()->nick == old_nick;
+          const char user_mode = user->get_most_significant_mode(this->sorted_user_modes);
+          this->bridge->send_nick_change(std::move(iid), old_nick, new_nick, user_mode, self);
           user->nick = new_nick;
           if (self)
             {

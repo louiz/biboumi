@@ -97,7 +97,13 @@ public:
   /**
    * Indicate that a participant changed his nick
    */
-  void send_nick_change(const std::string& muc_name, const std::string& old_nick, const std::string& new_nick, const std::string& jid_to, const bool self);
+  void send_nick_change(const std::string& muc_name,
+                        const std::string& old_nick,
+                        const std::string& new_nick,
+                        const std::string& affiliation,
+                        const std::string& role,
+                        const std::string& jid_to,
+                        const bool self);
   /**
    * An user is kicked from a room
    */
