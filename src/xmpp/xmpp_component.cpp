@@ -399,7 +399,7 @@ void XmppComponent::send_muc_leave(std::string&& muc_name, std::string&& nick, X
   presence["from"] = muc_name + "@" + this->served_hostname + "/" + nick;
   presence["type"] = "unavailable";
   const std::string message_str = std::get<0>(message);
-  if (message_str.empty() || self)
+  if (!message_str.empty() || self)
     {
       XmlNode status("status");
       if (!message_str.empty())
