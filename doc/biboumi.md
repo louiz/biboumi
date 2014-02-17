@@ -1,15 +1,15 @@
-BIBOUMI 1 "2013-11-21"
+BIBOUMI 1 "2014-02-17"
 ======================
 
 NAME
 ----
 
-Bbiboumi - XMPP gateway to IRC
+biboumi - XMPP gateway to IRC
 
 SYNOPSIS
 --------
 
-`biboumi` [`config_file`]
+`biboumi` [`config_filename`]
 
 DESCRIPTION
 -----------
@@ -53,8 +53,9 @@ The configuration file uses a simple format of the form
 
 `log_level`
 
-  Indicate what type of log messages to write in the logs.  Values can be from 0 to 3.
-  0 is debug, 1 is info, 2 is warnig, 3 is error.
+  Indicate what type of log messages to write in the logs.  Values can be
+  from 0 to 3.  0 is debug, 1 is info, 2 is warning, 3 is error.  The
+  default is 0, but a more practical value for production use is 1.
 
 USAGE
 -----
@@ -76,7 +77,7 @@ that server.  Biboumi connects once to each IRC server, for each user on it.
 To cleanly shutdown the component, send the SIGINT or SIGTERM signals to it.
 It will send messages to all connected IRC and XMPP servers to indicate a
 reason why the users are being disconnected.  Biboumi exits when all
-connections are closed because the remote aknowledged the end of
+connections are closed because the remote acknowledged the end of
 communication.  If the remote server does not respond, biboumi does not
 exit, unless SIGINT or SIGTERM is received again, in which case biboumi
 closes the TCP connections and exits immediately.
@@ -132,7 +133,7 @@ be changed on all channels on the same server as well.
 
 Private messages are handled differently on IRC and on XMPP.  On IRC, you
 talk directly to one server-user: toto on the channel #foo is the same user
-than toto on the channel #bar (as long as these two channels are on the same
+as toto on the channel #bar (as long as these two channels are on the same
 IRC server).  Using biboumi, there is no way to receive a message from a
 room participant (from a jid like #test%irc.example.com/nickname).  Instead,
 private messages are received from and sent to the user (using a jid like
@@ -178,12 +179,12 @@ in XMPP), it is impossible to map all these modes to an XMPP feature.  To
 circumvent this problem, biboumi provides a raw notification when modes are
 changed, and lets the user change the modes directly.
 
-To change modes, simply send a message starting with “`/mode`” followed
-by the modes and the arguments you want to send to the IRC server.  For
-example “/mode +aho louiz”.  Note that your XMPP client may
-inteprete messages begining with “/” like a command.  To actually send a
-message starting with a slash, you may need to start your message with
-“//mode” or “/say /mode”, depending on your client.
+To change modes, simply send a message starting with “`/mode`” followed by
+the modes and the arguments you want to send to the IRC server.  For example
+“/mode +aho louiz”.  Note that your XMPP client may interprete messages
+begining with “/” like a command.  To actually send a message starting with
+a slash, you may need to start your message with “//mode” or “/say /mode”,
+depending on your client.
 
 When a mode is changed, the user is notified by a message coming from the
 MUC bare JID, looking like “Mode #foo [+ov] [toto tutu]”.  In addition, if
@@ -191,6 +192,10 @@ the mode change can be translated to an XMPP feature, the user will be
 notified of this XMPP event as well. For example if a mode “+o toto” is
 received, then toto’s role will be changed to moderator.  The mapping
 between IRC modes and XMPP features is as follow:
+
+`+q`
+
+  Sets the participant’s role to `moderator` and its affiliation to `owner`.
 
 `+a`
 
@@ -214,13 +219,18 @@ SECURITY
 Biboumi does not provide any encryption mechanism: connection to the XMPP
 server MUST be made on localhost.  The XMPP server is not supposed to accept
 non-local connection from components, thus encryption is useless.  IRC
-SSL/TLS is also not implemented although this could be useful for some
-users, this is however not a high priority feature.
+SSL/TLS is also not yet implemented.
 
-Biboumi also does not check if JIDs are properly formatted using nodeprep.
-This must be done by the XMPP server to which biboumi is directly connected.
+Biboumi also does not check if received JIDs are properly formatted using
+nodeprep.  This must be done by the XMPP server to which biboumi is directly
+connected.
 
 AUTHORS
 -------
 
-Written by Florent Le Coz
+This software and man page are both written by Florent Le Coz.
+
+LICENSE
+-------
+
+Biboumi is released under the zlib license.
