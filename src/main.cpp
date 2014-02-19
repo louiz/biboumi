@@ -89,6 +89,7 @@ int main(int ac, char** av)
   struct sigaction on_sigusr;
   on_sigusr.sa_sigaction = &sigusr_handler;
   on_sigusr.sa_mask = mask;
+  on_sigusr.sa_flags = 0;
   sigaction(SIGUSR1, &on_sigusr, nullptr);
   sigaction(SIGUSR2, &on_sigusr, nullptr);
 
