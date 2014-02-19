@@ -270,10 +270,7 @@ void IrcClient::on_channel_join(const IrcMessage& message)
   IrcChannel* channel = this->get_channel(chan_name);
   const std::string nick = message.prefix;
   if (channel->joined == false)
-    {
-      channel->joined = true;
-      channel->set_self(nick);
-    }
+    channel->set_self(nick);
   else
     {
       const IrcUser* user = channel->add_user(nick, this->prefix_to_mode);
@@ -343,6 +340,7 @@ void IrcClient::on_channel_completely_joined(const IrcMessage& message)
 {
   const std::string chan_name = utils::tolower(message.arguments[1]);
   IrcChannel* channel = this->get_channel(chan_name);
+  channel->joined = true;
   this->bridge->send_user_join(this->hostname, chan_name, channel->get_self(),
                                channel->get_self()->get_most_significant_mode(this->sorted_user_modes),
                                true);
