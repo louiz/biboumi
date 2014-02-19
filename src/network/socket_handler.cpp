@@ -96,7 +96,7 @@ void SocketHandler::on_recv(const size_t nb)
 
 void SocketHandler::on_send()
 {
-  const ssize_t res = ::send(this->socket, this->out_buf.data(), this->out_buf.size(), 0);
+  const ssize_t res = ::send(this->socket, this->out_buf.data(), this->out_buf.size(), MSG_NOSIGNAL);
   if (res == -1)
     {
       log_error("send failed: " << strerror(errno));
