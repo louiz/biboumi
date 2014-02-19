@@ -35,17 +35,22 @@ find_package_handle_standard_args(Iconv REQUIRED_VARS ICONV_LIBRARIES ICONV_INCL
 #              char** outbuf, size_t* outbytesleft);
 if(ICONV_FOUND)
   include(CheckCXXSourceCompiles)
-  check_cxx_source_compiles("
- #include <iconv.h>
- int main(){
- iconv_t conv = 0;
- const char* in = 0;
- size_t ilen = 0;
- char* out = 0;
- size_t olen = 0;
- iconv(conv, &in, &ilen, &out, &olen);
- return 0;}"
- ICONV_SECOND_ARGUMENT_IS_CONST)
+
+  # Set the parameters needed to compile the following code.
+  set(CMAKE_REQUIRED_INCLUDES ${ICONV_INCLUDE_DIRS})
+  set(CMAKE_REQUIRED_LIBRARIES ${ICONV_LIBRARIES})
+
+ check_cxx_source_compiles("
+   #include <iconv.h>
+   int main(){
+   iconv_t conv = 0;
+   const char* in = 0;
+   size_t ilen = 0;
+   char* out = 0;
+   size_t olen = 0;
+   iconv(conv, &in, &ilen, &out, &olen);
+   return 0;}"
+   ICONV_SECOND_ARGUMENT_IS_CONST)
 
 # Compatibility for all the ways of writing these variables
   set(ICONV_LIBRARY ${ICONV_LIBRARIES})
