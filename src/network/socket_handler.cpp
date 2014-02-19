@@ -100,6 +100,7 @@ void SocketHandler::on_send()
   if (res == -1)
     {
       log_error("send failed: " << strerror(errno));
+      this->on_connection_close();
       this->close();
     }
   else
