@@ -10,7 +10,7 @@
 #
 # For conveniance, these variables are also set. They have the same values
 # than the variables above.  The user can thus choose his/her prefered way
-# to way to write them.
+# to write them.
 #   ICONV_LIBRARY
 #   ICONV_INCLUDE_DIR
 #
