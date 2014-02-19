@@ -56,7 +56,6 @@ void Config::connect(t_config_changed_callback callback)
 void Config::close()
 {
   Config* self = Config::instance().get();
-  self->save_to_file();
   self->values.clear();
   Config::instance().reset();
 }

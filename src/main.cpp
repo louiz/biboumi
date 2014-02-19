@@ -10,7 +10,9 @@
 #include <signal.h>
 
 // A flag set by the SIGINT signal handler.
-volatile std::atomic<bool> stop(false);
+static volatile std::atomic<bool> stop(false);
+// Flag set by the SIGUSR1/2 signal handler.
+static volatile std::atomic<bool> reload(false);
 // A flag indicating that we are wanting to exit the process. i.e: if this
 // flag is set and all connections are closed, we can exit properly.
 static bool exiting = false;
@@ -33,6 +35,11 @@ int config_help(const std::string& missing_option)
 static void sigint_handler(int, siginfo_t*, void*)
 {
   stop = true;
+}
+
+static void sigusr_handler(int, siginfo_t*, void*)
+{
+  reload = true;
 }
 
 int main(int ac, char** av)
@@ -69,14 +76,21 @@ int main(int ac, char** av)
   // config
   sigset_t mask;
   sigemptyset(&mask);
-  struct sigaction on_sig;
-  on_sig.sa_sigaction = &sigint_handler;
-  on_sig.sa_mask = mask;
+  struct sigaction on_sigint;
+  on_sigint.sa_sigaction = &sigint_handler;
+  on_sigint.sa_mask = mask;
   // we want to catch that signal only once.
   // Sending SIGINT again will "force" an exit
-  on_sig.sa_flags = SA_RESETHAND;
-  sigaction(SIGINT, &on_sig, nullptr);
-  sigaction(SIGTERM, &on_sig, nullptr);
+  on_sigint.sa_flags = SA_RESETHAND;
+  sigaction(SIGINT, &on_sigint, nullptr);
+  sigaction(SIGTERM, &on_sigint, nullptr);
+
+  // Install a signal to reload the config on SIGUSR1/2
+  struct sigaction on_sigusr;
+  on_sigusr.sa_sigaction = &sigusr_handler;
+  on_sigusr.sa_mask = mask;
+  sigaction(SIGUSR1, &on_sigusr, nullptr);
+  sigaction(SIGUSR2, &on_sigusr, nullptr);
 
   const std::chrono::milliseconds timeout(-1);
   while (p.poll(timeout) != -1 || !exiting)
@@ -90,6 +104,17 @@ int main(int ac, char** av)
       exiting = true;
       stop = false;
       xmpp_component->shutdown();
+    }
+    if (reload)
+    {
+      // Closing the config will just force it to be reopened the next time
+      // a configuration option is needed
+      log_info("Signal received, reloading the config...");
+      Config::close();
+      // Destroy the logger instance, to be recreated the next time a log
+      // line needs to be written
+      Logger::instance().reset();
+      reload = false;
     }
     // If the only existing connection is the one to the XMPP component:
     // close the XMPP stream.
