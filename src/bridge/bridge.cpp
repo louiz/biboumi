@@ -249,6 +249,11 @@ std::string Bridge::get_own_nick(const Iid& iid)
   return "";
 }
 
+size_t Bridge::connected_clients() const
+{
+  return this->irc_clients.size();
+}
+
 void Bridge::kick_muc_user(Iid&& iid, const std::string& target, const std::string& reason, const std::string& author)
 {
   this->xmpp->kick_user(iid.chan + "%" + iid.server, target, reason, author, this->user_jid);

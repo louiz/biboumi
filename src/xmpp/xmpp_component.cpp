@@ -99,9 +99,14 @@ void XmppComponent::shutdown()
 
 void XmppComponent::clean()
 {
-  for (auto it = this->bridges.begin(); it != this->bridges.end(); ++it)
+  auto it = this->bridges.begin();
+  while (it != this->bridges.end())
   {
     it->second->clean();
+    if (it->second->connected_clients() == 0)
+      it = this->bridges.erase(it);
+    else
+      ++it;
   }
 }
 

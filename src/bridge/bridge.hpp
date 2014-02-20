@@ -104,6 +104,10 @@ public:
    * Misc
    */
   std::string get_own_nick(const Iid& iid);
+  /**
+   * Get the number of server to which this bridge is connected.
+   */
+  size_t connected_clients() const;
 
 private:
   /**
