@@ -134,9 +134,9 @@ void IrcClient::send_topic_command(const std::string& chan_name, const std::stri
   this->send_message(IrcMessage("TOPIC", {chan_name, topic}));
 }
 
-void IrcClient::send_quit_command()
+void IrcClient::send_quit_command(const std::string& reason)
 {
-  this->send_message(IrcMessage("QUIT", {"gateway shutdown"}));
+  this->send_message(IrcMessage("QUIT", {reason}));
 }
 
 void IrcClient::send_join_command(const std::string& chan_name)
@@ -403,7 +403,6 @@ void IrcClient::on_part(const IrcMessage& message)
       iid.chan = chan_name;
       iid.server = this->hostname;
       bool self = channel->get_self()->nick == nick;
-      this->bridge->send_muc_leave(std::move(iid), std::move(nick), std::move(txt), self);
       if (self)
       {
         channel->joined = false;
@@ -411,6 +410,7 @@ void IrcClient::on_part(const IrcMessage& message)
         // channel pointer is now invalid
         channel = nullptr;
       }
+      this->bridge->send_muc_leave(std::move(iid), std::move(nick), std::move(txt), self);
     }
 }
 
@@ -607,4 +607,9 @@ void IrcClient::on_user_mode(const IrcMessage& message)
   this->bridge->send_xmpp_message(this->hostname, "",
                                   std::string("User mode for ") + message.arguments[0] +
                                   " is [" + message.arguments[1] + "]");
+}
+
+size_t IrcClient::number_of_joined_channels() const
+{
+  return this->channels.size();
 }

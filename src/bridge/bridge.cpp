@@ -42,7 +42,7 @@ void Bridge::shutdown()
 {
   for (auto it = this->irc_clients.begin(); it != this->irc_clients.end(); ++it)
   {
-    it->second->send_quit_command();
+    it->second->send_quit_command("Gateway shutdown");
   }
 }
 
@@ -193,6 +193,9 @@ void Bridge::send_message(const Iid& iid, const std::string& nick, const std::st
 void Bridge::send_muc_leave(Iid&& iid, std::string&& nick, const std::string& message, const bool self)
 {
   this->xmpp->send_muc_leave(std::move(iid.chan) + "%" + std::move(iid.server), std::move(nick), this->make_xmpp_body(message), this->user_jid, self);
+  IrcClient* irc = this->get_irc_client(iid.server);
+  if (irc && irc->number_of_joined_channels() == 0)
+    irc->send_quit_command("");
 }
 
 void Bridge::send_nick_change(Iid&& iid,
