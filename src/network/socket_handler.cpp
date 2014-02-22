@@ -8,6 +8,7 @@
 #include <sys/types.h>
 #include <stdexcept>
 #include <unistd.h>
+#include <stdlib.h>
 #include <errno.h>
 #include <cstring>
 #include <fcntl.h>
@@ -42,35 +43,57 @@ void SocketHandler::init_socket()
 
 void SocketHandler::connect(const std::string& address, const std::string& port)
 {
-  if (!this->connecting)
-    {
-      log_info("Trying to connect to " << address << ":" << port);
-    }
-  this->connecting = true;
   this->address = address;
   this->port = port;
 
-  struct addrinfo hints;
-  memset(&hints, 0, sizeof(struct addrinfo));
-  hints.ai_flags = 0;
-  hints.ai_family = AF_INET;
-  hints.ai_socktype = SOCK_STREAM;
-  hints.ai_protocol = 0;
+  utils::ScopeGuard sg;
 
   struct addrinfo* addr_res;
-  const int res = ::getaddrinfo(address.c_str(), port.c_str(), &hints, &addr_res);
 
-  if (res != 0)
+  if (!this->connecting)
     {
-      log_warning(std::string("getaddrinfo failed: ") + gai_strerror(res));
-      this->close();
-      this->on_connection_failed(gai_strerror(res));
-      return ;
-    }
+      log_info("Trying to connect to " << address << ":" << port);
+      // Get the addrinfo from getaddrinfo, only if this is the first call
+      // of this function.
+      struct addrinfo hints;
+      memset(&hints, 0, sizeof(struct addrinfo));
+      hints.ai_flags = 0;
+      hints.ai_family = AF_INET;
+      hints.ai_socktype = SOCK_STREAM;
+      hints.ai_protocol = 0;
 
-  // Make sure the alloced structure is always freed at the end of the
-  // function
-  utils::ScopeGuard sg([&addr_res](){ freeaddrinfo(addr_res); });
+      const int res = ::getaddrinfo(address.c_str(), port.c_str(), &hints, &addr_res);
+
+      if (res != 0)
+        {
+          log_warning(std::string("getaddrinfo failed: ") + gai_strerror(res));
+          this->close();
+          this->on_connection_failed(gai_strerror(res));
+          return ;
+        }
+      // Make sure the alloced structure is always freed at the end of the
+      // function
+      sg.add_callback([&addr_res](){ freeaddrinfo(addr_res); });
+    }
+  else
+    {
+      // This function is called again, use the saved addrinfo structure,
+      // instead of re-doing the whole getaddrinfo process.  We insert only
+      // the meaningful values in the structure, and indicate that these are
+      // the only possible values with ai_next = NULL.
+      addr_res = (struct addrinfo*)malloc(sizeof(struct addrinfo));
+      if (!addr_res)
+        {
+          this->close();
+          this->on_connection_failed("memory error");
+          return ;
+        }
+      sg.add_callback([&addr_res](){ free(addr_res); });
+      addr_res->ai_next = NULL;
+      addr_res->ai_addr = &this->ai_addr;
+      addr_res->ai_addrlen = this->ai_addrlen;
+    }
+  this->connecting = true;
 
   for (struct addrinfo* rp = addr_res; rp; rp = rp->ai_next)
     {
@@ -87,6 +110,9 @@ void SocketHandler::connect(const std::string& address, const std::string& port)
             // is ready to be written on.
           log_debug("Need to retry connecting later..." << strerror(errno));
           this->poller->watch_send_events(this);
+          // Save the addrinfo structure, to use it on the next call
+          this->ai_addrlen = rp->ai_addrlen;
+          memcpy(&this->ai_addr, rp->ai_addr, this->ai_addrlen);
           return ;
         }
       log_info("Connection failed:" << strerror(errno));

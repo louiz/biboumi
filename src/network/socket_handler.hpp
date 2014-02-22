@@ -1,6 +1,10 @@
 #ifndef SOCKET_HANDLER_INCLUDED
 # define SOCKET_HANDLER_INCLUDED
 
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netdb.h>
+
 #include <string>
 #include <utility>
 
@@ -105,6 +109,13 @@ protected:
    * Port we are connected/connecting to
    */
   std::string port;
+  /**
+   * Keep the details of the addrinfo the triggered a EINPROGRESS error when
+   * connect()ing to it, to reuse it directly when connect() is called
+   * again.
+   */
+  struct sockaddr ai_addr;
+  socklen_t ai_addrlen;
 
   bool connected;
   bool connecting;
