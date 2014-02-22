@@ -155,8 +155,7 @@ int Poller::poll(const std::chrono::milliseconds& timeout)
       else if (this->fds[i].revents & POLLIN)
         {
           auto socket_handler = this->socket_handlers.at(this->fds[i].fd);
-          if (socket_handler->is_connected())
-            socket_handler->on_recv();
+          socket_handler->on_recv();
           nb_events--;
         }
       else if (this->fds[i].revents & POLLOUT)
@@ -164,6 +163,8 @@ int Poller::poll(const std::chrono::milliseconds& timeout)
           auto socket_handler = this->socket_handlers.at(this->fds[i].fd);
           if (socket_handler->is_connected())
             socket_handler->on_send();
+          else
+            socket_handler->connect();
           nb_events--;
         }
     }
@@ -185,7 +186,12 @@ int Poller::poll(const std::chrono::milliseconds& timeout)
       if (revents[i].events & EPOLLIN)
         socket_handler->on_recv();
       if (revents[i].events & EPOLLOUT)
-        socket_handler->on_send();
+        {
+          if (socket_handler->is_connected())
+            socket_handler->on_send();
+          else
+            socket_handler->connect();
+        }
     }
   return nb_events;
 #endif

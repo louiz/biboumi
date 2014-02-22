@@ -50,9 +50,9 @@ XmppComponent::~XmppComponent()
 {
 }
 
-bool XmppComponent::start()
+void XmppComponent::start()
 {
-  return this->connect("127.0.0.1", "5347").first;
+  this->connect("127.0.0.1", "5347");
 }
 
 bool XmppComponent::is_document_open() const
@@ -65,6 +65,11 @@ void XmppComponent::send_stanza(const Stanza& stanza)
   std::string str = stanza.to_string();
   log_debug("XMPP SENDING: " << str);
   this->send_data(std::move(str));
+}
+
+void XmppComponent::on_connection_failed(const std::string& reason)
+{
+  log_error("Failed to connect to the XMPP server: " << reason);
 }
 
 void XmppComponent::on_connected()
@@ -103,7 +108,7 @@ void XmppComponent::clean()
   while (it != this->bridges.end())
   {
     it->second->clean();
-    if (it->second->connected_clients() == 0)
+    if (it->second->active_clients() == 0)
       it = this->bridges.erase(it);
     else
       ++it;

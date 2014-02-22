@@ -30,6 +30,10 @@ public:
    */
   void start();
   /**
+   * Called when the connection to the server cannot be established
+   */
+  void on_connection_failed(const std::string& reason) override final;
+  /**
    * Called when successfully connected to the server
    */
   void on_connected() override final;

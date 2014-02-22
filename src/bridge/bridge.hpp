@@ -105,9 +105,9 @@ public:
    */
   std::string get_own_nick(const Iid& iid);
   /**
-   * Get the number of server to which this bridge is connected.
+   * Get the number of server to which this bridge is connected or connecting.
    */
-  size_t connected_clients() const;
+  size_t active_clients() const;
 
 private:
   /**
@@ -125,7 +125,7 @@ private:
    * The JID of the user associated with this bridge. Messages from/to this
    * JID are only managed by this bridge.
    */
-  std::string user_jid;
+  const std::string user_jid;
   /**
    * One IrcClient for each IRC server we need to be connected to.
    * The pointer is shared by the bridge and the poller.

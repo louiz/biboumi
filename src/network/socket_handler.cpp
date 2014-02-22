@@ -10,6 +10,7 @@
 #include <unistd.h>
 #include <errno.h>
 #include <cstring>
+#include <fcntl.h>
 #include <netdb.h>
 #include <stdio.h>
 
@@ -17,18 +18,38 @@
 
 SocketHandler::SocketHandler():
   poller(nullptr),
-  connected(false)
+  connected(false),
+  connecting(false)
+{
+  this->init_socket();
+}
+
+void SocketHandler::init_socket()
 {
   if ((this->socket = ::socket(AF_INET, SOCK_STREAM, 0)) == -1)
     throw std::runtime_error("Could not create socket");
   int optval = 1;
   if (::setsockopt(this->socket, SOL_SOCKET, SO_KEEPALIVE, &optval, sizeof(optval)) == -1)
     log_warning("Failed to enable TCP keepalive on socket: " << strerror(errno));
+  // Set the socket on non-blocking mode.  This is useful to receive a EAGAIN
+  // error when connect() would block, to not block the whole process if a
+  // remote is not responsive.
+  const int existing_flags = ::fcntl(this->socket, F_GETFL, 0);
+  if ((existing_flags == -1) ||
+      (::fcntl(this->socket, F_SETFL, existing_flags | O_NONBLOCK) == -1))
+    throw std::runtime_error(std::string("Could not initialize socket: ") + strerror(errno));
 }
 
-std::pair<bool, std::string> SocketHandler::connect(const std::string& address, const std::string& port)
+void SocketHandler::connect(const std::string& address, const std::string& port)
 {
-  log_info("Trying to connect to " << address << ":" << port);
+  if (!this->connecting)
+    {
+      log_info("Trying to connect to " << address << ":" << port);
+    }
+  this->connecting = true;
+  this->address = address;
+  this->port = port;
+
   struct addrinfo hints;
   memset(&hints, 0, sizeof(struct addrinfo));
   hints.ai_flags = 0;
@@ -43,7 +64,8 @@ std::pair<bool, std::string> SocketHandler::connect(const std::string& address, 
     {
       log_warning(std::string("getaddrinfo failed: ") + gai_strerror(res));
       this->close();
-      return std::make_pair(false, gai_strerror(res));
+      this->on_connection_failed(gai_strerror(res));
+      return ;
     }
 
   // Make sure the alloced structure is always freed at the end of the
@@ -56,14 +78,28 @@ std::pair<bool, std::string> SocketHandler::connect(const std::string& address, 
         {
           log_info("Connection success.");
           this->connected = true;
+          this->connecting = false;
           this->on_connected();
-          return std::make_pair(true, "");
+          return ;
+        }
+      else if (errno == EINPROGRESS || errno == EALREADY)
+        {   // retry this process later, when the socket
+            // is ready to be written on.
+          log_debug("Need to retry connecting later..." << strerror(errno));
+          this->poller->watch_send_events(this);
+          return ;
         }
       log_info("Connection failed:" << strerror(errno));
     }
   log_error("All connection attempts failed.");
   this->close();
-  return std::make_pair(false, "");
+  this->on_connection_failed(strerror(errno));
+  return ;
+}
+
+void SocketHandler::connect()
+{
+  this->connect(this->address, this->port);
 }
 
 void SocketHandler::set_poller(Poller* poller)
@@ -114,11 +150,11 @@ void SocketHandler::on_send()
 void SocketHandler::close()
 {
   this->connected = false;
+  this->connecting = false;
   this->poller->remove_socket_handler(this->get_socket());
   ::close(this->socket);
   // recreate the socket for a potential future usage
-  if ((this->socket = ::socket(AF_INET, SOCK_STREAM, 0)) == -1)
-    throw std::runtime_error("Could not create socket");
+  this->init_socket();
 }
 
 socket_t SocketHandler::get_socket() const
@@ -138,4 +174,9 @@ void SocketHandler::send_data(std::string&& data)
 bool SocketHandler::is_connected() const
 {
   return this->connected;
+}
+
+bool SocketHandler::is_connecting() const
+{
+  return this->connecting;
 }

@@ -20,9 +20,14 @@ public:
   explicit SocketHandler();
   virtual ~SocketHandler() {}
   /**
+   * (re-)Initialize the socket
+   */
+  void init_socket();
+  /**
    * Connect to the remote server, and call on_connected() if this succeeds
    */
-  std::pair<bool, std::string> connect(const std::string& address, const std::string& port);
+  void connect(const std::string& address, const std::string& port);
+  void connect();
   /**
    * Set the pointer to the given Poller, to communicate with it.
    */
@@ -54,6 +59,11 @@ public:
    */
   virtual void on_connected() = 0;
   /**
+   * Called when the connection fails. Not when it is closed later, just at
+   * the connect() call.
+   */
+  virtual void on_connection_failed(const std::string& reason) = 0;
+  /**
    * Called when we detect a disconnection from the remote host.
    */
   virtual void on_connection_close() = 0;
@@ -63,6 +73,7 @@ public:
    */
   virtual void parse_in_buffer() = 0;
   bool is_connected() const;
+  bool is_connecting() const;
 
 protected:
   socket_t socket;
@@ -86,7 +97,17 @@ protected:
    * (actually it is sharing our ownership with a Bridge).
    */
   Poller* poller;
+  /**
+   * Hostname we are connected/connecting to
+   */
+  std::string address;
+  /**
+   * Port we are connected/connecting to
+   */
+  std::string port;
+
   bool connected;
+  bool connecting;
 
 private:
   SocketHandler(const SocketHandler&) = delete;

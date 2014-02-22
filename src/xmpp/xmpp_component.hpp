@@ -20,6 +20,7 @@ class XmppComponent: public SocketHandler
 public:
   explicit XmppComponent(const std::string& hostname, const std::string& secret);
   ~XmppComponent();
+  void on_connection_failed(const std::string& reason) override final;
   void on_connected() override final;
   void on_connection_close() override final;
   void parse_in_buffer() override final;
@@ -38,9 +39,8 @@ public:
   void clean();
   /**
    * Connect to the XMPP server.
-   * Returns false if we failed to connect
    */
-  bool start();
+  void start();
   /**
    * Serialize the stanza and add it to the out_buf to be sent to the
    * server.

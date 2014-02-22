@@ -66,11 +66,6 @@ int main(int ac, char** av)
 
   Poller p;
   p.add_socket_handler(xmpp_component);
-  if (!xmpp_component->start())
-  {
-    log_info("Exiting");
-    return -1;
-  }
 
   // Install the signals used to exit the process cleanly, or reload the
   // config
@@ -93,8 +88,10 @@ int main(int ac, char** av)
   sigaction(SIGUSR1, &on_sigusr, nullptr);
   sigaction(SIGUSR2, &on_sigusr, nullptr);
 
+  xmpp_component->start();
+
   const std::chrono::milliseconds timeout(-1);
-  while (p.poll(timeout) != -1 || !exiting)
+  while (p.poll(timeout) != -1)
   {
     // Check for empty irc_clients (not connected, or with no joined
     // channel) and remove them
@@ -119,6 +116,8 @@ int main(int ac, char** av)
     }
     // If the only existing connection is the one to the XMPP component:
     // close the XMPP stream.
+    if (exiting && xmpp_component->is_connecting())
+      xmpp_component->close();
     if (exiting && p.size() == 1 && xmpp_component->is_document_open())
       xmpp_component->close_document();
   }

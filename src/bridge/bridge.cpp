@@ -52,7 +52,7 @@ void Bridge::clean()
   while (it != this->irc_clients.end())
   {
     IrcClient* client = it->second.get();
-    if (!client->is_connected())
+    if (!client->is_connected() && !client->is_connecting())
       it = this->irc_clients.erase(it);
     else
       ++it;
@@ -249,7 +249,7 @@ std::string Bridge::get_own_nick(const Iid& iid)
   return "";
 }
 
-size_t Bridge::connected_clients() const
+size_t Bridge::active_clients() const
 {
   return this->irc_clients.size();
 }

@@ -29,10 +29,13 @@ void IrcClient::start()
 {
   this->bridge->send_xmpp_message(this->hostname, "", std::string("Connecting to ") +
                                   this->hostname + ":" + "6667");
-  std::pair<bool, std::string> res = this->connect(this->hostname, "6667");
-  if (!res.first)
-    this->bridge->send_xmpp_message(this->hostname, "",
-                                    std::string("Connection failed: ") + res.second);
+  this->connect(this->hostname, "6667");
+}
+
+void IrcClient::on_connection_failed(const std::string& reason)
+{
+  this->bridge->send_xmpp_message(this->hostname, "",
+                                  std::string("Connection failed: ") + reason);
 }
 
 void IrcClient::on_connected()
