@@ -97,7 +97,8 @@ void SocketHandler::connect(const std::string& address, const std::string& port)
 
   for (struct addrinfo* rp = addr_res; rp; rp = rp->ai_next)
     {
-      if (::connect(this->socket, rp->ai_addr, rp->ai_addrlen) == 0)
+      if (::connect(this->socket, rp->ai_addr, rp->ai_addrlen) == 0
+          || errno == EISCONN)
         {
           log_info("Connection success.");
           this->connected = true;
