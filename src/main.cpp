@@ -34,12 +34,12 @@ int config_help(const std::string& missing_option)
 
 static void sigint_handler(int, siginfo_t*, void*)
 {
-  stop = true;
+  stop.store(true);
 }
 
 static void sigusr_handler(int, siginfo_t*, void*)
 {
-  reload = true;
+  reload.store(true);
 }
 
 int main(int ac, char** av)
@@ -100,7 +100,7 @@ int main(int ac, char** av)
     {
       log_info("Signal received, exiting...");
       exiting = true;
-      stop = false;
+      stop.store(false);
       xmpp_component->shutdown();
     }
     if (reload)
@@ -112,7 +112,7 @@ int main(int ac, char** av)
       // Destroy the logger instance, to be recreated the next time a log
       // line needs to be written
       Logger::instance().reset();
-      reload = false;
+      reload.store(false);
     }
     // If the only existing connection is the one to the XMPP component:
     // close the XMPP stream.
