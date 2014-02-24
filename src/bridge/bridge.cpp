@@ -5,6 +5,7 @@
 #include <utils/encoding.hpp>
 #include <logger/logger.hpp>
 #include <utils/split.hpp>
+#include <stdexcept>
 #include <iostream>
 #include <tuple>
 

@@ -6,6 +6,7 @@
 
 #include <utils/sha1.hpp>
 
+#include <stdexcept>
 #include <iostream>
 
 #include <stdio.h>
