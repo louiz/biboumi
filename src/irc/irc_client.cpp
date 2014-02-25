@@ -27,6 +27,8 @@ IrcClient::~IrcClient()
 
 void IrcClient::start()
 {
+  if (this->connected || this->connecting)
+    return ;
   this->bridge->send_xmpp_message(this->hostname, "", std::string("Connecting to ") +
                                   this->hostname + ":" + "6667");
   this->connect(this->hostname, "6667");
@@ -144,8 +146,7 @@ void IrcClient::send_quit_command(const std::string& reason)
 
 void IrcClient::send_join_command(const std::string& chan_name)
 {
-  if (!this->connected)
-    this->start();
+  this->start();
   if (this->welcomed == false)
     this->channels_to_join.push_back(chan_name);
   else
