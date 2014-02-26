@@ -82,8 +82,8 @@ public:
 protected:
   socket_t socket;
   /**
-   * Where data read from the socket is added, until we can parse a whole
-   * IRC message, the used data is then removed from that buffer.
+   * Where data read from the socket is added until we can extract a full
+   * and meaningful “message” from it.
    *
    * TODO: something more efficient than a string.
    */
