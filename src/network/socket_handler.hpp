@@ -5,8 +5,9 @@
 #include <sys/socket.h>
 #include <netdb.h>
 
-#include <string>
 #include <utility>
+#include <string>
+#include <list>
 
 typedef int socket_t;
 
@@ -91,7 +92,7 @@ protected:
   /**
    * Where data is added, when we want to send something to the client.
    */
-  std::string out_buf;
+  std::list<std::string> out_buf;
   /**
    * A pointer to the poller that manages us, because we need to communicate
    * with it, sometimes (for example to tell it that he now needs to watch

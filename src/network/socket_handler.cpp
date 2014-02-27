@@ -17,6 +17,10 @@
 
 #include <iostream>
 
+#ifndef UIO_FASTIOV
+# define UIO_FASTIOV 8
+#endif
+
 SocketHandler::SocketHandler():
   poller(nullptr),
   connected(false),
@@ -159,16 +163,44 @@ void SocketHandler::on_recv(const size_t nb)
 
 void SocketHandler::on_send()
 {
-  const ssize_t res = ::send(this->socket, this->out_buf.data(), this->out_buf.size(), MSG_NOSIGNAL);
-  if (res == -1)
+  struct iovec msg_iov[UIO_FASTIOV] = {};
+  struct msghdr msg{nullptr, 0,
+      msg_iov,
+      0, nullptr, 0, 0};
+  for (std::string& s: this->out_buf)
     {
-      log_error("send failed: " << strerror(errno));
+      // unconsting the content of s is ok, sendmsg will never modify it
+      msg_iov[msg.msg_iovlen].iov_base = const_cast<char*>(s.data());
+      msg_iov[msg.msg_iovlen].iov_len = s.size();
+      msg.msg_iovlen++;
+    }
+  ssize_t res = ::sendmsg(this->socket, &msg, MSG_NOSIGNAL);
+  if (res < 0)
+    {
+      log_error("sendmsg failed: " << strerror(errno));
       this->on_connection_close();
       this->close();
     }
   else
     {
-      this->out_buf = this->out_buf.substr(res, std::string::npos);
+      // remove all the strings that were successfully sent.
+      for (auto it = this->out_buf.begin();
+           it != this->out_buf.end();)
+        {
+          if (static_cast<size_t>(res) >= (*it).size())
+            {
+              res -= (*it).size();
+              it = this->out_buf.erase(it);
+            }
+          else
+            {
+              // If one string has partially been sent, we use substr to
+              // crop it
+              if (res > 0)
+                (*it) = (*it).substr(res, std::string::npos);
+              break;
+            }
+        }
       if (this->out_buf.empty())
         this->poller->stop_watching_send_events(this);
     }
@@ -191,11 +223,10 @@ socket_t SocketHandler::get_socket() const
 
 void SocketHandler::send_data(std::string&& data)
 {
-  this->out_buf += std::move(data);
-  if (!this->out_buf.empty())
-    {
-      this->poller->watch_send_events(this);
-    }
+  if (data.empty())
+    return ;
+  this->out_buf.emplace_back(std::move(data));
+  this->poller->watch_send_events(this);
 }
 
 bool SocketHandler::is_connected() const
