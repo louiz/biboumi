@@ -80,7 +80,7 @@ std::string IrcClient::get_own_nick() const
   return this->current_nick;
 }
 
-void IrcClient::parse_in_buffer()
+void IrcClient::parse_in_buffer(const size_t)
 {
   while (true)
     {

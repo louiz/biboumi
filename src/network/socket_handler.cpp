@@ -138,11 +138,16 @@ void SocketHandler::set_poller(Poller* poller)
   this->poller = poller;
 }
 
-void SocketHandler::on_recv(const size_t nb)
+void SocketHandler::on_recv()
 {
-  char buf[4096];
+  static constexpr size_t buf_size = 4096;
+  char buf[buf_size];
+  void* recv_buf = this->get_receive_buffer(buf_size);
 
-  ssize_t size = ::recv(this->socket, buf, nb, 0);
+  if (recv_buf == nullptr)
+    recv_buf = buf;
+
+  ssize_t size = ::recv(this->socket, recv_buf, buf_size, 0);
   if (0 == size)
     {
       this->on_connection_close();
@@ -156,8 +161,14 @@ void SocketHandler::on_recv(const size_t nb)
     }
   else
     {
-      this->in_buf += std::string(buf, size);
-      this->parse_in_buffer();
+      if (buf == recv_buf)
+        {
+          // data needs to be placed in the in_buf string, because no buffer
+          // was provided to receive that data directly. The in_buf buffer
+          // will be handled in parse_in_buffer()
+          this->in_buf += std::string(buf, size);
+        }
+      this->parse_in_buffer(size);
     }
 }
 
@@ -237,4 +248,9 @@ bool SocketHandler::is_connected() const
 bool SocketHandler::is_connecting() const
 {
   return this->connecting;
+}
+
+void* SocketHandler::get_receive_buffer(const size_t) const
+{
+  return nullptr;
 }

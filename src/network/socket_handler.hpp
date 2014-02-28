@@ -41,7 +41,7 @@ public:
    * Reads data in our in_buf and the call parse_in_buf, for the implementor
    * to handle the data received so far.
    */
-  void on_recv(const size_t nb = 4096);
+  void on_recv();
   /**
    * Write as much data from out_buf as possible, in the socket.
    */
@@ -73,14 +73,28 @@ public:
    */
   virtual void on_connection_close() = 0;
   /**
-   * Handle/consume (some of) the data received so far. If some data is used, the in_buf
+   * Handle/consume (some of) the data received so far.  The data to handle
+   * may be in the in_buf buffer, or somewhere else, depending on what
+   * get_receive_buffer() returned.  If some data is used from in_buf, it
    * should be truncated, only the unused data should be left untouched.
+   *
+   * The size argument is the size of the last chunk of data that was added to the buffer.
    */
-  virtual void parse_in_buffer() = 0;
+  virtual void parse_in_buffer(const size_t size) = 0;
   bool is_connected() const;
   bool is_connecting() const;
 
 protected:
+  /**
+   * Provide a buffer in which data can be directly received. This can be
+   * used to avoid copying data into in_buf before using it. If no buffer
+   * can provided, nullptr is returned (the default implementation does
+   * that).
+   */
+  virtual void* get_receive_buffer(const size_t size) const;
+  /**
+   * The handled socket.
+   */
   socket_t socket;
   /**
    * Where data read from the socket is added until we can extract a full

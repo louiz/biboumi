@@ -89,10 +89,20 @@ void XmppComponent::on_connection_close()
   log_info("XMPP server closed connection");
 }
 
-void XmppComponent::parse_in_buffer()
+void XmppComponent::parse_in_buffer(const size_t size)
 {
-  this->parser.feed(this->in_buf.data(), this->in_buf.size(), false);
-  this->in_buf.clear();
+  if (!this->in_buf.empty())
+    { // This may happen if the parser could not allocate enough space for
+      // us. We try to feed it the data that was read into our in_buf
+      // instead. If this fails again we are in trouble.
+      this->parser.feed(this->in_buf.data(), this->in_buf.size(), false);
+      this->in_buf.clear();
+    }
+  else
+    { // Just tell the parser to parse the data that was placed into the
+      // buffer it provided to us with GetBuffer
+      this->parser.parse(size, false);
+    }
 }
 
 void XmppComponent::shutdown()
@@ -306,6 +316,11 @@ Bridge* XmppComponent::get_user_bridge(const std::string& user_jid)
       this->bridges.emplace(user_jid, std::make_unique<Bridge>(user_jid, this, this->poller));
       return this->bridges.at(user_jid).get();
     }
+}
+
+void* XmppComponent::get_receive_buffer(const size_t size) const
+{
+  return this->parser.get_buffer(size);
 }
 
 void XmppComponent::send_message(const std::string& from, Xmpp::body&& body, const std::string& to)

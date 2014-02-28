@@ -23,7 +23,7 @@ public:
   void on_connection_failed(const std::string& reason) override final;
   void on_connected() override final;
   void on_connection_close() override final;
-  void parse_in_buffer() override final;
+  void parse_in_buffer(const size_t size) override final;
   /**
    * Send a "close" message to all our connected peers.  That message
    * depends on the protocol used (this may be a QUIT irc message, or a
@@ -142,7 +142,11 @@ private:
    * if none already exist.
    */
   Bridge* get_user_bridge(const std::string& user_jid);
-
+  /**
+   * Return a buffer provided by the XML parser, to read data directly into
+   * it, and avoiding some unnecessary copy.
+   */
+  void* get_receive_buffer(const size_t size) const override final;
   XmppParser parser;
   std::string stream_id;
   std::string served_hostname;

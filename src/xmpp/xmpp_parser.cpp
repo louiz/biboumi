@@ -1,6 +1,8 @@
 #include <xmpp/xmpp_parser.hpp>
 #include <xmpp/xmpp_stanza.hpp>
 
+#include <logger/logger.hpp>
+
 /**
  * Expat handlers. Called by the Expat library, never by ourself.
  * They just forward the call to the XmppParser corresponding methods.
@@ -45,9 +47,25 @@ XmppParser::~XmppParser()
   XML_ParserFree(this->parser);
 }
 
-void XmppParser::feed(const char* data, const int len, const bool is_final)
+int XmppParser::feed(const char* data, const int len, const bool is_final)
 {
-  XML_Parse(this->parser, data, len, is_final);
+  int res = XML_Parse(this->parser, data, len, is_final);
+  if (res == 0)
+    log_error("Xml_Parse encountered an error");
+  return res;
+}
+
+int XmppParser::parse(const int len, const bool is_final)
+{
+  int res = XML_ParseBuffer(this->parser, len, is_final);
+  if (res == 0)
+    log_error("Xml_Parsebuffer encountered an error");
+  return res;
+}
+
+void* XmppParser::get_buffer(const size_t size) const
+{
+  return XML_GetBuffer(this->parser, static_cast<int>(size));
 }
 
 void XmppParser::start_element(const XML_Char* name, const XML_Char** attribute)

@@ -37,7 +37,15 @@ public:
   /**
    * Feed the parser with some XML data
    */
-  void feed(const char* data, const int len, const bool is_final);
+  int feed(const char* data, const int len, const bool is_final);
+  /**
+   * Parse the data placed in the parser buffer
+   */
+  int parse(const int size, const bool is_final);
+  /**
+   * Get a buffer provided by the xml parser.
+   */
+  void* get_buffer(const size_t size) const;
   /**
    * Add one callback for the various events that this parser can spawn.
    */

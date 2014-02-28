@@ -45,7 +45,7 @@ public:
    * Parse the data we have received so far and try to get one or more
    * complete messages from it.
    */
-  void parse_in_buffer() override final;
+  void parse_in_buffer(const size_t) override final;
   /**
    * Return the channel with this name, create it if it does not yet exist
    */
