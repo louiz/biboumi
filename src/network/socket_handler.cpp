@@ -183,7 +183,8 @@ void SocketHandler::on_send()
       // unconsting the content of s is ok, sendmsg will never modify it
       msg_iov[msg.msg_iovlen].iov_base = const_cast<char*>(s.data());
       msg_iov[msg.msg_iovlen].iov_len = s.size();
-      msg.msg_iovlen++;
+      if (++msg.msg_iovlen == UIO_FASTIOV)
+        break;
     }
   ssize_t res = ::sendmsg(this->socket, &msg, MSG_NOSIGNAL);
   if (res < 0)
