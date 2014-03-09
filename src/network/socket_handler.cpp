@@ -153,7 +153,7 @@ void SocketHandler::on_recv()
       this->on_connection_close();
       this->close();
     }
-  else if (-1 == static_cast<ssize_t>(size))
+  else if (-1 == size)
     {
       log_warning("Error while reading from socket: " << strerror(errno));
       this->on_connection_close();
