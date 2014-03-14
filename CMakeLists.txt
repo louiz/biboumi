@@ -6,7 +6,7 @@ set(${PROJECT_NAME}_VERSION_MAJOR 0)
 set(${PROJECT_NAME}_VERSION_MINOR 1)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -pedantic -Wall -Wextra")
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Og")
+# set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fsanitize=address")
 
 # Define a __FILENAME__ macro to get the filename of each file, instead of
 # the full path as in __FILE__
@@ -47,10 +47,9 @@ find_program(RONN_EXECUTABLE NAMES ronn
 if(RONN_EXECUTABLE)
   set(WITH_DOC true)
   add_custom_target(doc
-    ${RONN_SOFTWARE} --roff ${CMAKE_CURRENT_BINARY_DIR}/doc/${PROJECT_NAME}.1.md
+    ${RONN_EXECUTABLE} --roff ${CMAKE_CURRENT_BINARY_DIR}/doc/${PROJECT_NAME}.1.md
     COMMENT "Generate the man page" VERBATIM)
 endif()
-
 
 #
 ## utils
