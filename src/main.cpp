@@ -114,6 +114,17 @@ int main(int ac, char** av)
       Logger::instance().reset();
       reload.store(false);
     }
+    // Reconnect to the XMPP server if this was not intended.  This may have
+    // happened because we sent something invalid to it and it decided to
+    // close the connection.  This is a bug that should be fixed, but we
+    // still reconnect automatically instead of dropping everything
+    if (!exiting && !xmpp_component->is_connected() &&
+        !xmpp_component->is_connecting())
+      {
+        xmpp_component->reset();
+        p.add_socket_handler(xmpp_component);
+        xmpp_component->start();
+      }
     // If the only existing connection is the one to the XMPP component:
     // close the XMPP stream.
     if (exiting && xmpp_component->is_connecting())

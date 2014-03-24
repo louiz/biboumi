@@ -222,6 +222,9 @@ void SocketHandler::close()
 {
   this->connected = false;
   this->connecting = false;
+  this->in_buf.clear();
+  this->out_buf.clear();
+  this->port.clear();
   this->poller->remove_socket_handler(this->get_socket());
   ::close(this->socket);
   // recreate the socket for a potential future usage

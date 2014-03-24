@@ -42,6 +42,10 @@ public:
    */
   void start();
   /**
+   * Reset the component so we can use the component on a new XMPP stream
+   */
+  void reset();
+  /**
    * Serialize the stanza and add it to the out_buf to be sent to the
    * server.
    */

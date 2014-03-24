@@ -35,6 +35,10 @@ public:
 
 public:
   /**
+   * Init the XML parser and install the callbacks
+   */
+  void init_xml_parser();
+  /**
    * Feed the parser with some XML data
    */
   int feed(const char* data, const int len, const bool is_final);
@@ -42,6 +46,10 @@ public:
    * Parse the data placed in the parser buffer
    */
   int parse(const int size, const bool is_final);
+  /**
+   * Reset the parser, so it can be used from scratch afterward
+   */
+  void reset();
   /**
    * Get a buffer provided by the xml parser.
    */

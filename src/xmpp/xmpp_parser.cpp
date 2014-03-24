@@ -31,6 +31,11 @@ XmppParser::XmppParser():
   level(0),
   current_node(nullptr)
 {
+  this->init_xml_parser();
+}
+
+void XmppParser::init_xml_parser()
+{
   // Create the expat parser
   this->parser = XML_ParserCreateNS("UTF-8", ':');
   XML_SetUserData(this->parser, static_cast<void*>(this));
@@ -63,6 +68,16 @@ int XmppParser::parse(const int len, const bool is_final)
     log_error("Xml_Parsebuffer encountered an error: " <<
               XML_ErrorString(XML_GetErrorCode(this->parser)));
   return res;
+}
+
+void XmppParser::reset()
+{
+  XML_ParserFree(this->parser);
+  this->init_xml_parser();
+  if (this->current_node)
+    delete this->current_node;
+  this->current_node = nullptr;
+  this->level = 0;
 }
 
 void* XmppParser::get_buffer(const size_t size) const

@@ -167,6 +167,11 @@ void XmppComponent::on_remote_stream_close(const XmlNode& node)
   this->doc_open = false;
 }
 
+void XmppComponent::reset()
+{
+  this->parser.reset();
+}
+
 void XmppComponent::on_stanza(const Stanza& stanza)
 {
   log_debug("XMPP RECEIVING: " << stanza.to_string());
