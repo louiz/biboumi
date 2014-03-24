@@ -413,10 +413,10 @@ void XmppComponent::send_invalid_room_error(const std::string& muc_name,
   XmlNode error("error");
   error["by"] = muc_name + "@" + this->served_hostname;
   error["type"] = "wait";
-  XmlNode service_unavailable("service-unavailable");
-  service_unavailable["xmlns"] = STANZA_NS;
-  service_unavailable.close();
-  error.add_child(std::move(service_unavailable));
+  XmlNode item_not_found("item-not-found");
+  item_not_found["xmlns"] = STANZA_NS;
+  item_not_found.close();
+  error.add_child(std::move(item_not_found));
   XmlNode text("text");
   text["xmlns"] = STANZA_NS;
   text["xml:lang"] = "en";
