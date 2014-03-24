@@ -45,6 +45,7 @@ void IrcClient::on_connected()
   this->send_nick_command(this->username);
   this->send_user_command(this->username, this->username);
   this->send_gateway_message("Connected to IRC server.");
+  this->send_pending_data();
 }
 
 void IrcClient::on_connection_close()

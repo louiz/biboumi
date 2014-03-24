@@ -82,6 +82,9 @@ void XmppComponent::on_connected()
   node["to"] = this->served_hostname;
   this->send_stanza(node);
   this->doc_open = true;
+  // We may have some pending data to send: this happens when we try to send
+  // some data before we are actually connected.  We send that data right now, if any
+  this->send_pending_data();
 }
 
 void XmppComponent::on_connection_close()
@@ -161,6 +164,7 @@ void XmppComponent::on_remote_stream_open(const XmlNode& node)
 void XmppComponent::on_remote_stream_close(const XmlNode& node)
 {
   log_debug("XMPP DOCUMENT CLOSE " << node.to_string());
+  this->doc_open = false;
 }
 
 void XmppComponent::on_stanza(const Stanza& stanza)

@@ -238,7 +238,14 @@ void SocketHandler::send_data(std::string&& data)
   if (data.empty())
     return ;
   this->out_buf.emplace_back(std::move(data));
-  this->poller->watch_send_events(this);
+  if (this->connected)
+    this->poller->watch_send_events(this);
+}
+
+void SocketHandler::send_pending_data()
+{
+  if (this->connected && !this->out_buf.empty())
+    this->poller->watch_send_events(this);
 }
 
 bool SocketHandler::is_connected() const

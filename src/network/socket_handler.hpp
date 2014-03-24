@@ -52,6 +52,10 @@ public:
    */
   void send_data(std::string&& data);
   /**
+   * Watch the socket for send events, if our out buffer is not empty.
+   */
+  void send_pending_data();
+  /**
    * Returns the socket that should be handled by the poller.
    */
   socket_t get_socket() const;
