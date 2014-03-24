@@ -24,6 +24,8 @@
 #define STREAMS_NS       "urn:ietf:params:xml:ns:xmpp-streams"
 
 XmppComponent::XmppComponent(const std::string& hostname, const std::string& secret):
+  ever_auth(false),
+  last_auth(false),
   served_hostname(hostname),
   secret(secret),
   authenticated(false),
@@ -144,6 +146,7 @@ void XmppComponent::on_remote_stream_open(const XmlNode& node)
       return ;
     }
 
+  this->last_auth = false;
   // Try to authenticate
   char digest[HASH_LENGTH * 2 + 1];
   sha1nfo sha1;
@@ -212,6 +215,8 @@ void XmppComponent::handle_handshake(const Stanza& stanza)
 {
   (void)stanza;
   this->authenticated = true;
+  this->ever_auth = true;
+  this->last_auth = true;
   log_info("Authenticated with the XMPP server");
 }
 

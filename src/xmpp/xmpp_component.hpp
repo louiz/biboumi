@@ -140,6 +140,15 @@ public:
   void handle_iq(const Stanza& stanza);
   void handle_error(const Stanza& stanza);
 
+  /**
+   * Whether or not we ever succeeded our authentication to the XMPP server
+   */
+  bool ever_auth;
+  /**
+   * Whether or not the last connection+auth attempt was successful
+   */
+  bool last_auth;
+
 private:
   /**
    * Return the bridge associated with the given full JID. Create a new one

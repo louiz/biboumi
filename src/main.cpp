@@ -118,7 +118,8 @@ int main(int ac, char** av)
     // happened because we sent something invalid to it and it decided to
     // close the connection.  This is a bug that should be fixed, but we
     // still reconnect automatically instead of dropping everything
-    if (!exiting && !xmpp_component->is_connected() &&
+    if (!exiting && xmpp_component->ever_auth &&
+        !xmpp_component->is_connected() &&
         !xmpp_component->is_connecting())
       {
         xmpp_component->reset();
