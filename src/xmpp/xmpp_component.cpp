@@ -412,7 +412,7 @@ void XmppComponent::send_invalid_room_error(const std::string& muc_name,
   presence.add_child(std::move(x));
   XmlNode error("error");
   error["by"] = muc_name + "@" + this->served_hostname;
-  error["type"] = "wait";
+  error["type"] = "cancel";
   XmlNode item_not_found("item-not-found");
   item_not_found["xmlns"] = STANZA_NS;
   item_not_found.close();
