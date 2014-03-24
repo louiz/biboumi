@@ -231,7 +231,7 @@ void XmppComponent::handle_presence(const Stanza& stanza)
   }
   catch (const AttributeNotFound&) {}
 
-  if (!iid.chan.empty() && !iid.chan.empty())
+  if (!iid.chan.empty() && !iid.server.empty())
     { // presence toward a MUC that corresponds to an irc channel
       if (type.empty())
         {
@@ -245,6 +245,12 @@ void XmppComponent::handle_presence(const Stanza& stanza)
           XmlNode* status = stanza.get_child(COMPONENT_NS":status");
           bridge->leave_irc_channel(std::move(iid), status ? std::move(status->get_inner()) : "");
         }
+    }
+  else
+    {
+      // An user wants to join an invalid IRC channel, return a presence error to him
+      if (type.empty())
+        this->send_invalid_room_error(to.local, to.resource, stanza["from"]);
     }
 }
 
@@ -390,6 +396,39 @@ void XmppComponent::send_user_join(const std::string& from,
   node.add_child(std::move(x));
   node.close();
   this->send_stanza(node);
+}
+
+void XmppComponent::send_invalid_room_error(const std::string& muc_name,
+                                            const std::string& nick,
+                                            const std::string& to)
+{
+  Stanza presence("presence");
+  presence["from"] = muc_name + "@" + this->served_hostname + "/" + nick;
+  presence["to"] = to;
+  presence["type"] = "error";
+  XmlNode x("x");
+  x["xmlns"] = MUC_NS;
+  x.close();
+  presence.add_child(std::move(x));
+  XmlNode error("error");
+  error["by"] = muc_name + "@" + this->served_hostname;
+  error["type"] = "wait";
+  XmlNode service_unavailable("service-unavailable");
+  service_unavailable["xmlns"] = STANZA_NS;
+  service_unavailable.close();
+  error.add_child(std::move(service_unavailable));
+  XmlNode text("text");
+  text["xmlns"] = STANZA_NS;
+  text["xml:lang"] = "en";
+  text.set_inner(muc_name +
+                 " is not a valid IRC channel name. A correct room jid is of the form: #<chan>%<server>@" +
+                 this->served_hostname);
+  text.close();
+  error.add_child(std::move(text));
+  error.close();
+  presence.add_child(std::move(error));
+  presence.close();
+  this->send_stanza(presence);
 }
 
 void XmppComponent::send_topic(const std::string& from, Xmpp::body&& topic, const std::string& to)

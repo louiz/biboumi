@@ -87,6 +87,12 @@ public:
                       const std::string& to,
                       const bool self);
   /**
+   * Send an error to indicate that the user tried to join an invalid room
+   */
+  void send_invalid_room_error(const std::string& muc_jid,
+                               const std::string& nick,
+                               const std::string& to);
+  /**
    * Send the MUC topic to the user
    */
   void send_topic(const std::string& from, Xmpp::body&& xmpp_topic, const std::string& to);
