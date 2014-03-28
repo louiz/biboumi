@@ -255,12 +255,16 @@ void XmppComponent::handle_handshake(const Stanza& stanza)
 
 void XmppComponent::handle_presence(const Stanza& stanza)
 {
+  std::string from;
   std::string id;
   try {
     id = stanza["id"];
+    from = stanza["from"];
   } catch (const AttributeNotFound&) {}
-  utils::ScopeGuard malformed_stanza_error([this, &id](){
-      this->send_stanza_error("presence", "", this->served_hostname, id,
+  if (from.empty())
+    return;
+  utils::ScopeGuard malformed_stanza_error([&](){
+      this->send_stanza_error("presence", from, this->served_hostname, id,
                               "modify", "bad-request", "");
         });
   Bridge* bridge = this->get_user_bridge(stanza["from"]);
@@ -281,7 +285,7 @@ void XmppComponent::handle_presence(const Stanza& stanza)
   // stanza_error.disable() call at the end of the function.
   std::string error_type("cancel");
   std::string error_name("internal-server-error");
-  utils::ScopeGuard stanza_error([this, &stanza, &error_type, &error_name, &id](){
+  utils::ScopeGuard stanza_error([&](){
       this->send_stanza_error("presence", stanza["from"], stanza["to"], id,
                               error_type, error_name, "");
         });
@@ -312,12 +316,16 @@ void XmppComponent::handle_presence(const Stanza& stanza)
 
 void XmppComponent::handle_message(const Stanza& stanza)
 {
+  std::string from;
   std::string id;
   try {
     id = stanza["id"];
+    from = stanza["from"];
   } catch (const AttributeNotFound&) {}
-  utils::ScopeGuard malformed_stanza_error([this, &id](){
-      this->send_stanza_error("message", "", this->served_hostname, id,
+  if (from.empty())
+    return;
+  utils::ScopeGuard malformed_stanza_error([&](){
+      this->send_stanza_error("message", from, this->served_hostname, id,
                               "modify", "bad-request", "");
         });
   Bridge* bridge = this->get_user_bridge(stanza["from"]);
@@ -332,7 +340,7 @@ void XmppComponent::handle_message(const Stanza& stanza)
 
   std::string error_type("cancel");
   std::string error_name("internal-server-error");
-  utils::ScopeGuard stanza_error([this, &stanza, &error_type, &error_name, &id](){
+  utils::ScopeGuard stanza_error([&](){
       this->send_stanza_error("message", stanza["from"], stanza["to"], id,
                               error_type, error_name, "");
         });
@@ -357,11 +365,15 @@ void XmppComponent::handle_message(const Stanza& stanza)
 void XmppComponent::handle_iq(const Stanza& stanza)
 {
   std::string id;
+  std::string from;
   try {
     id = stanza["id"];
+    from = stanza["from"];
   } catch (const AttributeNotFound&) {}
-  utils::ScopeGuard malformed_stanza_error([this, &id](){
-      this->send_stanza_error("iq", "", this->served_hostname, id,
+  if (from.empty())
+    return;
+  utils::ScopeGuard malformed_stanza_error([&](){
+      this->send_stanza_error("iq", from, this->served_hostname, id,
                               "modify", "bad-request", "");
         });
   Bridge* bridge = this->get_user_bridge(stanza["from"]);
@@ -371,7 +383,7 @@ void XmppComponent::handle_iq(const Stanza& stanza)
 
   std::string error_type("cancel");
   std::string error_name("internal-server-error");
-  utils::ScopeGuard stanza_error([this, &stanza, &error_type, &error_name, &id](){
+  utils::ScopeGuard stanza_error([&](){
       this->send_stanza_error("iq", stanza["from"], stanza["to"], id,
                               error_type, error_name, "");
         });
