@@ -131,7 +131,13 @@ void XmppParser::char_data(const XML_Char* data, int len)
 void XmppParser::stanza_event(const Stanza& stanza) const
 {
   for (const auto& callback: this->stanza_callbacks)
-    callback(stanza);
+    {
+      try {
+        callback(stanza);
+      } catch (const std::exception& e) {
+        log_debug("Unhandled exception: " << e.what());
+      }
+    }
 }
 
 void XmppParser::stream_open_event(const XmlNode& node) const

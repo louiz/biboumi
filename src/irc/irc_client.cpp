@@ -93,7 +93,13 @@ void IrcClient::parse_in_buffer(const size_t)
       this->in_buf = this->in_buf.substr(pos + 2, std::string::npos);
       auto cb = irc_callbacks.find(message.command);
       if (cb != irc_callbacks.end())
-        (this->*(cb->second))(message);
+        {
+          try {
+            (this->*(cb->second))(message);
+          } catch (const std::exception& e) {
+            log_error("Unhandled exception: " << e.what());
+          }
+        }
       else
         log_info("No handler for command " << message.command);
     }
