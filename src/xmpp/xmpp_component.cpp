@@ -335,7 +335,9 @@ void XmppComponent::handle_message(const Stanza& stanza)
   try {
     type = stanza["type"];
   }
-  catch (const AttributeNotFound&) {}
+  catch (const AttributeNotFound&) {
+    type = "normal";
+  }
   malformed_stanza_error.disable();
 
   std::string error_type("cancel");
