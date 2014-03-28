@@ -69,6 +69,12 @@ public:
    */
   void send_stream_error(const std::string& message, const std::string& explanation);
   /**
+   * Send error stanza, described in http://xmpp.org/rfcs/rfc6120.html#stanzas-error
+   */
+  void send_stanza_error(const std::string& kind, const std::string& to, const std::string& from,
+                         const std::string& id, const std::string& error_type,
+                         const std::string& defined_condition, const std::string& text);
+  /**
    * Send the closing signal for our document (not closing the connection though).
    */
   void close_document();

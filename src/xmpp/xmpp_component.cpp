@@ -1,4 +1,5 @@
 #include <utils/make_unique.hpp>
+#include <utils/scopeguard.hpp>
 #include <logger/logger.hpp>
 
 #include <xmpp/xmpp_component.hpp>
@@ -204,6 +205,38 @@ void XmppComponent::send_stream_error(const std::string& name, const std::string
   this->send_stanza(node);
 }
 
+void XmppComponent::send_stanza_error(const std::string& kind, const std::string& to, const std::string& from,
+                       const std::string& id, const std::string& error_type,
+                       const std::string& defined_condition, const std::string& text)
+{
+  Stanza node(kind);
+  if (!to.empty())
+    node["to"] = to;
+  if (!from.empty())
+    node["from"] = from;
+  if (!id.empty())
+    node["id"] = id;
+  node["type"] = "error";
+  XmlNode error("error");
+  error["type"] = error_type;
+  XmlNode inner_error(defined_condition);
+  inner_error["xmlns"] = STANZA_NS;
+  inner_error.close();
+  error.add_child(std::move(inner_error));
+  if (!text.empty())
+    {
+      XmlNode text_node("text");
+      text_node["xmlns"] = STANZA_NS;
+      text_node.set_inner(text);
+      text_node.close();
+      error.add_child(std::move(text_node));
+    }
+  error.close();
+  node.add_child(std::move(error));
+  node.close();
+  this->send_stanza(node);
+}
+
 void XmppComponent::close_document()
 {
   log_debug("XMPP SENDING: </stream:stream>");
@@ -222,6 +255,14 @@ void XmppComponent::handle_handshake(const Stanza& stanza)
 
 void XmppComponent::handle_presence(const Stanza& stanza)
 {
+  std::string id;
+  try {
+    id = stanza["id"];
+  } catch (const AttributeNotFound&) {}
+  utils::ScopeGuard malformed_stanza_error([this, &id](){
+      this->send_stanza_error("presence", "", this->served_hostname, id,
+                              "modify", "bad-request", "");
+        });
   Bridge* bridge = this->get_user_bridge(stanza["from"]);
   Jid to(stanza["to"]);
   Iid iid(to.local);
@@ -230,6 +271,20 @@ void XmppComponent::handle_presence(const Stanza& stanza)
     type = stanza["type"];
   }
   catch (const AttributeNotFound&) {}
+  malformed_stanza_error.disable();
+
+  // An error stanza is sent whenever we exit this function without
+  // disabling this scopeguard.  If error_type and error_name are not
+  // changed, the error signaled is internal-server-error. Change their
+  // value to signal an other kind of error. For example
+  // feature-not-implemented, etc.  Any non-error process should reach the
+  // stanza_error.disable() call at the end of the function.
+  std::string error_type("cancel");
+  std::string error_name("internal-server-error");
+  utils::ScopeGuard stanza_error([this, &stanza, &error_type, &error_name, &id](){
+      this->send_stanza_error("presence", stanza["from"], stanza["to"], id,
+                              error_type, error_name, "");
+        });
 
   if (!iid.chan.empty() && !iid.server.empty())
     { // presence toward a MUC that corresponds to an irc channel
@@ -252,15 +307,37 @@ void XmppComponent::handle_presence(const Stanza& stanza)
       if (type.empty())
         this->send_invalid_room_error(to.local, to.resource, stanza["from"]);
     }
+  stanza_error.disable();
 }
 
 void XmppComponent::handle_message(const Stanza& stanza)
 {
+  std::string id;
+  try {
+    id = stanza["id"];
+  } catch (const AttributeNotFound&) {}
+  utils::ScopeGuard malformed_stanza_error([this, &id](){
+      this->send_stanza_error("message", "", this->served_hostname, id,
+                              "modify", "bad-request", "");
+        });
   Bridge* bridge = this->get_user_bridge(stanza["from"]);
   Jid to(stanza["to"]);
   Iid iid(to.local);
+  std::string type;
+  try {
+    type = stanza["type"];
+  }
+  catch (const AttributeNotFound&) {}
+  malformed_stanza_error.disable();
+
+  std::string error_type("cancel");
+  std::string error_name("internal-server-error");
+  utils::ScopeGuard stanza_error([this, &stanza, &error_type, &error_name, &id](){
+      this->send_stanza_error("message", stanza["from"], stanza["to"], id,
+                              error_type, error_name, "");
+        });
   XmlNode* body = stanza.get_child(COMPONENT_NS":body");
-  if (stanza["type"] == "groupchat")
+  if (type == "groupchat")
     {
       if (to.resource.empty())
         if (body && !body->get_inner().empty())
@@ -274,25 +351,37 @@ void XmppComponent::handle_message(const Stanza& stanza)
       if (body && !body->get_inner().empty())
         bridge->send_private_message(iid, body->get_inner());
     }
+  stanza_error.disable();
 }
 
 void XmppComponent::handle_iq(const Stanza& stanza)
 {
+  std::string id;
+  try {
+    id = stanza["id"];
+  } catch (const AttributeNotFound&) {}
+  utils::ScopeGuard malformed_stanza_error([this, &id](){
+      this->send_stanza_error("iq", "", this->served_hostname, id,
+                              "modify", "bad-request", "");
+        });
   Bridge* bridge = this->get_user_bridge(stanza["from"]);
   Jid to(stanza["to"]);
-  std::string type;
-  try {
-    type = stanza["type"];
-  }
-  catch (const AttributeNotFound&)
-    { return; }
+  std::string type = stanza["type"];
+  malformed_stanza_error.disable();
+
+  std::string error_type("cancel");
+  std::string error_name("internal-server-error");
+  utils::ScopeGuard stanza_error([this, &stanza, &error_type, &error_name, &id](){
+      this->send_stanza_error("iq", stanza["from"], stanza["to"], id,
+                              error_type, error_name, "");
+        });
   if (type == "set")
     {
       XmlNode* query;
       if ((query = stanza.get_child(MUC_ADMIN_NS":query")))
         {
-          XmlNode* child;
-          if ((child = query->get_child(MUC_ADMIN_NS":item")))
+          const XmlNode* child = query->get_child(MUC_ADMIN_NS":item");
+          if (child)
             {
               std::string nick;
               std::string role;
@@ -301,7 +390,11 @@ void XmppComponent::handle_iq(const Stanza& stanza)
                 role = (*child)["role"];
               }
               catch (const AttributeNotFound&)
-                { return; }
+                {
+                  error_type = "modify";
+                  error_name = "bad-request";
+                  return;
+                }
               if (!nick.empty() && role == "none")
                 {
                   std::string reason;
@@ -314,6 +407,13 @@ void XmppComponent::handle_iq(const Stanza& stanza)
             }
         }
     }
+  else
+    {
+      error_type = "cancel";
+      error_name = "feature-not-implemented";
+      return;
+    }
+  stanza_error.disable();
 }
 
 void XmppComponent::handle_error(const Stanza& stanza)
