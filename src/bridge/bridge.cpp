@@ -188,7 +188,7 @@ void Bridge::send_message(const Iid& iid, const std::string& nick, const std::st
                                  this->make_xmpp_body(body), this->user_jid);
   else
     this->xmpp->send_message(iid.chan + "%" + iid.server,
-                             this->make_xmpp_body(body), this->user_jid);
+                             this->make_xmpp_body(body), this->user_jid, "chat");
 }
 
 void Bridge::send_muc_leave(Iid&& iid, std::string&& nick, const std::string& message, const bool self)
@@ -220,7 +220,7 @@ void Bridge::send_xmpp_message(const std::string& from, const std::string& autho
     body = std::string("[") + author + std::string("] ") + msg;
   else
     body = msg;
-  this->xmpp->send_message(from, this->make_xmpp_body(body), this->user_jid);
+  this->xmpp->send_message(from, this->make_xmpp_body(body), this->user_jid, "chat");
 }
 
 void Bridge::send_user_join(const std::string& hostname,

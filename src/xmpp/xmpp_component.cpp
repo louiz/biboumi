@@ -457,11 +457,13 @@ void* XmppComponent::get_receive_buffer(const size_t size) const
   return this->parser.get_buffer(size);
 }
 
-void XmppComponent::send_message(const std::string& from, Xmpp::body&& body, const std::string& to)
+void XmppComponent::send_message(const std::string& from, Xmpp::body&& body, const std::string& to, const std::string& type)
 {
   XmlNode node("message");
   node["to"] = to;
   node["from"] = from + "@" + this->served_hostname;
+  if (!type.empty())
+    node["type"] = type;
   XmlNode body_node("body");
   body_node.set_inner(std::get<0>(body));
   body_node.close();
