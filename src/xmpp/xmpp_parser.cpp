@@ -55,7 +55,8 @@ XmppParser::~XmppParser()
 int XmppParser::feed(const char* data, const int len, const bool is_final)
 {
   int res = XML_Parse(this->parser, data, len, is_final);
-  if (res == 0)
+  if (res == XML_STATUS_ERROR &&
+      (XML_GetErrorCode(this->parser) != XML_ERROR_FINISHED))
     log_error("Xml_Parse encountered an error: " <<
               XML_ErrorString(XML_GetErrorCode(this->parser)))
   return res;
@@ -64,7 +65,7 @@ int XmppParser::feed(const char* data, const int len, const bool is_final)
 int XmppParser::parse(const int len, const bool is_final)
 {
   int res = XML_ParseBuffer(this->parser, len, is_final);
-  if (res == 0)
+  if (res == XML_STATUS_ERROR)
     log_error("Xml_Parsebuffer encountered an error: " <<
               XML_ErrorString(XML_GetErrorCode(this->parser)));
   return res;
