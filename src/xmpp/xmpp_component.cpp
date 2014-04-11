@@ -135,11 +135,8 @@ void XmppComponent::clean()
 void XmppComponent::on_remote_stream_open(const XmlNode& node)
 {
   log_debug("XMPP DOCUMENT OPEN: " << node.to_string());
-  try
-    {
-      this->stream_id = node["id"];
-    }
-  catch (const AttributeNotFound& e)
+  this->stream_id = node.get_tag("id");
+  if (this->stream_id.empty())
     {
       log_error("Error: no attribute 'id' found");
       this->send_stream_error("bad-format", "missing 'id' attribute");
@@ -255,27 +252,27 @@ void XmppComponent::handle_handshake(const Stanza& stanza)
 
 void XmppComponent::handle_presence(const Stanza& stanza)
 {
-  std::string from;
-  std::string id;
-  try {
-    id = stanza["id"];
-    from = stanza["from"];
-  } catch (const AttributeNotFound&) {}
+  std::string from = stanza.get_tag("from");
+  std::string id = stanza.get_tag("id");
+  std::string to_str = stanza.get_tag("to");
+  std::string type = stanza.get_tag("type");
+
+  // Check for mandatory tags
   if (from.empty())
-    return;
-  utils::ScopeGuard malformed_stanza_error([&](){
+    {
+      log_warning("Received an invalid presence stanza: tag 'from' is missing.");
+      return;
+    }
+  if (to_str.empty())
+    {
       this->send_stanza_error("presence", from, this->served_hostname, id,
-                              "modify", "bad-request", "");
-        });
-  Bridge* bridge = this->get_user_bridge(stanza["from"]);
-  Jid to(stanza["to"]);
+                              "modify", "bad-request", "Missing 'to' tag");
+      return;
+    }
+
+  Bridge* bridge = this->get_user_bridge(from);
+  Jid to(to_str);
   Iid iid(to.local);
-  std::string type;
-  try {
-    type = stanza["type"];
-  }
-  catch (const AttributeNotFound&) {}
-  malformed_stanza_error.disable();
 
   // An error stanza is sent whenever we exit this function without
   // disabling this scopeguard.  If error_type and error_name are not
@@ -286,7 +283,7 @@ void XmppComponent::handle_presence(const Stanza& stanza)
   std::string error_type("cancel");
   std::string error_name("internal-server-error");
   utils::ScopeGuard stanza_error([&](){
-      this->send_stanza_error("presence", stanza["from"], stanza["to"], id,
+      this->send_stanza_error("presence", from, to_str, id,
                               error_type, error_name, "");
         });
 
@@ -309,41 +306,30 @@ void XmppComponent::handle_presence(const Stanza& stanza)
     {
       // An user wants to join an invalid IRC channel, return a presence error to him
       if (type.empty())
-        this->send_invalid_room_error(to.local, to.resource, stanza["from"]);
+        this->send_invalid_room_error(to.local, to.resource, from);
     }
   stanza_error.disable();
 }
 
 void XmppComponent::handle_message(const Stanza& stanza)
 {
-  std::string from;
-  std::string id;
-  try {
-    id = stanza["id"];
-    from = stanza["from"];
-  } catch (const AttributeNotFound&) {}
+  std::string from = stanza.get_tag("from");
+  std::string id = stanza.get_tag("id");
+  std::string to_str = stanza.get_tag("to");
+  std::string type = stanza.get_tag("type");
+
   if (from.empty())
     return;
-  utils::ScopeGuard malformed_stanza_error([&](){
-      this->send_stanza_error("message", from, this->served_hostname, id,
-                              "modify", "bad-request", "");
-        });
-  Bridge* bridge = this->get_user_bridge(stanza["from"]);
-  Jid to(stanza["to"]);
-  Iid iid(to.local);
-  std::string type;
-  try {
-    type = stanza["type"];
-  }
-  catch (const AttributeNotFound&) {
+  if (type.empty())
     type = "normal";
-  }
-  malformed_stanza_error.disable();
+  Bridge* bridge = this->get_user_bridge(from);
+  Jid to(to_str);
+  Iid iid(to.local);
 
   std::string error_type("cancel");
   std::string error_name("internal-server-error");
   utils::ScopeGuard stanza_error([&](){
-      this->send_stanza_error("message", stanza["from"], stanza["to"], id,
+      this->send_stanza_error("message", from, to_str, id,
                               error_type, error_name, "");
         });
   XmlNode* body = stanza.get_child(COMPONENT_NS":body");
@@ -366,27 +352,27 @@ void XmppComponent::handle_message(const Stanza& stanza)
 
 void XmppComponent::handle_iq(const Stanza& stanza)
 {
-  std::string id;
-  std::string from;
-  try {
-    id = stanza["id"];
-    from = stanza["from"];
-  } catch (const AttributeNotFound&) {}
+  std::string id = stanza.get_tag("id");
+  std::string from = stanza.get_tag("from");
+  std::string to_str = stanza.get_tag("to");
+  std::string type = stanza.get_tag("type");
+
   if (from.empty())
     return;
-  utils::ScopeGuard malformed_stanza_error([&](){
+  if (id.empty() || to_str.empty() || type.empty())
+    {
       this->send_stanza_error("iq", from, this->served_hostname, id,
                               "modify", "bad-request", "");
-        });
-  Bridge* bridge = this->get_user_bridge(stanza["from"]);
-  Jid to(stanza["to"]);
-  std::string type = stanza["type"];
-  malformed_stanza_error.disable();
+      return;
+    }
+
+  Bridge* bridge = this->get_user_bridge(from);
+  Jid to(from);
 
   std::string error_type("cancel");
   std::string error_name("internal-server-error");
   utils::ScopeGuard stanza_error([&](){
-      this->send_stanza_error("iq", stanza["from"], stanza["to"], id,
+      this->send_stanza_error("iq", from, to_str, id,
                               error_type, error_name, "");
         });
   if (type == "set")
@@ -397,18 +383,8 @@ void XmppComponent::handle_iq(const Stanza& stanza)
           const XmlNode* child = query->get_child(MUC_ADMIN_NS":item");
           if (child)
             {
-              std::string nick;
-              std::string role;
-              try {
-                nick = (*child)["nick"];
-                role = (*child)["role"];
-              }
-              catch (const AttributeNotFound&)
-                {
-                  error_type = "modify";
-                  error_name = "bad-request";
-                  return;
-                }
+              std::string nick = child->get_tag("nick");
+              std::string role = child->get_tag("role");
               if (!nick.empty() && role == "none")
                 {
                   std::string reason;
@@ -417,6 +393,12 @@ void XmppComponent::handle_iq(const Stanza& stanza)
                     reason = reason_el->get_inner();
                   Iid iid(to.local);
                   bridge->send_irc_kick(iid, nick, reason);
+                }
+              else
+                {
+                  error_type = "cancel";
+                  error_name = "feature-not-implemented";
+                  return;
                 }
             }
         }

@@ -216,7 +216,7 @@ bool XmlNode::has_children() const
   return !this->children.empty();
 }
 
-const std::string& XmlNode::operator[](const std::string& name) const
+const std::string XmlNode::get_tag(const std::string& name) const
 {
   try
     {
@@ -225,7 +225,7 @@ const std::string& XmlNode::operator[](const std::string& name) const
     }
   catch (const std::out_of_range& e)
     {
-      throw AttributeNotFound();
+      return "";
     }
 }
 
