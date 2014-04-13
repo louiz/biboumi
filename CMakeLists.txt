@@ -6,7 +6,6 @@ set(${PROJECT_NAME}_VERSION_MAJOR 0)
 set(${PROJECT_NAME}_VERSION_MINOR 1)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -pedantic -Wall -Wextra")
-# set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fsanitize=address")
 
 # Define a __FILENAME__ macro to get the filename of each file, instead of
 # the full path as in __FILE__
@@ -42,13 +41,17 @@ endif()
 #
 ## Documentation
 #
+set(MAN_PAGE ${CMAKE_CURRENT_BINARY_DIR}/doc/${PROJECT_NAME}.1)
+set(DOC_PAGE ${CMAKE_CURRENT_SOURCE_DIR}/doc/${PROJECT_NAME}.1.md)
 find_program(RONN_EXECUTABLE NAMES ronn
   DOC "The ronn software, to build the man page from the markdown documentation")
 if(RONN_EXECUTABLE)
   set(WITH_DOC true)
-  add_custom_target(doc
-    ${RONN_EXECUTABLE} --roff ${CMAKE_CURRENT_BINARY_DIR}/doc/${PROJECT_NAME}.1.md
-    COMMENT "Generate the man page" VERBATIM)
+  file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/doc/)
+  add_custom_command(OUTPUT ${MAN_PAGE}
+    COMMAND ${RONN_EXECUTABLE} --roff < ${DOC_PAGE} > ${MAN_PAGE}
+    DEPENDS ${DOC_PAGE})
+  add_custom_target(doc DEPENDS ${MAN_PAGE})
 endif()
 
 #
@@ -146,5 +149,5 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/src/config.h.cmake ${CMAKE_CURRENT_BI
 install(TARGETS ${PROJECT_NAME}
   RUNTIME DESTINATION bin)
 if(WITH_DOC)
-  install(FILES doc/${PROJECT_NAME}.1 DESTINATION man/man1)
+  install(FILES ${MAN_PAGE} DESTINATION man/man1)
 endif()
