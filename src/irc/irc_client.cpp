@@ -280,7 +280,11 @@ void IrcClient::set_and_forward_user_list(const IrcMessage& message)
 void IrcClient::on_channel_join(const IrcMessage& message)
 {
   const std::string chan_name = utils::tolower(message.arguments[0]);
-  IrcChannel* channel = this->get_channel(chan_name);
+  IrcChannel* channel;
+  if (chan_name.empty())
+    channel = &this->dummy_channel;
+  else
+    channel = this->get_channel(chan_name);
   const std::string nick = message.prefix;
   if (channel->joined == false)
     channel->set_self(nick);
@@ -394,6 +398,18 @@ void IrcClient::on_welcome_message(const IrcMessage& message)
   for (const std::string& chan_name: this->channels_to_join)
     this->send_join_command(chan_name);
   this->channels_to_join.clear();
+  // Indicate that the dummy channel is joined as well, if needed
+  if (this->dummy_channel.joining)
+    {
+      // Simulate a message coming from the IRC server saying that we joined
+      // the channel
+      const IrcMessage join_message(this->get_nick(), "JOIN", {""});
+      this->on_channel_join(join_message);
+      const IrcMessage end_join_message(std::string(this->hostname), "366",
+                                        {this->get_nick(),
+                                            "", "End of NAMES list"});
+      this->on_channel_completely_joined(end_join_message);
+    }
 }
 
 void IrcClient::on_part(const IrcMessage& message)
@@ -623,4 +639,9 @@ void IrcClient::on_user_mode(const IrcMessage& message)
 size_t IrcClient::number_of_joined_channels() const
 {
   return this->channels.size();
+}
+
+DummyIrcChannel& IrcClient::get_dummy_channel()
+{
+  return this->dummy_channel;
 }

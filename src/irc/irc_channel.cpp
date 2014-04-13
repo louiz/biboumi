@@ -47,3 +47,9 @@ void IrcChannel::remove_user(const IrcUser* user)
         }
     }
 }
+
+DummyIrcChannel::DummyIrcChannel():
+  IrcChannel(),
+  joining(false)
+{
+}

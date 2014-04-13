@@ -290,8 +290,9 @@ void XmppComponent::handle_presence(const Stanza& stanza)
                               error_type, error_name, "");
         });
 
-  if (!iid.chan.empty() && !iid.server.empty())
-    { // presence toward a MUC that corresponds to an irc channel
+  if (!iid.server.empty())
+    { // presence toward a MUC that corresponds to an irc channel, or a
+      // dummy channel if iid.chan is empty
       if (type.empty())
         {
           const std::string own_nick = bridge->get_own_nick(iid);

@@ -1,6 +1,7 @@
 #include <bridge/bridge.hpp>
 #include <bridge/colors.hpp>
 #include <xmpp/xmpp_component.hpp>
+#include <irc/irc_message.hpp>
 #include <network/poller.hpp>
 #include <utils/encoding.hpp>
 #include <logger/logger.hpp>
@@ -100,6 +101,25 @@ IrcClient* Bridge::get_irc_client(const std::string& hostname)
 bool Bridge::join_irc_channel(const Iid& iid, const std::string& username)
 {
   IrcClient* irc = this->get_irc_client(iid.server, username);
+  if (iid.chan.empty())
+    { // Join the dummy channel
+      if (irc->is_welcomed())
+        {
+          if (irc->get_dummy_channel().joined)
+            return false;
+          // Immediately simulate a message coming from the IRC server saying that we
+          // joined the channel
+          const IrcMessage join_message(irc->get_nick(), "JOIN", {""});
+          irc->on_channel_join(join_message);
+          const IrcMessage end_join_message(std::string(iid.server), "366",
+                                            {irc->get_nick(),
+                                                "", "End of NAMES list"});
+          irc->on_channel_completely_joined(end_join_message);
+        }
+      else
+          irc->get_dummy_channel().joining = true;
+      return true;
+    }
   if (irc->is_channel_joined(iid.chan) == false)
     {
       irc->send_join_command(iid.chan);

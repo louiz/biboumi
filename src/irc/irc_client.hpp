@@ -194,6 +194,14 @@ public:
    * Return the number of joined channels
    */
   size_t number_of_joined_channels() const;
+  /**
+   * Get a reference to the unique dummy channel
+   */
+  DummyIrcChannel& get_dummy_channel();
+
+  const std::string& get_hostname() const { return this->hostname; }
+  std::string get_nick() const { return this->current_nick; }
+  bool is_welcomed() const { return this->welcomed; }
 
 private:
   /**
@@ -217,12 +225,21 @@ private:
    */
   std::unordered_map<std::string, std::unique_ptr<IrcChannel>> channels;
   /**
+   * A single channel with a iid of the form "hostname" (normal channel have
+   * an iid of the form "chan%hostname".
+   */
+  DummyIrcChannel dummy_channel;
+  /**
    * A list of chan we want to join, but we need a response 001 from
    * the server before sending the actual JOIN commands. So we just keep the
    * channel names in a list, and send the JOIN commands for each of them
    * whenever the WELCOME message is received.
    */
   std::vector<std::string> channels_to_join;
+  /**
+   * This flag indicates that the server is completely joined (connection
+   * has been established, we are authentified and we have a nick)
+   */
   bool welcomed;
   /**
    * See http://www.irc.org/tech_docs/draft-brocklesby-irc-isupport-03.txt section 3.3

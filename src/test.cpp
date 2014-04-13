@@ -10,6 +10,7 @@
 #include <utils/tolower.hpp>
 #include <utils/split.hpp>
 #include <xmpp/jid.hpp>
+#include <irc/iid.hpp>
 #include <string.h>
 
 #include <iostream>
