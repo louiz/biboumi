@@ -98,7 +98,7 @@ file(GLOB source_xmpp
   src/xmpp/*.[hc]pp)
 add_library(xmpp STATIC ${source_xmpp})
 target_link_libraries(xmpp bridge network utils logger
-  ${EXPAT_LIBRARIES} pthread)
+  ${EXPAT_LIBRARIES})
 if(LIBIDN_FOUND)
   target_link_libraries(xmpp ${LIBIDN_LIBRARIES})
 endif()
