@@ -19,6 +19,14 @@ IrcClient::IrcClient(const std::string& hostname, const std::string& username, B
   welcomed(false),
   chanmodes({"", "", "", ""})
 {
+  this->dummy_channel.topic = "This is a virtual channel provided for "
+                              "convenience by biboumi, it is not connected "
+                              "to any actual IRC channel of the server '" + this->hostname +
+                              "', and sending messages in it has no effect. "
+                              "Its main goal is to keep the connection to the IRC server "
+                              "alive without having to join a real channel of that server. "
+                              "To disconnect from the IRC server, leave this room and all "
+                              "other IRC channels of that server.";
 }
 
 IrcClient::~IrcClient()
