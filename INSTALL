@@ -20,6 +20,9 @@ Libraries:
  not provided.
  http://www.gnu.org/software/libidn/
 
+- systemd-daemon (optionnal)
+ Provides the support for a systemd service of Type=notify. This is useful only
+ if you are packaging biboumi in a distribution with Systemd.
 
 Tools:
 - A C++11 compiler.
