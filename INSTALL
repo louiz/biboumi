@@ -15,12 +15,12 @@ Libraries:
  Encoding from anything into UTF-8
  http://www.gnu.org/software/libiconv/
 
-- libidn (optionnal, but recommended)
+- libidn (optional, but recommended)
  Provides the stringprep functionality. Without it, JIDs for IRC users are
  not provided.
  http://www.gnu.org/software/libidn/
 
-- systemd-daemon (optionnal)
+- systemd-daemon (optional)
  Provides the support for a systemd service of Type=notify. This is useful only
  if you are packaging biboumi in a distribution with Systemd.
 
