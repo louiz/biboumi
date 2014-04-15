@@ -199,7 +199,7 @@ void IrcClient::send_part_command(const std::string& chan_name, const std::strin
   if (channel->joined == true)
     {
       if (chan_name.empty())
-        this->bridge->send_muc_leave(Iid(std::string("%") + this->hostname), std::string(this->current_nick), "", true);
+        this->leave_dummy_channel(status_message);
       else
         this->send_message(IrcMessage("PART", {chan_name, status_message}));
     }
@@ -651,4 +651,14 @@ size_t IrcClient::number_of_joined_channels() const
 DummyIrcChannel& IrcClient::get_dummy_channel()
 {
   return this->dummy_channel;
+}
+
+void IrcClient::leave_dummy_channel(const std::string& exit_message)
+{
+  if (!this->dummy_channel.joined)
+    return;
+  this->dummy_channel.joined = false;
+  this->dummy_channel.joining = false;
+  this->dummy_channel.remove_all_users();
+  this->bridge->send_muc_leave(Iid(std::string("%") + this->hostname), std::string(this->current_nick), exit_message, true);
 }

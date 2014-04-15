@@ -24,6 +24,7 @@ public:
                     const std::map<char, char> prefix_to_mode);
   IrcUser* find_user(const std::string& name) const;
   void remove_user(const IrcUser* user);
+  void remove_all_users();
 
 protected:
   std::unique_ptr<IrcUser> self;

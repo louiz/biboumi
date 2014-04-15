@@ -48,6 +48,12 @@ void IrcChannel::remove_user(const IrcUser* user)
     }
 }
 
+void IrcChannel::remove_all_users()
+{
+  this->users.clear();
+  this->self.reset();
+}
+
 DummyIrcChannel::DummyIrcChannel():
   IrcChannel(),
   joining(false)
