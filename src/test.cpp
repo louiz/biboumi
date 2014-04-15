@@ -88,7 +88,7 @@ int main()
       {
         std::cout << stanza.to_string() << std::endl;
         assert(stanza.get_name() == "stream_ns:stanza");
-        assert(stanza["b"] == "c");
+        assert(stanza.get_tag("b") == "c");
         assert(stanza.get_inner() == "inner");
         assert(stanza.get_tail() == "");
         assert(stanza.get_child("stream_ns:child1") != nullptr);

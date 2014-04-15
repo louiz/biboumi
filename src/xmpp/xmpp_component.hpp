@@ -81,7 +81,8 @@ public:
   /**
    * Send a message from from@served_hostname, with the given body
    */
-  void send_message(const std::string& from, Xmpp::body&& body, const std::string& to);
+  void send_message(const std::string& from, Xmpp::body&& body,
+                    const std::string& to, const std::string& type);
   /**
    * Send a join from a new participant
    */

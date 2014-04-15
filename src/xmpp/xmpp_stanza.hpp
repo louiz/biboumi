@@ -9,13 +9,6 @@ std::string xml_escape(const std::string& data);
 std::string xml_unescape(const std::string& data);
 
 /**
- * Raised on operator[] when the attribute does not exist
- */
-class AttributeNotFound: public std::exception
-{
-};
-
-/**
  * Represent an XML node. It has
  * - A parent XML node (in the case of the first-level nodes, the parent is
      nullptr)
@@ -103,10 +96,10 @@ public:
    */
   bool has_children() const;
   /**
-   * Gets the value for the given attribute, raises AttributeNotFound if the
+   * Gets the value for the given attribute, returns an empty string if the
    * node as no such attribute.
    */
-  const std::string& operator[](const std::string& name) const;
+  const std::string get_tag(const std::string& name) const;
   /**
    * Use this to set an attribute's value, like node["id"] = "12";
    */
