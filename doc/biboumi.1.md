@@ -95,14 +95,14 @@ entity.
 IRC channels and IRC users JIDs have a localpart formed like this:
 `name`, the `'%'` separator and the `irc_server`.
 
-For an IRC channel, the name starts with `'&'`, `'#'`, `'+'`
-or `'!'`. Some other gateway implementations, as well as some IRC
-clients, do not require them to be started by one of these characters,
-adding an implicit `'#'` in that case.  Biboumi does not do that because
-this gets confusing when trying to understand the difference between
-*foo*, *#foo*, and *##foo*.
+If the IRC channel you want to adress starts with the `'#'` character (or
+less frequently, but still valid, one of `'&'`, `'+'` or `'!'`), then you
+must include it in the JID.  Some other gateway implementations, as well as
+some IRC clients, do not require them to be started by one of these
+characters, adding an implicit `'#'` in that case.  Biboumi does not do that
+because this gets confusing when trying to understand the difference between
+the channels *foo*, *#foo*, and *##foo*.
 
-If the name starts with any other character, this represents an IRC user.
 If compiled with Libidn, an IRC user has a bare JID representing the
 “hostname” provided by the IRC server.
 
