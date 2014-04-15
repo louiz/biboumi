@@ -645,7 +645,10 @@ void IrcClient::on_user_mode(const IrcMessage& message)
 
 size_t IrcClient::number_of_joined_channels() const
 {
-  return this->channels.size();
+  if (this->dummy_channel.joined)
+    return this->channels.size() + 1;
+  else
+    return this->channels.size();
 }
 
 DummyIrcChannel& IrcClient::get_dummy_channel()
