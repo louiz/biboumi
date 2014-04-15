@@ -577,13 +577,21 @@ void XmppComponent::send_muc_leave(std::string&& muc_name, std::string&& nick, X
   presence["from"] = muc_name + "@" + this->served_hostname + "/" + nick;
   presence["type"] = "unavailable";
   const std::string message_str = std::get<0>(message);
-  if (!message_str.empty() || self)
+  XmlNode x("x");
+  x["xmlns"] = MUC_USER_NS;
+  if (self)
     {
       XmlNode status("status");
-      if (!message_str.empty())
-        status.set_inner(message_str);
-      if (self)
-        status["code"] = "110";
+      status["code"] = "110";
+      status.close();
+      x.add_child(std::move(status));
+    }
+  x.close();
+  presence.add_child(std::move(x));
+  if (!message_str.empty())
+    {
+      XmlNode status("status");
+      status.set_inner(message_str);
       status.close();
       presence.add_child(std::move(status));
     }
