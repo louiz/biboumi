@@ -59,6 +59,8 @@ void IrcClient::on_connection_close()
 
 IrcChannel* IrcClient::get_channel(const std::string& name)
 {
+  if (name.empty())
+    return &this->dummy_channel;
   try
     {
       return this->channels.at(name).get();
