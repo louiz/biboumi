@@ -113,7 +113,6 @@ void SocketHandler::connect(const std::string& address, const std::string& port)
       else if (errno == EINPROGRESS || errno == EALREADY)
         {   // retry this process later, when the socket
             // is ready to be written on.
-          log_debug("Need to retry connecting later..." << strerror(errno));
           this->poller->watch_send_events(this);
           // Save the addrinfo structure, to use it on the next call
           this->ai_addrlen = rp->ai_addrlen;
