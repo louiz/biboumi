@@ -155,7 +155,10 @@ void SocketHandler::on_recv()
   else if (-1 == size)
     {
       log_warning("Error while reading from socket: " << strerror(errno));
-      this->on_connection_close();
+      if (this->connecting)
+        this->on_connection_failed(strerror(errno));
+      else
+        this->on_connection_close();
       this->close();
     }
   else
