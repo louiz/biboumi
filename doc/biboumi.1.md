@@ -111,6 +111,21 @@ If compiled with Libidn, an IRC user has a bare JID representing the
 To join an IRC channel `#foo` on the IRC server `irc.example.com`,
 join the XMPP MUC `#foo%irc.example.com@hostname`.
 
+### Connect to an IRC server
+
+The connection to the IRC server is automatically made when the user tries
+to join any channel on that IRC server.  The connection is closed whenever
+the last channel on that server is left by the user.  To be able to stay
+connected to an IRC server without having to be in a real IRC channel,
+biboumi provides a virtual channel on the jid
+`%irc_serve@biboumi.example.com`.  For example if you want to join the
+channel `#foo` on the server `irc.example.com`, but you need to authenticate
+to a bot of the server before you can join it, you can first join the room
+`%irc.example.com@biboumi.example.net` (this will effectively connect you to
+the IRC server without joining any room), then send your authentication
+message to the user `bot%irc.example.com@biboumi.example.net" and finally
+join the room `#foo%irc.example.com@biboumi.example.net`.
+
 ### Channel messages
 
 On XMPP, unlike on IRC, the displayed order of the messages is the same for
