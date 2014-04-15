@@ -12,6 +12,12 @@
 
 #include <stdio.h>
 
+#include <config.h>
+
+#ifdef SYSTEMDDAEMON_FOUND
+# include <systemd/sd-daemon.h>
+#endif
+
 #define STREAM_NS        "http://etherx.jabber.org/streams"
 #define COMPONENT_NS     "jabber:component:accept"
 #define MUC_NS           "http://jabber.org/protocol/muc"
@@ -74,6 +80,9 @@ void XmppComponent::send_stanza(const Stanza& stanza)
 void XmppComponent::on_connection_failed(const std::string& reason)
 {
   log_error("Failed to connect to the XMPP server: " << reason);
+#ifdef SYSTEMDDAEMON_FOUND
+  sd_notifyf(0, "STATUS=Failed to connect to the XMPP server: %s", reason.data());
+#endif
 }
 
 void XmppComponent::on_connected()
@@ -248,6 +257,9 @@ void XmppComponent::handle_handshake(const Stanza& stanza)
   this->ever_auth = true;
   this->last_auth = true;
   log_info("Authenticated with the XMPP server");
+#ifdef SYSTEMDDAEMON_FOUND
+  sd_notify(0, "READY=1");
+#endif
 }
 
 void XmppComponent::handle_presence(const Stanza& stanza)
@@ -420,6 +432,11 @@ void XmppComponent::handle_error(const Stanza& stanza)
   if (text)
     error_message = text->get_inner();
   log_error("Stream error received from the XMPP server: " << error_message);
+#ifdef SYSTEMDDAEMON_FOUND
+  if (!this->ever_auth)
+    sd_notifyf(0, "STATUS=Failed to authenticate to the XMPP server: %s", error_message.data());
+#endif
+
 }
 
 Bridge* XmppComponent::get_user_bridge(const std::string& user_jid)
