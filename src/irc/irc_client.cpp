@@ -197,7 +197,12 @@ void IrcClient::send_part_command(const std::string& chan_name, const std::strin
 {
   IrcChannel* channel = this->get_channel(chan_name);
   if (channel->joined == true)
-    this->send_message(IrcMessage("PART", {chan_name, status_message}));
+    {
+      if (chan_name.empty())
+        this->bridge->send_muc_leave(Iid(std::string("%") + this->hostname), std::string(this->current_nick), "", true);
+      else
+        this->send_message(IrcMessage("PART", {chan_name, status_message}));
+    }
 }
 
 void IrcClient::send_mode_command(const std::string& chan_name, const std::vector<std::string>& arguments)
