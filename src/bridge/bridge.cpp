@@ -119,7 +119,10 @@ bool Bridge::join_irc_channel(const Iid& iid, const std::string& username)
           irc->on_channel_completely_joined(end_join_message);
         }
       else
+        {
           irc->get_dummy_channel().joining = true;
+          irc->start();
+        }
       return true;
     }
   if (irc->is_channel_joined(iid.chan) == false)
