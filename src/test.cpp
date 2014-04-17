@@ -144,6 +144,10 @@ int main()
   std::tie(cleaned_up, xhtml) = irc_format_to_xhtmlim(",");
   assert(xhtml && !xhtml->has_children() && cleaned_up.empty());
 
+  std::tie(cleaned_up, xhtml) = irc_format_to_xhtmlim("[\x1D13dolphin-emu/dolphin\x1D] 03foo commented on #283 (Add support for the guide button to XInput): 02http://example.com");
+  assert(xhtml->to_string() == "<body xmlns='http://www.w3.org/1999/xhtml'>[<span style='font-style:italic;'/><span style='font-style:italic;color:lightmagenta;'>dolphin-emu/dolphin</span><span style='color:lightmagenta;'>] </span><span style='color:green;'>foo</span> commented on #283 (Add support for the guide button to XInput): <span style='text-decoration:underline;'/><span style='text-decoration:underline;color:blue;'>http://example.com</span><span style='text-decoration:underline;'/></body>");
+  assert(cleaned_up == "[dolphin-emu/dolphin] foo commented on #283 (Add support for the guide button to XInput): http://example.com");
+
   /**
    * JID parsing
    */
