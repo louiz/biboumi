@@ -73,7 +73,7 @@ Xmpp::body irc_format_to_xhtmlim(const std::string& s)
       if (current_node->has_children())
         current_node->get_last_child()->add_to_tail(txt);
       else
-        current_node->set_inner(txt);
+        current_node->add_to_inner(txt);
 
       if (s[pos_end] == IRC_FORMAT_BOLD_CHAR)
         styles.strong = !styles.strong;
@@ -151,9 +151,9 @@ Xmpp::body irc_format_to_xhtmlim(const std::string& s)
   const std::string txt = s.substr(pos_start, pos_end-pos_start);
   cleaned += txt;
   if (current_node->has_children())
-    current_node->get_last_child()->set_tail(txt);
+    current_node->get_last_child()->add_to_tail(txt);
   else
-    current_node->set_inner(txt);
+    current_node->add_to_inner(txt);
 
   if (current_node != result.get())
     {
