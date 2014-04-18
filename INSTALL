@@ -34,16 +34,16 @@ Tools:
   Configure
 ==============
 
-Configure the build system using cmake, there are many solutions to do
-  that, the simplest is to just run
+Configure the build system using cmake, there are many solutions to do that,
+the simplest is to just run
 
 % cmake .
 
 in the current directory
 
-You can also configure many parameters of the build (like personnalize
-CFLAGS, the install path, choose the compiler, or enabling some options
-like the POLLER to use), using:
+You can also configure many parameters of the build (like customize CFLAGS,
+the install path, choose the compiler, or enabling some options like the
+POLLER to use), using:
 
 % ccmake .
 
