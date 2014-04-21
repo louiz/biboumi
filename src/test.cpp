@@ -171,9 +171,9 @@ int main()
   assert(jid2.resource == "coucou@coucou/coucou");
 
   // Jidprep
-  const std::string& badjid("~zigougou@EpiK-7D9D1FDE.poez.io/Boujour/coucou/slt");
+  const std::string& badjid("~zigougou™@EpiK-7D9D1FDE.poez.io/Boujour/coucou/slt™");
   const std::string correctjid = jidprep(badjid);
-  assert(correctjid == "~zigougou@epik-7d9d1fde.poez.io/Boujour/coucou/slt");
+  assert(correctjid == "~zigougoutm@epik-7d9d1fde.poez.io/Boujour/coucou/sltTM");
 
   const std::string& badjid2("Zigougou@poez.io");
   const std::string correctjid2 = jidprep(badjid2);
