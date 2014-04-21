@@ -186,7 +186,7 @@ int main()
   std::cout << color << "Testing config…" << reset << std::endl;
   Config::filename = "test.cfg";
   Config::file_must_exist = false;
-  Config::set("coucou", "bonjour");
+  Config::set("coucou", "bonjour", true);
   Config::close();
 
   bool error = false;
