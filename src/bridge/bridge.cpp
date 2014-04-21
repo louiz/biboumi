@@ -11,7 +11,6 @@
 #include <tuple>
 
 static const char* action_prefix = "\01ACTION ";
-static const size_t action_prefix_len = 8;
 
 Bridge::Bridge(const std::string& user_jid, XmppComponent* xmpp, Poller* poller):
   user_jid(user_jid),
