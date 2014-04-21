@@ -203,13 +203,14 @@ int main()
     }
   assert(error == false);
 
-  Config::set("log_level", "3");
+  Config::set("log_level", "2");
   Config::set("log_file", "");
 
-  log_debug("coucou");
-  log_info("coucou");
-  log_warning("coucou");
-  log_error("coucou");
+  std::cout << color << "Testing logging…" << reset << std::endl;
+  log_debug("If you see this, the test FAILED.");
+  log_info("If you see this, the test FAILED.");
+  log_warning("You wust see this message. And the next one too.");
+  log_error("It’s not an error, don’t worry, the test passed.");
 
   return 0;
 }
