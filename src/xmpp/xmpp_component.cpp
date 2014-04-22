@@ -380,7 +380,7 @@ void XmppComponent::handle_iq(const Stanza& stanza)
     }
 
   Bridge* bridge = this->get_user_bridge(from);
-  Jid to(from);
+  Jid to(to_str);
 
   std::string error_type("cancel");
   std::string error_name("internal-server-error");
