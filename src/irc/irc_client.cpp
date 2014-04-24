@@ -235,6 +235,21 @@ void IrcClient::forward_server_message(const IrcMessage& message)
   this->bridge->send_xmpp_message(this->hostname, from, body);
 }
 
+void IrcClient::on_notice(const IrcMessage& message)
+{
+  std::string from = message.prefix;
+  const std::string to = message.arguments[0];
+  const std::string body = message.arguments[1];
+
+  if (to == this->current_nick)
+    this->bridge->send_xmpp_message(this->hostname, from, body);
+  else
+    {
+      IrcMessage modified_message(std::move(from), "PRIVMSG", {to, std::string("\u000303[notice]\u0003 ") + body});
+      this->on_channel_message(modified_message);
+    }
+}
+
 void IrcClient::on_isupport_message(const IrcMessage& message)
 {
   const size_t len = message.arguments.size();

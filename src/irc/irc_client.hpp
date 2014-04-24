@@ -148,6 +148,10 @@ public:
    */
   void on_channel_message(const IrcMessage& message);
   /**
+   * A notice is received
+   */
+  void on_notice(const IrcMessage& message);
+  /**
    * Save the topic in the IrcChannel
    */
   void on_topic_received(const IrcMessage& message);
@@ -282,7 +286,7 @@ private:
 typedef void (IrcClient::*irc_callback_t)(const IrcMessage&);
 
 static const std::unordered_map<std::string, irc_callback_t> irc_callbacks = {
-  {"NOTICE", &IrcClient::forward_server_message},
+  {"NOTICE", &IrcClient::on_notice},
   {"002", &IrcClient::forward_server_message},
   {"003", &IrcClient::forward_server_message},
   {"005", &IrcClient::on_isupport_message},
