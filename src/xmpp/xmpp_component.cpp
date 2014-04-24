@@ -479,6 +479,15 @@ void XmppComponent::send_message(const std::string& from, Xmpp::body&& body, con
   body_node.set_inner(std::get<0>(body));
   body_node.close();
   node.add_child(std::move(body_node));
+  if (std::get<1>(body))
+    {
+      XmlNode html("html");
+      html["xmlns"] = XHTMLIM_NS;
+      // Pass the ownership of the pointer to this xmlnode
+      html.add_child(std::get<1>(body).release());
+      html.close();
+      node.add_child(std::move(html));
+    }
   node.close();
   this->send_stanza(node);
 }
