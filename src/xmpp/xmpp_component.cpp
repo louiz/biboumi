@@ -416,6 +416,17 @@ void XmppComponent::handle_iq(const Stanza& stanza)
             }
         }
     }
+  else if (type == "get")
+    {
+      XmlNode* query;
+      if ((query = stanza.get_child(DISCO_INFO_NS":query")))
+        { // Disco info
+          if (to_str == this->served_hostname)
+            { // On the gateway itself
+              this->send_self_disco_info(id, from);
+            }
+        }
+    }
   else
     {
       error_type = "cancel";
@@ -734,4 +745,33 @@ void XmppComponent::send_affiliation_role_change(const std::string& muc_name,
   presence.add_child(std::move(x));
   presence.close();
   this->send_stanza(presence);
+}
+
+void XmppComponent::send_self_disco_info(const std::string& id, const std::string& jid_to)
+{
+  Stanza iq("iq");
+  iq["type"] = "result";
+  iq["id"] = id;
+  iq["to"] = jid_to;
+  iq["from"] = this->served_hostname;
+  XmlNode query("query");
+  query["xmlns"] = DISCO_INFO_NS;
+  XmlNode identity("identity");
+  identity["category"] = "conference";
+  identity["type"] = "irc";
+  identity["name"] = "Biboumi XMPP-IRC gateway";
+  identity.close();
+  query.add_child(std::move(identity));
+  for (const std::string& ns: {"http://jabber.org/protocol/disco#info",
+                                    "http://jabber.org/protocol/muc"})
+    {
+      XmlNode feature("feature");
+      feature["var"] = ns;
+      feature.close();
+      query.add_child(std::move(feature));
+    }
+  query.close();
+  iq.add_child(std::move(query));
+  iq.close();
+  this->send_stanza(iq);
 }

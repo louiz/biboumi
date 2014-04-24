@@ -145,6 +145,10 @@ public:
                                     const std::string& role,
                                     const std::string& jid_to);
   /**
+   * Send a result IQ with the gateway disco informations.
+   */
+  void send_self_disco_info(const std::string& id, const std::string& jid_to);
+  /**
    * Handle the various stanza types
    */
   void handle_handshake(const Stanza& stanza);
