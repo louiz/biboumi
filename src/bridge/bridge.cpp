@@ -241,7 +241,12 @@ void Bridge::send_xmpp_message(const std::string& from, const std::string& autho
 {
   std::string body;
   if (!author.empty())
-    body = std::string("[") + author + std::string("] ") + msg;
+    {
+      IrcUser user(author);
+      body = std::string("\u000303") + user.nick + (user.host.empty()?
+                                                    std::string("\u0003: "):
+                                                    (" (\u000310" + user.host + std::string("\u000303)\u0003: "))) + msg;
+    }
   else
     body = msg;
   this->xmpp->send_message(from, this->make_xmpp_body(body), this->user_jid, "chat");
