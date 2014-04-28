@@ -1,5 +1,4 @@
 #include <utils/encoding.hpp>
-#include <utils/binary.hpp>
 
 #include <utils/scopeguard.hpp>
 
@@ -35,34 +34,34 @@ namespace utils
     while (*str)
       {
         // 4 bytes:  11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
-        if ((str[0] & 11111000_b) == 11110000_b)
+        if ((str[0] & 0b11111000) == 0b11110000)
           {
             if (!str[1] || !str[2] || !str[3]
-                || ((str[1] & 11000000_b) != 10000000_b)
-                || ((str[2] & 11000000_b) != 10000000_b)
-                || ((str[3] & 11000000_b) != 10000000_b))
+                || ((str[1] & 0b11000000) != 0b10000000)
+                || ((str[2] & 0b11000000) != 0b10000000)
+                || ((str[3] & 0b11000000) != 0b10000000))
               return false;
             str += 4;
           }
         // 3 bytes:  1110xxx 10xxxxxx 10xxxxxx
-        else if ((str[0] & 11110000_b) == 11100000_b)
+        else if ((str[0] & 0b11110000) == 0b11100000)
           {
             if (!str[1] || !str[2]
-                || ((str[1] & 11000000_b) != 10000000_b)
-                || ((str[2] & 11000000_b) != 10000000_b))
+                || ((str[1] & 0b11000000) != 0b10000000)
+                || ((str[2] & 0b11000000) != 0b10000000))
               return false;
             str += 3;
           }
         // 2 bytes:  110xxxxx 10xxxxxx
-        else if (((str[0]) & 11100000_b) == 11000000_b)
+        else if (((str[0]) & 0b11100000) == 0b11000000)
           {
             if (!str[1] ||
-                ((str[1] & 11000000_b) != 10000000_b))
+                ((str[1] & 0b11000000) != 0b10000000))
               return false;
             str += 2;
           }
         // 1 byte:  0xxxxxxx
-        else if ((str[0] & 10000000_b) != 0)
+        else if ((str[0] & 0b10000000) != 0)
           return false;
         else
           str++;
@@ -85,12 +84,12 @@ namespace utils
     while (*str)
       {
         // 4 bytes:  11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
-        if ((str[0] & 11111000_b) == 11110000_b)
+        if ((str[0] & 0b11111000) == 0b11110000)
           {
-            codepoint  = ((str[0] & 00000111_b) << 18);
-            codepoint |= ((str[1] & 00111111_b) << 12);
-            codepoint |= ((str[2] & 00111111_b) << 6 );
-            codepoint |= ((str[3] & 00111111_b) << 0 );
+            codepoint  = ((str[0] & 0b00000111) << 18);
+            codepoint |= ((str[1] & 0b00111111) << 12);
+            codepoint |= ((str[2] & 0b00111111) << 6 );
+            codepoint |= ((str[3] & 0b00111111) << 0 );
             if (codepoint.to_ulong() <= 0x10FFFF)
               {
                 ::memcpy(r, str, 4);
@@ -99,11 +98,11 @@ namespace utils
             str += 4;
           }
         // 3 bytes:  1110xxx 10xxxxxx 10xxxxxx
-        else if ((str[0] & 11110000_b) == 11100000_b)
+        else if ((str[0] & 0b11110000) == 0b11100000)
           {
-            codepoint  = ((str[0] & 00001111_b) << 12);
-            codepoint |= ((str[1] & 00111111_b) << 6);
-            codepoint |= ((str[2] & 00111111_b) << 0 );
+            codepoint  = ((str[0] & 0b00001111) << 12);
+            codepoint |= ((str[1] & 0b00111111) << 6);
+            codepoint |= ((str[2] & 0b00111111) << 0 );
             if (codepoint.to_ulong() <= 0xD7FF ||
                 (codepoint.to_ulong() >= 0xE000 && codepoint.to_ulong() <= 0xFFFD))
               {
@@ -113,7 +112,7 @@ namespace utils
             str += 3;
           }
         // 2 bytes:  110xxxxx 10xxxxxx
-        else if (((str[0]) & 11100000_b) == 11000000_b)
+        else if (((str[0]) & 0b11100000) == 0b11000000)
           {
             // All 2 bytes char are valid, don't even bother calculating
             // the codepoint
@@ -122,9 +121,9 @@ namespace utils
             str += 2;
           }
         // 1 byte:  0xxxxxxx
-        else if ((str[0] & 10000000_b) == 0)
+        else if ((str[0] & 0b10000000) == 0)
           {
-            codepoint = ((str[0] & 01111111_b));
+            codepoint = ((str[0] & 0b01111111));
             if (codepoint.to_ulong() == 0x09 ||
                 codepoint.to_ulong() == 0x0A ||
                 codepoint.to_ulong() == 0x0D ||
