@@ -1,4 +1,3 @@
-#include <utils/make_unique.hpp>
 #include <utils/scopeguard.hpp>
 #include <logger/logger.hpp>
 

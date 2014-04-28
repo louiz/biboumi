@@ -3,7 +3,6 @@
 #include <bridge/bridge.hpp>
 #include <irc/irc_user.hpp>
 
-#include <utils/make_unique.hpp>
 #include <logger/logger.hpp>
 #include <utils/tolower.hpp>
 #include <utils/split.hpp>

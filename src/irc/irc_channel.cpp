@@ -1,5 +1,4 @@
 #include <irc/irc_channel.hpp>
-#include <utils/make_unique.hpp>
 
 IrcChannel::IrcChannel():
   joined(false),

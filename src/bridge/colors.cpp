@@ -1,9 +1,7 @@
 #include <bridge/colors.hpp>
 #include <xmpp/xmpp_stanza.hpp>
-#include <utils/make_unique.hpp>
 
 #include <algorithm>
-
 #include <iostream>
 
 #include <string.h>
