@@ -10,6 +10,9 @@
 #include <iostream>
 #include <stdexcept>
 
+#include <string>
+using namespace std::string_literals;
+
 IrcClient::IrcClient(const std::string& hostname, const std::string& username, Bridge* bridge):
   hostname(hostname),
   username(username),
@@ -36,7 +39,7 @@ void IrcClient::start()
 {
   if (this->connected || this->connecting)
     return ;
-  this->bridge->send_xmpp_message(this->hostname, "", std::string("Connecting to ") +
+  this->bridge->send_xmpp_message(this->hostname, "", "Connecting to "s +
                                   this->hostname + ":" + "6667");
   this->connect(this->hostname, "6667");
 }
@@ -44,7 +47,7 @@ void IrcClient::start()
 void IrcClient::on_connection_failed(const std::string& reason)
 {
   this->bridge->send_xmpp_message(this->hostname, "",
-                                  std::string("Connection failed: ") + reason);
+                                  "Connection failed: "s + reason);
 }
 
 void IrcClient::on_connected()
@@ -244,7 +247,7 @@ void IrcClient::on_notice(const IrcMessage& message)
     this->bridge->send_xmpp_message(this->hostname, from, body);
   else
     {
-      IrcMessage modified_message(std::move(from), "PRIVMSG", {to, std::string("\u000303[notice]\u0003 ") + body});
+      IrcMessage modified_message(std::move(from), "PRIVMSG", {to, "\u000303[notice]\u0003 "s + body});
       this->on_channel_message(modified_message);
     }
 }
@@ -344,7 +347,7 @@ void IrcClient::on_channel_message(const IrcMessage& message)
     {
       if (body.substr(1, 6) == "ACTION")
         this->bridge->send_message(iid, nick,
-                  std::string("/me") + body.substr(7, body.size() - 8), muc);
+                  "/me"s + body.substr(7, body.size() - 8), muc);
     }
   else
     this->bridge->send_message(iid, nick, body, muc);
@@ -486,7 +489,7 @@ void IrcClient::on_error(const IrcMessage& message)
     this->bridge->send_muc_leave(std::move(iid), std::move(own_nick), leave_message, true);
   }
   this->channels.clear();
-  this->send_gateway_message(std::string("ERROR: ") + leave_message);
+  this->send_gateway_message("ERROR: "s + leave_message);
 }
 
 void IrcClient::on_quit(const IrcMessage& message)
@@ -583,7 +586,7 @@ void IrcClient::on_channel_mode(const IrcMessage& message)
           mode_arguments += message.arguments[i];
         }
     }
-  this->bridge->send_message(iid, "", std::string("Mode ") + iid.chan +
+  this->bridge->send_message(iid, "", "Mode "s + iid.chan +
                                       " [" + mode_arguments + "] by " + user.nick,
                              true);
   const IrcChannel* channel = this->get_channel(iid.chan);
@@ -661,7 +664,7 @@ void IrcClient::on_channel_mode(const IrcMessage& message)
 void IrcClient::on_user_mode(const IrcMessage& message)
 {
   this->bridge->send_xmpp_message(this->hostname, "",
-                                  std::string("User mode for ") + message.arguments[0] +
+                                  "User mode for "s + message.arguments[0] +
                                   " is [" + message.arguments[1] + "]");
 }
 
@@ -685,5 +688,5 @@ void IrcClient::leave_dummy_channel(const std::string& exit_message)
   this->dummy_channel.joined = false;
   this->dummy_channel.joining = false;
   this->dummy_channel.remove_all_users();
-  this->bridge->send_muc_leave(Iid(std::string("%") + this->hostname), std::string(this->current_nick), exit_message, true);
+  this->bridge->send_muc_leave(Iid("%"s + this->hostname), std::string(this->current_nick), exit_message, true);
 }

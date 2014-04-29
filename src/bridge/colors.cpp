@@ -6,6 +6,8 @@
 
 #include <string.h>
 
+using namespace std::string_literals;
+
 static const char IRC_NUM_COLORS = 16;
 
 static const char* irc_colors_to_css[IRC_NUM_COLORS] = {
@@ -130,10 +132,10 @@ Xmpp::body irc_format_to_xhtmlim(const std::string& s)
       if (styles.italic)
         styles_str += "font-style:italic;";
       if (styles.fg != -1)
-        styles_str += std::string("color:") +
+        styles_str += "color:"s +
           irc_colors_to_css[styles.fg % IRC_NUM_COLORS] + ";";
       if (styles.bg != -1)
-        styles_str += std::string("background-color:") +
+        styles_str += "background-color:"s +
           irc_colors_to_css[styles.bg % IRC_NUM_COLORS] + ";";
       if (!styles_str.empty())
         {

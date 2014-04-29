@@ -10,6 +10,8 @@
 #include <iostream>
 #include <tuple>
 
+using namespace std::string_literals;
+
 static const char* action_prefix = "\01ACTION ";
 
 Bridge::Bridge(const std::string& user_jid, XmppComponent* xmpp, Poller* poller):
@@ -243,9 +245,9 @@ void Bridge::send_xmpp_message(const std::string& from, const std::string& autho
   if (!author.empty())
     {
       IrcUser user(author);
-      body = std::string("\u000303") + user.nick + (user.host.empty()?
-                                                    std::string("\u0003: "):
-                                                    (" (\u000310" + user.host + std::string("\u000303)\u0003: "))) + msg;
+      body = "\u000303"s + user.nick + (user.host.empty()?
+                                                    "\u0003: ":
+                                                    (" (\u000310" + user.host + "\u000303)\u0003: ")) + msg;
     }
   else
     body = msg;

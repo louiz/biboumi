@@ -42,7 +42,7 @@ void SocketHandler::init_socket()
   const int existing_flags = ::fcntl(this->socket, F_GETFL, 0);
   if ((existing_flags == -1) ||
       (::fcntl(this->socket, F_SETFL, existing_flags | O_NONBLOCK) == -1))
-    throw std::runtime_error(std::string("Could not initialize socket: ") + strerror(errno));
+    throw std::runtime_error("Could not initialize socket: "s + strerror(errno));
 }
 
 void SocketHandler::connect(const std::string& address, const std::string& port)
@@ -70,7 +70,7 @@ void SocketHandler::connect(const std::string& address, const std::string& port)
 
       if (res != 0)
         {
-          log_warning(std::string("getaddrinfo failed: ") + gai_strerror(res));
+          log_warning("getaddrinfo failed: "s + gai_strerror(res));
           this->close();
           this->on_connection_failed(gai_strerror(res));
           return ;
