@@ -246,8 +246,8 @@ void Bridge::send_xmpp_message(const std::string& from, const std::string& autho
     {
       IrcUser user(author);
       body = "\u000303"s + user.nick + (user.host.empty()?
-                                                    "\u0003: ":
-                                                    (" (\u000310" + user.host + "\u000303)\u0003: ")) + msg;
+                                        "\u0003: ":
+                                        (" (\u000310" + user.host + "\u000303)\u0003: ")) + msg;
     }
   else
     body = msg;
