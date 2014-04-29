@@ -17,6 +17,8 @@
 
 #include <iostream>
 
+using namespace std::string_literals;
+
 #ifndef UIO_FASTIOV
 # define UIO_FASTIOV 8
 #endif
