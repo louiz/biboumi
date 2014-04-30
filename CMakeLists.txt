@@ -39,8 +39,12 @@ else()
   message("Building without systemd daemon support.")
 endif()
 
-set(POLLER "POLL" CACHE STRING
-  "Choose the poller between POLL and EPOLL (Linux-only)")
+set(POLLER_DOCSTRING "Choose the poller between POLL and EPOLL (Linux-only)")
+if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+ set(POLLER "EPOLL" CACHE STRING ${POLLER_DOCSTRING})
+else()
+ set(POLLER "POLL" CACHE STRING ${POLLER_DOCSTRING})
+endif()
 if((NOT ${POLLER} MATCHES "POLL") AND
     (NOT ${POLLER} MATCHES "EPOLL"))
   message(FATAL_ERROR "POLLER must be either POLL or EPOLL")
