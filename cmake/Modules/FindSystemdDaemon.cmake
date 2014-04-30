@@ -18,7 +18,7 @@
 find_path(SYSTEMDDAEMON_INCLUDE_DIRS NAMES systemd/sd-daemon.h
   DOC "The Systemd Daemon include directory")
 
-find_library(SYSTEMDDAEMON_LIBRARIES NAMES systemd-daemon
+find_library(SYSTEMDDAEMON_LIBRARIES NAMES systemd
   DOC "The Systemd Daemon library")
 
 # Use some standard module to handle the QUIETLY and REQUIRED arguments, and
