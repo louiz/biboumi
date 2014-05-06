@@ -367,6 +367,18 @@ void XmppComponent::handle_message(const Stanza& stanza)
   stanza_error.disable();
 }
 
+// We MUST return an iq, whatever happens, except if the type is
+// "result".
+// To do this, we use a scopeguard. If an exception is raised somewhere, an
+// iq of type error "internal-server-error" is sent. If we handle the
+// request properly (by calling a function that registers an iq to be sent
+// later, or that directly sends an iq), we disable the ScopeGuard. If we
+// reach the end of the function without having disabled the scopeguard, we
+// send a "feature-not-implemented" iq as a result.  If an other kind of
+// error is found (for example the feature is implemented in biboumi, but
+// the request is missing some attribute) we can just change the values of
+// error_type and error_name and return from the function (without disabling
+// the scopeguard); an iq error will be sent
 void XmppComponent::handle_iq(const Stanza& stanza)
 {
   std::string id = stanza.get_tag("id");
@@ -386,6 +398,8 @@ void XmppComponent::handle_iq(const Stanza& stanza)
   Bridge* bridge = this->get_user_bridge(from);
   Jid to(to_str);
 
+  // These two values will be used in the error iq sent if we don't disable
+  // the scopeguard.
   std::string error_type("cancel");
   std::string error_name("internal-server-error");
   utils::ScopeGuard stanza_error([&](){
@@ -403,19 +417,14 @@ void XmppComponent::handle_iq(const Stanza& stanza)
               std::string nick = child->get_tag("nick");
               std::string role = child->get_tag("role");
               if (!nick.empty() && role == "none")
-                {
+                {               // This is a kick
                   std::string reason;
                   XmlNode* reason_el = child->get_child(MUC_ADMIN_NS":reason");
                   if (reason_el)
                     reason = reason_el->get_inner();
                   Iid iid(to.local);
                   bridge->send_irc_kick(iid, nick, reason);
-                }
-              else
-                {
-                  error_type = "cancel";
-                  error_name = "feature-not-implemented";
-                  return;
+                  stanza_error.disable();
                 }
             }
         }
@@ -428,16 +437,16 @@ void XmppComponent::handle_iq(const Stanza& stanza)
           if (to_str == this->served_hostname)
             { // On the gateway itself
               this->send_self_disco_info(id, from);
+              stanza_error.disable();
             }
         }
     }
-  else
+  else if (type == "result")
     {
-      error_type = "cancel";
-      error_name = "feature-not-implemented";
-      return;
+      stanza_error.disable();
     }
-  stanza_error.disable();
+  error_type = "cancel";
+  error_name = "feature-not-implemented";
 }
 
 void XmppComponent::handle_error(const Stanza& stanza)
