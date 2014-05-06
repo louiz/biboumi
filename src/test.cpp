@@ -2,6 +2,7 @@
  * Just a very simple test suite, by hand, using assert()
  */
 
+#include <xmpp/xmpp_component.hpp>
 #include <xmpp/xmpp_parser.hpp>
 #include <utils/encoding.hpp>
 #include <logger/logger.hpp>
@@ -57,6 +58,13 @@ int main()
   assert(utils::remove_invalid_xml_chars(without_ctrl_char) == without_ctrl_char);
   assert(utils::remove_invalid_xml_chars(in) == in);
   assert(utils::remove_invalid_xml_chars("\acouco\u0008u\uFFFEt\uFFFFe\r\n♥") == "coucoute\r\n♥");
+
+  /**
+   * Id generation
+   */
+  assert(XmppComponent::next_id() == "0");
+  assert(XmppComponent::next_id() == "1");
+  assert(XmppComponent::next_id() == "2");
 
   /**
    * Utils

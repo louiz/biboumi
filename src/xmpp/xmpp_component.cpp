@@ -29,6 +29,8 @@
 #define STANZA_NS        "urn:ietf:params:xml:ns:xmpp-stanzas"
 #define STREAMS_NS       "urn:ietf:params:xml:ns:xmpp-streams"
 
+unsigned long XmppComponent::current_id = 0;
+
 XmppComponent::XmppComponent(const std::string& hostname, const std::string& secret):
   ever_auth(false),
   last_auth(false),
@@ -782,4 +784,9 @@ void XmppComponent::send_self_disco_info(const std::string& id, const std::strin
   iq.add_child(std::move(query));
   iq.close();
   this->send_stanza(iq);
+}
+
+std::string XmppComponent::next_id()
+{
+  return std::to_string(XmppComponent::current_id++);
 }

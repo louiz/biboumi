@@ -20,10 +20,16 @@ class XmppComponent: public SocketHandler
 public:
   explicit XmppComponent(const std::string& hostname, const std::string& secret);
   ~XmppComponent();
+
   void on_connection_failed(const std::string& reason) override final;
   void on_connected() override final;
   void on_connection_close() override final;
   void parse_in_buffer(const size_t size) override final;
+
+  /**
+   * Returns a unique id, to be used in the 'id' element of our iq stanzas.
+   */
+  static std::string next_id();
   /**
    * Send a "close" message to all our connected peers.  That message
    * depends on the protocol used (this may be a QUIT irc message, or a
@@ -195,6 +201,8 @@ private:
    */
   std::unordered_map<std::string, std::unique_ptr<Bridge>> bridges;
 
+  static unsigned long current_id;
+
   XmppComponent(const XmppComponent&) = delete;
   XmppComponent(XmppComponent&&) = delete;
   XmppComponent& operator=(const XmppComponent&) = delete;
@@ -202,4 +210,3 @@ private:
 };
 
 #endif // XMPP_COMPONENT_INCLUDED
-
