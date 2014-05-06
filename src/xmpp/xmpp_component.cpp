@@ -28,6 +28,9 @@
 #define XHTMLIM_NS       "http://jabber.org/protocol/xhtml-im"
 #define STANZA_NS        "urn:ietf:params:xml:ns:xmpp-stanzas"
 #define STREAMS_NS       "urn:ietf:params:xml:ns:xmpp-streams"
+#define VERSION_NS       "jabber:iq:version"
+
+using namespace std::string_literals;
 
 unsigned long XmppComponent::current_id = 0;
 
@@ -780,6 +783,22 @@ void XmppComponent::send_self_disco_info(const std::string& id, const std::strin
       feature.close();
       query.add_child(std::move(feature));
     }
+  query.close();
+  iq.add_child(std::move(query));
+  iq.close();
+  this->send_stanza(iq);
+}
+
+void XmppComponent::send_iq_version_request(const std::string& from,
+                                            const std::string& jid_to)
+{
+  Stanza iq("iq");
+  iq["type"] = "get";
+  iq["id"] = "version_"s + XmppComponent::next_id();
+  iq["from"] = from + "@" + this->served_hostname;
+  iq["to"] = jid_to;
+  XmlNode query("query");
+  query["xmlns"] = VERSION_NS;
   query.close();
   iq.add_child(std::move(query));
   iq.close();

@@ -304,3 +304,8 @@ void Bridge::send_affiliation_role_change(const Iid& iid, const std::string& tar
   std::tie(role, affiliation) = get_role_affiliation_from_irc_mode(mode);
   this->xmpp->send_affiliation_role_change(iid.chan + "%" + iid.server, target, affiliation, role, this->user_jid);
 }
+
+void Bridge::send_iq_version_request(const std::string& nick, const std::string& hostname)
+{
+  this->xmpp->send_iq_version_request(nick + "%" + hostname, this->user_jid);
+}

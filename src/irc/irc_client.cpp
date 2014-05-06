@@ -348,6 +348,8 @@ void IrcClient::on_channel_message(const IrcMessage& message)
       if (body.substr(1, 6) == "ACTION")
         this->bridge->send_message(iid, nick,
                   "/me"s + body.substr(7, body.size() - 8), muc);
+      else if (body.substr(1, 8) == "VERSION\01")
+        this->bridge->send_iq_version_request(nick, this->hostname);
     }
   else
     this->bridge->send_message(iid, nick, body, muc);

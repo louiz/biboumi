@@ -155,6 +155,11 @@ public:
    */
   void send_self_disco_info(const std::string& id, const std::string& jid_to);
   /**
+   * Send an iq version request
+   */
+  void send_iq_version_request(const std::string& from,
+                               const std::string& jid_to);
+  /**
    * Handle the various stanza types
    */
   void handle_handshake(const Stanza& stanza);
