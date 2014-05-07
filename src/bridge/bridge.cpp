@@ -170,13 +170,13 @@ void Bridge::send_channel_message(const Iid& iid, const std::string& body)
                                this->make_xmpp_body(body), this->user_jid);
 }
 
-void Bridge::send_private_message(const Iid& iid, const std::string& body)
+void Bridge::send_private_message(const Iid& iid, const std::string& body, const std::string& type)
 {
   if (iid.chan.empty() || iid.server.empty())
     return ;
   IrcClient* irc = this->get_irc_client(iid.server);
   if (irc)
-    irc->send_private_message(iid.chan, body);
+    irc->send_private_message(iid.chan, body, type);
 }
 
 void Bridge::leave_irc_channel(Iid&& iid, std::string&& status_message)
@@ -205,6 +205,13 @@ void Bridge::set_channel_topic(const Iid& iid, const std::string& subject)
   IrcClient* irc = this->get_irc_client(iid.server);
   if (irc)
     irc->send_topic_command(iid.chan, subject);
+}
+
+void Bridge::send_xmpp_version_to_irc(const Iid& iid, const std::string& name, const std::string& version, const std::string& os)
+{
+  std::string result(name + " " + version + " " + os);
+
+  this->send_private_message(iid, "\01VERSION "s + result + "\01", "NOTICE");
 }
 
 void Bridge::send_message(const Iid& iid, const std::string& nick, const std::string& body, const bool muc)

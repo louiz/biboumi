@@ -45,11 +45,12 @@ public:
    */
   bool join_irc_channel(const Iid& iid, const std::string& username);
   void send_channel_message(const Iid& iid, const std::string& body);
-  void send_private_message(const Iid& iid, const std::string& body);
+  void send_private_message(const Iid& iid, const std::string& body, const std::string& type="PRIVMSG");
   void leave_irc_channel(Iid&& iid, std::string&& status_message);
   void send_irc_nick_change(const Iid& iid, const std::string& new_nick);
   void send_irc_kick(const Iid& iid, const std::string& target, const std::string& reason);
   void set_channel_topic(const Iid& iid, const std::string& subject);
+  void send_xmpp_version_to_irc(const Iid& iid, const std::string& name, const std::string& version, const std::string& os);
 
   /***
    **

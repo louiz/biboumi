@@ -192,12 +192,12 @@ bool IrcClient::send_channel_message(const std::string& chan_name, const std::st
   return true;
 }
 
-void IrcClient::send_private_message(const std::string& username, const std::string& body)
+void IrcClient::send_private_message(const std::string& username, const std::string& body, const std::string& type)
 {
   std::string::size_type pos = 0;
   while (pos < body.size())
     {
-      this->send_message(IrcMessage("PRIVMSG", {username, body.substr(pos, 400)}));
+      this->send_message(IrcMessage(std::string(type), {username, body.substr(pos, 400)}));
       pos += 400;
     }
 

@@ -444,6 +444,24 @@ void XmppComponent::handle_iq(const Stanza& stanza)
   else if (type == "result")
     {
       stanza_error.disable();
+      XmlNode* query;
+      if ((query = stanza.get_child(VERSION_NS":query")))
+        {
+          XmlNode* name_node = query->get_child(VERSION_NS":name");
+          XmlNode* version_node = query->get_child(VERSION_NS":version");
+          XmlNode* os_node = query->get_child(VERSION_NS":os");
+          std::string name;
+          std::string version;
+          std::string os;
+          if (name_node)
+            name = name_node->get_inner() + " (through the biboumi gateway)";
+          if (version_node)
+            version = version_node->get_inner();
+          if (os_node)
+            os = os_node->get_inner();
+          const Iid iid(to.local);
+          bridge->send_xmpp_version_to_irc(iid, name, version, os);
+        }
     }
   error_type = "cancel";
   error_name = "feature-not-implemented";

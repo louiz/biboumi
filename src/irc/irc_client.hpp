@@ -88,7 +88,7 @@ public:
   /**
    * Send a PRIVMSG command for an user
    */
-  void send_private_message(const std::string& username, const std::string& body);
+  void send_private_message(const std::string& username, const std::string& body, const std::string& type);
   /**
    * Send the PART irc command
    */
