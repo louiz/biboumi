@@ -29,14 +29,10 @@ include_directories(${ICONV_INCLUDE_DIRS})
 
 if(LIBIDN_FOUND)
   include_directories(${LIBIDN_INCLUDE_DIRS})
-else()
-  message("Building without stringprep support.")
 endif()
 
 if(SYSTEMDDAEMON_FOUND)
   include_directories(${SYSTEMDDAEMON_INCLUDE_DIRS})
-else()
-  message("Building without systemd daemon support.")
 endif()
 
 set(POLLER_DOCSTRING "Choose the poller between POLL and EPOLL (Linux-only)")
