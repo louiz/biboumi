@@ -15,9 +15,9 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D__FILENAME__='\"$(subst ${CMAKE_SOURCE
 ## Look for external libraries
 #
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
-find_package(Iconv REQUIRED)
 include(FindEXPAT)
 find_package(EXPAT REQUIRED)
+find_package(Iconv REQUIRED)
 find_package(Libidn)
 find_package(SystemdDaemon)
 
