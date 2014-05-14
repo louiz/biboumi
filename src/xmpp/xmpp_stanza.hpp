@@ -85,7 +85,7 @@ public:
    */
   void close();
   XmlNode* get_parent() const;
-  const std::string& get_name() const;
+  const std::string get_name() const;
   /**
    * Serialize the stanza into a string
    */

@@ -61,15 +61,15 @@ XmppComponent::XmppComponent(const std::string& hostname, const std::string& sec
                                                   std::placeholders::_1));
   this->parser.add_stream_close_callback(std::bind(&XmppComponent::on_remote_stream_close, this,
                                                   std::placeholders::_1));
-  this->stanza_handlers.emplace(COMPONENT_NS":handshake",
+  this->stanza_handlers.emplace("handshake",
                                 std::bind(&XmppComponent::handle_handshake, this,std::placeholders::_1));
-  this->stanza_handlers.emplace(COMPONENT_NS":presence",
+  this->stanza_handlers.emplace("presence",
                                 std::bind(&XmppComponent::handle_presence, this,std::placeholders::_1));
-  this->stanza_handlers.emplace(COMPONENT_NS":message",
+  this->stanza_handlers.emplace("message",
                                 std::bind(&XmppComponent::handle_message, this,std::placeholders::_1));
-  this->stanza_handlers.emplace(COMPONENT_NS":iq",
+  this->stanza_handlers.emplace("iq",
                                 std::bind(&XmppComponent::handle_iq, this,std::placeholders::_1));
-  this->stanza_handlers.emplace(STREAM_NS":error",
+  this->stanza_handlers.emplace("error",
                                 std::bind(&XmppComponent::handle_error, this,std::placeholders::_1));
 }
 

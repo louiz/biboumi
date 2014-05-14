@@ -1,6 +1,7 @@
 #include <xmpp/xmpp_stanza.hpp>
 
 #include <utils/encoding.hpp>
+#include <utils/split.hpp>
 
 #include <stdexcept>
 #include <iostream>
@@ -183,9 +184,13 @@ XmlNode* XmlNode::get_parent() const
   return this->parent;
 }
 
-const std::string& XmlNode::get_name() const
+const std::string XmlNode::get_name() const
 {
-  return this->name;
+  const std::vector<std::string> splited = utils::split(this->name, ':', false);
+  if (splited.empty())
+    return "";
+  const std::string res = splited.back();
+  return res;
 }
 
 std::string XmlNode::to_string() const
