@@ -34,6 +34,19 @@ using namespace std::string_literals;
 
 unsigned long XmppComponent::current_id = 0;
 
+static std::set<std::string> kickable_errors{
+    "gone",
+    "internal-server-error",
+    "item-not-found",
+    "jid-malformed",
+    "recipient-unavailable",
+    "redirect",
+    "remote-server-not-found",
+    "remote-server-timeout",
+    "service-unavailable",
+    "malformed-error"
+    };
+
 XmppComponent::XmppComponent(const std::string& hostname, const std::string& secret):
   ever_auth(false),
   last_auth(false),
@@ -128,7 +141,7 @@ void XmppComponent::shutdown()
 {
   for (auto it = this->bridges.begin(); it != this->bridges.end(); ++it)
   {
-    it->second->shutdown();
+    it->second->shutdown("Gateway shutdown");
   }
 }
 
@@ -358,6 +371,23 @@ void XmppComponent::handle_message(const Stanza& stanza)
       XmlNode* subject = stanza.get_child(COMPONENT_NS":subject");
       if (subject)
         bridge->set_channel_topic(iid, subject->get_inner());
+    }
+  else if (type == "error")
+    {
+      const XmlNode* error = stanza.get_child(COMPONENT_NS":error");
+      // Only a set of errors are considered “fatal”. If we encounter one of
+      // them, we purge (we disconnect the user from all the IRC servers).
+      // We consider this to be true, unless the error condition is
+      // specified and is not in the kickable_errors set
+      bool kickable_error = true;
+      if (error)
+        {
+          const XmlNode* condition = error->get_last_child();
+          if (kickable_errors.find(condition->get_name()) == kickable_errors.end())
+              kickable_error = false;
+        }
+      if (kickable_error)
+        bridge->shutdown("Error from remote client");
     }
   else
     {

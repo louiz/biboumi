@@ -41,11 +41,10 @@ static std::tuple<std::string, std::string> get_role_affiliation_from_irc_mode(c
     return std::make_tuple("participant", "none");
 }
 
-void Bridge::shutdown()
+void Bridge::shutdown(const std::string& exit_message)
 {
   for (auto it = this->irc_clients.begin(); it != this->irc_clients.end(); ++it)
   {
-    const std::string exit_message("Gateway shutdown");
     it->second->send_quit_command(exit_message);
     it->second->leave_dummy_channel(exit_message);
   }
