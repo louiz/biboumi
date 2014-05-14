@@ -389,7 +389,7 @@ void XmppComponent::handle_message(const Stanza& stanza)
       if (kickable_error)
         bridge->shutdown("Error from remote client");
     }
-  else
+  else if (type == "chat")
     {
       if (body && !body->get_inner().empty())
         bridge->send_private_message(iid, body->get_inner());
