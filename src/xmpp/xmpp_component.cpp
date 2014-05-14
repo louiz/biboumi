@@ -380,7 +380,7 @@ void XmppComponent::handle_message(const Stanza& stanza)
       // We consider this to be true, unless the error condition is
       // specified and is not in the kickable_errors set
       bool kickable_error = true;
-      if (error)
+      if (error && error->has_children())
         {
           const XmlNode* condition = error->get_last_child();
           if (kickable_errors.find(condition->get_name()) == kickable_errors.end())
