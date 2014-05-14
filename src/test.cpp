@@ -9,6 +9,7 @@
 #include <config/config.hpp>
 #include <bridge/colors.hpp>
 #include <utils/tolower.hpp>
+#include <irc/irc_user.hpp>
 #include <utils/split.hpp>
 #include <xmpp/jid.hpp>
 #include <irc/iid.hpp>
@@ -121,6 +122,22 @@ int main()
   const std::string unescaped = "'coucou'<cc>/&\"gaga\"";
   assert(xml_escape(unescaped) == "&apos;coucou&apos;&lt;cc&gt;/&amp;&quot;gaga&quot;");
   assert(xml_unescape(xml_escape(unescaped)) == unescaped);
+
+  /**
+   * Irc user parsing
+   */
+  const std::map<char, char> prefixes{{'!', 'a'}, {'@', 'o'}};
+
+  IrcUser user1("!nick!~some@host.bla", prefixes);
+  assert(user1.nick == "nick");
+  assert(user1.host == "~some@host.bla");
+  assert(user1.modes.size() == 1);
+  assert(user1.modes.find('a') != user1.modes.end());
+  IrcUser user2("coucou!~other@host.bla", prefixes);
+  assert(user2.nick == "coucou");
+  assert(user2.host == "~other@host.bla");
+  assert(user2.modes.size() == 0);
+  assert(user2.modes.find('a') == user2.modes.end());
 
   /**
    * Colors conversion
