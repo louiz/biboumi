@@ -180,8 +180,21 @@ void Bridge::send_private_message(const Iid& iid, const std::string& body, const
   if (iid.chan.empty() || iid.server.empty())
     return ;
   IrcClient* irc = this->get_irc_client(iid.server);
-  if (irc)
-    irc->send_private_message(iid.chan, body, type);
+  if (!irc)
+    {
+      log_warning("Cannot send message: no client exist for server " << iid.server);
+      return;
+    }
+  std::vector<std::string> lines = utils::split(body, '\n', true);
+  if (lines.empty())
+    return ;
+  for (const std::string& line: lines)
+    {
+      if (line.substr(0, 4) == "/me ")
+        irc->send_private_message(iid.chan, action_prefix + line.substr(4) + "\01", type);
+      else
+        irc->send_private_message(iid.chan, line, type);
+    }
 }
 
 void Bridge::leave_irc_channel(Iid&& iid, std::string&& status_message)
