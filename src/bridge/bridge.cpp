@@ -135,10 +135,6 @@ bool Bridge::join_irc_channel(const Iid& iid, const std::string& username)
 
 void Bridge::send_channel_message(const Iid& iid, const std::string& body)
 {
-  std::vector<std::string> lines = utils::split(body, '\n', true);
-  if (lines.empty())
-    return ;
-  const std::string first_line = lines[0];
   if (iid.chan.empty() || iid.server.empty())
     {
       log_warning("Cannot send message to channel: [" << iid.chan << "] on server [" << iid.server << "]");
@@ -150,23 +146,33 @@ void Bridge::send_channel_message(const Iid& iid, const std::string& body)
       log_warning("Cannot send message: no client exist for server " << iid.server);
       return;
     }
-  if (first_line.substr(0, 6) == "/mode ")
+  // Because an IRC message cannot contain \n, we need to convert each line
+  // of text into a separate IRC message. For conveniance, we also cut the
+  // message into submessages on the XMPP side, this way the user of the
+  // gateway sees what was actually sent over IRC.  For example if an user
+  // sends “hello\n/me waves”, two messages will be generated: “hello” and
+  // “/me waves”. Note that the “command” handling (messages starting with
+  // /me, /mode, etc) is done for each message generated this way. In the
+  // above example, the /me will be interpreted.
+  std::vector<std::string> lines = utils::split(body, '\n', true);
+  if (lines.empty())
+    return ;
+  for (const std::string& line: lines)
     {
-      std::vector<std::string> args = utils::split(first_line.substr(6), ' ', false);
-      irc->send_mode_command(iid.chan, args);
-      return;
+      if (line.substr(0, 6) == "/mode ")
+        {
+          std::vector<std::string> args = utils::split(line.substr(6), ' ', false);
+          irc->send_mode_command(iid.chan, args);
+          continue;             // We do not want to send that back to the
+                                // XMPP user, that’s not a textual message.
+        }
+      else if (line.substr(0, 4) == "/me ")
+        irc->send_channel_message(iid.chan, action_prefix + line.substr(4) + "\01");
+      else
+        irc->send_channel_message(iid.chan, line);
+      this->xmpp->send_muc_message(iid.chan + "%" + iid.server, irc->get_own_nick(),
+                                   this->make_xmpp_body(line), this->user_jid);
     }
-  if (first_line.substr(0, 4) == "/me ")
-    irc->send_channel_message(iid.chan, action_prefix + first_line.substr(4) + "\01");
-  else
-    irc->send_channel_message(iid.chan, first_line);
-  // Send each of the other lines of the message as a separate IRC message
-  for (std::vector<std::string>::const_iterator it = lines.begin() + 1; it != lines.end(); ++it)
-    irc->send_channel_message(iid.chan, *it);
-  // We do not need to convert body to utf-8: it comes from our XMPP server,
-  // so it's ok to send it back
-  this->xmpp->send_muc_message(iid.chan + "%" + iid.server, irc->get_own_nick(),
-                               this->make_xmpp_body(body), this->user_jid);
 }
 
 void Bridge::send_private_message(const Iid& iid, const std::string& body, const std::string& type)
