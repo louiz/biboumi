@@ -14,6 +14,8 @@
 #include <chrono>
 #include <string>
 
+#include "config.h"
+
 using namespace std::string_literals;
 using namespace std::chrono_literals;
 
@@ -35,6 +37,13 @@ IrcClient::IrcClient(std::shared_ptr<Poller> poller, const std::string& hostname
                               "alive without having to join a real channel of that server. "
                               "To disconnect from the IRC server, leave this room and all "
                               "other IRC channels of that server.";
+  // TODO: get the values from the preferences of the user, and only use the
+  // list of default ports if the user didn't specify anything
+  this->ports_to_try.emplace("6667", false); // standard non-encrypted port
+#ifdef BOTAN_FOUND
+  this->ports_to_try.emplace("6670", true);  // non-standard but I want it for some servers
+  this->ports_to_try.emplace("6697", true);  // standard encrypted port
+#endif // BOTAN_FOUND
 }
 
 IrcClient::~IrcClient()
@@ -48,29 +57,39 @@ void IrcClient::start()
 {
   if (this->connected || this->connecting)
     return ;
+  std::string port;
+  bool tls;
+  std::tie(port, tls) = this->ports_to_try.top();
+  this->ports_to_try.pop();
   this->bridge->send_xmpp_message(this->hostname, "", "Connecting to "s +
-                                  this->hostname + ":" + "6667");
-  this->connect(this->hostname, "6667");
+                                  this->hostname + ":" + port + " (" +
+                                  (tls ? "encrypted" : "not encrypted") + ")");
+  this->connect(this->hostname, port, tls);
 }
 
 void IrcClient::on_connection_failed(const std::string& reason)
 {
   this->bridge->send_xmpp_message(this->hostname, "",
                                   "Connection failed: "s + reason);
-  // Send an error message for all room that the user wanted to join
-  for (const std::string& channel: this->channels_to_join)
+  if (this->ports_to_try.empty())
     {
-      Iid iid(channel + "%" + this->hostname);
-      this->bridge->send_join_failed(iid, this->current_nick,
-                                     "cancel", "item-not-found", reason);
+      // Send an error message for all room that the user wanted to join
+      for (const std::string& channel: this->channels_to_join)
+        {
+          Iid iid(channel + "%" + this->hostname);
+          this->bridge->send_join_failed(iid, this->current_nick,
+                                         "cancel", "item-not-found", reason);
+        }
     }
+  else                          // try the next port
+    this->start();
 }
 
 void IrcClient::on_connected()
 {
   this->send_nick_command(this->username);
   this->send_user_command(this->username, this->username);
-  this->send_gateway_message("Connected to IRC server.");
+  this->send_gateway_message("Connected to IRC server"s + (this->use_tls ? " (encrypted)": "") + ".");
   this->send_pending_data();
 }
 
@@ -326,7 +345,6 @@ void IrcClient::set_and_forward_user_list(const IrcMessage& message)
       const IrcUser* user = channel->add_user(nick, this->prefix_to_mode);
       if (user->nick != channel->get_self()->nick)
         {
-          log_debug("Adding user [" << nick << "] to chan " << chan_name);
           this->bridge->send_user_join(this->hostname, chan_name, user,
                                        user->get_most_significant_mode(this->sorted_user_modes),
                                        false);

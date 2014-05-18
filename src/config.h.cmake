@@ -2,3 +2,4 @@
 #cmakedefine LIBIDN_FOUND
 #cmakedefine SYSTEMDDAEMON_FOUND
 #cmakedefine POLLER ${POLLER}
+#cmakedefine BOTAN_FOUND

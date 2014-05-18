@@ -11,6 +11,7 @@
 #include <memory>
 #include <vector>
 #include <string>
+#include <stack>
 #include <map>
 #include <set>
 
@@ -19,8 +20,6 @@ class Bridge;
 /**
  * Represent one IRC client, i.e. an endpoint connected to a single IRC
  * server, through a TCP socket, receiving and sending commands to it.
- *
- * TODO: TLS support, maybe, but that's not high priority
  */
 class IrcClient: public SocketHandler
 {
@@ -280,6 +279,12 @@ private:
    * (for example 'ahov' is a common order).
    */
   std::vector<char> sorted_user_modes;
+  /**
+   * A list of ports to which we will try to connect, in reverse. Each port
+   * is associated with a boolean telling if we should use TLS or not if the
+   * connection succeeds on that port.
+   */
+  std::stack<std::pair<std::string, bool>> ports_to_try;
 
   IrcClient(const IrcClient&) = delete;
   IrcClient(IrcClient&&) = delete;
