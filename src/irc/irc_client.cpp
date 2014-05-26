@@ -285,7 +285,7 @@ void IrcClient::on_isupport_message(const IrcMessage& message)
         // Remove the default types, they apply only if no other value is
         // specified.
         this->chantypes.clear();
-        size_t i = 11;
+        size_t i = 10;
         while (i < token.size())
           this->chantypes.insert(token[i++]);
       }
