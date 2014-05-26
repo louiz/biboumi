@@ -27,6 +27,40 @@ static const std::string reset("[m");
 
 int main()
 {
+
+  /**
+   * Config
+   */
+  std::cout << color << "Testing config…" << reset << std::endl;
+  Config::filename = "test.cfg";
+  Config::file_must_exist = false;
+  Config::set("coucou", "bonjour", true);
+  Config::close();
+
+  bool error = false;
+  try
+    {
+      Config::file_must_exist = true;
+      assert(Config::get("coucou", "") == "bonjour");
+      assert(Config::get("does not exist", "default") == "default");
+      Config::close();
+    }
+  catch (const std::ios::failure& e)
+    {
+      error = true;
+    }
+  assert(error == false);
+
+  Config::set("log_level", "2");
+  Config::set("log_file", "");
+
+  std::cout << color << "Testing logging…" << reset << std::endl;
+  log_debug("If you see this, the test FAILED.");
+  log_info("If you see this, the test FAILED.");
+  log_warning("You wust see this message. And the next one too.");
+  log_error("It’s not an error, don’t worry, the test passed.");
+
+
   /**
    * Timed events
    */
@@ -228,38 +262,6 @@ int main()
   const std::string correctjid2 = jidprep(badjid2);
   std::cout << correctjid2 << std::endl;
   assert(correctjid2 == "zigougou@poez.io");
-
-  /**
-   * Config
-   */
-  std::cout << color << "Testing config…" << reset << std::endl;
-  Config::filename = "test.cfg";
-  Config::file_must_exist = false;
-  Config::set("coucou", "bonjour", true);
-  Config::close();
-
-  bool error = false;
-  try
-    {
-      Config::file_must_exist = true;
-      assert(Config::get("coucou", "") == "bonjour");
-      assert(Config::get("does not exist", "default") == "default");
-      Config::close();
-    }
-  catch (const std::ios::failure& e)
-    {
-      error = true;
-    }
-  assert(error == false);
-
-  Config::set("log_level", "2");
-  Config::set("log_file", "");
-
-  std::cout << color << "Testing logging…" << reset << std::endl;
-  log_debug("If you see this, the test FAILED.");
-  log_info("If you see this, the test FAILED.");
-  log_warning("You wust see this message. And the next one too.");
-  log_error("It’s not an error, don’t worry, the test passed.");
 
   return 0;
 }
