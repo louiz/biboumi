@@ -26,9 +26,10 @@ public:
   explicit SocketHandler(std::shared_ptr<Poller> poller);
   virtual ~SocketHandler() {}
   /**
-   * (re-)Initialize the socket
+   * Initialize the socket with the parameters contained in the given
+   * addrinfo structure.
    */
-  void init_socket();
+  void init_socket(const struct addrinfo* rp);
   /**
    * Connect to the remote server, and call on_connected() if this succeeds
    */

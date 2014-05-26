@@ -28,12 +28,11 @@ SocketHandler::SocketHandler(std::shared_ptr<Poller> poller):
   connected(false),
   connecting(false)
 {
-  this->init_socket();
 }
 
-void SocketHandler::init_socket()
+void SocketHandler::init_socket(const struct addrinfo* rp)
 {
-  if ((this->socket = ::socket(AF_INET, SOCK_STREAM, 0)) == -1)
+  if ((this->socket = ::socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol)) == -1)
     throw std::runtime_error("Could not create socket");
   int optval = 1;
   if (::setsockopt(this->socket, SOL_SOCKET, SO_KEEPALIVE, &optval, sizeof(optval)) == -1)
@@ -64,7 +63,7 @@ void SocketHandler::connect(const std::string& address, const std::string& port)
       struct addrinfo hints;
       memset(&hints, 0, sizeof(struct addrinfo));
       hints.ai_flags = 0;
-      hints.ai_family = AF_INET;
+      hints.ai_family = AF_UNSPEC;
       hints.ai_socktype = SOCK_STREAM;
       hints.ai_protocol = 0;
 
@@ -99,10 +98,19 @@ void SocketHandler::connect(const std::string& address, const std::string& port)
       addr_res->ai_addr = &this->ai_addr;
       addr_res->ai_addrlen = this->ai_addrlen;
     }
-  this->connecting = true;
 
   for (struct addrinfo* rp = addr_res; rp; rp = rp->ai_next)
     {
+      if (!this->connecting)
+        {
+          try {
+            this->init_socket(rp);
+          }
+          catch (const std::runtime_error& error) {
+            log_error("Failed to init socket: " << error.what());
+            break;
+          }
+        }
       if (::connect(this->socket, rp->ai_addr, rp->ai_addrlen) == 0
           || errno == EISCONN)
         {
@@ -116,6 +124,8 @@ void SocketHandler::connect(const std::string& address, const std::string& port)
       else if (errno == EINPROGRESS || errno == EALREADY)
         {   // retry this process later, when the socket
             // is ready to be written on.
+          this->connecting = true;
+          this->poller->add_socket_handler(this);
           this->poller->watch_send_events(this);
           // Save the addrinfo structure, to use it on the next call
           this->ai_addrlen = rp->ai_addrlen;
