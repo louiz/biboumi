@@ -6,6 +6,7 @@
 #include <netdb.h>
 
 #include <utility>
+#include <memory>
 #include <string>
 #include <list>
 
@@ -22,7 +23,7 @@ class Poller;
 class SocketHandler
 {
 public:
-  explicit SocketHandler();
+  explicit SocketHandler(std::shared_ptr<Poller> poller);
   virtual ~SocketHandler() {}
   /**
    * (re-)Initialize the socket
@@ -33,10 +34,6 @@ public:
    */
   void connect(const std::string& address, const std::string& port);
   void connect();
-  /**
-   * Set the pointer to the given Poller, to communicate with it.
-   */
-  void set_poller(Poller* poller);
   /**
    * Reads data in our in_buf and the call parse_in_buf, for the implementor
    * to handle the data received so far.
@@ -119,7 +116,7 @@ protected:
    * And a raw pointer because we are not owning it, it is owning us
    * (actually it is sharing our ownership with a Bridge).
    */
-  Poller* poller;
+  std::shared_ptr<Poller> poller;
   /**
    * Hostname we are connected/connecting to
    */

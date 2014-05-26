@@ -8,6 +8,7 @@
 #include <network/socket_handler.hpp>
 
 #include <unordered_map>
+#include <memory>
 #include <vector>
 #include <string>
 #include <map>
@@ -23,7 +24,7 @@ class Bridge;
 class IrcClient: public SocketHandler
 {
 public:
-  explicit IrcClient(const std::string& hostname, const std::string& username, Bridge* bridge);
+  explicit IrcClient(std::shared_ptr<Poller> poller, const std::string& hostname, const std::string& username, Bridge* bridge);
   ~IrcClient();
   /**
    * Connect to the IRC server

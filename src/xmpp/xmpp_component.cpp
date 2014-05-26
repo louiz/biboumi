@@ -47,7 +47,8 @@ static std::set<std::string> kickable_errors{
     "malformed-error"
     };
 
-XmppComponent::XmppComponent(const std::string& hostname, const std::string& secret):
+XmppComponent::XmppComponent(std::shared_ptr<Poller> poller, const std::string& hostname, const std::string& secret):
+  SocketHandler(poller),
   ever_auth(false),
   last_auth(false),
   served_hostname(hostname),

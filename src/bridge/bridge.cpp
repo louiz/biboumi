@@ -14,7 +14,7 @@ using namespace std::string_literals;
 
 static const char* action_prefix = "\01ACTION ";
 
-Bridge::Bridge(const std::string& user_jid, XmppComponent* xmpp, Poller* poller):
+Bridge::Bridge(const std::string& user_jid, XmppComponent* xmpp, std::shared_ptr<Poller> poller):
   user_jid(user_jid),
   xmpp(xmpp),
   poller(poller)
@@ -81,9 +81,8 @@ IrcClient* Bridge::get_irc_client(const std::string& hostname, const std::string
     }
   catch (const std::out_of_range& exception)
     {
-      this->irc_clients.emplace(hostname, std::make_shared<IrcClient>(hostname, username, this));
+      this->irc_clients.emplace(hostname, std::make_shared<IrcClient>(this->poller, hostname, username, this));
       std::shared_ptr<IrcClient> irc = this->irc_clients.at(hostname);
-      this->poller->add_socket_handler(irc);
       return irc.get();
     }
 }

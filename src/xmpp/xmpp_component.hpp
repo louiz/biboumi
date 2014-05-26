@@ -18,7 +18,7 @@
 class XmppComponent: public SocketHandler
 {
 public:
-  explicit XmppComponent(const std::string& hostname, const std::string& secret);
+  explicit XmppComponent(std::shared_ptr<Poller> poller, const std::string& hostname, const std::string& secret);
   ~XmppComponent();
 
   void on_connection_failed(const std::string& reason) override final;

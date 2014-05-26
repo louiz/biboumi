@@ -27,15 +27,14 @@ Poller::~Poller()
 {
 }
 
-void Poller::add_socket_handler(std::shared_ptr<SocketHandler> socket_handler)
+void Poller::add_socket_handler(SocketHandler* socket_handler)
 {
-  // Raise an error if that socket is already in the list
+  // Don't do anything if the socket is already managed
   const auto it = this->socket_handlers.find(socket_handler->get_socket());
   if (it != this->socket_handlers.end())
-    throw std::runtime_error("Trying to insert SocketHandler already managed");
+    return ;
 
   this->socket_handlers.emplace(socket_handler->get_socket(), socket_handler);
-  socket_handler->set_poller(this);
 
   // We always watch all sockets for receive events
 #if POLLER == POLL
@@ -44,7 +43,7 @@ void Poller::add_socket_handler(std::shared_ptr<SocketHandler> socket_handler)
   this->nfds++;
 #endif
 #if POLLER == EPOLL
-  struct epoll_event event = {EPOLLIN, {socket_handler.get()}};
+  struct epoll_event event = {EPOLLIN, {socket_handler}};
   const int res = ::epoll_ctl(this->epfd, EPOLL_CTL_ADD, socket_handler->get_socket(), &event);
   if (res == -1)
     {

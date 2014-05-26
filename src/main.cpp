@@ -61,11 +61,11 @@ int main(int ac, char** av)
     return config_help("password");
   if (hostname.empty())
     return config_help("hostname");
-  std::shared_ptr<XmppComponent> xmpp_component =
-    std::make_shared<XmppComponent>(hostname, password);
 
-  Poller p;
-  p.add_socket_handler(xmpp_component);
+  auto p = std::make_shared<Poller>();
+  auto xmpp_component = std::make_shared<XmppComponent>(p,
+                                                        hostname,
+                                                        password);
 
   // Install the signals used to exit the process cleanly, or reload the
   // config
@@ -91,7 +91,7 @@ int main(int ac, char** av)
   xmpp_component->start();
 
   const std::chrono::milliseconds timeout(-1);
-  while (p.poll(timeout) != -1)
+  while (p->poll(timeout) != -1)
   {
     // Check for empty irc_clients (not connected, or with no joined
     // channel) and remove them
@@ -123,14 +123,13 @@ int main(int ac, char** av)
         !xmpp_component->is_connecting())
       {
         xmpp_component->reset();
-        p.add_socket_handler(xmpp_component);
         xmpp_component->start();
       }
     // If the only existing connection is the one to the XMPP component:
     // close the XMPP stream.
     if (exiting && xmpp_component->is_connecting())
       xmpp_component->close();
-    if (exiting && p.size() == 1 && xmpp_component->is_document_open())
+    if (exiting && p->size() == 1 && xmpp_component->is_document_open())
       xmpp_component->close_document();
   }
   log_info("All connection cleanely closed, have a nice day.");

@@ -13,7 +13,8 @@
 #include <string>
 using namespace std::string_literals;
 
-IrcClient::IrcClient(const std::string& hostname, const std::string& username, Bridge* bridge):
+IrcClient::IrcClient(std::shared_ptr<Poller> poller, const std::string& hostname, const std::string& username, Bridge* bridge):
+  SocketHandler(poller),
   hostname(hostname),
   username(username),
   current_nick(username),

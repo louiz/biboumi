@@ -22,7 +22,7 @@ class Poller;
 class Bridge
 {
 public:
-  explicit Bridge(const std::string& user_jid, XmppComponent* xmpp, Poller* poller);
+  explicit Bridge(const std::string& user_jid, XmppComponent* xmpp, std::shared_ptr<Poller> poller);
   ~Bridge();
   /**
    * QUIT all connected IRC servers.
@@ -146,9 +146,8 @@ private:
   /**
    * Poller, to give it the IrcClients that we spawn, to make it manage
    * their sockets.
-   * We don't own it.
    */
-  Poller* poller;
+  std::shared_ptr<Poller> poller;
 
   Bridge(const Bridge&) = delete;
   Bridge(Bridge&& other) = delete;

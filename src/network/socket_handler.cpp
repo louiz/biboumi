@@ -23,8 +23,8 @@ using namespace std::string_literals;
 # define UIO_FASTIOV 8
 #endif
 
-SocketHandler::SocketHandler():
-  poller(nullptr),
+SocketHandler::SocketHandler(std::shared_ptr<Poller> poller):
+  poller(poller),
   connected(false),
   connecting(false)
 {
@@ -107,6 +107,7 @@ void SocketHandler::connect(const std::string& address, const std::string& port)
           || errno == EISCONN)
         {
           log_info("Connection success.");
+          this->poller->add_socket_handler(this);
           this->connected = true;
           this->connecting = false;
           this->on_connected();
@@ -132,11 +133,6 @@ void SocketHandler::connect(const std::string& address, const std::string& port)
 void SocketHandler::connect()
 {
   this->connect(this->address, this->port);
-}
-
-void SocketHandler::set_poller(Poller* poller)
-{
-  this->poller = poller;
 }
 
 void SocketHandler::on_recv()
@@ -231,8 +227,6 @@ void SocketHandler::close()
   this->port.clear();
   this->poller->remove_socket_handler(this->get_socket());
   ::close(this->socket);
-  // recreate the socket for a potential future usage
-  this->init_socket();
 }
 
 socket_t SocketHandler::get_socket() const

@@ -42,7 +42,7 @@ public:
    * Add a SocketHandler to be monitored by this Poller. All receive events
    * are always automatically watched.
    */
-  void add_socket_handler(std::shared_ptr<SocketHandler> socket_handler);
+  void add_socket_handler(SocketHandler* socket_handler);
   /**
    * Remove (and stop managing) a SocketHandler, designed by the given socket_t.
    */
@@ -77,7 +77,7 @@ private:
    * because that's what is returned by select/poll/etc when an event
    * occures.
    */
-  std::unordered_map<socket_t, std::shared_ptr<SocketHandler>> socket_handlers;
+  std::unordered_map<socket_t, SocketHandler*> socket_handlers;
 
 #if POLLER == POLL
   struct pollfd fds[MAX_POLL_FD_NUMBER];
