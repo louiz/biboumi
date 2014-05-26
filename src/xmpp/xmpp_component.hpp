@@ -9,6 +9,20 @@
 #include <memory>
 #include <string>
 
+#define STREAM_NS        "http://etherx.jabber.org/streams"
+#define COMPONENT_NS     "jabber:component:accept"
+#define MUC_NS           "http://jabber.org/protocol/muc"
+#define MUC_USER_NS      MUC_NS"#user"
+#define MUC_ADMIN_NS     MUC_NS"#admin"
+#define DISCO_NS         "http://jabber.org/protocol/disco"
+#define DISCO_ITEMS_NS   DISCO_NS"#items"
+#define DISCO_INFO_NS    DISCO_NS"#info"
+#define XHTMLIM_NS       "http://jabber.org/protocol/xhtml-im"
+#define STANZA_NS        "urn:ietf:params:xml:ns:xmpp-stanzas"
+#define STREAMS_NS       "urn:ietf:params:xml:ns:xmpp-streams"
+#define VERSION_NS       "jabber:iq:version"
+#define ADHOC_NS         "http://jabber.org/protocol/commands"
+
 /**
  * An XMPP component, communicating with an XMPP server using the protocole
  * described in XEP-0114: Jabber Component Protocol

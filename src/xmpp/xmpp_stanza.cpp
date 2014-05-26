@@ -84,10 +84,18 @@ std::string xml_unescape(const std::string& data)
 }
 
 XmlNode::XmlNode(const std::string& name, XmlNode* parent):
-  name(name),
   parent(parent),
   closed(false)
 {
+  // split the namespace and the name
+  auto n = name.rfind(":");
+  if (n == std::string::npos)
+    this->name = name;
+  else
+    {
+      this->name = name.substr(n+1);
+      this->attributes["xmlns"] = name.substr(0, n);
+    }
 }
 
 XmlNode::XmlNode(const std::string& name):
@@ -144,11 +152,11 @@ std::string XmlNode::get_tail() const
   return xml_unescape(this->tail);
 }
 
-XmlNode* XmlNode::get_child(const std::string& name) const
+XmlNode* XmlNode::get_child(const std::string& name, const std::string& xmlns) const
 {
   for (auto& child: this->children)
     {
-      if (child->name == name)
+      if (child->name == name && child->get_tag("xmlns") == xmlns)
         return child;
     }
   return nullptr;
@@ -184,13 +192,14 @@ XmlNode* XmlNode::get_parent() const
   return this->parent;
 }
 
+void XmlNode::set_name(const std::string& name)
+{
+  this->name = name;
+}
+
 const std::string XmlNode::get_name() const
 {
-  const std::vector<std::string> splited = utils::split(this->name, ':', false);
-  if (splited.empty())
-    return "";
-  const std::string res = splited.back();
-  return res;
+  return this->name;
 }
 
 std::string XmlNode::to_string() const
@@ -209,7 +218,7 @@ std::string XmlNode::to_string() const
         res += child->to_string();
       if (this->closed)
         {
-          res += "</" + this->name + ">";
+          res += "</" + this->get_name() + ">";
         }
     }
   res += utils::remove_invalid_xml_chars(this->tail);

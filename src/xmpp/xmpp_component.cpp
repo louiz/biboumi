@@ -17,19 +17,6 @@
 # include <systemd/sd-daemon.h>
 #endif
 
-#define STREAM_NS        "http://etherx.jabber.org/streams"
-#define COMPONENT_NS     "jabber:component:accept"
-#define MUC_NS           "http://jabber.org/protocol/muc"
-#define MUC_USER_NS      MUC_NS"#user"
-#define MUC_ADMIN_NS     MUC_NS"#admin"
-#define DISCO_NS         "http://jabber.org/protocol/disco"
-#define DISCO_ITEMS_NS   DISCO_NS"#items"
-#define DISCO_INFO_NS    DISCO_NS"#info"
-#define XHTMLIM_NS       "http://jabber.org/protocol/xhtml-im"
-#define STANZA_NS        "urn:ietf:params:xml:ns:xmpp-stanzas"
-#define STREAMS_NS       "urn:ietf:params:xml:ns:xmpp-streams"
-#define VERSION_NS       "jabber:iq:version"
-
 using namespace std::string_literals;
 
 unsigned long XmppComponent::current_id = 0;
@@ -106,7 +93,8 @@ void XmppComponent::on_connection_failed(const std::string& reason)
 void XmppComponent::on_connected()
 {
   log_info("connected to XMPP server");
-  XmlNode node("stream:stream", nullptr);
+  XmlNode node("", nullptr);
+  node.set_name("stream:stream");
   node["xmlns"] = COMPONENT_NS;
   node["xmlns:stream"] = STREAM_NS;
   node["to"] = this->served_hostname;
@@ -183,7 +171,7 @@ void XmppComponent::on_remote_stream_open(const XmlNode& node)
     sprintf(digest + (i*2), "%02x", result[i]);
   digest[HASH_LENGTH * 2] = '\0';
 
-  Stanza handshake("handshake");
+  Stanza handshake(COMPONENT_NS":handshake");
   handshake.set_inner(digest);
   handshake.close();
   this->send_stanza(handshake);
@@ -329,7 +317,7 @@ void XmppComponent::handle_presence(const Stanza& stanza)
         }
       else if (type == "unavailable")
         {
-          XmlNode* status = stanza.get_child(COMPONENT_NS":status");
+          XmlNode* status = stanza.get_child("status", COMPONENT_NS);
           bridge->leave_irc_channel(std::move(iid), status ? std::move(status->get_inner()) : "");
         }
     }
@@ -363,19 +351,19 @@ void XmppComponent::handle_message(const Stanza& stanza)
       this->send_stanza_error("message", from, to_str, id,
                               error_type, error_name, "");
         });
-  XmlNode* body = stanza.get_child(COMPONENT_NS":body");
+  XmlNode* body = stanza.get_child("body", COMPONENT_NS);
   if (type == "groupchat")
     {
       if (to.resource.empty())
         if (body && !body->get_inner().empty())
           bridge->send_channel_message(iid, body->get_inner());
-      XmlNode* subject = stanza.get_child(COMPONENT_NS":subject");
+      XmlNode* subject = stanza.get_child("subject", COMPONENT_NS);
       if (subject)
         bridge->set_channel_topic(iid, subject->get_inner());
     }
   else if (type == "error")
     {
-      const XmlNode* error = stanza.get_child(COMPONENT_NS":error");
+      const XmlNode* error = stanza.get_child("error", COMPONENT_NS);
       // Only a set of errors are considered “fatal”. If we encounter one of
       // them, we purge (we disconnect the user from all the IRC servers).
       // We consider this to be true, unless the error condition is
@@ -436,13 +424,13 @@ void XmppComponent::handle_iq(const Stanza& stanza)
   utils::ScopeGuard stanza_error([&](){
       this->send_stanza_error("iq", from, to_str, id,
                               error_type, error_name, "");
-        });
+    });
   if (type == "set")
     {
       XmlNode* query;
-      if ((query = stanza.get_child(MUC_ADMIN_NS":query")))
+      if ((query = stanza.get_child("query", MUC_ADMIN_NS)))
         {
-          const XmlNode* child = query->get_child(MUC_ADMIN_NS":item");
+          const XmlNode* child = query->get_child("item", MUC_ADMIN_NS);
           if (child)
             {
               std::string nick = child->get_tag("nick");
@@ -450,7 +438,7 @@ void XmppComponent::handle_iq(const Stanza& stanza)
               if (!nick.empty() && role == "none")
                 {               // This is a kick
                   std::string reason;
-                  XmlNode* reason_el = child->get_child(MUC_ADMIN_NS":reason");
+                  XmlNode* reason_el = child->get_child("reason", MUC_ADMIN_NS);
                   if (reason_el)
                     reason = reason_el->get_inner();
                   Iid iid(to.local);
@@ -463,7 +451,7 @@ void XmppComponent::handle_iq(const Stanza& stanza)
   else if (type == "get")
     {
       XmlNode* query;
-      if ((query = stanza.get_child(DISCO_INFO_NS":query")))
+      if ((query = stanza.get_child("query", DISCO_INFO_NS)))
         { // Disco info
           if (to_str == this->served_hostname)
             { // On the gateway itself
@@ -476,11 +464,11 @@ void XmppComponent::handle_iq(const Stanza& stanza)
     {
       stanza_error.disable();
       XmlNode* query;
-      if ((query = stanza.get_child(VERSION_NS":query")))
+      if ((query = stanza.get_child("query", VERSION_NS)))
         {
-          XmlNode* name_node = query->get_child(VERSION_NS":name");
-          XmlNode* version_node = query->get_child(VERSION_NS":version");
-          XmlNode* os_node = query->get_child(VERSION_NS":os");
+          XmlNode* name_node = query->get_child("name", VERSION_NS);
+          XmlNode* version_node = query->get_child("version", VERSION_NS);
+          XmlNode* os_node = query->get_child("os", VERSION_NS);
           std::string name;
           std::string version;
           std::string os;
@@ -500,7 +488,7 @@ void XmppComponent::handle_iq(const Stanza& stanza)
 
 void XmppComponent::handle_error(const Stanza& stanza)
 {
-  XmlNode* text = stanza.get_child(STREAMS_NS":text");
+  XmlNode* text = stanza.get_child("text", STREAMS_NS);
   std::string error_message("Unspecified error");
   if (text)
     error_message = text->get_inner();

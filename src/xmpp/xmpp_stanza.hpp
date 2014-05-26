@@ -69,7 +69,7 @@ public:
   /**
    * Get a pointer to the first child element with that name
    */
-  XmlNode* get_child(const std::string& name) const;
+  XmlNode* get_child(const std::string& name, const std::string& xmlns) const;
   /**
    * Add a node child to this node. Assign this node to the child’s parent.
    * Returns a pointer to the newly added child.
@@ -87,6 +87,7 @@ public:
    */
   void close();
   XmlNode* get_parent() const;
+  void set_name(const std::string& name);
   const std::string get_name() const;
   /**
    * Serialize the stanza into a string

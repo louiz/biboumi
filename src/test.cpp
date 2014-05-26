@@ -154,14 +154,15 @@ int main()
   xml.add_stanza_callback([](const Stanza& stanza)
       {
         std::cout << stanza.to_string() << std::endl;
-        assert(stanza.get_name() == "stream_ns:stanza");
+        assert(stanza.get_name() == "stanza");
+        assert(stanza.get_tag("xmlns") == "stream_ns");
         assert(stanza.get_tag("b") == "c");
         assert(stanza.get_inner() == "inner");
         assert(stanza.get_tail() == "");
-        assert(stanza.get_child("stream_ns:child1") != nullptr);
-        assert(stanza.get_child("stream_ns:child2") == nullptr);
-        assert(stanza.get_child("child2_ns:child2") != nullptr);
-        assert(stanza.get_child("child2_ns:child2")->get_tail() == "tail");
+        assert(stanza.get_child("child1", "stream_ns") != nullptr);
+        assert(stanza.get_child("child2", "stream_ns") == nullptr);
+        assert(stanza.get_child("child2", "child2_ns") != nullptr);
+        assert(stanza.get_child("child2", "child2_ns")->get_tail() == "tail");
       });
   xml.feed(doc.data(), doc.size(), true);
 
