@@ -3,6 +3,7 @@
  */
 
 #include <xmpp/xmpp_component.hpp>
+#include <utils/timed_events.hpp>
 #include <xmpp/xmpp_parser.hpp>
 #include <utils/encoding.hpp>
 #include <logger/logger.hpp>
@@ -16,6 +17,7 @@
 #include <string.h>
 
 #include <iostream>
+#include <thread>
 #include <vector>
 
 #include <assert.h>
@@ -25,6 +27,28 @@ static const std::string reset("[m");
 
 int main()
 {
+  /**
+   * Timed events
+   */
+  std::cout << color << "Testing timed events…" << reset << std::endl;
+  TimedEventsManager te_manager;
+  // No event.
+  assert(te_manager.get_timeout() == utils::no_timeout);
+  assert(te_manager.execute_expired_events() == 0);
+
+  // Add a single event
+  te_manager.add_event(TimedEvent(std::chrono::steady_clock::now() + 50ms, [](){ std::cout << "Timeout expired" << std::endl; }));
+  // The event should not yet be expired
+  assert(te_manager.get_timeout() > 0ms);
+  assert(te_manager.execute_expired_events() == 0);
+  std::chrono::milliseconds timoute = te_manager.get_timeout();
+  std::cout << "Sleeping for " << timoute.count() << "ms" << std::endl;
+  std::this_thread::sleep_for(timoute);
+
+  // Event is now expired
+  assert(te_manager.execute_expired_events() == 1);
+  assert(te_manager.get_timeout() == utils::no_timeout);
+
   /**
    * Encoding
    */
