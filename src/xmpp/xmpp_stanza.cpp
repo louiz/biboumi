@@ -243,6 +243,13 @@ const std::string XmlNode::get_tag(const std::string& name) const
     }
 }
 
+bool XmlNode::del_tag(const std::string& name)
+{
+  if (this->attributes.erase(name) != 0)
+    return true;
+  return false;
+}
+
 std::string& XmlNode::operator[](const std::string& name)
 {
   return this->attributes[name];

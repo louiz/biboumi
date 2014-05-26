@@ -447,6 +447,22 @@ void XmppComponent::handle_iq(const Stanza& stanza)
                 }
             }
         }
+      else if ((query = stanza.get_child("command", ADHOC_NS)))
+        {
+          Stanza response("iq");
+          response["to"] = from;
+          response["from"] = this->served_hostname;
+          response["id"] = id;
+          XmlNode inner_node = this->adhoc_commands_handler.handle_request(from, *query);
+          if (inner_node.get_child("error", ADHOC_NS))
+            response["type"] = "error";
+          else
+            response["type"] = "result";
+          response.add_child(std::move(inner_node));
+          response.close();
+          this->send_stanza(response);
+          stanza_error.disable();
+        }
     }
   else if (type == "get")
     {
@@ -454,8 +470,22 @@ void XmppComponent::handle_iq(const Stanza& stanza)
       if ((query = stanza.get_child("query", DISCO_INFO_NS)))
         { // Disco info
           if (to_str == this->served_hostname)
-            { // On the gateway itself
-              this->send_self_disco_info(id, from);
+            {
+              const std::string node = query->get_tag("node");
+              if (node.empty())
+                {
+                  // On the gateway itself
+                  this->send_self_disco_info(id, from);
+                  stanza_error.disable();
+                }
+            }
+        }
+      else if ((query = stanza.get_child("query", DISCO_ITEMS_NS)))
+        {
+          const std::string node = query->get_tag("node");
+          if (node == ADHOC_NS)
+            {
+              this->send_adhoc_commands_list(id, from);
               stanza_error.disable();
             }
         }
@@ -848,13 +878,37 @@ void XmppComponent::send_self_disco_info(const std::string& id, const std::strin
   identity["name"] = "Biboumi XMPP-IRC gateway";
   identity.close();
   query.add_child(std::move(identity));
-  for (const std::string& ns: {"http://jabber.org/protocol/disco#info",
-                                    "http://jabber.org/protocol/muc"})
+  for (const std::string& ns: {DISCO_INFO_NS, MUC_NS, ADHOC_NS})
     {
       XmlNode feature("feature");
       feature["var"] = ns;
       feature.close();
       query.add_child(std::move(feature));
+    }
+  query.close();
+  iq.add_child(std::move(query));
+  iq.close();
+  this->send_stanza(iq);
+}
+
+void XmppComponent::send_adhoc_commands_list(const std::string& id, const std::string& requester_jid)
+{
+  Stanza iq("iq");
+  iq["type"] = "result";
+  iq["id"] = id;
+  iq["to"] = requester_jid;
+  iq["from"] = this->served_hostname;
+  XmlNode query("query");
+  query["xmlns"] = DISCO_ITEMS_NS;
+  query["node"] = ADHOC_NS;
+  for (const auto& kv: this->adhoc_commands_handler.get_commands())
+    {
+      XmlNode item("item");
+      item["jid"] = this->served_hostname;
+      item["node"] = kv.first;
+      item["name"] = kv.second.name;
+      item.close();
+      query.add_child(std::move(item));
     }
   query.close();
   iq.add_child(std::move(query));

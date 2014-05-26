@@ -34,6 +34,21 @@ public:
   {
     node.parent = nullptr;
   }
+  /**
+   * The copy constructor do not copy the children or parent attributes. The
+   * copied node is identical to the original except that it is not attached
+   * to any other node.
+   */
+  XmlNode(const XmlNode& node):
+    name(node.name),
+    parent(nullptr),
+    closed(node.closed),
+    attributes(node.attributes),
+    children{},
+    inner(node.inner),
+    tail(node.tail)
+  {
+  }
 
   ~XmlNode();
 
@@ -104,6 +119,11 @@ public:
    */
   const std::string get_tag(const std::string& name) const;
   /**
+   * Remove the attribute of the node. Does nothing if that attribute is not
+   * present. Returns true if the tag was removed, false if it was absent.
+   */
+  bool del_tag(const std::string& name);
+  /**
    * Use this to set an attribute's value, like node["id"] = "12";
    */
   std::string& operator[](const std::string& name);
@@ -117,7 +137,6 @@ private:
   std::string inner;
   std::string tail;
 
-  XmlNode(const XmlNode&) = delete;
   XmlNode& operator=(const XmlNode&) = delete;
   XmlNode& operator=(XmlNode&&) = delete;
 };
