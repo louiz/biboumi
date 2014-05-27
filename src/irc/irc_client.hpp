@@ -12,6 +12,7 @@
 #include <vector>
 #include <string>
 #include <map>
+#include <set>
 
 class Bridge;
 
@@ -257,6 +258,11 @@ private:
    * chanmodes[0] contains modes of type A, [1] of type B etc
    */
   std::vector<std::string> chanmodes;
+  /**
+   * See http://www.irc.org/tech_docs/draft-brocklesby-irc-isupport-03.txt
+   * section 3.5
+   */
+  std::set<char> chantypes;
   /**
    * Each motd line received is appended to this string, which we send when
    * the motd is completely received

@@ -20,7 +20,8 @@ IrcClient::IrcClient(std::shared_ptr<Poller> poller, const std::string& hostname
   current_nick(username),
   bridge(bridge),
   welcomed(false),
-  chanmodes({"", "", "", ""})
+  chanmodes({"", "", "", ""}),
+  chantypes({'#', '&'})
 {
   this->dummy_channel.topic = "This is a virtual channel provided for "
                               "convenience by biboumi, it is not connected "
@@ -278,6 +279,15 @@ void IrcClient::on_isupport_message(const IrcMessage& message)
             this->sorted_user_modes.push_back(token[i]);
             this->prefix_to_mode[token[j++]] = token[i++];
           }
+      }
+    else if (token.substr(0, 10) == "CHANTYPES=")
+      {
+        // Remove the default types, they apply only if no other value is
+        // specified.
+        this->chantypes.clear();
+        size_t i = 11;
+        while (i < token.size())
+          this->chantypes.insert(token[i++]);
       }
   }
 }
@@ -564,8 +574,7 @@ void IrcClient::on_kick(const IrcMessage& message)
 void IrcClient::on_mode(const IrcMessage& message)
 {
   const std::string target = message.arguments[0];
-  if (target[0] == '&' || target[0] == '#' ||
-      target[0] == '!' || target[0] == '+')
+  if (this->chantypes.find(target[0]) != this->chantypes.end())
     this->on_channel_mode(message);
   else
     this->on_user_mode(message);
