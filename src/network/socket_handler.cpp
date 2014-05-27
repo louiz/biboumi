@@ -24,6 +24,7 @@ using namespace std::string_literals;
 #endif
 
 SocketHandler::SocketHandler(std::shared_ptr<Poller> poller):
+  socket(-1),
   poller(poller),
   connected(false),
   connecting(false)
@@ -33,7 +34,7 @@ SocketHandler::SocketHandler(std::shared_ptr<Poller> poller):
 void SocketHandler::init_socket(const struct addrinfo* rp)
 {
   if ((this->socket = ::socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol)) == -1)
-    throw std::runtime_error("Could not create socket");
+    throw std::runtime_error("Could not create socket: "s + strerror(errno));
   int optval = 1;
   if (::setsockopt(this->socket, SOL_SOCKET, SO_KEEPALIVE, &optval, sizeof(optval)) == -1)
     log_warning("Failed to enable TCP keepalive on socket: " << strerror(errno));
@@ -230,13 +231,18 @@ void SocketHandler::on_send()
 
 void SocketHandler::close()
 {
+  if (this->connected || this->connecting)
+    this->poller->remove_socket_handler(this->get_socket());
+  if (this->socket != -1)
+    {
+      ::close(this->socket);
+      this->socket = -1;
+    }
   this->connected = false;
   this->connecting = false;
   this->in_buf.clear();
   this->out_buf.clear();
   this->port.clear();
-  this->poller->remove_socket_handler(this->get_socket());
-  ::close(this->socket);
 }
 
 socket_t SocketHandler::get_socket() const
