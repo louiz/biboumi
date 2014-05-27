@@ -241,6 +241,11 @@ void Bridge::send_message(const Iid& iid, const std::string& nick, const std::st
                              this->make_xmpp_body(body), this->user_jid, "chat");
 }
 
+void Bridge::send_join_failed(const Iid& iid, const std::string& nick, const std::string& type, const std::string& condition, const std::string& text)
+{
+  this->xmpp->send_presence_error(iid.chan + "%" + iid.server, nick, this->user_jid, type, condition, text);
+}
+
 void Bridge::send_muc_leave(Iid&& iid, std::string&& nick, const std::string& message, const bool self)
 {
   this->xmpp->send_muc_leave(std::move(iid.chan) + "%" + std::move(iid.server), std::move(nick), this->make_xmpp_body(message), this->user_jid, self);

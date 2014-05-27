@@ -50,6 +50,13 @@ void IrcClient::on_connection_failed(const std::string& reason)
 {
   this->bridge->send_xmpp_message(this->hostname, "",
                                   "Connection failed: "s + reason);
+  // Send an error message for all room that the user wanted to join
+  for (const std::string& channel: this->channels_to_join)
+    {
+      Iid iid(channel + "%" + this->hostname);
+      this->bridge->send_join_failed(iid, this->current_nick,
+                                     "cancel", "item-not-found", reason);
+    }
 }
 
 void IrcClient::on_connected()
@@ -167,11 +174,11 @@ void IrcClient::send_quit_command(const std::string& reason)
 
 void IrcClient::send_join_command(const std::string& chan_name)
 {
-  this->start();
   if (this->welcomed == false)
     this->channels_to_join.push_back(chan_name);
   else
     this->send_message(IrcMessage("JOIN", {chan_name}));
+  this->start();
 }
 
 bool IrcClient::send_channel_message(const std::string& chan_name, const std::string& body)

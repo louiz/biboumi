@@ -796,6 +796,33 @@ void XmppComponent::send_nickname_conflict_error(const std::string& muc_name,
   this->send_stanza(presence);
 }
 
+void XmppComponent::send_presence_error(const std::string& muc_name,
+                                   const std::string& nickname,
+                                   const std::string& jid_to,
+                                   const std::string& type,
+                                   const std::string& condition,
+                                   const std::string&)
+{
+  Stanza presence("presence");
+  presence["from"] = muc_name + "@" + this->served_hostname + "/" + nickname;
+  presence["to"] = jid_to;
+  XmlNode x("x");
+  x["xmlns"] = MUC_NS;
+  x.close();
+  presence.add_child(std::move(x));
+  XmlNode error("error");
+  error["by"] = muc_name + "@" + this->served_hostname;
+  error["type"] = type;
+  XmlNode subnode(condition);
+  subnode["xmlns"] = STANZA_NS;
+  subnode.close();
+  error.add_child(std::move(subnode));
+  error.close();
+  presence.add_child(std::move(error));
+  presence.close();
+  this->send_stanza(presence);
+}
+
 void XmppComponent::send_affiliation_role_change(const std::string& muc_name,
                                                  const std::string& target,
                                                  const std::string& affiliation,
