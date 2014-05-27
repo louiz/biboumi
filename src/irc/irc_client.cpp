@@ -245,7 +245,7 @@ void IrcClient::on_notice(const IrcMessage& message)
   const std::string to = message.arguments[0];
   const std::string body = message.arguments[1];
 
-  if (to == this->current_nick)
+  if (!to.empty() && this->chantypes.find(to[0]) == this->chantypes.end())
     this->bridge->send_xmpp_message(this->hostname, from, body);
   else
     {
