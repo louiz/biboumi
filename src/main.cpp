@@ -1,4 +1,5 @@
 #include <xmpp/xmpp_component.hpp>
+#include <utils/timed_events.hpp>
 #include <network/poller.hpp>
 #include <config/config.hpp>
 #include <logger/logger.hpp>
@@ -17,6 +18,13 @@ static volatile std::atomic<bool> reload(false);
 // flag is set and all connections are closed, we can exit properly.
 static bool exiting = false;
 
+// The global (and only) TimedEventsManager.  It can be accessed by any
+// class to add new TimedEvents, and it is used in the main loop to provide
+// a timeout to the poller, this way the method execute_expired_events can
+// be called on time, without having to do an active “poll” on it every n
+// seconds.
+TimedEventsManager timed_events;
+
 /**
  * Provide an helpful message to help the user write a minimal working
  * configuration file.
@@ -32,8 +40,11 @@ int config_help(const std::string& missing_option)
   return 1;
 }
 
-static void sigint_handler(int, siginfo_t*, void*)
+static void sigint_handler(int sig, siginfo_t*, void*)
 {
+  // In 2 seconds, repeat the same signal, to force the exit
+  timed_events.add_event(TimedEvent(std::chrono::steady_clock::now() + 2s,
+                                    [sig]() { raise(sig); }));
   stop.store(true);
 }
 
@@ -90,9 +101,10 @@ int main(int ac, char** av)
 
   xmpp_component->start();
 
-  const std::chrono::milliseconds timeout(-1);
+  auto timeout = timed_events.get_timeout();
   while (p->poll(timeout) != -1)
   {
+    timed_events.execute_expired_events();
     // Check for empty irc_clients (not connected, or with no joined
     // channel) and remove them
     xmpp_component->clean();
@@ -131,6 +143,7 @@ int main(int ac, char** av)
       xmpp_component->close();
     if (exiting && p->size() == 1 && xmpp_component->is_document_open())
       xmpp_component->close_document();
+    timeout = timed_events.get_timeout();
   }
   log_info("All connection cleanely closed, have a nice day.");
   return 0;
