@@ -131,6 +131,7 @@ protected:
    * connect()ing to it, to reuse it directly when connect() is called
    * again.
    */
+  struct addrinfo addrinfo;
   struct sockaddr ai_addr;
   socklen_t ai_addrlen;
 

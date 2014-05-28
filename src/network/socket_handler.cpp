@@ -82,22 +82,9 @@ void SocketHandler::connect(const std::string& address, const std::string& port)
       sg.add_callback([&addr_res](){ freeaddrinfo(addr_res); });
     }
   else
-    {
-      // This function is called again, use the saved addrinfo structure,
-      // instead of re-doing the whole getaddrinfo process.  We insert only
-      // the meaningful values in the structure, and indicate that these are
-      // the only possible values with ai_next = NULL.
-      addr_res = (struct addrinfo*)malloc(sizeof(struct addrinfo));
-      if (!addr_res)
-        {
-          this->close();
-          this->on_connection_failed("memory error");
-          return ;
-        }
-      sg.add_callback([&addr_res](){ free(addr_res); });
-      addr_res->ai_next = NULL;
-      addr_res->ai_addr = &this->ai_addr;
-      addr_res->ai_addrlen = this->ai_addrlen;
+    { // This function is called again, use the saved addrinfo structure,
+      // instead of re-doing the whole getaddrinfo process.
+      addr_res = &this->addrinfo;
     }
 
   for (struct addrinfo* rp = addr_res; rp; rp = rp->ai_next)
@@ -131,6 +118,9 @@ void SocketHandler::connect(const std::string& address, const std::string& port)
           // Save the addrinfo structure, to use it on the next call
           this->ai_addrlen = rp->ai_addrlen;
           memcpy(&this->ai_addr, rp->ai_addr, this->ai_addrlen);
+          memcpy(&this->addrinfo, rp, sizeof(struct addrinfo));
+          this->addrinfo.ai_addr = &this->ai_addr;
+          this->addrinfo.ai_next = nullptr;
           return ;
         }
       log_info("Connection failed:" << strerror(errno));
