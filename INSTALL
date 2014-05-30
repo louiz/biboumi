@@ -15,6 +15,10 @@ Libraries:
  Encoding from anything into UTF-8
  http://www.gnu.org/software/libiconv/
 
+- libuuid
+ Generate unique IDs
+ http://sourceforge.net/projects/libuuid/
+
 - libidn (optional, but recommended)
  Provides the stringprep functionality. Without it, JIDs for IRC users are
  not provided.
