@@ -15,20 +15,25 @@
 #
 # This file is in the public domain
 
-find_path(SYSTEMDDAEMON_INCLUDE_DIRS NAMES systemd/sd-daemon.h
-  DOC "The Systemd Daemon include directory")
+include(FindPkgConfig)
+pkg_check_modules(SYSTEMDDAEMON libsystemd-daemon)
 
-find_library(SYSTEMDDAEMON_LIBRARIES NAMES systemd
-  DOC "The Systemd Daemon library")
+if(NOT SYSTEMDDAEMON_FOUND)
+  find_path(SYSTEMDDAEMON_INCLUDE_DIRS NAMES systemd/sd-daemon.h
+    DOC "The Systemd Daemon include directory")
 
-# Use some standard module to handle the QUIETLY and REQUIRED arguments, and
-# set SYSTEMDDAEMON_FOUND to TRUE if these two variables are set.
-include(FindPackageHandleStandardArgs)
-find_package_handle_standard_args(SystemdDaemon REQUIRED_VARS SYSTEMDDAEMON_LIBRARIES SYSTEMDDAEMON_INCLUDE_DIRS)
+  find_library(SYSTEMDDAEMON_LIBRARIES NAMES systemd-daemon systemd
+    DOC "The Systemd Daemon library")
 
-if(SYSTEMDDAEMON_FOUND)
-  set(SYSTEMDDAEMON_LIBRARY ${SYSTEMDDAEMON_LIBRARIES})
-  set(SYSTEMDDAEMON_INCLUDE_DIR ${SYSTEMDDAEMON_INCLUDE_DIRS})
+  # Use some standard module to handle the QUIETLY and REQUIRED arguments, and
+  # set SYSTEMDDAEMON_FOUND to TRUE if these two variables are set.
+  include(FindPackageHandleStandardArgs)
+  find_package_handle_standard_args(SYSTEMDDAEMON REQUIRED_VARS SYSTEMDDAEMON_LIBRARIES SYSTEMDDAEMON_INCLUDE_DIRS)
+
+  if(SYSTEMDDAEMON_FOUND)
+    set(SYSTEMDDAEMON_LIBRARY ${SYSTEMDDAEMON_LIBRARIES})
+    set(SYSTEMDDAEMON_INCLUDE_DIR ${SYSTEMDDAEMON_INCLUDE_DIRS})
+  endif()
 endif()
 
 mark_as_advanced(SYSTEMDDAEMON_INCLUDE_DIRS SYSTEMDDAEMON_LIBRARIES)

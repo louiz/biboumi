@@ -15,22 +15,27 @@
 #
 # This file is in the public domain
 
-find_path(LIBIDN_INCLUDE_DIRS NAMES stringprep.h
-  DOC "The libidn include directory")
+include(FindPkgConfig)
+pkg_check_modules(LIBIDN libidn)
 
-# The library containing the stringprep module is libidn
-find_library(LIBIDN_LIBRARIES NAMES idn
-  DOC "The libidn library")
+if(NOT LIBIDN_FOUND)
+  find_path(LIBIDN_INCLUDE_DIRS NAMES stringprep.h
+    DOC "The libidn include directory")
 
-# Use some standard module to handle the QUIETLY and REQUIRED arguments, and
-# set LIBIDN_FOUND to TRUE if these two variables are set.
-include(FindPackageHandleStandardArgs)
-find_package_handle_standard_args(Libidn REQUIRED_VARS LIBIDN_LIBRARIES LIBIDN_INCLUDE_DIRS)
+  # The library containing the stringprep module is libidn
+  find_library(LIBIDN_LIBRARIES NAMES idn
+    DOC "The libidn library")
 
-# Compatibility for all the ways of writing these variables
-if(LIBIDN_FOUND)
-  set(LIBIDN_INCLUDE_DIR ${LIBIDN_INCLUDE_DIRS})
-  set(LIBIDN_LIBRARY ${LIBIDN_LIBRARIES})
+  # Use some standard module to handle the QUIETLY and REQUIRED arguments, and
+  # set LIBIDN_FOUND to TRUE if these two variables are set.
+  include(FindPackageHandleStandardArgs)
+  find_package_handle_standard_args(LIBIDN REQUIRED_VARS LIBIDN_LIBRARIES LIBIDN_INCLUDE_DIRS)
+
+  # Compatibility for all the ways of writing these variables
+  if(LIBIDN_FOUND)
+    set(LIBIDN_INCLUDE_DIR ${LIBIDN_INCLUDE_DIRS})
+    set(LIBIDN_LIBRARY ${LIBIDN_LIBRARIES})
+  endif()
 endif()
 
 mark_as_advanced(LIBIDN_INCLUDE_DIRS LIBIDN_LIBRARIES)
