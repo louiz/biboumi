@@ -83,8 +83,11 @@ private:
 class TimedEventsManager
 {
 public:
-  explicit TimedEventsManager();
   ~TimedEventsManager();
+  /**
+   * Return the unique instance of this class
+   */
+  static TimedEventsManager& instance();
   /**
    * Add an event to the list of managed events. The list is sorted after
    * this call.
@@ -117,6 +120,7 @@ public:
   std::size_t size() const;
 
 private:
+  explicit TimedEventsManager();
   std::list<TimedEvent> events;
   TimedEventsManager(const TimedEventsManager&) = delete;
   TimedEventsManager(TimedEventsManager&&) = delete;

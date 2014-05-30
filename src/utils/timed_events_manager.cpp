@@ -1,5 +1,11 @@
 #include <utils/timed_events.hpp>
 
+TimedEventsManager& TimedEventsManager::instance()
+{
+  static TimedEventsManager inst;
+  return inst;
+}
+
 TimedEventsManager::TimedEventsManager()
 {
 }

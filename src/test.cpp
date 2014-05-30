@@ -65,34 +65,33 @@ int main()
    * Timed events
    */
   std::cout << color << "Testing timed events…" << reset << std::endl;
-  TimedEventsManager te_manager;
   // No event.
-  assert(te_manager.get_timeout() == utils::no_timeout);
-  assert(te_manager.execute_expired_events() == 0);
+  assert(TimedEventsManager::instance().get_timeout() == utils::no_timeout);
+  assert(TimedEventsManager::instance().execute_expired_events() == 0);
 
   // Add a single event
-  te_manager.add_event(TimedEvent(std::chrono::steady_clock::now() + 50ms, [](){ std::cout << "Timeout expired" << std::endl; }));
+  TimedEventsManager::instance().add_event(TimedEvent(std::chrono::steady_clock::now() + 50ms, [](){ std::cout << "Timeout expired" << std::endl; }));
   // The event should not yet be expired
-  assert(te_manager.get_timeout() > 0ms);
-  assert(te_manager.execute_expired_events() == 0);
-  std::chrono::milliseconds timoute = te_manager.get_timeout();
+  assert(TimedEventsManager::instance().get_timeout() > 0ms);
+  assert(TimedEventsManager::instance().execute_expired_events() == 0);
+  std::chrono::milliseconds timoute = TimedEventsManager::instance().get_timeout();
   std::cout << "Sleeping for " << timoute.count() << "ms" << std::endl;
   std::this_thread::sleep_for(timoute);
 
   // Event is now expired
-  assert(te_manager.execute_expired_events() == 1);
-  assert(te_manager.get_timeout() == utils::no_timeout);
+  assert(TimedEventsManager::instance().execute_expired_events() == 1);
+  assert(TimedEventsManager::instance().get_timeout() == utils::no_timeout);
 
   // Test canceling events
-  te_manager.add_event(TimedEvent(std::chrono::steady_clock::now() + 100ms, [](){ }, "un"));
-  te_manager.add_event(TimedEvent(std::chrono::steady_clock::now() + 200ms, [](){ }, "deux"));
-  te_manager.add_event(TimedEvent(std::chrono::steady_clock::now() + 300ms, [](){ }, "deux"));
-  assert(te_manager.get_timeout() > 0ms);
-  assert(te_manager.size() == 3);
-  assert(te_manager.cancel("un") == 1);
-  assert(te_manager.size() == 2);
-  assert(te_manager.cancel("deux") == 2);
-  assert(te_manager.get_timeout() == utils::no_timeout);
+  TimedEventsManager::instance().add_event(TimedEvent(std::chrono::steady_clock::now() + 100ms, [](){ }, "un"));
+  TimedEventsManager::instance().add_event(TimedEvent(std::chrono::steady_clock::now() + 200ms, [](){ }, "deux"));
+  TimedEventsManager::instance().add_event(TimedEvent(std::chrono::steady_clock::now() + 300ms, [](){ }, "deux"));
+  assert(TimedEventsManager::instance().get_timeout() > 0ms);
+  assert(TimedEventsManager::instance().size() == 3);
+  assert(TimedEventsManager::instance().cancel("un") == 1);
+  assert(TimedEventsManager::instance().size() == 2);
+  assert(TimedEventsManager::instance().cancel("deux") == 2);
+  assert(TimedEventsManager::instance().get_timeout() == utils::no_timeout);
 
   /**
    * Encoding
