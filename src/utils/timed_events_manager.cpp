@@ -53,3 +53,23 @@ std::size_t TimedEventsManager::execute_expired_events()
   return count;
 }
 
+std::size_t TimedEventsManager::cancel(const std::string& name)
+{
+  std::size_t res = 0;
+  for (auto it = this->events.begin(); it != this->events.end();)
+    {
+      if (it->get_name() == name)
+        {
+          it = this->events.erase(it);
+          res++;
+        }
+      else
+        ++it;
+    }
+  return res;
+}
+
+std::size_t TimedEventsManager::size() const
+{
+  return this->events.size();
+}

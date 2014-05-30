@@ -25,9 +25,9 @@ public:
    * An event the occurs only once, at the given time_point
    */
   explicit TimedEvent(std::chrono::steady_clock::time_point&& time_point,
-                      std::function<void()> callback);
+                      std::function<void()> callback, const std::string& name="");
   explicit TimedEvent(std::chrono::milliseconds&& duration,
-                      std::function<void()> callback);
+                      std::function<void()> callback, const std::string& name="");
 
   explicit TimedEvent(TimedEvent&&);
   ~TimedEvent();
@@ -43,6 +43,7 @@ public:
    */
   std::chrono::milliseconds get_timeout() const;
   void execute();
+  const std::string& get_name() const;
 
 private:
   /**
@@ -62,6 +63,12 @@ private:
    * if repeat is true. Otherwise it is ignored.
    */
   const std::chrono::milliseconds repeat_delay;
+  /**
+   * A name that is used to identify that event. If you want to find your
+   * event (for example if you want to cancel it), the name should be
+   * unique.
+   */
+  const std::string name;
 
   TimedEvent(const TimedEvent&) = delete;
   TimedEvent& operator=(const TimedEvent&) = delete;
@@ -99,6 +106,15 @@ public:
    * Returns the number of executed events.
    */
   std::size_t execute_expired_events();
+  /**
+   * Remove (and thus cancel) all the timed events with the given name.
+   * Returns the number of canceled events.
+   */
+  std::size_t cancel(const std::string& name);
+  /**
+   * Return the number of managed events.
+   */
+  std::size_t size() const;
 
 private:
   std::list<TimedEvent> events;

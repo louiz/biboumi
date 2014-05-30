@@ -83,6 +83,17 @@ int main()
   assert(te_manager.execute_expired_events() == 1);
   assert(te_manager.get_timeout() == utils::no_timeout);
 
+  // Test canceling events
+  te_manager.add_event(TimedEvent(std::chrono::steady_clock::now() + 100ms, [](){ }, "un"));
+  te_manager.add_event(TimedEvent(std::chrono::steady_clock::now() + 200ms, [](){ }, "deux"));
+  te_manager.add_event(TimedEvent(std::chrono::steady_clock::now() + 300ms, [](){ }, "deux"));
+  assert(te_manager.get_timeout() > 0ms);
+  assert(te_manager.size() == 3);
+  assert(te_manager.cancel("un") == 1);
+  assert(te_manager.size() == 2);
+  assert(te_manager.cancel("deux") == 2);
+  assert(te_manager.get_timeout() == utils::no_timeout);
+
   /**
    * Encoding
    */
