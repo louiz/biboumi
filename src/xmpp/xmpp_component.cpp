@@ -13,13 +13,13 @@
 
 #include <config.h>
 
+#include <uuid.h>
+
 #ifdef SYSTEMDDAEMON_FOUND
 # include <systemd/sd-daemon.h>
 #endif
 
 using namespace std::string_literals;
-
-unsigned long XmppComponent::current_id = 0;
 
 static std::set<std::string> kickable_errors{
     "gone",
@@ -934,5 +934,9 @@ void XmppComponent::send_iq_version_request(const std::string& from,
 
 std::string XmppComponent::next_id()
 {
-  return std::to_string(XmppComponent::current_id++);
+  char uuid_str[37];
+  uuid_t uuid;
+  uuid_generate(uuid);
+  uuid_unparse(uuid, uuid_str);
+  return uuid_str;
 }

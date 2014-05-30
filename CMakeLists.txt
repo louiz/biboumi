@@ -18,6 +18,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 include(FindEXPAT)
 find_package(EXPAT REQUIRED)
 find_package(Iconv REQUIRED)
+find_package(Libuuid REQUIRED)
 find_package(Libidn)
 find_package(SystemdDaemon)
 
@@ -26,6 +27,7 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/src/")
 include_directories("${CMAKE_CURRENT_BINARY_DIR}/src/")
 include_directories(${EXPAT_INCLUDE_DIRS})
 include_directories(${ICONV_INCLUDE_DIRS})
+include_directories(${LIBUUID_INCLUDE_DIRS})
 
 if(LIBIDN_FOUND)
   include_directories(${LIBIDN_INCLUDE_DIRS})
@@ -109,7 +111,8 @@ file(GLOB source_xmpp
   src/xmpp/*.[hc]pp)
 add_library(xmpp STATIC ${source_xmpp})
 target_link_libraries(xmpp bridge network utils logger
-  ${EXPAT_LIBRARIES})
+  ${EXPAT_LIBRARIES}
+  ${LIBUUID_LIBRARIES})
 if(LIBIDN_FOUND)
   target_link_libraries(xmpp ${LIBIDN_LIBRARIES})
 endif()

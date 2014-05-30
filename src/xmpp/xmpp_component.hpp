@@ -235,8 +235,6 @@ private:
    */
   std::unordered_map<std::string, std::unique_ptr<Bridge>> bridges;
 
-  static unsigned long current_id;
-
   AdhocCommandsHandler adhoc_commands_handler;
   XmppComponent(const XmppComponent&) = delete;
   XmppComponent(XmppComponent&&) = delete;

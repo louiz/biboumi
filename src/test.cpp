@@ -121,9 +121,14 @@ int main()
   /**
    * Id generation
    */
-  assert(XmppComponent::next_id() == "0");
-  assert(XmppComponent::next_id() == "1");
-  assert(XmppComponent::next_id() == "2");
+  std::cout << color << "Testing id generation…" << reset << std::endl;
+  const std::string first_uuid = XmppComponent::next_id();
+  const std::string second_uuid = XmppComponent::next_id();
+  std::cout << first_uuid << std::endl;
+  std::cout << second_uuid << std::endl;
+  assert(first_uuid.size() == 36);
+  assert(second_uuid.size() == 36);
+  assert(first_uuid != second_uuid);
 
   /**
    * Utils
