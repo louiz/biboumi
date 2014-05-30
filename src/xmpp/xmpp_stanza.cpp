@@ -162,6 +162,17 @@ XmlNode* XmlNode::get_child(const std::string& name, const std::string& xmlns) c
   return nullptr;
 }
 
+std::vector<XmlNode*> XmlNode::get_children(const std::string& name, const std::string& xmlns) const
+{
+  std::vector<XmlNode*> res;
+  for (auto& child: this->children)
+    {
+      if (child->name == name && child->get_tag("xmlns") == xmlns)
+        res.push_back(child);
+    }
+  return res;
+}
+
 XmlNode* XmlNode::add_child(XmlNode* child)
 {
   child->parent = this;

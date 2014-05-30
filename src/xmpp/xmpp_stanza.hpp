@@ -86,9 +86,13 @@ public:
    */
   std::string get_tail() const;
   /**
-   * Get a pointer to the first child element with that name
+   * Get a pointer to the first child element with that name and that xml namespace
    */
   XmlNode* get_child(const std::string& name, const std::string& xmlns) const;
+  /**
+   * Get a vector of all the children that have that name and that xml namespace.
+   */
+  std::vector<XmlNode*> get_children(const std::string& name, const std::string& xmlns) const;
   /**
    * Add a node child to this node. Assign this node to the child’s parent.
    * Returns a pointer to the newly added child.
