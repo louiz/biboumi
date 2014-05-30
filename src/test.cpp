@@ -151,18 +151,25 @@ int main()
   std::cout << color << "Testing XML parsing…" << reset << std::endl;
   XmppParser xml;
   const std::string doc = "<stream xmlns='stream_ns'><stanza b='c'>inner<child1><grandchild/></child1><child2 xmlns='child2_ns'/>tail</stanza></stream>";
-  xml.add_stanza_callback([](const Stanza& stanza)
+  auto check_stanza = [](const Stanza& stanza)
+    {
+      assert(stanza.get_name() == "stanza");
+      assert(stanza.get_tag("xmlns") == "stream_ns");
+      assert(stanza.get_tag("b") == "c");
+      assert(stanza.get_inner() == "inner");
+      assert(stanza.get_tail() == "");
+      assert(stanza.get_child("child1", "stream_ns") != nullptr);
+      assert(stanza.get_child("child2", "stream_ns") == nullptr);
+      assert(stanza.get_child("child2", "child2_ns") != nullptr);
+      assert(stanza.get_child("child2", "child2_ns")->get_tail() == "tail");
+    };
+  xml.add_stanza_callback([check_stanza](const Stanza& stanza)
       {
         std::cout << stanza.to_string() << std::endl;
-        assert(stanza.get_name() == "stanza");
-        assert(stanza.get_tag("xmlns") == "stream_ns");
-        assert(stanza.get_tag("b") == "c");
-        assert(stanza.get_inner() == "inner");
-        assert(stanza.get_tail() == "");
-        assert(stanza.get_child("child1", "stream_ns") != nullptr);
-        assert(stanza.get_child("child2", "stream_ns") == nullptr);
-        assert(stanza.get_child("child2", "child2_ns") != nullptr);
-        assert(stanza.get_child("child2", "child2_ns")->get_tail() == "tail");
+        check_stanza(stanza);
+        // Do the same checks on a copy of that stanza.
+        Stanza copy(stanza);
+        check_stanza(copy);
       });
   xml.feed(doc.data(), doc.size(), true);
 

@@ -35,9 +35,8 @@ public:
     node.parent = nullptr;
   }
   /**
-   * The copy constructor do not copy the children or parent attributes. The
-   * copied node is identical to the original except that it is not attached
-   * to any other node.
+   * The copy constructor do not copy the parent attribute. The children
+   * nodes are all copied recursively.
    */
   XmlNode(const XmlNode& node):
     name(node.name),
@@ -48,6 +47,11 @@ public:
     inner(node.inner),
     tail(node.tail)
   {
+    for (XmlNode* child: node.children)
+      {
+        XmlNode* child_copy = new XmlNode(*child);
+        this->add_child(child_copy);
+      }
   }
 
   ~XmlNode();
