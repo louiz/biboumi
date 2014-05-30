@@ -63,6 +63,11 @@ void Bridge::clean()
   }
 }
 
+const std::string& Bridge::get_jid() const
+{
+  return this->user_jid;
+}
+
 Xmpp::body Bridge::make_xmpp_body(const std::string& str)
 {
   std::string res;

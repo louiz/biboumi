@@ -32,6 +32,10 @@ public:
    * Remove all inactive IrcClients
    */
   void clean();
+  /**
+   * Return the jid of the XMPP user using this bridge
+   */
+  const std::string& get_jid() const;
 
   static Xmpp::body make_xmpp_body(const std::string& str);
   /***

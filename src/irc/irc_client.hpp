@@ -70,6 +70,7 @@ public:
    * Send the PONG irc command
    */
   void send_pong_command(const IrcMessage& message);
+  void send_ping_command();
   /**
    * Send the USER irc command
    */

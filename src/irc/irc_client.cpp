@@ -1,3 +1,4 @@
+#include <utils/timed_events.hpp>
 #include <irc/irc_message.hpp>
 #include <irc/irc_client.hpp>
 #include <bridge/bridge.hpp>
@@ -10,8 +11,11 @@
 #include <iostream>
 #include <stdexcept>
 
+#include <chrono>
 #include <string>
+
 using namespace std::string_literals;
+using namespace std::chrono_literals;
 
 IrcClient::IrcClient(std::shared_ptr<Poller> poller, const std::string& hostname, const std::string& username, Bridge* bridge):
   SocketHandler(poller),
@@ -35,6 +39,9 @@ IrcClient::IrcClient(std::shared_ptr<Poller> poller, const std::string& hostname
 
 IrcClient::~IrcClient()
 {
+  // This event may or may not exist (if we never got connected, it
+  // doesn't), but it's ok
+  TimedEventsManager::instance().cancel("PING"s + this->hostname + this->bridge->get_jid());
 }
 
 void IrcClient::start()
@@ -236,6 +243,11 @@ void IrcClient::send_pong_command(const IrcMessage& message)
 {
   const std::string id = message.arguments[0];
   this->send_message(IrcMessage("PONG", {id}));
+}
+
+void IrcClient::send_ping_command()
+{
+  this->send_message(IrcMessage("PING", {"biboumi"}));
 }
 
 void IrcClient::forward_server_message(const IrcMessage& message)
@@ -447,6 +459,9 @@ void IrcClient::on_welcome_message(const IrcMessage& message)
 {
   this->current_nick = message.arguments[0];
   this->welcomed = true;
+  // Install a repeated events to regularly send a PING
+  TimedEventsManager::instance().add_event(TimedEvent(240s, std::bind(&IrcClient::send_ping_command, this),
+                                                      "PING"s + this->hostname + this->bridge->get_jid()));
   for (const std::string& chan_name: this->channels_to_join)
     this->send_join_command(chan_name);
   this->channels_to_join.clear();
