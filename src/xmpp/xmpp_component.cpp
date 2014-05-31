@@ -640,7 +640,10 @@ void XmppComponent::send_invalid_room_error(const std::string& muc_name,
                                             const std::string& to)
 {
   Stanza presence("presence");
-  presence["from"] = muc_name + "@" + this->served_hostname + "/" + nick;
+  if (!muc_name.empty())
+    presence["from"] = muc_name + "@" + this->served_hostname + "/" + nick;
+  else
+    presence["from"] = this->served_hostname;
   presence["to"] = to;
   presence["type"] = "error";
   XmlNode x("x");
