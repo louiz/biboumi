@@ -23,6 +23,8 @@ public:
 
   const std::string name;
 
+  bool is_admin_only() const;
+
 private:
   /**
    * A command may have one or more steps. Each step is a different
@@ -33,8 +35,10 @@ private:
   const bool admin_only;
 };
 
-void PingStep1(AdhocSession& session, XmlNode& command_node);
-void HelloStep1(AdhocSession& session, XmlNode& command_node);
-void HelloStep2(AdhocSession& session, XmlNode& command_node);
+void PingStep1(XmppComponent*, AdhocSession& session, XmlNode& command_node);
+void HelloStep1(XmppComponent*, AdhocSession& session, XmlNode& command_node);
+void HelloStep2(XmppComponent*, AdhocSession& session, XmlNode& command_node);
+void DisconnectUserStep1(XmppComponent*, AdhocSession& session, XmlNode& command_node);
+void DisconnectUserStep2(XmppComponent*, AdhocSession& session, XmlNode& command_node);
 
 #endif // ADHOC_COMMAND_HPP

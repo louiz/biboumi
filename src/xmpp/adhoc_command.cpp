@@ -1,4 +1,7 @@
 #include <xmpp/adhoc_command.hpp>
+#include <xmpp/xmpp_component.hpp>
+
+#include <bridge/bridge.hpp>
 
 using namespace std::string_literals;
 
@@ -13,7 +16,12 @@ AdhocCommand::~AdhocCommand()
 {
 }
 
-void PingStep1(AdhocSession&, XmlNode& command_node)
+bool AdhocCommand::is_admin_only() const
+{
+  return this->admin_only;
+}
+
+void PingStep1(XmppComponent* xmpp_component, AdhocSession&, XmlNode& command_node)
 {
   XmlNode note("note");
   note["type"] = "info";
@@ -22,7 +30,7 @@ void PingStep1(AdhocSession&, XmlNode& command_node)
   command_node.add_child(std::move(note));
 }
 
-void HelloStep1(AdhocSession&, XmlNode& command_node)
+void HelloStep1(XmppComponent* xmpp_component, AdhocSession&, XmlNode& command_node)
 {
   XmlNode x("jabber:x:data:x");
   x["type"] = "form";
@@ -47,7 +55,7 @@ void HelloStep1(AdhocSession&, XmlNode& command_node)
   command_node.add_child(std::move(x));
 }
 
-void HelloStep2(AdhocSession& session, XmlNode& command_node)
+void HelloStep2(XmppComponent* xmpp_component, AdhocSession& session, XmlNode& command_node)
 {
   // Find out if the name was provided in the form.
   XmlNode* x = command_node.get_child("x", "jabber:x:data");
@@ -80,3 +88,101 @@ void HelloStep2(AdhocSession& session, XmlNode& command_node)
   // anyway. But this is for the example.
   session.terminate();
 }
+
+void DisconnectUserStep1(XmppComponent* xmpp_component, AdhocSession& session, XmlNode& command_node)
+{
+  XmlNode x("jabber:x:data:x");
+  x["type"] = "form";
+  XmlNode title("title");
+  title.set_inner("Disconnect a user from the gateway");
+  title.close();
+  x.add_child(std::move(title));
+  XmlNode instructions("instructions");
+  instructions.set_inner("Choose a user JID and a quit message");
+  instructions.close();
+  x.add_child(std::move(instructions));
+  XmlNode jids_field("field");
+  jids_field["var"] = "jids";
+  jids_field["type"] = "list-multi";
+  jids_field["label"] = "The JIDs to disconnect";
+  XmlNode required("required");
+  required.close();
+  jids_field.add_child(std::move(required));
+  for (Bridge* bridge: xmpp_component->get_bridges())
+    {
+      XmlNode option("option");
+      option["label"] = bridge->get_jid();
+      XmlNode value("value");
+      value.set_inner(bridge->get_jid());
+      value.close();
+      option.add_child(std::move(value));
+      option.close();
+      jids_field.add_child(std::move(option));
+    }
+  jids_field.close();
+  x.add_child(std::move(jids_field));
+
+  XmlNode message_field("field");
+  message_field["var"] = "quit-message";
+  message_field["type"] = "text-single";
+  message_field["label"] = "Quit message";
+  XmlNode message_value("value");
+  message_value.set_inner("Disconnected by admin");
+  message_value.close();
+  message_field.add_child(std::move(message_value));
+  message_field.close();
+  x.add_child(std::move(message_field));
+  x.close();
+  command_node.add_child(std::move(x));
+}
+
+void DisconnectUserStep2(XmppComponent* xmpp_component, AdhocSession& session, XmlNode& command_node)
+{
+  // Find out if the jids, and the quit message are provided in the form.
+  std::string quit_message;
+  XmlNode* x = command_node.get_child("x", "jabber:x:data");
+  if (x)
+    {
+      XmlNode* message_field = nullptr;
+      XmlNode* jids_field = nullptr;
+      for (XmlNode* field: x->get_children("field", "jabber:x:data"))
+        if (field->get_tag("var") == "jids")
+          jids_field = field;
+        else if (field->get_tag("var") == "quit-message")
+          message_field = field;
+      if (message_field)
+        {
+          XmlNode* value = message_field->get_child("value", "jabber:x:data");
+          if (value)
+            quit_message = value->get_inner();
+        }
+      if (jids_field)
+        {
+          std::size_t num = 0;
+          for (XmlNode* value: jids_field->get_children("value", "jabber:x:data"))
+            {
+              Bridge* bridge = xmpp_component->find_user_bridge(value->get_inner());
+              if (bridge)
+                {
+                  bridge->shutdown(quit_message);
+                  num++;
+                }
+            }
+          command_node.delete_all_children();
+
+          XmlNode note("note");
+          note["type"] = "info";
+          if (num == 0)
+            note.set_inner("No user were disconnected.");
+          else if (num == 1)
+            note.set_inner("1 user has been disconnected.");
+          else
+            note.set_inner(std::to_string(num) + " users have been disconnected.");
+          note.close();
+          command_node.add_child(std::move(note));
+        }
+    }
+  // TODO insert an error telling the values are missing.
+  session.terminate();
+}
+

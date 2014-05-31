@@ -42,6 +42,16 @@ public:
   void parse_in_buffer(const size_t size) override final;
 
   /**
+   * Returns the bridge for the given user. If it does not exist, return
+   * nullptr.
+   */
+  Bridge* find_user_bridge(const std::string& user_jid);
+  /**
+   * Return a list of all the managed bridges.
+   */
+  std::list<Bridge*> get_bridges() const;
+
+  /**
    * Returns a unique id, to be used in the 'id' element of our iq stanzas.
    */
   static std::string next_id();
@@ -228,6 +238,7 @@ private:
   bool doc_open;
 
   std::unordered_map<std::string, std::function<void(const Stanza&)>> stanza_handlers;
+  AdhocCommandsHandler adhoc_commands_handler;
 
   /**
    * One bridge for each user of the component. Indexed by the user's full
@@ -235,7 +246,6 @@ private:
    */
   std::unordered_map<std::string, std::unique_ptr<Bridge>> bridges;
 
-  AdhocCommandsHandler adhoc_commands_handler;
   XmppComponent(const XmppComponent&) = delete;
   XmppComponent(XmppComponent&&) = delete;
   XmppComponent& operator=(const XmppComponent&) = delete;

@@ -6,6 +6,8 @@
 #include <functional>
 #include <string>
 
+class XmppComponent;
+
 class AdhocCommand;
 class AdhocSession;
 
@@ -16,7 +18,7 @@ class AdhocSession;
  * TODO fix this:
  * It also must call one of step_passed(), cancel() etc on the AdhocSession object.
  */
-typedef std::function<void(AdhocSession&, XmlNode&)> AdhocStep;
+typedef std::function<void(XmppComponent*, AdhocSession&, XmlNode&)> AdhocStep;
 
 class AdhocSession
 {

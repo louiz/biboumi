@@ -41,7 +41,8 @@ XmppComponent::XmppComponent(std::shared_ptr<Poller> poller, const std::string& 
   served_hostname(hostname),
   secret(secret),
   authenticated(false),
-  doc_open(false)
+  doc_open(false),
+  adhoc_commands_handler(this)
 {
   this->parser.add_stream_open_callback(std::bind(&XmppComponent::on_remote_stream_open, this,
                                                   std::placeholders::_1));
@@ -541,6 +542,26 @@ Bridge* XmppComponent::get_user_bridge(const std::string& user_jid)
       this->bridges.emplace(user_jid, std::make_unique<Bridge>(user_jid, this, this->poller));
       return this->bridges.at(user_jid).get();
     }
+}
+
+Bridge* XmppComponent::find_user_bridge(const std::string& user_jid)
+{
+  try
+    {
+      return this->bridges.at(user_jid).get();
+    }
+  catch (const std::out_of_range& exception)
+    {
+      return nullptr;
+    }
+}
+
+std::list<Bridge*> XmppComponent::get_bridges() const
+{
+  std::list<Bridge*> res;
+  for (auto it = this->bridges.begin(); it != this->bridges.end(); ++it)
+    res.push_back(it->second.get());
+  return res;
 }
 
 void* XmppComponent::get_receive_buffer(const size_t size) const

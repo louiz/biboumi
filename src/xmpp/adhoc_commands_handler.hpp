@@ -13,10 +13,12 @@
 #include <string>
 #include <map>
 
+class XmppComponent;
+
 class AdhocCommandsHandler
 {
 public:
-  explicit AdhocCommandsHandler();
+  explicit AdhocCommandsHandler(XmppComponent* xmpp_component);
   ~AdhocCommandsHandler();
   /**
    * Returns the list of available commands.
@@ -36,6 +38,11 @@ public:
    */
   XmlNode&& handle_request(const std::string& executor_jid, XmlNode command_node);
 private:
+  /**
+   * A pointer to the XmppComponent, to access to basically anything in the
+   * gateway.
+   */
+  XmppComponent* xmpp_component;
   /**
    * The list of all available commands.
    */

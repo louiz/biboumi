@@ -2,13 +2,17 @@
 #include <xmpp/xmpp_component.hpp>
 
 #include <logger/logger.hpp>
+#include <config/config.hpp>
+#include <xmpp/jid.hpp>
 
 #include <iostream>
 
-AdhocCommandsHandler::AdhocCommandsHandler():
+AdhocCommandsHandler::AdhocCommandsHandler(XmppComponent* xmpp_component):
+  xmpp_component(xmpp_component),
   commands{
   {"ping", AdhocCommand({&PingStep1}, "Do a ping", false)},
-  {"hello", AdhocCommand({&HelloStep1, &HelloStep2}, "Receive a custom greeting", false)}
+  {"hello", AdhocCommand({&HelloStep1, &HelloStep2}, "Receive a custom greeting", false)},
+  {"disconnect-user", AdhocCommand({&DisconnectUserStep1, &DisconnectUserStep2}, "Disconnect a user from the gateway", true)}
   }
 {
 }
@@ -31,6 +35,8 @@ XmlNode&& AdhocCommandsHandler::handle_request(const std::string& executor_jid, 
     action = "execute";
   command_node.del_tag("action");
 
+  Jid jid(executor_jid);
+
   const std::string node = command_node.get_tag("node");
   auto command_it = this->commands.find(node);
   if (command_it == this->commands.end())
@@ -38,6 +44,17 @@ XmlNode&& AdhocCommandsHandler::handle_request(const std::string& executor_jid, 
       XmlNode error(ADHOC_NS":error");
       error["type"] = "cancel";
       XmlNode condition(STANZA_NS":item-not-found");
+      condition.close();
+      error.add_child(std::move(condition));
+      error.close();
+      command_node.add_child(std::move(error));
+    }
+  else if (command_it->second.is_admin_only() &&
+           Config::get("admin", "") != jid.local + "@" + jid.domain)
+    {
+      XmlNode error(ADHOC_NS":error");
+      error["type"] = "cancel";
+      XmlNode condition(STANZA_NS":forbidden");
       condition.close();
       error.add_child(std::move(condition));
       error.close();
@@ -74,7 +91,7 @@ XmlNode&& AdhocCommandsHandler::handle_request(const std::string& executor_jid, 
           // execute the step
           AdhocSession& session = session_it->second;
           const AdhocStep& step = session.get_next_step();
-          step(session, command_node);
+          step(this->xmpp_component, session, command_node);
           if (session.remaining_steps() == 0 ||
               session.is_terminated())
             {
