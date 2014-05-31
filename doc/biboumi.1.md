@@ -46,6 +46,12 @@ The configuration file uses a simple format of the form
   This password must be configured in the XMPP server, associated with the
   external component on *hostname*.
 
+`admin`
+
+  The bare JID of the gateway admin. This JID will have more privileges than
+  other standard users, for example some administration ad-hoc commands will
+  only be available to that JID.
+
 `log_file`
 
   A filename into which logs are written.  If none is provided, the logs are
