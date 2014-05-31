@@ -21,7 +21,7 @@ bool AdhocCommand::is_admin_only() const
   return this->admin_only;
 }
 
-void PingStep1(XmppComponent* xmpp_component, AdhocSession&, XmlNode& command_node)
+void PingStep1(XmppComponent*, AdhocSession&, XmlNode& command_node)
 {
   XmlNode note("note");
   note["type"] = "info";
@@ -30,7 +30,7 @@ void PingStep1(XmppComponent* xmpp_component, AdhocSession&, XmlNode& command_no
   command_node.add_child(std::move(note));
 }
 
-void HelloStep1(XmppComponent* xmpp_component, AdhocSession&, XmlNode& command_node)
+void HelloStep1(XmppComponent*, AdhocSession&, XmlNode& command_node)
 {
   XmlNode x("jabber:x:data:x");
   x["type"] = "form";
@@ -55,7 +55,7 @@ void HelloStep1(XmppComponent* xmpp_component, AdhocSession&, XmlNode& command_n
   command_node.add_child(std::move(x));
 }
 
-void HelloStep2(XmppComponent* xmpp_component, AdhocSession& session, XmlNode& command_node)
+void HelloStep2(XmppComponent*, AdhocSession& session, XmlNode& command_node)
 {
   // Find out if the name was provided in the form.
   XmlNode* x = command_node.get_child("x", "jabber:x:data");
@@ -89,7 +89,7 @@ void HelloStep2(XmppComponent* xmpp_component, AdhocSession& session, XmlNode& c
   session.terminate();
 }
 
-void DisconnectUserStep1(XmppComponent* xmpp_component, AdhocSession& session, XmlNode& command_node)
+void DisconnectUserStep1(XmppComponent* xmpp_component, AdhocSession&, XmlNode& command_node)
 {
   XmlNode x("jabber:x:data:x");
   x["type"] = "form";
