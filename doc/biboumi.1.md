@@ -1,4 +1,4 @@
-BIBOUMI 1 "2014-02-17"
+BIBOUMI 1 "2014-06-02"
 ======================
 
 NAME
@@ -48,18 +48,19 @@ The configuration file uses a simple format of the form
 
 `admin`
 
-  The bare JID of the gateway admin. This JID will have more privileges than
-  other standard users, for example some administration ad-hoc commands will
-  only be available to that JID.
+  The bare JID of the gateway administrator. This JID will have more
+  privileges than other standard users (the admin thus needs to check their
+  privileges), for example some administration ad-hoc commands will only be
+  available to that JID.
 
 `log_file`
 
   A filename into which logs are written.  If none is provided, the logs are
-  written on standard output
+  written on standard output.
 
 `log_level`
 
-  Indicate what type of log messages to write in the logs.  Values can be
+  Indicate what type of log messages to write in the logs.  Value can be
   from 0 to 3.  0 is debug, 1 is info, 2 is warning, 3 is error.  The
   default is 0, but a more practical value for production use is 1.
 
@@ -71,12 +72,13 @@ USAGE
 -----
 
 When started, biboumi connects, without encryption (see *SECURITY*), to the
-local XMPP server on the port `5347` and provides the configured password to
-authenticate.  Biboumi then serves the configured `hostname`, this means
-that all XMPP stanza with a `to` JID on that domain will be sent to biboumi,
-and biboumi will send only send messages coming from this hostname.
+local XMPP server on the port `5347` and authenticates with the provided
+password.  Biboumi then serves the configured `hostname`: this means that
+all XMPP stanza with a `to` JID on that domain will be forwarded to biboumi
+by the XMPP server, and biboumi will only send messages coming from that
+hostname.
 
-When an user joins an IRC channel on an IRC server (see *Join an IRC
+When a user joins an IRC channel on an IRC server (see *Join an IRC
 channel*), biboumi connects to the remote IRC server, sets the user’s nick
 as requested, and then tries to join the specified channel.  If the same
 user subsequently tries to connect to an other channel on the same server,
@@ -84,13 +86,12 @@ the same IRC connection is used.  If, however, an other user wants to join
 an IRC channel on that same IRC server, biboumi opens a new connection to
 that server.  Biboumi connects once to each IRC server, for each user on it.
 
-To cleanly shutdown the component, send the SIGINT or SIGTERM signals to it.
+To cleanly shutdown the component, send a SIGINT or SIGTERM signal to it.
 It will send messages to all connected IRC and XMPP servers to indicate a
-reason why the users are being disconnected.  Biboumi exits when all
-connections are closed because the remote acknowledged the end of
-communication.  If the remote server does not respond, biboumi does not
-exit, unless SIGINT or SIGTERM is received again, in which case biboumi
-closes the TCP connections and exits immediately.
+reason why the users are being disconnected.  Biboumi exits when the end of
+communication is acknowledged by all IRC servers.  If one or more IRC
+servers do not respond, biboumi will only exit if it receives the same
+signal again or if a 2 seconds delay has passed.
 
 ### Addressing
 
@@ -109,8 +110,22 @@ characters, adding an implicit `'#'` in that case.  Biboumi does not do that
 because this gets confusing when trying to understand the difference between
 the channels *foo*, *#foo*, and *##foo*.
 
+On XMPP, the node part of the JID can only be lowercase.  On the other hand,
+IRC nicknames are case-insensitive, this means that the nicknames toto,
+Toto, tOtO and TOTO all represent the same IRC user.  This means you can
+talk to the user toto, and this will work.
+
+Examples:
+
+  `#foo%irc.example.com@biboumi.example.com` is the #foo IRC channel, on the
+  irc.example.com IRC server, and this is served by the biboumi instance on
+  biboumi.example.com
+
+  `toto.example.com@biboumi.example.com` is the IRC user named toto, or TotO, etc.
+
 If compiled with Libidn, an IRC user has a bare JID representing the
-“hostname” provided by the IRC server.
+“hostname” provided by the IRC server.  This JID can only be used to set IRC
+modes (for example to ban a user based on its IP), or to identify user.
 
 ### Join an IRC channel
 
@@ -124,13 +139,13 @@ to join any channel on that IRC server.  The connection is closed whenever
 the last channel on that server is left by the user.  To be able to stay
 connected to an IRC server without having to be in a real IRC channel,
 biboumi provides a virtual channel on the jid
-`%irc_serve@biboumi.example.com`.  For example if you want to join the
+`%irc.example.com@biboumi.example.com`.  For example if you want to join the
 channel `#foo` on the server `irc.example.com`, but you need to authenticate
-to a bot of the server before you can join it, you can first join the room
-`%irc.example.com@biboumi.example.net` (this will effectively connect you to
-the IRC server without joining any room), then send your authentication
-message to the user `bot%irc.example.com@biboumi.example.net" and finally
-join the room `#foo%irc.example.com@biboumi.example.net`.
+to a bot of the server before you’re allowed to join it, you can first join
+the room `%irc.example.com@biboumi.example.com` (this will effectively
+connect you to the IRC server without joining any room), then send your
+authentication message to the user `bot%irc.example.com@biboumi.example.com"
+and finally join the room `#foo%irc.example.com@biboumi.example.com`.
 
 ### Channel messages
 
@@ -138,14 +153,14 @@ On XMPP, unlike on IRC, the displayed order of the messages is the same for
 all participants of a MUC.  Biboumi can not however provide this feature, as
 it cannot know whether the IRC server has received and forwarded the
 messages to other users.  This means that the order of the messages
-displayed in your XMPP may not be the same than the order on other IRC
-users’.
+displayed in your XMPP client may not be the same than the order on other
+IRC users’.
 
 ### Nicknames
 
 On IRC, nicknames are server-wide.  This means that one user only has one
 single nickname at one given time on all the channels of a server. This is
-different from XMPP where an user can have a different nick on each MUC,
+different from XMPP where a user can have a different nick on each MUC,
 even if these MUCs are on the same server.
 
 This means that the nick you choose when joining your first IRC channel on a
@@ -160,13 +175,10 @@ Private messages are handled differently on IRC and on XMPP.  On IRC, you
 talk directly to one server-user: toto on the channel #foo is the same user
 as toto on the channel #bar (as long as these two channels are on the same
 IRC server).  Using biboumi, there is no way to receive a message from a
-room participant (from a jid like #test%irc.example.com/nickname).  Instead,
-private messages are received from and sent to the user (using a jid like
-nickname%irc.example.com).  For conveniance and compatibility with XMPP
-clients sending private messages to the MUC participants, a message sent to
-#chan%irc.example.com@irc.example.net/Nickname will be redirected to
-Nickname%irc.example.com@irc.example.net, although this is not the prefered
-way to do it.
+room participant (from a jid like
+#test%irc.example.com@biboumi.example.com/nickname).  Instead, private
+messages are received from and sent to the user (using a jid like
+nickname%irc.example.com@biboumi.example.com).
 
 ### Notices
 
@@ -199,8 +211,8 @@ direction.
 
 One feature that doesn’t exist on XMPP but does on IRC is the `modes`.
 Although some of these modes have a correspondance in the XMPP world (for
-example the `+o` mode on an user corresponds to the `moderator` role
-in XMPP), it is impossible to map all these modes to an XMPP feature.  To
+example the `+o` mode on a user corresponds to the `moderator` role in
+XMPP), it is impossible to map all these modes to an XMPP feature.  To
 circumvent this problem, biboumi provides a raw notification when modes are
 changed, and lets the user change the modes directly.
 
@@ -238,6 +250,23 @@ between IRC modes and XMPP features is as follow:
 
   Sets the participant’s role to `participant` and its affiliation to `member`.
 
+### Ad-hoc commands
+
+Biboumi supports a few ad-hoc commands, as described in the XEP 0050.
+
+  - ping: Just respond “pong”
+
+  - hello: Provide a form, where the user enters their name, and biboumi
+    responds with a nice greeting.
+
+  - disconnect-user: Available to the administrator only. The user provides
+    a list of JIDs, and a quit message. All these users are disconnected
+    from all the IRC servers to which they were connected, using the
+    provided quit message. Sending SIGINT to biboumi is equivalent to using
+    this command by selecting all the connected JIDs and using the “Gateway
+    shutdown” quit message, except that biboumi does not exit when using
+    this ad-hoc command.
+
 SECURITY
 --------
 
@@ -246,9 +275,19 @@ server MUST be made on localhost.  The XMPP server is not supposed to accept
 non-local connection from components, thus encryption is useless.  IRC
 SSL/TLS is also not yet implemented.
 
-Biboumi also does not check if received JIDs are properly formatted using
-nodeprep.  This must be done by the XMPP server to which biboumi is directly
-connected.
+Biboumi also does not check if the received JIDs are properly formatted
+using nodeprep.  This must be done by the XMPP server to which biboumi is
+directly connected.
+
+Remember that the administrator of the gateway you use is able to view all
+your IRC conversations, whether you’re using encryption or not.  This is
+exactly as if you were running your IRC client on someone else’s server.
+
+Biboumi does not yet provide a way to ban users from connecting to it, has
+no protection against flood or any sort of abuse that your users may cause
+on the IRC servers. Some XMPP server however offer the possibility to
+restrict what JID can access a gateway. Use that feature if you wish to
+grant access to your biboumi instance only to a list of users.
 
 AUTHORS
 -------
