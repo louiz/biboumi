@@ -102,13 +102,18 @@ entity.
 IRC channels and IRC users JIDs have a localpart formed like this:
 `name`, the `'%'` separator and the `irc_server`.
 
-If the IRC channel you want to adress starts with the `'#'` character (or
-less frequently, but still valid, one of `'&'`, `'+'` or `'!'`), then you
-must include it in the JID.  Some other gateway implementations, as well as
-some IRC clients, do not require them to be started by one of these
+If the IRC channel you want to adress starts with the `'#'` character (or an
+other character, announced by the IRC server, like `'&'`, `'+'` or `'!'`),
+then you must include it in the JID.  Some other gateway implementations, as
+well as some IRC clients, do not require them to be started by one of these
 characters, adding an implicit `'#'` in that case.  Biboumi does not do that
 because this gets confusing when trying to understand the difference between
-the channels *foo*, *#foo*, and *##foo*.
+the channels *#foo*, and *##foo*.
+
+The name part can also be empty (for example `%irc.example.com`), in that
+case this represents the virtual channel provided by biboumi.  See *Connect
+to an IRC server* for more details.
+
 
 On XMPP, the node part of the JID can only be lowercase.  On the other hand,
 IRC nicknames are case-insensitive, this means that the nicknames toto,
@@ -121,7 +126,13 @@ Examples:
   irc.example.com IRC server, and this is served by the biboumi instance on
   biboumi.example.com
 
-  `toto.example.com@biboumi.example.com` is the IRC user named toto, or TotO, etc.
+  `toto%irc.example.com@biboumi.example.com` is the IRC user named toto, or
+  TotO, etc.
+
+  `irc.example.com@biboumi.example.com` is the IRC server irc.example.com.
+
+  `%irc.example.com@biboumi.example.com` is the virtual channel provided by
+  biboumi, for the IRC server irc.example.com.
 
 If compiled with Libidn, an IRC user has a bare JID representing the
 “hostname” provided by the IRC server.  This JID can only be used to set IRC
