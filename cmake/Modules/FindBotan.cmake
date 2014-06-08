@@ -16,9 +16,10 @@
 # This file is in the public domain
 
 find_path(BOTAN_INCLUDE_DIRS NAMES botan/botan.h
+  PATH_SUFFIXES botan-1.11
   DOC "The botan include directory")
 
-find_library(BOTAN_LIBRARIES NAMES botan
+find_library(BOTAN_LIBRARIES NAMES botan botan-1.11
   DOC "The botan library")
 
 # Use some standard module to handle the QUIETLY and REQUIRED arguments, and
