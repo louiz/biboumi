@@ -258,6 +258,10 @@ int main()
   assert(cleaned_up == "0e46ab by Pierre Dindon [0|1|0] http://example.net/Ojrh4P media: avoid pop-in effect when loading thumbnails by specifying an explicit size");
   assert(xhtml->to_string() == "<body xmlns='http://www.w3.org/1999/xhtml'>0e46ab by <span style='color:green;'>Pierre Dindon</span> [<span style='color:lightgreen;'>0</span>|<span style='color:lightgreen;'>1</span>|<span style='color:indianred;'>0</span>] <span style='text-decoration:underline;'/><span style='text-decoration:underline;color:blue;'>http://example.net/Ojrh4P</span><span style='text-decoration:underline;'/> media: avoid pop-in effect when loading thumbnails by specifying an explicit size</body>");
 
+  std::tie(cleaned_up, xhtml) = irc_format_to_xhtmlim("test\ncoucou");
+  assert(cleaned_up == "test\ncoucou");
+  assert(xhtml->to_string() == "<body xmlns='http://www.w3.org/1999/xhtml'>test<br/>coucou</body>");
+
   /**
    * JID parsing
    */

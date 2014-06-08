@@ -77,6 +77,13 @@ Xmpp::body irc_format_to_xhtmlim(const std::string& s)
 
       if (s[pos_end] == IRC_FORMAT_BOLD_CHAR)
         styles.strong = !styles.strong;
+      else if (s[pos_end] == IRC_FORMAT_NEWLINE_CHAR)
+        {
+          XmlNode* br_node = new XmlNode("br");
+          br_node->close();
+          current_node->add_child(br_node);
+          cleaned += '\n';
+        }
       else if (s[pos_end] == IRC_FORMAT_UNDERLINE_CHAR)
         styles.underline = !styles.underline;
       else if (s[pos_end] == IRC_FORMAT_ITALIC_CHAR)

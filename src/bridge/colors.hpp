@@ -28,6 +28,7 @@ namespace Xmpp
 #define IRC_FORMAT_REVERSE2_CHAR   '\x16' // wat
 #define IRC_FORMAT_ITALIC_CHAR     '\x1D' // done
 #define IRC_FORMAT_UNDERLINE_CHAR  '\x1F' // done
+#define IRC_FORMAT_NEWLINE_CHAR    '\n'   // done
 
 static const char irc_format_char[] = {
   IRC_FORMAT_BOLD_CHAR,
@@ -38,6 +39,7 @@ static const char irc_format_char[] = {
   IRC_FORMAT_REVERSE2_CHAR,
   IRC_FORMAT_ITALIC_CHAR,
   IRC_FORMAT_UNDERLINE_CHAR,
+  IRC_FORMAT_NEWLINE_CHAR,
   '\x00'
 };
 
