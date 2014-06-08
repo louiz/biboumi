@@ -39,7 +39,7 @@ if(SYSTEMDDAEMON_FOUND)
 endif()
 
 if(BOTAN_FOUND)
-  include_directories(${BOTAN_INCLUDE_DIRS})
+  include_directories(SYSTEM ${BOTAN_INCLUDE_DIRS})
 endif()
 
 set(POLLER_DOCSTRING "Choose the poller between POLL and EPOLL (Linux-only)")
