@@ -2,8 +2,8 @@
 #include <logger/logger.hpp>
 
 #include <xmpp/xmpp_component.hpp>
+#include <config/config.hpp>
 #include <xmpp/jid.hpp>
-
 #include <utils/sha1.hpp>
 
 #include <stdexcept>
@@ -68,7 +68,7 @@ XmppComponent::~XmppComponent()
 
 void XmppComponent::start()
 {
-  this->connect("127.0.0.1", "5347", false);
+  this->connect("127.0.0.1", Config::get("port", "5347"), false);
 }
 
 bool XmppComponent::is_document_open() const

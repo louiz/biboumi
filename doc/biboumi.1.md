@@ -46,6 +46,11 @@ The configuration file uses a simple format of the form
   This password must be configured in the XMPP server, associated with the
   external component on *hostname*.
 
+`port`
+
+  The TCP port to use to connect to the local XMPP component. The default
+  value is 5347.
+
 `admin`
 
   The bare JID of the gateway administrator. This JID will have more
