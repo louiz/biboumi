@@ -86,6 +86,11 @@ public:
    */
   void close();
   /**
+   * Called by a TimedEvent, when the connection did not succeed or fail
+   * after a given time.
+   */
+  void on_connection_timeout();
+  /**
    * Called when the connection is successful.
    */
   virtual void on_connected() = 0;

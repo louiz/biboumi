@@ -1,5 +1,6 @@
 #include <network/socket_handler.hpp>
 
+#include <utils/timed_events.hpp>
 #include <utils/scopeguard.hpp>
 #include <network/poller.hpp>
 
@@ -26,6 +27,7 @@
 #endif
 
 using namespace std::string_literals;
+using namespace std::chrono_literals;
 
 namespace ph = std::placeholders;
 
@@ -117,6 +119,8 @@ void SocketHandler::connect(const std::string& address, const std::string& port,
           || errno == EISCONN)
         {
           log_info("Connection success.");
+          TimedEventsManager::instance().cancel("connection_timeout"s +
+                                                std::to_string(this->socket));
           this->poller->add_socket_handler(this);
           this->connected = true;
           this->connecting = false;
@@ -139,6 +143,12 @@ void SocketHandler::connect(const std::string& address, const std::string& port,
           memcpy(&this->addrinfo, rp, sizeof(struct addrinfo));
           this->addrinfo.ai_addr = &this->ai_addr;
           this->addrinfo.ai_next = nullptr;
+          // If the connection has not succeeded or failed in 5s, we consider
+          // it to have failed
+          TimedEventsManager::instance().add_event(
+                TimedEvent(std::chrono::steady_clock::now() + 5s,
+                           std::bind(&SocketHandler::on_connection_timeout, this),
+                           "connection_timeout"s + std::to_string(this->socket)));
           return ;
         }
       log_info("Connection failed:" << strerror(errno));
@@ -147,6 +157,12 @@ void SocketHandler::connect(const std::string& address, const std::string& port,
   this->close();
   this->on_connection_failed(strerror(errno));
   return ;
+}
+
+void SocketHandler::on_connection_timeout()
+{
+  this->close();
+  this->on_connection_failed("connection timed out");
 }
 
 void SocketHandler::connect()
@@ -273,6 +289,8 @@ void SocketHandler::close()
   this->in_buf.clear();
   this->out_buf.clear();
   this->port.clear();
+  TimedEventsManager::instance().cancel("connection_timeout"s +
+                                        std::to_string(this->socket));
 }
 
 socket_t SocketHandler::get_socket() const
