@@ -24,6 +24,12 @@ Libraries:
  not provided.
  http://www.gnu.org/software/libidn/
 
+- libbotan 1.11 (optional)
+ Provides TLS support. Without it, IRC connections are all made in
+ plain-text mode.
+ Other branches than the 1.11 are not supported.
+ http://botan.randombit.net/
+
 - systemd-daemon (optional)
  Provides the support for a systemd service of Type=notify. This is useful only
  if you are packaging biboumi in a distribution with Systemd.
