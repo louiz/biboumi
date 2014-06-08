@@ -35,7 +35,7 @@ Libraries:
  if you are packaging biboumi in a distribution with Systemd.
 
 Tools:
-- A C++14 compiler.
+- A C++14 compiler (clang >= 3.4 or gcc >= 4.9 for example)
 - CMake
 - ronn (optional) to build the man page
 
