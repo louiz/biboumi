@@ -1,11 +1,14 @@
 #include <xmpp/adhoc_commands_handler.hpp>
 #include <xmpp/xmpp_component.hpp>
 
+#include <utils/timed_events.hpp>
 #include <logger/logger.hpp>
 #include <config/config.hpp>
 #include <xmpp/jid.hpp>
 
 #include <iostream>
+
+using namespace std::string_literals;
 
 AdhocCommandsHandler::AdhocCommandsHandler(XmppComponent* xmpp_component):
   xmpp_component(xmpp_component),
@@ -70,10 +73,9 @@ XmlNode&& AdhocCommandsHandler::handle_request(const std::string& executor_jid, 
           this->sessions.emplace(std::piecewise_construct,
                                  std::forward_as_tuple(sessionid, executor_jid),
                                  std::forward_as_tuple(command_it->second, executor_jid));
-          // TODO add a timed event to have an expiration date that deletes
-          // this session. We could have a nasty client starting commands
-          // but never finishing the last step, and that would fill the map
-          // with dummy sessions.
+          TimedEventsManager::instance().add_event(TimedEvent(std::chrono::steady_clock::now() + 3600s,
+                                                              std::bind(&AdhocCommandsHandler::remove_session, this, sessionid, executor_jid),
+                                                              "adhocsession"s + sessionid + executor_jid));
         }
       auto session_it = this->sessions.find(std::make_pair(sessionid, executor_jid));
       if (session_it == this->sessions.end())
@@ -97,6 +99,7 @@ XmlNode&& AdhocCommandsHandler::handle_request(const std::string& executor_jid, 
             {
               this->sessions.erase(session_it);
               command_node["status"] = "completed";
+              TimedEventsManager::instance().cancel("adhocsession"s + sessionid + executor_jid);
             }
           else
             {
@@ -114,4 +117,15 @@ XmlNode&& AdhocCommandsHandler::handle_request(const std::string& executor_jid, 
   // by mistake.
   log_debug("Number of existing sessions: " << this->sessions.size());
   return std::move(command_node);
+}
+
+void AdhocCommandsHandler::remove_session(const std::string& session_id, const std::string& initiator_jid)
+{
+  auto session_it = this->sessions.find(std::make_pair(session_id, initiator_jid));
+  if (session_it != this->sessions.end())
+    {
+      this->sessions.erase(session_it);
+      return ;
+    }
+  log_error("Tried to remove ad-hoc session for [" << session_id << ", " << initiator_jid << "] but none found");
 }

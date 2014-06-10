@@ -37,6 +37,12 @@ public:
    * it as our return value.
    */
   XmlNode&& handle_request(const std::string& executor_jid, XmlNode command_node);
+  /**
+   * Remove the session from the list. This is done to avoid filling the
+   * memory with waiting session (for example due to a client that starts
+   * multi-steps command but never finishes them).
+   */
+  void remove_session(const std::string& session_id, const std::string& initiator_jid);
 private:
   /**
    * A pointer to the XmppComponent, to access to basically anything in the
