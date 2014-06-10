@@ -31,8 +31,6 @@ const std::map<const std::string, const AdhocCommand>& AdhocCommandsHandler::get
 
 XmlNode&& AdhocCommandsHandler::handle_request(const std::string& executor_jid, XmlNode command_node)
 {
-  // TODO check the type of action. Currently it assumes it is always
-  // 'execute'.
   std::string action = command_node.get_tag("action");
   if (action.empty())
     action = "execute";
@@ -88,7 +86,7 @@ XmlNode&& AdhocCommandsHandler::handle_request(const std::string& executor_jid, 
           error.close();
           command_node.add_child(std::move(error));
         }
-      else
+      else if (action == "execute" || action == "next" || action == "complete")
         {
           // execute the step
           AdhocSession& session = session_it->second;
@@ -112,10 +110,23 @@ XmlNode&& AdhocCommandsHandler::handle_request(const std::string& executor_jid, 
               command_node.add_child(std::move(actions));
             }
         }
+      else if (action == "cancel")
+        {
+          this->sessions.erase(session_it);
+          command_node["status"] = "canceled";
+          TimedEventsManager::instance().cancel("adhocsession"s + sessionid + executor_jid);
+        }
+      else                      // unsupported action
+        {
+          XmlNode error(ADHOC_NS":error");
+          error["type"] = "modify";
+          XmlNode condition(STANZA_NS":bad-request");
+          condition.close();
+          error.add_child(std::move(condition));
+          error.close();
+          command_node.add_child(std::move(error));
+        }
     }
-  // TODO remove that once we make sure so session can stay there for ever,
-  // by mistake.
-  log_debug("Number of existing sessions: " << this->sessions.size());
   return std::move(command_node);
 }
 
