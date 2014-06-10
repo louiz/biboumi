@@ -83,9 +83,14 @@ void HelloStep2(XmppComponent*, AdhocSession& session, XmlNode& command_node)
             }
         }
     }
-  // TODO insert an error telling the name value is missing.  Also it's
-  // useless to terminate it, since this step is the last of the command
-  // anyway. But this is for the example.
+  command_node.delete_all_children();
+  XmlNode error(ADHOC_NS":error");
+  error["type"] = "modify";
+  XmlNode condition(STANZA_NS":bad-request");
+  condition.close();
+  error.add_child(std::move(condition));
+  error.close();
+  command_node.add_child(std::move(error));
   session.terminate();
 }
 
@@ -182,7 +187,13 @@ void DisconnectUserStep2(XmppComponent* xmpp_component, AdhocSession& session, X
           command_node.add_child(std::move(note));
         }
     }
-  // TODO insert an error telling the values are missing.
+  XmlNode error(ADHOC_NS":error");
+  error["type"] = "modify";
+  XmlNode condition(STANZA_NS":bad-request");
+  condition.close();
+  error.add_child(std::move(condition));
+  error.close();
+  command_node.add_child(std::move(error));
   session.terminate();
 }
 
