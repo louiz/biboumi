@@ -306,7 +306,7 @@ void XmppComponent::handle_presence(const Stanza& stanza)
                               error_type, error_name, "");
         });
 
-  if (!iid.server.empty())
+  if (iid.is_channel && !iid.get_server().empty())
     { // presence toward a MUC that corresponds to an irc channel, or a
       // dummy channel if iid.chan is empty
       if (type.empty())
@@ -353,7 +353,7 @@ void XmppComponent::handle_message(const Stanza& stanza)
                               error_type, error_name, "");
         });
   XmlNode* body = stanza.get_child("body", COMPONENT_NS);
-  if (type == "groupchat")
+  if (type == "groupchat" && iid.is_channel)
     {
       if (to.resource.empty())
         if (body && !body->get_inner().empty())
@@ -379,11 +379,13 @@ void XmppComponent::handle_message(const Stanza& stanza)
       if (kickable_error)
         bridge->shutdown("Error from remote client");
     }
-  else if (type == "chat")
+  else if (type == "chat" && iid.is_user && !iid.get_local().empty())
     {
       if (body && !body->get_inner().empty())
         bridge->send_private_message(iid, body->get_inner());
     }
+  else if (iid.is_user)
+    this->send_invalid_user_error(to.local, from);
   stanza_error.disable();
 }
 
@@ -671,6 +673,36 @@ void XmppComponent::send_invalid_room_error(const std::string& muc_name,
   this->send_stanza(presence);
 }
 
+void XmppComponent::send_invalid_user_error(const std::string& user_name, const std::string& to)
+{
+  Stanza message("message");
+  message["from"] = user_name + "@" + this->served_hostname;
+  message["to"] = to;
+  message["type"] = "error";
+  XmlNode x("x");
+  x["xmlns"] = MUC_NS;
+  x.close();
+  message.add_child(std::move(x));
+  XmlNode error("error");
+  error["type"] = "cancel";
+  XmlNode item_not_found("item-not-found");
+  item_not_found["xmlns"] = STANZA_NS;
+  item_not_found.close();
+  error.add_child(std::move(item_not_found));
+  XmlNode text("text");
+  text["xmlns"] = STANZA_NS;
+  text["xml:lang"] = "en";
+  text.set_inner(user_name +
+                 " is not a valid IRC user name. A correct user jid is of the form: <nick>!<server>@" +
+                 this->served_hostname);
+  text.close();
+  error.add_child(std::move(text));
+  error.close();
+  message.add_child(std::move(error));
+  message.close();
+  this->send_stanza(message);
+}
+
 void XmppComponent::send_topic(const std::string& from, Xmpp::body&& topic, const std::string& to)
 {
   XmlNode message("message");
@@ -711,7 +743,7 @@ void XmppComponent::send_muc_message(const std::string& muc_name, const std::str
   this->send_stanza(message);
 }
 
-void XmppComponent::send_muc_leave(std::string&& muc_name, std::string&& nick, Xmpp::body&& message, const std::string& jid_to, const bool self)
+void XmppComponent::send_muc_leave(const std::string& muc_name, std::string&& nick, Xmpp::body&& message, const std::string& jid_to, const bool self)
 {
   Stanza presence("presence");
   presence["to"] = jid_to;

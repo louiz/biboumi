@@ -102,10 +102,11 @@ void IrcClient::on_connection_close()
   log_warning(message);
 }
 
-IrcChannel* IrcClient::get_channel(const std::string& name)
+IrcChannel* IrcClient::get_channel(const std::string& n)
 {
-  if (name.empty())
+  if (n.empty())
     return &this->dummy_channel;
+  const std::string name = utils::tolower(n);
   try
     {
       return this->channels.at(name).get();
@@ -382,15 +383,18 @@ void IrcClient::on_channel_message(const IrcMessage& message)
   const IrcUser user(message.prefix);
   const std::string nick = user.nick;
   Iid iid;
-  iid.chan = utils::tolower(message.arguments[0]);
-  iid.server = this->hostname;
+  iid.set_local(message.arguments[0]);
+  iid.set_server(this->hostname);
   const std::string body = message.arguments[1];
   bool muc = true;
-  if (!this->get_channel(iid.chan)->joined)
+  if (!this->get_channel(iid.get_local())->joined)
     {
-      iid.chan = nick;
+      iid.is_user = true;
+      iid.set_local(nick);
       muc = false;
     }
+  else
+    iid.is_channel = true;
   if (!body.empty() && body[0] == '\01')
     {
       if (body.substr(1, 6) == "ACTION")
@@ -460,8 +464,9 @@ void IrcClient::on_nickname_conflict(const IrcMessage& message)
   for (auto it = this->channels.begin(); it != this->channels.end(); ++it)
   {
     Iid iid;
-    iid.chan = it->first;
-    iid.server = this->hostname;
+    iid.set_local(it->first);
+    iid.set_server(this->hostname);
+    iid.is_channel = true;
     this->bridge->send_nickname_conflict_error(iid, nickname);
   }
 }
@@ -499,7 +504,7 @@ void IrcClient::on_welcome_message(const IrcMessage& message)
 
 void IrcClient::on_part(const IrcMessage& message)
 {
-  const std::string chan_name = utils::tolower(message.arguments[0]);
+  const std::string chan_name = message.arguments[0];
   IrcChannel* channel = this->get_channel(chan_name);
   if (!channel->joined)
     return ;
@@ -512,13 +517,14 @@ void IrcClient::on_part(const IrcMessage& message)
       std::string nick = user->nick;
       channel->remove_user(user);
       Iid iid;
-      iid.chan = chan_name;
-      iid.server = this->hostname;
+      iid.set_local(chan_name);
+      iid.set_server(this->hostname);
+      iid.is_channel = true;
       bool self = channel->get_self()->nick == nick;
       if (self)
       {
         channel->joined = false;
-        this->channels.erase(chan_name);
+        this->channels.erase(utils::tolower(chan_name));
         // channel pointer is now invalid
         channel = nullptr;
       }
@@ -533,8 +539,9 @@ void IrcClient::on_error(const IrcMessage& message)
   for (auto it = this->channels.begin(); it != this->channels.end(); ++it)
   {
     Iid iid;
-    iid.chan = it->first;
-    iid.server = this->hostname;
+    iid.set_local(it->first);
+    iid.set_server(this->hostname);
+    iid.is_channel = true;
     IrcChannel* channel = it->second.get();
     if (!channel->joined)
       continue;
@@ -560,8 +567,9 @@ void IrcClient::on_quit(const IrcMessage& message)
           std::string nick = user->nick;
           channel->remove_user(user);
           Iid iid;
-          iid.chan = chan_name;
-          iid.server = this->hostname;
+          iid.set_local(chan_name);
+          iid.set_server(this->hostname);
+          iid.is_channel = true;
           this->bridge->send_muc_leave(std::move(iid), std::move(nick), txt, false);
         }
     }
@@ -579,8 +587,9 @@ void IrcClient::on_nick(const IrcMessage& message)
         {
           std::string old_nick = user->nick;
           Iid iid;
-          iid.chan = chan_name;
-          iid.server = this->hostname;
+          iid.set_local(chan_name);
+          iid.set_server(this->hostname);
+          iid.is_channel = true;
           const bool self = channel->get_self()->nick == old_nick;
           const char user_mode = user->get_most_significant_mode(this->sorted_user_modes);
           this->bridge->send_nick_change(std::move(iid), old_nick, new_nick, user_mode, self);
@@ -606,8 +615,9 @@ void IrcClient::on_kick(const IrcMessage& message)
     channel->joined = false;
   IrcUser author(message.prefix);
   Iid iid;
-  iid.chan = chan_name;
-  iid.server = this->hostname;
+  iid.set_local(chan_name);
+  iid.set_server(this->hostname);
+  iid.is_channel = true;
   this->bridge->kick_muc_user(std::move(iid), target, reason, author.nick);
 }
 
@@ -625,8 +635,9 @@ void IrcClient::on_channel_mode(const IrcMessage& message)
   // For now, just transmit the modes so the user can know what happens
   // TODO, actually interprete the mode.
   Iid iid;
-  iid.chan = utils::tolower(message.arguments[0]);
-  iid.server = this->hostname;
+  iid.set_local(message.arguments[0]);
+  iid.set_server(this->hostname);
+  iid.is_channel = true;
   IrcUser user(message.prefix);
   std::string mode_arguments;
   for (size_t i = 1; i < message.arguments.size(); ++i)
@@ -638,10 +649,10 @@ void IrcClient::on_channel_mode(const IrcMessage& message)
           mode_arguments += message.arguments[i];
         }
     }
-  this->bridge->send_message(iid, "", "Mode "s + iid.chan +
+  this->bridge->send_message(iid, "", "Mode "s + iid.get_local() +
                                       " [" + mode_arguments + "] by " + user.nick,
                              true);
-  const IrcChannel* channel = this->get_channel(iid.chan);
+  const IrcChannel* channel = this->get_channel(iid.get_local());
   if (!channel)
     return;
 
@@ -695,7 +706,7 @@ void IrcClient::on_channel_mode(const IrcMessage& message)
               if (!user)
                 {
                   log_warning("Trying to set mode for non-existing user '" << target
-                              << "' in channel" << iid.chan);
+                              << "' in channel" << iid.get_local());
                   return;
                 }
               if (add)
