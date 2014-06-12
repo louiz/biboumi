@@ -6,11 +6,6 @@ NAME
 
 biboumi - XMPP gateway to IRC
 
-SYNOPSIS
---------
-
-`biboumi` [`config_filename`]
-
 DESCRIPTION
 -----------
 
@@ -18,10 +13,15 @@ Biboumi is an XMPP gateway that connects to IRC servers and translates
 between the two protocols. It can be used to access IRC channels using any
 XMPP client as if these channels were XMPP MUCs.
 
+SYNOPSIS
+--------
+
+`biboumi` [`config_filename`]
+
 OPTIONS
 -------
 
-Available options:
+Available command line options:
 
 `config_filename`
 
@@ -176,7 +176,7 @@ channel `#foo` on the server `irc.example.com`, but you need to authenticate
 to a bot of the server before you’re allowed to join it, you can first join
 the room `%irc.example.com@biboumi.example.com` (this will effectively
 connect you to the IRC server without joining any room), then send your
-authentication message to the user `bot%irc.example.com@biboumi.example.com"
+authentication message to the user `bot!irc.example.com@biboumi.example.com`
 and finally join the room `#foo%irc.example.com@biboumi.example.com`.
 
 ### Channel messages
@@ -207,10 +207,9 @@ Private messages are handled differently on IRC and on XMPP.  On IRC, you
 talk directly to one server-user: toto on the channel #foo is the same user
 as toto on the channel #bar (as long as these two channels are on the same
 IRC server).  Using biboumi, there is no way to receive a message from a
-room participant (from a jid like
-#test%irc.example.com@biboumi.example.com/nickname).  Instead, private
-messages are received from and sent to the user (using a jid like
-nickname%irc.example.com@biboumi.example.com).
+room participant (from a jid like #test%irc.example.com@biboumi.example.com/nickname).
+Instead, private messages are received from and sent to the user (using a
+jid like `nickname!irc.example.com@biboumi.example.com`).
 
 ### Notices
 
@@ -291,35 +290,43 @@ Biboumi supports a few ad-hoc commands, as described in the XEP 0050.
   - hello: Provide a form, where the user enters their name, and biboumi
     responds with a nice greeting.
 
-  - disconnect-user: Available to the administrator only. The user provides
-    a list of JIDs, and a quit message. All these users are disconnected
-    from all the IRC servers to which they were connected, using the
-    provided quit message. Sending SIGINT to biboumi is equivalent to using
-    this command by selecting all the connected JIDs and using the “Gateway
-    shutdown” quit message, except that biboumi does not exit when using
-    this ad-hoc command.
+  - disconnect-user: Only available to the administrator. The user provides
+    a list of JIDs, and a quit message. All the selected users are
+    disconnected from all the IRC servers to which they were connected,
+    using the provided quit message. Sending SIGINT to biboumi is equivalent
+    to using this command by selecting all the connected JIDs and using the
+    “Gateway shutdown” quit message, except that biboumi does not exit when
+    using this ad-hoc command.
 
 SECURITY
 --------
 
-Biboumi does not provide any encryption mechanism: connection to the XMPP
-server MUST be made on localhost.  The XMPP server is not supposed to accept
-non-local connection from components, thus encryption is useless.  IRC
-SSL/TLS is also not yet implemented.
+The connection to the XMPP server can only be made on localhost.  The
+XMPP server is not supposed to accept non-local connections from components.
+Thus, encryption is not used to connect to the local XMPP server because it
+is useless.
 
-Biboumi also does not check if the received JIDs are properly formatted
-using nodeprep.  This must be done by the XMPP server to which biboumi is
-directly connected.
+If compiled with the Botan library, biboumi can use TLS when communicating
+with the IRC serveres.  It will first try ports 6697 and 6670 and use TLS if
+it succeeds, if connection fails on both these ports, the connection is
+established on port 6667 without any encryption.
 
-Remember that the administrator of the gateway you use is able to view all
-your IRC conversations, whether you’re using encryption or not.  This is
-exactly as if you were running your IRC client on someone else’s server.
+Biboumi does not check if the received JIDs are properly formatted using
+nodeprep.  This must be done by the XMPP server to which biboumi is directly
+connected.
 
-Biboumi does not yet provide a way to ban users from connecting to it, has
-no protection against flood or any sort of abuse that your users may cause
-on the IRC servers. Some XMPP server however offer the possibility to
-restrict what JID can access a gateway. Use that feature if you wish to
-grant access to your biboumi instance only to a list of users.
+Note if you use a biboumi that you have no control on: remember that the
+administrator of the gateway you use is able to view all your IRC
+conversations, whether you’re using encryption or not.  This is exactly as
+if you were running your IRC client on someone else’s server.  Only use
+biboumi if you trust its administrator (or, better, if you are the
+administrator) or if you don’t intend to have any private conversation.
+
+Biboumi does not provide a way to ban users from connecting to it, has no
+protection against flood or any sort of abuse that your users may cause on
+the IRC servers. Some XMPP server however offer the possibility to restrict
+what JID can access a gateway. Use that feature if you wish to grant access
+to your biboumi instance only to a list of trusted users.
 
 AUTHORS
 -------
