@@ -1,3 +1,4 @@
+#define SYSTEM_NAME "${CMAKE_SYSTEM}"
 #cmakedefine ICONV_SECOND_ARGUMENT_IS_CONST
 #cmakedefine LIBIDN_FOUND
 #cmakedefine SYSTEMDDAEMON_FOUND

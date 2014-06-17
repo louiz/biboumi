@@ -200,6 +200,10 @@ public:
    */
   void send_self_disco_info(const std::string& id, const std::string& jid_to);
   /**
+   * Send a result IQ with the gateway version.
+   */
+  void send_self_version(const std::string& id, const std::string& jid_to, const std::string& jid_from);
+  /**
    * Send the list of all available ad-hoc commands to that JID. The list is
    * different depending on what JID made the request.
    */

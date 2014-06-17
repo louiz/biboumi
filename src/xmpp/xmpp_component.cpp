@@ -506,6 +506,16 @@ void XmppComponent::handle_iq(const Stanza& stanza)
                 }
             }
         }
+      else if ((query = stanza.get_child("query", VERSION_NS)))
+        {
+          Iid iid(to.local);
+          if (!iid.is_user)
+            {
+              // On the gateway itself or on a channel
+              this->send_self_version(id, from, to_str);
+            }
+          stanza_error.disable();
+        }
       else if ((query = stanza.get_child("query", DISCO_ITEMS_NS)))
         {
           const std::string node = query->get_tag("node");
@@ -967,6 +977,33 @@ void XmppComponent::send_self_disco_info(const std::string& id, const std::strin
       feature.close();
       query.add_child(std::move(feature));
     }
+  query.close();
+  iq.add_child(std::move(query));
+  iq.close();
+  this->send_stanza(iq);
+}
+
+void XmppComponent::send_self_version(const std::string& id, const std::string& jid_to, const std::string& jid_from)
+{
+  Stanza iq("iq");
+  iq["type"] = "result";
+  iq["id"] = id;
+  iq["to"] = jid_to;
+  iq["from"] = jid_from;
+  XmlNode query("query");
+  query["xmlns"] = VERSION_NS;
+  XmlNode name("name");
+  name.set_inner("biboumi");
+  name.close();
+  query.add_child(std::move(name));
+  XmlNode version("version");
+  version.set_inner(BIBOUMI_VERSION);
+  version.close();
+  query.add_child(std::move(version));
+  XmlNode os("os");
+  os.set_inner(SYSTEM_NAME);
+  os.close();
+  query.add_child(std::move(os));
   query.close();
   iq.add_child(std::move(query));
   iq.close();
