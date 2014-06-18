@@ -111,7 +111,7 @@ public:
    */
   void send_affiliation_role_change(const Iid& iid, const std::string& target, const char mode);
   /**
-   * Send an iq version request coming from nick%hostname@
+   * Send an iq version request coming from nick!hostname@
    */
   void send_iq_version_request(const std::string& nick, const std::string& hostname);
 
