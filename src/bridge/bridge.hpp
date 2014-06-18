@@ -123,6 +123,14 @@ public:
    * Get the number of server to which this bridge is connected or connecting.
    */
   size_t active_clients() const;
+  /**
+   * Add (or replace the existing) <nick, jid> into the preferred_user_from map
+   */
+  void set_preferred_from_jid(const std::string& nick, const std::string& full_jid);
+  /**
+   * Remove the preferred jid for the given IRC nick
+   */
+  void remove_preferred_from_jid(const std::string& nick);
 
 private:
   /**
@@ -157,6 +165,14 @@ private:
    * their sockets.
    */
   std::shared_ptr<Poller> poller;
+  /**
+   * A map of <nick, full_jid>. For example if this map contains <"toto",
+   * "#somechan%server@biboumi/ToTo">, whenever a private message is
+   * received from the user "toto", instead of forwarding it to XMPP with
+   * from='toto!server@biboumi', we use instead
+   * from='#somechan%server@biboumi/ToTo'
+   */
+  std::unordered_map<std::string, std::string> preferred_user_from;
 
   Bridge(const Bridge&) = delete;
   Bridge(Bridge&& other) = delete;

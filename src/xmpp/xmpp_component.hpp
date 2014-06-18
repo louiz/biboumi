@@ -111,9 +111,13 @@ public:
   void close_document();
   /**
    * Send a message from from@served_hostname, with the given body
+   *
+   * If fulljid is false, the provided 'from' doesn't contain the
+   * server-part of the JID and must be added.
    */
   void send_message(const std::string& from, Xmpp::body&& body,
-                    const std::string& to, const std::string& type);
+                    const std::string& to, const std::string& type,
+                    const bool fulljid=false);
   /**
    * Send a join from a new participant
    */

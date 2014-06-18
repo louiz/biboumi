@@ -242,8 +242,18 @@ void Bridge::send_message(const Iid& iid, const std::string& nick, const std::st
     this->xmpp->send_muc_message(std::to_string(iid), nick,
                                  this->make_xmpp_body(body), this->user_jid);
   else
-    this->xmpp->send_message(std::to_string(iid),
-                             this->make_xmpp_body(body), this->user_jid, "chat");
+    {
+      std::string target = std::to_string(iid);
+      bool fulljid = false;
+      auto it = this->preferred_user_from.find(iid.get_local());
+      if (it != this->preferred_user_from.end())
+        {
+          target = it->second;
+          fulljid = true;
+        }
+      this->xmpp->send_message(target, this->make_xmpp_body(body),
+                               this->user_jid, "chat", fulljid);
+    }
 }
 
 void Bridge::send_join_failed(const Iid& iid, const std::string& nick, const std::string& type, const std::string& condition, const std::string& text)
@@ -342,4 +352,20 @@ void Bridge::send_affiliation_role_change(const Iid& iid, const std::string& tar
 void Bridge::send_iq_version_request(const std::string& nick, const std::string& hostname)
 {
   this->xmpp->send_iq_version_request(nick + "!" + hostname, this->user_jid);
+}
+
+void Bridge::set_preferred_from_jid(const std::string& nick, const std::string& full_jid)
+{
+  auto it = this->preferred_user_from.find(nick);
+  if (it == this->preferred_user_from.end())
+    this->preferred_user_from.emplace(nick, full_jid);
+  else
+    this->preferred_user_from[nick] = full_jid;
+}
+
+void Bridge::remove_preferred_from_jid(const std::string& nick)
+{
+  auto it = this->preferred_user_from.find(nick);
+  if (it != this->preferred_user_from.end())
+    this->preferred_user_from.erase(it);
 }

@@ -1,4 +1,5 @@
 #include <utils/scopeguard.hpp>
+#include <utils/tolower.hpp>
 #include <logger/logger.hpp>
 
 #include <xmpp/xmpp_component.hpp>
@@ -351,13 +352,14 @@ void XmppComponent::handle_message(const Stanza& stanza)
   utils::ScopeGuard stanza_error([&](){
       this->send_stanza_error("message", from, to_str, id,
                               error_type, error_name, "");
-        });
+    });
   XmlNode* body = stanza.get_child("body", COMPONENT_NS);
   if (type == "groupchat" && iid.is_channel)
     {
-      if (to.resource.empty())
-        if (body && !body->get_inner().empty())
+      if (body && !body->get_inner().empty())
+        {
           bridge->send_channel_message(iid, body->get_inner());
+        }
       XmlNode* subject = stanza.get_child("subject", COMPONENT_NS);
       if (subject)
         bridge->set_channel_topic(iid, subject->get_inner());
@@ -374,15 +376,30 @@ void XmppComponent::handle_message(const Stanza& stanza)
         {
           const XmlNode* condition = error->get_last_child();
           if (kickable_errors.find(condition->get_name()) == kickable_errors.end())
-              kickable_error = false;
+            kickable_error = false;
         }
       if (kickable_error)
         bridge->shutdown("Error from remote client");
     }
-  else if (type == "chat" && iid.is_user && !iid.get_local().empty())
+  else if (type == "chat")
     {
       if (body && !body->get_inner().empty())
-        bridge->send_private_message(iid, body->get_inner());
+        {
+          // a message for nick!server
+          if (iid.is_user && !iid.get_local().empty())
+            {
+              bridge->send_private_message(iid, body->get_inner());
+              bridge->remove_preferred_from_jid(iid.get_local());
+            }
+          else if (!iid.is_user && !to.resource.empty())
+            { // a message for chan%server@biboumi/Nick or
+              // server@biboumi/Nick
+              // Convert that into a message to nick!server
+              Iid user_iid(utils::tolower(to.resource) + "!" + iid.get_server());
+              bridge->send_private_message(user_iid, body->get_inner());
+              bridge->set_preferred_from_jid(user_iid.get_local(), to_str);
+            }
+        }
     }
   else if (iid.is_user)
     this->send_invalid_user_error(to.local, from);
@@ -571,11 +588,14 @@ void* XmppComponent::get_receive_buffer(const size_t size) const
   return this->parser.get_buffer(size);
 }
 
-void XmppComponent::send_message(const std::string& from, Xmpp::body&& body, const std::string& to, const std::string& type)
+void XmppComponent::send_message(const std::string& from, Xmpp::body&& body, const std::string& to, const std::string& type, const bool fulljid)
 {
   XmlNode node("message");
   node["to"] = to;
-  node["from"] = from + "@" + this->served_hostname;
+  if (fulljid)
+    node["from"] = from;
+  else
+    node["from"] = from + "@" + this->served_hostname;
   if (!type.empty())
     node["type"] = type;
   XmlNode body_node("body");
