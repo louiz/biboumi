@@ -509,10 +509,22 @@ void XmppComponent::handle_iq(const Stanza& stanza)
       else if ((query = stanza.get_child("query", VERSION_NS)))
         {
           Iid iid(to.local);
-          if (!iid.is_user)
+          if (iid.is_user ||
+              (iid.is_channel && !to.resource.empty()))
+            {
+              // Get the IRC user version
+              std::string target;
+              if (iid.is_user)
+                target = iid.get_local();
+              else
+                target = to.resource;
+              bridge->send_irc_version_request(iid.get_server(), target, id,
+                                               from, to_str);
+            }
+          else
             {
               // On the gateway itself or on a channel
-              this->send_self_version(id, from, to_str);
+              this->send_version(id, from, to_str);
             }
           stanza_error.disable();
         }
@@ -983,7 +995,8 @@ void XmppComponent::send_self_disco_info(const std::string& id, const std::strin
   this->send_stanza(iq);
 }
 
-void XmppComponent::send_self_version(const std::string& id, const std::string& jid_to, const std::string& jid_from)
+void XmppComponent::send_version(const std::string& id, const std::string& jid_to, const std::string& jid_from,
+                                 const std::string& version)
 {
   Stanza iq("iq");
   iq["type"] = "result";
@@ -992,18 +1005,28 @@ void XmppComponent::send_self_version(const std::string& id, const std::string& 
   iq["from"] = jid_from;
   XmlNode query("query");
   query["xmlns"] = VERSION_NS;
-  XmlNode name("name");
-  name.set_inner("biboumi");
-  name.close();
-  query.add_child(std::move(name));
-  XmlNode version("version");
-  version.set_inner(BIBOUMI_VERSION);
-  version.close();
-  query.add_child(std::move(version));
-  XmlNode os("os");
-  os.set_inner(SYSTEM_NAME);
-  os.close();
-  query.add_child(std::move(os));
+  if (version.empty())
+    {
+      XmlNode name("name");
+      name.set_inner("biboumi");
+      name.close();
+      query.add_child(std::move(name));
+      XmlNode version("version");
+      version.set_inner(BIBOUMI_VERSION);
+      version.close();
+      query.add_child(std::move(version));
+      XmlNode os("os");
+      os.set_inner(SYSTEM_NAME);
+      os.close();
+      query.add_child(std::move(os));
+    }
+  else
+    {
+      XmlNode name("name");
+      name.set_inner(version);
+      name.close();
+      query.add_child(std::move(name));
+    }
   query.close();
   iq.add_child(std::move(query));
   iq.close();

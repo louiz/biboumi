@@ -66,7 +66,11 @@ public:
   void send_irc_kick(const Iid& iid, const std::string& target, const std::string& reason,
                      const std::string& iq_id, const std::string& to_jid);
   void set_channel_topic(const Iid& iid, const std::string& subject);
-  void send_xmpp_version_to_irc(const Iid& iid, const std::string& name, const std::string& version, const std::string& os);
+  void send_xmpp_version_to_irc(const Iid& iid, const std::string& name, const std::string& version,
+                                const std::string& os);
+  void send_irc_version_request(const std::string& irc_hostname, const std::string& target,
+                                const std::string& iq_id, const std::string& to_jid,
+                                const std::string& from_jid);
 
   /***
    **

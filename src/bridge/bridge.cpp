@@ -275,6 +275,42 @@ void Bridge::send_xmpp_version_to_irc(const Iid& iid, const std::string& name, c
   this->send_private_message(iid, "\01VERSION "s + result + "\01", "NOTICE");
 }
 
+void Bridge::send_irc_version_request(const std::string& irc_hostname, const std::string& target,
+                                      const std::string& iq_id, const std::string& to_jid,
+                                      const std::string& from_jid)
+{
+  Iid iid(target + "!" + irc_hostname);
+  this->send_private_message(iid, "\01VERSION\01");
+
+  // TODO, add a timer to remove that waiting iq if the server does not
+  // respond with a matching command before n seconds
+  this->add_waiting_iq([this, target, iq_id, to_jid, irc_hostname, from_jid](const std::string& hostname, const IrcMessage& message){
+      if (irc_hostname != hostname)
+        return false;
+      IrcUser user(message.prefix);
+      if (message.command == "NOTICE" && user.nick == target &&
+          message.arguments.size() >= 2 && message.arguments[1].substr(0, 9) == "\01VERSION ")
+        {
+          // remove the "\01VERSION " and the "\01" parts from the string
+          const std::string version = message.arguments[1].substr(9, message.arguments[1].size() - 10);
+          this->xmpp->send_version(iq_id, to_jid, from_jid, version);
+          return true;
+        }
+      if (message.command == "401" && message.arguments.size() >= 2
+          && message.arguments[1] == target)
+        {
+          std::string error_message = "No such nick";
+          if (message.arguments.size() >= 3)
+            error_message = message.arguments[2];
+          this->xmpp->send_stanza_error("iq", to_jid, from_jid, iq_id, "cancel", "item-not-found",
+                                        error_message, true);
+          return true;
+        }
+      return false;
+    });
+}
+
+
 void Bridge::send_message(const Iid& iid, const std::string& nick, const std::string& body, const bool muc)
 {
   if (muc)
