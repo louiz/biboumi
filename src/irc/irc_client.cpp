@@ -96,7 +96,6 @@ void IrcClient::on_connected()
 void IrcClient::on_connection_close()
 {
   static const std::string message = "Connection closed by remote server.";
-  this->send_gateway_message(message);
   const IrcMessage error{"ERROR", {message}};
   this->on_error(error);
   log_warning(message);
