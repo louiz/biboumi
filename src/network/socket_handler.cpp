@@ -20,6 +20,12 @@
 
 #ifdef BOTAN_FOUND
 # include <botan/hex.h>
+
+Botan::AutoSeeded_RNG SocketHandler::rng;
+Permissive_Credentials_Manager SocketHandler::credential_manager;
+Botan::TLS::Policy SocketHandler::policy;
+Botan::TLS::Session_Manager_In_Memory SocketHandler::session_manager(SocketHandler::rng);
+
 #endif
 
 #ifndef UIO_FASTIOV
@@ -37,13 +43,6 @@ SocketHandler::SocketHandler(std::shared_ptr<Poller> poller):
   use_tls(false),
   connected(false),
   connecting(false)
-#ifdef BOTAN_FOUND
-  ,
-  rng(),
-  credential_manager(),
-  policy(),
-  session_manager(rng)
-#endif
 {}
 
 void SocketHandler::init_socket(const struct addrinfo* rp)

@@ -253,10 +253,10 @@ private:
   /**
    * Botan stuff to manipulate a TLS session.
    */
-  Botan::AutoSeeded_RNG rng;
-  Permissive_Credentials_Manager credential_manager;
-  Botan::TLS::Policy policy;
-  Botan::TLS::Session_Manager_In_Memory session_manager;
+  static Botan::AutoSeeded_RNG rng;
+  static Permissive_Credentials_Manager credential_manager;
+  static Botan::TLS::Policy policy;
+  static Botan::TLS::Session_Manager_In_Memory session_manager;
   /**
    * We use a unique_ptr because we may not want to create the object at
    * all. The Botan::TLS::Client object generates a handshake message as
