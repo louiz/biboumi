@@ -122,8 +122,14 @@ The channel name can also be empty (for example `%irc.example.com`), in that
 case this represents the virtual channel provided by biboumi.  See *Connect
 to an IRC server* for more details.
 
-IRC users have a local part formed like this:
-`user_name`!`irc_server`.
+There is two ways to address an IRC user, using a local part like this:
+`nickname`!`irc_server`
+or by using the in-room address of the participant, like this:
+`channel_name`%`irc_server`@`biboumi.example.com`/`Nickname`
+
+The second JID is available only to be compatible with XMPP clients when the
+user wants to send a private message to the participant `Nickname` in the
+room `channel_name%irc_server@biboumi.example.com`.
 
 On XMPP, the node part of the JID can only be lowercase.  On the other hand,
 IRC nicknames are case-insensitive, this means that the nicknames toto,
@@ -206,10 +212,11 @@ be changed on all channels on the same server as well.
 Private messages are handled differently on IRC and on XMPP.  On IRC, you
 talk directly to one server-user: toto on the channel #foo is the same user
 as toto on the channel #bar (as long as these two channels are on the same
-IRC server).  Using biboumi, there is no way to receive a message from a
-room participant (from a jid like #test%irc.example.com@biboumi.example.com/nickname).
-Instead, private messages are received from and sent to the user (using a
-jid like `nickname!irc.example.com@biboumi.example.com`).
+IRC server).  By default you will receive private messages from the “global”
+user (aka nickname!irc.example.com@biboumi.example.com), unless you
+previously sent a message to an in-room participant (something like
+#test%irc.example.com@biboumi.example.com/nickname), in which case future
+messages from that same user will be received from that same “in-room” JID.
 
 ### Notices
 
