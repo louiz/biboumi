@@ -43,6 +43,7 @@ class Iid
 {
 public:
   explicit Iid(const std::string& iid);
+  explicit Iid(const Iid&);
   explicit Iid();
 
   void set_local(const std::string& loc);
@@ -59,7 +60,6 @@ private:
   std::string local;
   std::string server;
 
-  Iid(const Iid&) = delete;
   Iid(Iid&&) = delete;
   Iid& operator=(const Iid&) = delete;
   Iid& operator=(Iid&&) = delete;

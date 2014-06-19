@@ -7,11 +7,20 @@
 #include <irc/iid.hpp>
 
 #include <unordered_map>
+#include <functional>
 #include <string>
 #include <memory>
 
 class XmppComponent;
 class Poller;
+
+/**
+ * A callback called for each IrcMessage we receive. If the message triggers
+ * a response, it must send an iq and return true (in that case it is
+ * removed from the list), otherwise it must do nothing and just return
+ * false.
+ */
+typedef std::function<bool(const std::string& irc_hostname, const IrcMessage& message)> iq_responder_callback_t;
 
 /**
  * One bridge is spawned for each XMPP user that uses the component.  The
@@ -131,6 +140,16 @@ public:
    * Remove the preferred jid for the given IRC nick
    */
   void remove_preferred_from_jid(const std::string& nick);
+  /**
+   * Add a callback to the waiting iq list.
+   */
+  void add_waiting_iq(iq_responder_callback_t&& callback);
+  /**
+   * Iter over all the waiting_iq, call the iq_responder_filter_t for each,
+   * whenever one of them returns true: call the corresponding
+   * iq_responder_callback_t and remove the callback from the list.
+   */
+  void trigger_response_iq(const std::string& irc_hostname, const IrcMessage& message);
 
 private:
   /**
@@ -173,6 +192,13 @@ private:
    * from='#somechan%server@biboumi/ToTo'
    */
   std::unordered_map<std::string, std::string> preferred_user_from;
+  /**
+   * A list of callbacks that are waiting for some IrcMessage to trigger a
+   * response.  We add callbacks in this list whenever we received an IQ
+   * request and we need a response from IRC to be able to provide the
+   * response iq.
+   */
+  std::list<iq_responder_callback_t> waiting_iq;
 
   Bridge(const Bridge&) = delete;
   Bridge(Bridge&& other) = delete;

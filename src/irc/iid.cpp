@@ -20,6 +20,14 @@ Iid::Iid(const std::string& iid):
     this->set_server(iid);
 }
 
+Iid::Iid(const Iid& other):
+  is_channel(other.is_channel),
+  is_user(other.is_user),
+  local(other.local),
+  server(other.server)
+{
+}
+
 Iid::Iid():
   is_channel(false),
   is_user(false)

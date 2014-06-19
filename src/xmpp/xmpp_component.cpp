@@ -220,14 +220,20 @@ void XmppComponent::send_stream_error(const std::string& name, const std::string
 }
 
 void XmppComponent::send_stanza_error(const std::string& kind, const std::string& to, const std::string& from,
-                       const std::string& id, const std::string& error_type,
-                       const std::string& defined_condition, const std::string& text)
+                                      const std::string& id, const std::string& error_type,
+                                      const std::string& defined_condition, const std::string& text,
+                                      const bool fulljid)
 {
   Stanza node(kind);
   if (!to.empty())
     node["to"] = to;
   if (!from.empty())
-    node["from"] = from;
+    {
+      if (fulljid)
+        node["from"] = from;
+      else
+        node["from"] = from + "@" + this->served_hostname;
+    }
   if (!id.empty())
     node["id"] = id;
   node["type"] = "error";

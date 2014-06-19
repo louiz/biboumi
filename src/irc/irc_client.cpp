@@ -136,8 +136,11 @@ void IrcClient::parse_in_buffer(const size_t)
       if (pos == std::string::npos)
         break ;
       IrcMessage message(this->in_buf.substr(0, pos));
-      log_debug("IRC RECEIVING: " << message);
       this->in_buf = this->in_buf.substr(pos + 2, std::string::npos);
+      log_debug("IRC RECEIVING: " << message);
+
+      // Call the standard callback (if any), associated with the command
+      // name that we just received.
       auto cb = irc_callbacks.find(message.command);
       if (cb != irc_callbacks.end())
         {
@@ -149,6 +152,8 @@ void IrcClient::parse_in_buffer(const size_t)
         }
       else
         log_info("No handler for command " << message.command);
+      // Try to find a waiting_iq, which response will be triggered by this IrcMessage
+      this->bridge->trigger_response_iq(this->hostname, message);
     }
 }
 

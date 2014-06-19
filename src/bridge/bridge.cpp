@@ -4,6 +4,7 @@
 #include <irc/irc_message.hpp>
 #include <network/poller.hpp>
 #include <utils/encoding.hpp>
+#include <utils/tolower.hpp>
 #include <logger/logger.hpp>
 #include <utils/split.hpp>
 #include <stdexcept>
@@ -368,4 +369,21 @@ void Bridge::remove_preferred_from_jid(const std::string& nick)
   auto it = this->preferred_user_from.find(nick);
   if (it != this->preferred_user_from.end())
     this->preferred_user_from.erase(it);
+}
+
+void Bridge::add_waiting_iq(iq_responder_callback_t&& callback)
+{
+  this->waiting_iq.emplace_back(std::move(callback));
+}
+
+void Bridge::trigger_response_iq(const std::string& irc_hostname, const IrcMessage& message)
+{
+  auto it = this->waiting_iq.begin();
+  while (it != this->waiting_iq.end())
+    {
+      if ((*it)(irc_hostname, message) == true)
+        it = this->waiting_iq.erase(it);
+      else
+        ++it;
+    }
 }
