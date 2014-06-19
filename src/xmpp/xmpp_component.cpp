@@ -468,7 +468,7 @@ void XmppComponent::handle_iq(const Stanza& stanza)
                   if (reason_el)
                     reason = reason_el->get_inner();
                   Iid iid(to.local);
-                  bridge->send_irc_kick(iid, nick, reason);
+                  bridge->send_irc_kick(iid, nick, reason, id, from);
                   stanza_error.disable();
                 }
             }
@@ -1010,6 +1010,17 @@ void XmppComponent::send_iq_version_request(const std::string& from,
   query["xmlns"] = VERSION_NS;
   query.close();
   iq.add_child(std::move(query));
+  iq.close();
+  this->send_stanza(iq);
+}
+
+void XmppComponent::send_iq_result(const std::string& id, const std::string& to_jid, const std::string& from_local_part)
+{
+  Stanza iq("iq");
+  iq["from"] = from_local_part + "@" + this->served_hostname;
+  iq["to"] = to_jid;
+  iq["id"] = id;
+  iq["type"] = "result";
   iq.close();
   this->send_stanza(iq);
 }

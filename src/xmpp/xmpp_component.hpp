@@ -104,7 +104,8 @@ public:
    */
   void send_stanza_error(const std::string& kind, const std::string& to, const std::string& from,
                          const std::string& id, const std::string& error_type,
-                         const std::string& defined_condition, const std::string& text);
+                         const std::string& defined_condition, const std::string& text,
+                         const bool fulljid=true);
   /**
    * Send the closing signal for our document (not closing the connection though).
    */
@@ -208,6 +209,10 @@ public:
    */
   void send_iq_version_request(const std::string& from,
                                const std::string& jid_to);
+  /**
+   * Send an empty iq of type result
+   */
+  void send_iq_result(const std::string& id, const std::string& to_jid, const std::string& from);
   /**
    * Handle the various stanza types
    */

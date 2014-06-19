@@ -1,6 +1,7 @@
 #ifndef BRIDGE_INCLUDED
 # define BRIDGE_INCLUDED
 
+#include <irc/irc_message.hpp>
 #include <irc/irc_client.hpp>
 #include <bridge/colors.hpp>
 #include <irc/irc_user.hpp>
@@ -62,7 +63,8 @@ public:
   void send_private_message(const Iid& iid, const std::string& body, const std::string& type="PRIVMSG");
   void leave_irc_channel(Iid&& iid, std::string&& status_message);
   void send_irc_nick_change(const Iid& iid, const std::string& new_nick);
-  void send_irc_kick(const Iid& iid, const std::string& target, const std::string& reason);
+  void send_irc_kick(const Iid& iid, const std::string& target, const std::string& reason,
+                     const std::string& iq_id, const std::string& to_jid);
   void set_channel_topic(const Iid& iid, const std::string& subject);
   void send_xmpp_version_to_irc(const Iid& iid, const std::string& name, const std::string& version, const std::string& os);
 
