@@ -276,6 +276,8 @@ void SocketHandler::on_send()
 
 void SocketHandler::close()
 {
+  TimedEventsManager::instance().cancel("connection_timeout"s +
+                                        std::to_string(this->socket));
   if (this->connected || this->connecting)
     this->poller->remove_socket_handler(this->get_socket());
   if (this->socket != -1)
@@ -288,8 +290,6 @@ void SocketHandler::close()
   this->in_buf.clear();
   this->out_buf.clear();
   this->port.clear();
-  TimedEventsManager::instance().cancel("connection_timeout"s +
-                                        std::to_string(this->socket));
 }
 
 socket_t SocketHandler::get_socket() const
