@@ -175,8 +175,8 @@ endif()
 ## Tests
 #
 
-add_executable(test src/test.cpp)
-target_link_libraries(test
+add_executable(test_suite src/test.cpp)
+target_link_libraries(test_suite
   xmpp
   irc
   bridge
