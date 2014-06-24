@@ -49,11 +49,17 @@ the simplest is to just run
 
 % cmake .
 
-in the current directory
+in the current directory.
+
+The default build type is "Debug", if you want to build a release version,
+set the CMAKE_BUILD_TYPE variable to "release", by running this command
+instead:
+
+% cmake . -DCMAKE_BUILD_TYPE=release -DCMAKE_INSTALL_PREFIX=/usr
 
 You can also configure many parameters of the build (like customize CFLAGS,
 the install path, choose the compiler, or enabling some options like the
-POLLER to use), using:
+POLLER to use), using the ncurses interface of ccmake:
 
 % ccmake .
 
@@ -61,7 +67,7 @@ In ccmake, first use 'c' to configure the build system, edit the values you
 need and finaly use 'g' to generate the Makefiles to build the system and
 quit ccmake.
 
-or
+or you can also use an interactive mode with:
 
 % cmake -i .
 
@@ -73,6 +79,7 @@ using the POLLER cmake option.  Available values are:
  POLL: use the standard poll(2). This is the default value on all non-Linux platforms.
 
 Example, configure the poller with cmake:
+
 % cmake . -DPOLLER=EPOLL
 
 
@@ -80,7 +87,7 @@ Example, configure the poller with cmake:
     Build
 ==============
 
-- Build the project
+- Once you’ve configured everything using cmake, build the project
 
 % make
 
@@ -89,7 +96,7 @@ Example, configure the poller with cmake:
    Install
 =============
 
-- Install the software system-wide
+- And then, optionaly, Install the software system-wide
 
 # make install
 
