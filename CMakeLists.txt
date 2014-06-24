@@ -27,16 +27,22 @@ find_package(Botan)
 #
 ## Get the software version
 #
-if(${PROJECT_NAME}_VERSION_SUFFIX MATCHES "~dev")
+set(ARCHIVE_NAME ${CMAKE_PROJECT_NAME}-${${PROJECT_NAME}_VERSION_MAJOR}.${${PROJECT_NAME}_VERSION_MINOR})
+if(${PROJECT_NAME}_VERSION_SUFFIX MATCHES ".+")
+  set(ARCHIVE_NAME ${ARCHIVE_NAME}-${${PROJECT_NAME}_VERSION_SUFFIX})
+endif()
+
+if(${PROJECT_NAME}_VERSION_SUFFIX MATCHES "^~dev$")
   # If we are on a dev version, append the hash of the current git HEAD to
   # the version
   include(FindGit)
-  if(GIT_FOUND)
+  if(GIT_FOUND AND EXISTS "${CMAKE_SOURCE_DIR}/.git")
     execute_process(COMMAND git --git-dir=${CMAKE_SOURCE_DIR}/.git rev-parse --short HEAD
       OUTPUT_VARIABLE GIT_REVISION
       OUTPUT_STRIP_TRAILING_WHITESPACE)
     if(GIT_REVISION)
       set(${PROJECT_NAME}_VERSION_SUFFIX "${${PROJECT_NAME}_VERSION_SUFFIX} (${GIT_REVISION})")
+      set(ARCHIVE_NAME ${ARCHIVE_NAME}-${GIT_REVISION})
     endif()
   endif()
 endif()
@@ -194,3 +200,12 @@ install(TARGETS ${PROJECT_NAME}
 if(WITH_DOC)
   install(FILES ${MAN_PAGE} DESTINATION man/man1)
 endif()
+
+#
+## Dist target
+## Generate a release tarball from the git sources
+#
+add_custom_target(dist
+  COMMAND git archive --prefix=${ARCHIVE_NAME}/ --format=tar HEAD
+  | xz > ${CMAKE_CURRENT_BINARY_DIR}/${ARCHIVE_NAME}.tar.xz
+  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
