@@ -17,11 +17,11 @@ The goal is to provide a way to access most of IRC features using any XMPP
 client.  It doesn’t however try to provide a complete mapping of the
 features of both worlds simply because this is not useful and most probably
 impossible.  For example all IRC modes are not all translatable into an XMPP
-features.  Some of theme are (like +m (mute) or +o (operator) modes), but
+features.  Some of them are (like +m (mute) or +o (operator) modes), but
 some others are IRC-specific.  If IRC is the limiting factor (for example
 you cannot have a non-ASCII nickname on IRC) then biboumi doesn’t try to
 work around this issue: it just enforces the rules of the IRC server by
-telling the user that he/she must choose an ASCII nickname only.  An
+telling the user that he/she must choose an ASCII-only nickname.  An
 important goal is to keep the software (and its code) light and simple.
 
 ================

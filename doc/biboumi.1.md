@@ -39,6 +39,7 @@ The configuration file uses a simple format of the form
   The hostname served by the XMPP gateway.  This domain must be configured in
   the XMPP server as an external component.  See the manual for your XMPP
   server for more information.
+  For prosody, see http://prosody.im/doc/components#adding_an_external_component
 
 `password` (mandatory)
 
@@ -75,6 +76,11 @@ log level without having to restart biboumi) by sending SIGUSR1 or SIGUSR2
 
 USAGE
 -----
+
+Biboumi acts as a server, it should be run as a daemon that lives in the
+background for as long as it is needed.  Note that biboumi does not
+daemonize itself, this task should be done by your init system (SysVinit,
+systemd, upstart).
 
 When started, biboumi connects, without encryption (see *SECURITY*), to the
 local XMPP server on the port `5347` and authenticates with the provided

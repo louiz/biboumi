@@ -4,6 +4,11 @@
 
 Build and runtime dependencies:
 
+Tools:
+
+- A C++14 compiler (clang >= 3.4 or gcc >= 4.9 for example)
+- CMake
+- ronn (optional) to build the man page
 
 Libraries:
 
@@ -34,11 +39,6 @@ Libraries:
  Provides the support for a systemd service of Type=notify. This is useful only
  if you are packaging biboumi in a distribution with Systemd.
 
-Tools:
-- A C++14 compiler (clang >= 3.4 or gcc >= 4.9 for example)
-- CMake
-- ronn (optional) to build the man page
-
 
 ==============
   Configure
@@ -67,10 +67,10 @@ or
 
 and respond to the questions when you are prompted to.
 
-You can select the poller used by biboumi, at compile-time, using the POLLER
-cmake option.  Available values are:
- POLL: use the standard poll(2). This is the default value because it works on all supported plateforms
- EPOLL: use the Linux-specific epoll(7)
+You can, for example, select the poller used by biboumi, at compile-time,
+using the POLLER cmake option.  Available values are:
+ EPOLL: use the Linux-specific epoll(7). This is the default on Linux.
+ POLL: use the standard poll(2). This is the default value on all non-Linux platforms.
 
 Example, configure the poller with cmake:
 % cmake . -DPOLLER=EPOLL
@@ -92,3 +92,12 @@ Example, configure the poller with cmake:
 - Install the software system-wide
 
 # make install
+
+
+=============
+     Run
+=============
+
+Run the software using the `biboumi` binary.  Read the documentation (the
+man page biboumi(1) or the “biboumi.1.md” file) for more information on how
+to use biboumi.
