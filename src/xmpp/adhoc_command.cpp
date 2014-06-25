@@ -185,6 +185,7 @@ void DisconnectUserStep2(XmppComponent* xmpp_component, AdhocSession& session, X
             note.set_inner(std::to_string(num) + " users have been disconnected.");
           note.close();
           command_node.add_child(std::move(note));
+          return;
         }
     }
   XmlNode error(ADHOC_NS":error");
