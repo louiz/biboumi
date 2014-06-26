@@ -173,15 +173,13 @@ target_link_libraries(${PROJECT_NAME}
 if(SYSTEMDDAEMON_FOUND)
   target_link_libraries(xmpp ${SYSTEMDDAEMON_LIBRARIES})
 endif()
-if(WITH_DOC)
-  add_dependencies(${PROJECT_NAME} doc)
-endif()
+
 
 #
 ## Tests
 #
-
-add_executable(test_suite src/test.cpp)
+add_executable(test_suite EXCLUDE_FROM_ALL
+  src/test.cpp)
 target_link_libraries(test_suite
   xmpp
   irc
@@ -189,6 +187,7 @@ target_link_libraries(test_suite
   utils
   config
   logger)
+
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/src/config.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/src/config.h)
 
@@ -198,7 +197,7 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/src/config.h.cmake ${CMAKE_CURRENT_BI
 install(TARGETS ${PROJECT_NAME}
   RUNTIME DESTINATION bin)
 if(WITH_DOC)
-  install(FILES ${MAN_PAGE} DESTINATION man/man1)
+  install(FILES ${MAN_PAGE} DESTINATION share/man/man1 OPTIONAL)
 endif()
 
 #
