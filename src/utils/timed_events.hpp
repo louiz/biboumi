@@ -2,6 +2,7 @@
 # define TIMED_EVENTS_HPP
 
 #include <functional>
+#include <string>
 #include <chrono>
 #include <list>
 
