@@ -20,6 +20,7 @@
 #include <thread>
 #include <vector>
 
+#undef NDEBUG
 #include <assert.h>
 
 static const std::string color("[35m");
