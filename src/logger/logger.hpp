@@ -17,6 +17,17 @@
 #define warning_lvl 2
 #define error_lvl 3
 
+#include "config.h"
+
+#ifdef SYSTEMDDAEMON_FOUND
+# include <systemd/sd-daemon.h>
+#else
+# define SD_DEBUG    "[ERROR]: "
+# define SD_INFO     "[INFO]: "
+# define SD_WARNING  "[WARNING]: "
+# define SD_ERR      "[ERROR]: "
+#endif
+
 // Macro defined to get the filename instead of the full path. But if it is
 // not properly defined by the build system, we fallback to __FILE__
 #ifndef __FILENAME__
@@ -27,16 +38,16 @@
   __FILENAME__ << ":" << __LINE__
 
 #define log_debug(text)\
-  Logger::instance()->get_stream(debug_lvl) << "[DEBUG]:" << WHERE << ":\t" << text << std::endl;
+  Logger::instance()->get_stream(debug_lvl) << SD_DEBUG << WHERE << ":\t" << text << std::endl;
 
 #define log_info(text)\
-  Logger::instance()->get_stream(info_lvl) << "[INFO]:" << WHERE << ":\t" << text << std::endl;
+  Logger::instance()->get_stream(info_lvl) << SD_INFO << WHERE << ":\t" << text << std::endl;
 
 #define log_warning(text)\
-  Logger::instance()->get_stream(warning_lvl) << "[WARNING]:" << WHERE << ":\t" << text << std::endl;
+  Logger::instance()->get_stream(warning_lvl) << SD_WARNING << WHERE << ":\t" << text << std::endl;
 
 #define log_error(text)\
-  Logger::instance()->get_stream(error_lvl) << "[ERROR]:" << WHERE << ":\t" << text << std::endl;
+  Logger::instance()->get_stream(error_lvl) << SD_ERR << WHERE << ":\t" << text << std::endl;
 
 /**
  * Juste a structure representing a stream doing nothing with its input.
