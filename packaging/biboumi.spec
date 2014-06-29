@@ -63,6 +63,12 @@ getent passwd %{biboumi_user} > /dev/null || \
 exit 0
 
 
+%check
+make test_suite/fast VERBOSE=1
+
+./test_suite || exit 1
+
+
 %files
 %{_bindir}/%{name}
 %{_mandir}/man1/%{name}.1*
