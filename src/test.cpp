@@ -58,7 +58,7 @@ int main()
   std::cout << color << "Testing logging…" << reset << std::endl;
   log_debug("If you see this, the test FAILED.");
   log_info("If you see this, the test FAILED.");
-  log_warning("You wust see this message. And the next one too.");
+  log_warning("You must see this message. And the next one too.");
   log_error("It’s not an error, don’t worry, the test passed.");
 
 
