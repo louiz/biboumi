@@ -74,7 +74,6 @@ make test_suite/fast VERBOSE=1
 %{_mandir}/man1/%{name}.1*
 %doc README COPYING doc/biboumi.1.md
 %{_unitdir}/%{name}.service
-%dir %{biboumi_logdir}
 %config(noreplace) %{biboumi_confdir}/biboumi.cfg
 
 
