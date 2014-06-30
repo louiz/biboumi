@@ -51,9 +51,6 @@ install -D -p -m 644 conf/biboumi.cfg \
 install -D -p -m 644 unit/%{name}.service \
     %{buildroot}%{_unitdir}/%{name}.service
 
-# Create default log directory
-install -p -d %{buildroot}%{biboumi_logdir}
-
 
 %pre
 getent group %{biboumi_group} > /dev/null || groupadd -r %{biboumi_group}
