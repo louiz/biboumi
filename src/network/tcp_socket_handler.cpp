@@ -1,4 +1,4 @@
-#include <network/socket_handler.hpp>
+#include <network/tcp_socket_handler.hpp>
 
 #include <utils/timed_events.hpp>
 #include <utils/scopeguard.hpp>
@@ -21,10 +21,10 @@
 #ifdef BOTAN_FOUND
 # include <botan/hex.h>
 
-Botan::AutoSeeded_RNG SocketHandler::rng;
-Permissive_Credentials_Manager SocketHandler::credential_manager;
-Botan::TLS::Policy SocketHandler::policy;
-Botan::TLS::Session_Manager_In_Memory SocketHandler::session_manager(SocketHandler::rng);
+Botan::AutoSeeded_RNG TCPSocketHandler::rng;
+Permissive_Credentials_Manager TCPSocketHandler::credential_manager;
+Botan::TLS::Policy TCPSocketHandler::policy;
+Botan::TLS::Session_Manager_In_Memory TCPSocketHandler::session_manager(TCPSocketHandler::rng);
 
 #endif
 
@@ -37,7 +37,7 @@ using namespace std::chrono_literals;
 
 namespace ph = std::placeholders;
 
-SocketHandler::SocketHandler(std::shared_ptr<Poller> poller):
+TCPSocketHandler::TCPSocketHandler(std::shared_ptr<Poller> poller):
   socket(-1),
   poller(poller),
   use_tls(false),
@@ -45,7 +45,7 @@ SocketHandler::SocketHandler(std::shared_ptr<Poller> poller):
   connecting(false)
 {}
 
-void SocketHandler::init_socket(const struct addrinfo* rp)
+void TCPSocketHandler::init_socket(const struct addrinfo* rp)
 {
   if ((this->socket = ::socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol)) == -1)
     throw std::runtime_error("Could not create socket: "s + strerror(errno));
@@ -61,7 +61,7 @@ void SocketHandler::init_socket(const struct addrinfo* rp)
     throw std::runtime_error("Could not initialize socket: "s + strerror(errno));
 }
 
-void SocketHandler::connect(const std::string& address, const std::string& port, const bool tls)
+void TCPSocketHandler::connect(const std::string& address, const std::string& port, const bool tls)
 {
   this->address = address;
   this->port = port;
@@ -146,7 +146,7 @@ void SocketHandler::connect(const std::string& address, const std::string& port,
           // it to have failed
           TimedEventsManager::instance().add_event(
                 TimedEvent(std::chrono::steady_clock::now() + 5s,
-                           std::bind(&SocketHandler::on_connection_timeout, this),
+                           std::bind(&TCPSocketHandler::on_connection_timeout, this),
                            "connection_timeout"s + std::to_string(this->socket)));
           return ;
         }
@@ -158,18 +158,18 @@ void SocketHandler::connect(const std::string& address, const std::string& port,
   return ;
 }
 
-void SocketHandler::on_connection_timeout()
+void TCPSocketHandler::on_connection_timeout()
 {
   this->close();
   this->on_connection_failed("connection timed out");
 }
 
-void SocketHandler::connect()
+void TCPSocketHandler::connect()
 {
   this->connect(this->address, this->port, this->use_tls);
 }
 
-void SocketHandler::on_recv()
+void TCPSocketHandler::on_recv()
 {
 #ifdef BOTAN_FOUND
   if (this->use_tls)
@@ -179,7 +179,7 @@ void SocketHandler::on_recv()
     this->plain_recv();
 }
 
-void SocketHandler::plain_recv()
+void TCPSocketHandler::plain_recv()
 {
   static constexpr size_t buf_size = 4096;
   char buf[buf_size];
@@ -203,7 +203,7 @@ void SocketHandler::plain_recv()
     }
 }
 
-ssize_t SocketHandler::do_recv(void* recv_buf, const size_t buf_size)
+ssize_t TCPSocketHandler::do_recv(void* recv_buf, const size_t buf_size)
 {
   ssize_t size = ::recv(this->socket, recv_buf, buf_size, 0);
   if (0 == size)
@@ -228,7 +228,7 @@ ssize_t SocketHandler::do_recv(void* recv_buf, const size_t buf_size)
   return size;
 }
 
-void SocketHandler::on_send()
+void TCPSocketHandler::on_send()
 {
   struct iovec msg_iov[UIO_FASTIOV] = {};
   struct msghdr msg{nullptr, 0,
@@ -274,7 +274,7 @@ void SocketHandler::on_send()
     }
 }
 
-void SocketHandler::close()
+void TCPSocketHandler::close()
 {
   TimedEventsManager::instance().cancel("connection_timeout"s +
                                         std::to_string(this->socket));
@@ -292,12 +292,12 @@ void SocketHandler::close()
   this->port.clear();
 }
 
-socket_t SocketHandler::get_socket() const
+socket_t TCPSocketHandler::get_socket() const
 {
   return this->socket;
 }
 
-void SocketHandler::send_data(std::string&& data)
+void TCPSocketHandler::send_data(std::string&& data)
 {
 #ifdef BOTAN_FOUND
   if (this->use_tls)
@@ -307,7 +307,7 @@ void SocketHandler::send_data(std::string&& data)
     this->raw_send(std::move(data));
 }
 
-void SocketHandler::raw_send(std::string&& data)
+void TCPSocketHandler::raw_send(std::string&& data)
 {
   if (data.empty())
     return ;
@@ -316,41 +316,41 @@ void SocketHandler::raw_send(std::string&& data)
     this->poller->watch_send_events(this);
 }
 
-void SocketHandler::send_pending_data()
+void TCPSocketHandler::send_pending_data()
 {
   if (this->connected && !this->out_buf.empty())
     this->poller->watch_send_events(this);
 }
 
-bool SocketHandler::is_connected() const
+bool TCPSocketHandler::is_connected() const
 {
   return this->connected;
 }
 
-bool SocketHandler::is_connecting() const
+bool TCPSocketHandler::is_connecting() const
 {
   return this->connecting;
 }
 
-void* SocketHandler::get_receive_buffer(const size_t) const
+void* TCPSocketHandler::get_receive_buffer(const size_t) const
 {
   return nullptr;
 }
 
 #ifdef BOTAN_FOUND
-void SocketHandler::start_tls()
+void TCPSocketHandler::start_tls()
 {
   Botan::TLS::Server_Information server_info(this->address, "irc", std::stoul(this->port));
   this->tls = std::make_unique<Botan::TLS::Client>(
-      std::bind(&SocketHandler::tls_output_fn, this, ph::_1, ph::_2),
-      std::bind(&SocketHandler::tls_data_cb, this, ph::_1, ph::_2),
-      std::bind(&SocketHandler::tls_alert_cb, this, ph::_1, ph::_2, ph::_3),
-      std::bind(&SocketHandler::tls_handshake_cb, this, ph::_1),
+      std::bind(&TCPSocketHandler::tls_output_fn, this, ph::_1, ph::_2),
+      std::bind(&TCPSocketHandler::tls_data_cb, this, ph::_1, ph::_2),
+      std::bind(&TCPSocketHandler::tls_alert_cb, this, ph::_1, ph::_2, ph::_3),
+      std::bind(&TCPSocketHandler::tls_handshake_cb, this, ph::_1),
       session_manager, credential_manager, policy,
       rng, server_info, Botan::TLS::Protocol_Version::latest_tls_version());
 }
 
-void SocketHandler::tls_recv()
+void TCPSocketHandler::tls_recv()
 {
   static constexpr size_t buf_size = 4096;
   char recv_buf[buf_size];
@@ -366,7 +366,7 @@ void SocketHandler::tls_recv()
     }
 }
 
-void SocketHandler::tls_send(std::string&& data)
+void TCPSocketHandler::tls_send(std::string&& data)
 {
   if (this->tls->is_active())
     {
@@ -387,7 +387,7 @@ void SocketHandler::tls_send(std::string&& data)
     this->pre_buf += data;
 }
 
-void SocketHandler::tls_data_cb(const Botan::byte* data, size_t size)
+void TCPSocketHandler::tls_data_cb(const Botan::byte* data, size_t size)
 {
   this->in_buf += std::string(reinterpret_cast<const char*>(data),
                               size);
@@ -395,17 +395,17 @@ void SocketHandler::tls_data_cb(const Botan::byte* data, size_t size)
     this->parse_in_buffer(size);
 }
 
-void SocketHandler::tls_output_fn(const Botan::byte* data, size_t size)
+void TCPSocketHandler::tls_output_fn(const Botan::byte* data, size_t size)
 {
   this->raw_send(std::string(reinterpret_cast<const char*>(data), size));
 }
 
-void SocketHandler::tls_alert_cb(Botan::TLS::Alert alert, const Botan::byte*, size_t)
+void TCPSocketHandler::tls_alert_cb(Botan::TLS::Alert alert, const Botan::byte*, size_t)
 {
   log_debug("tls_alert: " << alert.type_string());
 }
 
-bool SocketHandler::tls_handshake_cb(const Botan::TLS::Session& session)
+bool TCPSocketHandler::tls_handshake_cb(const Botan::TLS::Session& session)
 {
   log_debug("Handshake with " << session.server_info().hostname() << " complete."
             << " Version: " << session.version().to_string()
@@ -417,7 +417,7 @@ bool SocketHandler::tls_handshake_cb(const Botan::TLS::Session& session)
   return true;
 }
 
-void SocketHandler::on_tls_activated()
+void TCPSocketHandler::on_tls_activated()
 {
   this->send_data("");
 }

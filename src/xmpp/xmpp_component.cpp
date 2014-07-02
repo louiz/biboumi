@@ -37,7 +37,7 @@ static std::set<std::string> kickable_errors{
     };
 
 XmppComponent::XmppComponent(std::shared_ptr<Poller> poller, const std::string& hostname, const std::string& secret):
-  SocketHandler(poller),
+  TCPSocketHandler(poller),
   ever_auth(false),
   last_auth(false),
   served_hostname(hostname),

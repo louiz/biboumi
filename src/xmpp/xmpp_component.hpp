@@ -2,7 +2,7 @@
 # define XMPP_COMPONENT_INCLUDED
 
 #include <xmpp/adhoc_commands_handler.hpp>
-#include <network/socket_handler.hpp>
+#include <network/tcp_socket_handler.hpp>
 #include <xmpp/xmpp_parser.hpp>
 #include <bridge/bridge.hpp>
 
@@ -30,7 +30,7 @@
  *
  * TODO: implement XEP-0225: Component Connections
  */
-class XmppComponent: public SocketHandler
+class XmppComponent: public TCPSocketHandler
 {
 public:
   explicit XmppComponent(std::shared_ptr<Poller> poller, const std::string& hostname, const std::string& secret);

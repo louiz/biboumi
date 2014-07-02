@@ -5,7 +5,7 @@
 #include <irc/irc_channel.hpp>
 #include <irc/iid.hpp>
 
-#include <network/socket_handler.hpp>
+#include <network/tcp_socket_handler.hpp>
 
 #include <unordered_map>
 #include <memory>
@@ -21,7 +21,7 @@ class Bridge;
  * Represent one IRC client, i.e. an endpoint connected to a single IRC
  * server, through a TCP socket, receiving and sending commands to it.
  */
-class IrcClient: public SocketHandler
+class IrcClient: public TCPSocketHandler
 {
 public:
   explicit IrcClient(std::shared_ptr<Poller> poller, const std::string& hostname, const std::string& username, Bridge* bridge);

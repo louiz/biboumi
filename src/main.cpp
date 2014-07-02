@@ -1,3 +1,4 @@
+#include <network/tcp_socket_handler.hpp>
 #include <xmpp/xmpp_component.hpp>
 #include <utils/timed_events.hpp>
 #include <network/poller.hpp>
