@@ -34,15 +34,13 @@ public:
 };
 #endif // BOTAN_FOUND
 
-class Poller;
-
 /**
  * An interface, with a series of callbacks that should be implemented in
  * subclasses that deal with a socket. These callbacks are called on various events
  * (read/write/timeout, etc) when they are notified to a poller
  * (select/poll/epoll etc)
  */
-class TCPSocketHandler: SocketHandler
+class TCPSocketHandler: public SocketHandler
 {
 protected:
   ~TCPSocketHandler() {}
@@ -77,10 +75,6 @@ public:
    * Watch the socket for send events, if our out buffer is not empty.
    */
   void send_pending_data();
-  /**
-   * Returns the socket that should be handled by the poller.
-   */
-  socket_t get_socket() const;
   /**
    * Close the connection, remove us from the poller
    */
@@ -186,10 +180,6 @@ private:
   void on_tls_activated();
 #endif // BOTAN_FOUND
   /**
-   * The handled socket.
-   */
-  socket_t socket;
-  /**
    * Where data is added, when we want to send something to the client.
    */
   std::list<std::string> out_buf;
@@ -203,15 +193,6 @@ private:
   socklen_t ai_addrlen;
 
 protected:
-  /**
-   * A pointer to the poller that manages us, because we need to communicate
-   * with it, sometimes (for example to tell it that he now needs to watch
-   * write events for us). Do not ever try to delete it.
-   *
-   * And a raw pointer because we are not owning it, it is owning us
-   * (actually it is sharing our ownership with a Bridge).
-   */
-  std::shared_ptr<Poller> poller;
   /**
    * Where data read from the socket is added until we can extract a full
    * and meaningful “message” from it.

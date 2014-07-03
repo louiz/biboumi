@@ -38,8 +38,7 @@ using namespace std::chrono_literals;
 namespace ph = std::placeholders;
 
 TCPSocketHandler::TCPSocketHandler(std::shared_ptr<Poller> poller):
-  socket(-1),
-  poller(poller),
+  SocketHandler(poller, -1),
   use_tls(false),
   connected(false),
   connecting(false)
@@ -290,11 +289,6 @@ void TCPSocketHandler::close()
   this->in_buf.clear();
   this->out_buf.clear();
   this->port.clear();
-}
-
-socket_t TCPSocketHandler::get_socket() const
-{
-  return this->socket;
 }
 
 void TCPSocketHandler::send_data(std::string&& data)
