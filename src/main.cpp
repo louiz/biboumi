@@ -1,4 +1,3 @@
-#include <network/tcp_socket_handler.hpp>
 #include <xmpp/xmpp_component.hpp>
 #include <utils/timed_events.hpp>
 #include <network/poller.hpp>
@@ -10,6 +9,10 @@
 #include <atomic>
 
 #include <signal.h>
+
+#ifdef CARES_FOUND
+# include <network/dns_handler.hpp>
+#endif
 
 // A flag set by the SIGINT signal handler.
 static volatile std::atomic<bool> stop(false);
@@ -95,6 +98,10 @@ int main(int ac, char** av)
 
   xmpp_component->start();
 
+
+#ifdef CARES_FOUND
+  DNSHandler::instance.watch_dns_sockets(p);
+#endif
   auto timeout = TimedEventsManager::instance().get_timeout();
   while (p->poll(timeout) != -1)
   {
@@ -108,6 +115,9 @@ int main(int ac, char** av)
       exiting = true;
       stop.store(false);
       xmpp_component->shutdown();
+#ifdef CARES_FOUND
+      DNSHandler::instance.destroy();
+#endif
       // Cancel the timer for an potential reconnection
       TimedEventsManager::instance().cancel("XMPP reconnection");
     }
@@ -153,6 +163,10 @@ int main(int ac, char** av)
       xmpp_component->close();
     if (exiting && p->size() == 1 && xmpp_component->is_document_open())
       xmpp_component->close_document();
+#ifdef CARES_FOUND
+    if (!exiting)
+      DNSHandler::instance.watch_dns_sockets(p);
+#endif
     if (exiting) // If we are exiting, do not wait for any timed event
       timeout = utils::no_timeout;
     else

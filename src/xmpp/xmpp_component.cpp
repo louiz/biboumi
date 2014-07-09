@@ -70,7 +70,7 @@ XmppComponent::~XmppComponent()
 
 void XmppComponent::start()
 {
-  this->connect("127.0.0.1", Config::get("port", "5347"), false);
+  this->connect("localhost", Config::get("port", "5347"), false);
 }
 
 bool XmppComponent::is_document_open() const

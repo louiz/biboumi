@@ -39,6 +39,12 @@ elseif(NOT WITHOUT_BOTAN)
   find_package(BOTAN)
 endif()
 
+if(WITH_CARES)
+  find_package(CARES REQUIRED)
+elseif(NOT WITHOUT_CARES)
+  find_package(CARES)
+endif()
+
 #
 ## Get the software version
 #
@@ -82,6 +88,10 @@ endif()
 
 if(BOTAN_FOUND)
   include_directories(SYSTEM ${BOTAN_INCLUDE_DIRS})
+endif()
+
+if(CARES_FOUND)
+  include_directories(${CARES_INCLUDE_DIRS})
 endif()
 
 set(POLLER_DOCSTRING "Choose the poller between POLL and EPOLL (Linux-only)")
@@ -144,6 +154,9 @@ add_library(network STATIC ${source_network})
 target_link_libraries(network logger)
 if(BOTAN_FOUND)
   target_link_libraries(network ${BOTAN_LIBRARIES})
+endif()
+if(CARES_FOUND)
+  target_link_libraries(network ${CARES_LIBRARIES})
 endif()
 
 #
