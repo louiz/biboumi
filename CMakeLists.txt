@@ -2,9 +2,9 @@ cmake_minimum_required(VERSION 2.6)
 
 project(biboumi)
 
-set(${PROJECT_NAME}_VERSION_MAJOR 1)
+set(${PROJECT_NAME}_VERSION_MAJOR 2)
 set(${PROJECT_NAME}_VERSION_MINOR 0)
-set(${PROJECT_NAME}_VERSION_SUFFIX "")
+set(${PROJECT_NAME}_VERSION_SUFFIX "~dev")
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++1y -pedantic -Wall -Wextra")
 
