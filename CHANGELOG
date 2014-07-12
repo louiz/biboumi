@@ -1,0 +1,14 @@
+Version 1.0                                             2014-12-07
+
+ - First stable release.
+ - Mostly complete MUC to IRC, and IRC to MUC support
+ - Complete handling of private messages
+ - Full IRC modes support: setting any IRC mode, and receiving notifications
+   for every mode change
+ - Verbose connection status notifications
+ - Conversion from IRC formatting to XHTML-im
+ - Ad-hoc commands support
+ - Basic TLS support: auto-accepts all certificates, no cipher
+   configuration, no way to force usage of TLS (it is used only if
+   available, clear connection is automatically used as a fallback)
+ - IPv6 support
