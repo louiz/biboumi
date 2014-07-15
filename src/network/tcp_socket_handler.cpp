@@ -139,7 +139,7 @@ void TCPSocketHandler::connect(const std::string& address, const std::string& po
           this->ai_addrlen = rp->ai_addrlen;
           memcpy(&this->ai_addr, rp->ai_addr, this->ai_addrlen);
           memcpy(&this->addrinfo, rp, sizeof(struct addrinfo));
-          this->addrinfo.ai_addr = &this->ai_addr;
+          this->addrinfo.ai_addr = reinterpret_cast<struct sockaddr*>(&this->ai_addr);
           this->addrinfo.ai_next = nullptr;
           // If the connection has not succeeded or failed in 5s, we consider
           // it to have failed
