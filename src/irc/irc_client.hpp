@@ -41,7 +41,7 @@ public:
   /**
    * Close the connection, remove us from the poller
    */
-  void on_connection_close() override final;
+  void on_connection_close(const std::string& error) override final;
   /**
    * Parse the data we have received so far and try to get one or more
    * complete messages from it.

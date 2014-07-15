@@ -96,7 +96,7 @@ public:
   /**
    * Called when we detect a disconnection from the remote host.
    */
-  virtual void on_connection_close() = 0;
+  virtual void on_connection_close(const std::string& error) = 0;
   /**
    * Handle/consume (some of) the data received so far.  The data to handle
    * may be in the in_buf buffer, or somewhere else, depending on what

@@ -108,9 +108,16 @@ void XmppComponent::on_connected()
   this->send_pending_data();
 }
 
-void XmppComponent::on_connection_close()
+void XmppComponent::on_connection_close(const std::string& error)
 {
-  log_info("XMPP server closed connection");
+  if (error.empty())
+    {
+      log_info("XMPP server closed connection");
+    }
+  else
+    {
+      log_info("XMPP server closed connection: " << error);
+    }
 }
 
 void XmppComponent::parse_in_buffer(const size_t size)

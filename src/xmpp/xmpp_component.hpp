@@ -38,7 +38,7 @@ public:
 
   void on_connection_failed(const std::string& reason) override final;
   void on_connected() override final;
-  void on_connection_close() override final;
+  void on_connection_close(const std::string& error) override final;
   void parse_in_buffer(const size_t size) override final;
 
   /**

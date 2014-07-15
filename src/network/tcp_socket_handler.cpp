@@ -207,22 +207,17 @@ ssize_t TCPSocketHandler::do_recv(void* recv_buf, const size_t buf_size)
   ssize_t size = ::recv(this->socket, recv_buf, buf_size, 0);
   if (0 == size)
     {
-      this->on_connection_close();
+      this->on_connection_close("");
       this->close();
     }
   else if (-1 == size)
     {
       log_warning("Error while reading from socket: " << strerror(errno));
+      this->close();
       if (this->connecting)
-        {
-          this->close();
-          this->on_connection_failed(strerror(errno));
-        }
+        this->on_connection_failed(strerror(errno));
       else
-        {
-          this->close();
-          this->on_connection_close();
-        }
+        this->on_connection_close(strerror(errno));
     }
   return size;
 }
@@ -245,7 +240,7 @@ void TCPSocketHandler::on_send()
   if (res < 0)
     {
       log_error("sendmsg failed: " << strerror(errno));
-      this->on_connection_close();
+      this->on_connection_close(strerror(errno));
       this->close();
     }
   else
