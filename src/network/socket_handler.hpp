@@ -199,7 +199,7 @@ private:
    * again.
    */
   struct addrinfo addrinfo;
-  struct sockaddr ai_addr;
+  struct sockaddr_in6 ai_addr;
   socklen_t ai_addrlen;
 
 protected:
