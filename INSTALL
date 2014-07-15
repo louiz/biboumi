@@ -78,9 +78,19 @@ using the POLLER cmake option.  Available values are:
  EPOLL: use the Linux-specific epoll(7). This is the default on Linux.
  POLL: use the standard poll(2). This is the default value on all non-Linux platforms.
 
-Example, configure the poller with cmake:
+Examples, configure the poller with cmake:
 
 % cmake . -DPOLLER=EPOLL
+
+You can also decide not to use two of the optional dependencies, even if they are present on your system, for example if Botan is available but you do not want to use it, you can set the value of WITHOUT_BOTAN to 1, like this:
+
+% cmake . -DWITHOUT_BOTAN=1
+
+This way, the binary will not be linked with libotan at all (and all
+connection will then be made in clear text).
+You can also decide not to link with systemd, like this:
+
+% cmake . -DWITHOUT_SYSTEMD=1
 
 
 ==============

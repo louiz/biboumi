@@ -21,8 +21,12 @@ find_package(EXPAT REQUIRED)
 find_package(Iconv REQUIRED)
 find_package(Libuuid REQUIRED)
 find_package(Libidn)
-find_package(SystemdDaemon)
-find_package(Botan)
+if(NOT WITHOUT_SYSTEMD)
+  find_package(SystemdDaemon)
+endif()
+if(NOT WITHOUT_BOTAN)
+  find_package(Botan)
+endif()
 
 #
 ## Get the software version
