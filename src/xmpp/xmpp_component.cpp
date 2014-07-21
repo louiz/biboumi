@@ -918,6 +918,7 @@ void XmppComponent::send_nickname_conflict_error(const std::string& muc_name,
   Stanza presence("presence");
   presence["from"] = muc_name + "@" + this->served_hostname + "/" + nickname;
   presence["to"] = jid_to;
+  presence["type"] = "error";
   XmlNode x("x");
   x["xmlns"] = MUC_NS;
   x.close();
@@ -946,6 +947,7 @@ void XmppComponent::send_presence_error(const std::string& muc_name,
   Stanza presence("presence");
   presence["from"] = muc_name + "@" + this->served_hostname + "/" + nickname;
   presence["to"] = jid_to;
+  presence["type"] = "error";
   XmlNode x("x");
   x["xmlns"] = MUC_NS;
   x.close();
