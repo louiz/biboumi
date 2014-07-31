@@ -9,6 +9,8 @@ ExecReload=/bin/kill -s USR1 $MAINPID
 ExecStop=/bin/kill -s INT $MAINPID
 WatchdogSec=10
 Restart=always
+User=nobody
+Group=nobody
 
 [Install]
 WantedBy=multi-user.target
