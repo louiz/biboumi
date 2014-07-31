@@ -15,8 +15,6 @@ BuildRequires: cmake
 BuildRequires: systemd
 BuildRequires: rubygem-ronn
 
-%global biboumi_user    %{name}
-%global biboumi_group   %{biboumi_user}
 %global biboumi_confdir %{_sysconfdir}/%{name}
 
 
@@ -50,14 +48,6 @@ install -D -p -m 644 conf/biboumi.cfg \
 # Systemd unit file
 install -D -p -m 644 unit/%{name}.service \
     %{buildroot}%{_unitdir}/%{name}.service
-
-
-%pre
-getent group %{biboumi_group} > /dev/null || groupadd -r %{biboumi_group}
-getent passwd %{biboumi_user} > /dev/null || \
-    useradd -r -g %{biboumi_group} \
-    -s /sbin/nologin -c "Biboumi XMPP to IRC gateway" %{biboumi_user}
-exit 0
 
 
 %check
