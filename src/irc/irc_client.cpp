@@ -77,8 +77,9 @@ void IrcClient::on_connection_failed(const std::string& reason)
       for (const std::string& channel: this->channels_to_join)
         {
           Iid iid(channel + "%" + this->hostname);
-          this->bridge->send_join_failed(iid, this->current_nick,
-                                         "cancel", "item-not-found", reason);
+          this->bridge->send_presence_error(iid, this->current_nick,
+                                            "cancel", "item-not-found",
+                                            "", reason);
         }
     }
   else                          // try the next port

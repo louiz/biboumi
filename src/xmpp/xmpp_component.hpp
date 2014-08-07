@@ -172,20 +172,15 @@ public:
                      const std::string& author,
                      const std::string& jid_to);
   /**
-   * Send a presence type=error with a conflict element
-   */
-  void send_nickname_conflict_error(const std::string& muc_name,
-                                    const std::string& nickname,
-                                    const std::string& jid_to);
-  /**
    * Send a generic presence error
    */
   void send_presence_error(const std::string& muc_name,
-                      const std::string& nickname,
-                      const std::string& jid_to,
-                      const std::string& type,
-                      const std::string& condition,
-                      const std::string& text);
+                           const std::string& nickname,
+                           const std::string& jid_to,
+                           const std::string& type,
+                           const std::string& condition,
+                           const std::string& error_code,
+                           const std::string& text);
   /**
    * Send a presence from the MUC indicating a change in the role and/or
    * affiliation of a participant

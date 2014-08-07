@@ -100,10 +100,9 @@ public:
    */
   void send_message(const Iid& iid, const std::string& nick, const std::string& body, const bool muc);
   /**
-   * Send a presence of type error, from a room. This is used to indicate
-   * why joining a room failed.
+   * Send a presence of type error, from a room.
    */
-  void send_join_failed(const Iid& iid, const std::string& nick, const std::string& type, const std::string& condition, const std::string& text);
+  void send_presence_error(const Iid& iid, const std::string& nick, const std::string& type, const std::string& condition, const std::string& error_code, const std::string& text);
   /**
    * Send an unavailable presence from this participant
    */

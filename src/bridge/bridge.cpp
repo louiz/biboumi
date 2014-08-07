@@ -331,9 +331,11 @@ void Bridge::send_message(const Iid& iid, const std::string& nick, const std::st
     }
 }
 
-void Bridge::send_join_failed(const Iid& iid, const std::string& nick, const std::string& type, const std::string& condition, const std::string& text)
+void Bridge::send_presence_error(const Iid& iid, const std::string& nick,
+                                 const std::string& type, const std::string& condition,
+                                 const std::string& error_code, const std::string& text)
 {
-  this->xmpp->send_presence_error(std::to_string(iid), nick, this->user_jid, type, condition, text);
+  this->xmpp->send_presence_error(std::to_string(iid), nick, this->user_jid, type, condition, error_code, text);
 }
 
 void Bridge::send_muc_leave(Iid&& iid, std::string&& nick, const std::string& message, const bool self)
@@ -412,7 +414,7 @@ void Bridge::kick_muc_user(Iid&& iid, const std::string& target, const std::stri
 
 void Bridge::send_nickname_conflict_error(const Iid& iid, const std::string& nickname)
 {
-  this->xmpp->send_nickname_conflict_error(std::to_string(iid), nickname, this->user_jid);
+  this->xmpp->send_presence_error(std::to_string(iid), nickname, this->user_jid, "cancel", "conflict", "409", "");
 }
 
 void Bridge::send_affiliation_role_change(const Iid& iid, const std::string& target, const char mode)

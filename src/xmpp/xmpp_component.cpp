@@ -911,38 +911,13 @@ void XmppComponent::kick_user(const std::string& muc_name,
   this->send_stanza(presence);
 }
 
-void XmppComponent::send_nickname_conflict_error(const std::string& muc_name,
-                                                 const std::string& nickname,
-                                                 const std::string& jid_to)
-{
-  Stanza presence("presence");
-  presence["from"] = muc_name + "@" + this->served_hostname + "/" + nickname;
-  presence["to"] = jid_to;
-  presence["type"] = "error";
-  XmlNode x("x");
-  x["xmlns"] = MUC_NS;
-  x.close();
-  presence.add_child(std::move(x));
-  XmlNode error("error");
-  error["by"] = muc_name + "@" + this->served_hostname;
-  error["type"] = "cancel";
-  error["code"] = "409";
-  XmlNode conflict("conflict");
-  conflict["xmlns"] = STANZA_NS;
-  conflict.close();
-  error.add_child(std::move(conflict));
-  error.close();
-  presence.add_child(std::move(error));
-  presence.close();
-  this->send_stanza(presence);
-}
-
 void XmppComponent::send_presence_error(const std::string& muc_name,
-                                   const std::string& nickname,
-                                   const std::string& jid_to,
-                                   const std::string& type,
-                                   const std::string& condition,
-                                   const std::string&)
+                                        const std::string& nickname,
+                                        const std::string& jid_to,
+                                        const std::string& type,
+                                        const std::string& condition,
+                                        const std::string& error_code,
+                                        const std::string& /* text */)
 {
   Stanza presence("presence");
   presence["from"] = muc_name + "@" + this->served_hostname + "/" + nickname;
@@ -955,6 +930,8 @@ void XmppComponent::send_presence_error(const std::string& muc_name,
   XmlNode error("error");
   error["by"] = muc_name + "@" + this->served_hostname;
   error["type"] = type;
+  if (!error_code.empty())
+    error["code"] = error_code;
   XmlNode subnode(condition);
   subnode["xmlns"] = STANZA_NS;
   subnode.close();
