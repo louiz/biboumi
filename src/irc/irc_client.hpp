@@ -172,6 +172,10 @@ public:
    */
   void on_nickname_conflict(const IrcMessage& message);
   /**
+   * Idem, but for when the user changes their nickname too quickly
+   */
+  void on_nickname_change_too_fast(const IrcMessage& message);
+  /**
    * Handles most errors from the server by just forwarding the message to the user.
    */
   void on_generic_error(const IrcMessage& message);
@@ -317,6 +321,7 @@ static const std::unordered_map<std::string, irc_callback_t> irc_callbacks = {
   {"366", &IrcClient::on_channel_completely_joined},
   {"432", &IrcClient::on_erroneous_nickname},
   {"433", &IrcClient::on_nickname_conflict},
+  {"438", &IrcClient::on_nickname_change_too_fast},
   {"001", &IrcClient::on_welcome_message},
   {"PART", &IrcClient::on_part},
   {"ERROR", &IrcClient::on_error},

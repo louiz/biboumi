@@ -478,6 +478,25 @@ void IrcClient::on_nickname_conflict(const IrcMessage& message)
   }
 }
 
+void IrcClient::on_nickname_change_too_fast(const IrcMessage& message)
+{
+  const std::string nickname = message.arguments[1];
+  std::string txt;
+  if (message.arguments.size() >= 3)
+    txt = message.arguments[2];
+  this->on_generic_error(message);
+  for (auto it = this->channels.begin(); it != this->channels.end(); ++it)
+  {
+    Iid iid;
+    iid.set_local(it->first);
+    iid.set_server(this->hostname);
+    iid.is_channel = true;
+    this->bridge->send_presence_error(iid, nickname,
+                                      "cancel", "not-acceptable",
+                                      "", txt);
+  }
+}
+
 void IrcClient::on_generic_error(const IrcMessage& message)
 {
   const std::string error_msg = message.arguments.size() >= 3 ?
