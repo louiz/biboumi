@@ -221,7 +221,7 @@ as toto on the channel #bar (as long as these two channels are on the same
 IRC server).  By default you will receive private messages from the “global”
 user (aka nickname!irc.example.com@biboumi.example.com), unless you
 previously sent a message to an in-room participant (something like
-#test%irc.example.com@biboumi.example.com/nickname), in which case future
+\#test%irc.example.com@biboumi.example.com/nickname), in which case future
 messages from that same user will be received from that same “in-room” JID.
 
 ### Notices
