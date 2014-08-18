@@ -1,5 +1,5 @@
 Name:     biboumi
-Version:  1.0
+Version:  1.1
 Release:  1%{?dist}
 Summary:  Lightweight XMPP to IRC gateway
 
@@ -75,5 +75,8 @@ make test_suite/fast VERBOSE=1
 
 
 %changelog
+* Wed Aug 18 2014 Le Coz Florent <louiz@louiz.org> - 1.1-1
+- Update to 1.1 release
+
 * Wed Jun 25 2014 Le Coz Florent <louiz@louiz.org> - 1.0-1
 - Spec file written from scratch
