@@ -82,7 +82,10 @@ Examples, configure the poller with cmake:
 
 % cmake . -DPOLLER=EPOLL
 
-You can also decide not to use two of the optional dependencies, even if they are present on your system, for example if Botan is available but you do not want to use it, you can set the value of WITHOUT_BOTAN to 1, like this:
+You can also decide not to use two of the optional dependencies, even if
+they are present on your system, for example if Botan is available but you
+do not want to use it, you can set the value of WITHOUT_BOTAN to 1, like
+this:
 
 % cmake . -DWITHOUT_BOTAN=1
 
