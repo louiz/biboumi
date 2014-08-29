@@ -5,7 +5,7 @@ Summary:  Lightweight XMPP to IRC gateway
 
 License:  zlib
 URL:      http://biboumi.louiz.org
-Source0:  http://biboumi.louiz.org/biboumi-1.0.tar.xz
+Source0:  http://git.louiz.org/biboumi/snapshot/biboumi-%{version}.tar.xz
 
 BuildRequires: libidn-devel
 BuildRequires: expat-devel
