@@ -355,6 +355,17 @@ void Bridge::send_irc_participant_ping_request(const Iid& iid, const std::string
   this->send_irc_user_ping_request(iid.get_server(), nick, iq_id, to_jid, from_jid);
 }
 
+void Bridge::on_gateway_ping(const std::string& irc_hostname, const std::string& iq_id, const std::string& to_jid,
+                             const std::string& from_jid)
+{
+  Jid jid(from_jid);
+  if (irc_hostname.empty() || this->get_irc_client(irc_hostname))
+    this->xmpp->send_iq_result(iq_id, to_jid, jid.local);
+  else
+    this->xmpp->send_stanza_error("iq", to_jid, from_jid, iq_id, "cancel", "service-unavailable",
+                                  "", true);
+}
+
 void Bridge::send_irc_version_request(const std::string& irc_hostname, const std::string& target,
                                       const std::string& iq_id, const std::string& to_jid,
                                       const std::string& from_jid)

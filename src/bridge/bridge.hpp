@@ -85,6 +85,12 @@ public:
   void send_irc_participant_ping_request(const Iid& iid, const std::string& nick,
                                          const std::string& iq_id, const std::string& to_jid,
                                          const std::string& from_jid);
+  /**
+   * Directly send back a result if it's a gateway ping or if we are
+   * connected to the given IRC server, an error otherwise.
+   */
+  void on_gateway_ping(const std::string& irc_hostname, const std::string& iq_id, const std::string& to_jid,
+                       const std::string& from_jid);
 
   /***
    **

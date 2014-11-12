@@ -1,3 +1,6 @@
+Version 2.0
+- Support PING requests in all directions
+
 Version 1.1                                             2014-16-07
 
  - Fix a segmentation fault when connecting to an IRC server using IPv6

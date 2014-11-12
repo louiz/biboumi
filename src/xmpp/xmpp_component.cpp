@@ -568,6 +568,11 @@ void XmppComponent::handle_iq(const Stanza& stanza)
               bridge->send_irc_participant_ping_request(iid,
                                                         to.resource, id, from, to_str);
             }
+          else
+            { // Ping a channel, a server or the gateway itself
+              bridge->on_gateway_ping(iid.get_server(),
+                                     id, from, to_str);
+            }
           stanza_error.disable();
         }
     }
