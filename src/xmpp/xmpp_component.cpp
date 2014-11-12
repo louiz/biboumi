@@ -1128,7 +1128,10 @@ void XmppComponent::send_ping_request(const std::string& from,
 void XmppComponent::send_iq_result(const std::string& id, const std::string& to_jid, const std::string& from_local_part)
 {
   Stanza iq("iq");
-  iq["from"] = from_local_part + "@" + this->served_hostname;
+  if (!from_local_part.empty())
+    iq["from"] = from_local_part + "@" + this->served_hostname;
+  else
+    iq["from"] = this->served_hostname;
   iq["to"] = to_jid;
   iq["id"] = id;
   iq["type"] = "result";
