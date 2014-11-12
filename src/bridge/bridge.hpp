@@ -17,11 +17,11 @@ class Poller;
 
 /**
  * A callback called for each IrcMessage we receive. If the message triggers
- * a response, it must send an iq and return true (in that case it is
- * removed from the list), otherwise it must do nothing and just return
+ * a response, it must send ore or more iq and return true (in that case it
+ * is removed from the list), otherwise it must do nothing and just return
  * false.
  */
-typedef std::function<bool(const std::string& irc_hostname, const IrcMessage& message)> iq_responder_callback_t;
+using irc_responder_callback_t = std::function<bool(const std::string& irc_hostname, const IrcMessage& message)>;
 
 /**
  * One bridge is spawned for each XMPP user that uses the component.  The
@@ -146,15 +146,15 @@ public:
    */
   void remove_preferred_from_jid(const std::string& nick);
   /**
-   * Add a callback to the waiting iq list.
+   * Add a callback to the waiting list of irc callbacks.
    */
-  void add_waiting_iq(iq_responder_callback_t&& callback);
+  void add_waiting_irc(irc_responder_callback_t&& callback);
   /**
    * Iter over all the waiting_iq, call the iq_responder_filter_t for each,
    * whenever one of them returns true: call the corresponding
    * iq_responder_callback_t and remove the callback from the list.
    */
-  void trigger_response_iq(const std::string& irc_hostname, const IrcMessage& message);
+  void trigger_on_irc_message(const std::string& irc_hostname, const IrcMessage& message);
 
 private:
   /**
@@ -203,7 +203,7 @@ private:
    * request and we need a response from IRC to be able to provide the
    * response iq.
    */
-  std::list<iq_responder_callback_t> waiting_iq;
+  std::list<irc_responder_callback_t> waiting_irc;
 
   Bridge(const Bridge&) = delete;
   Bridge(Bridge&& other) = delete;

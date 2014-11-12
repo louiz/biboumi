@@ -1,6 +1,7 @@
 #include <bridge/bridge.hpp>
 #include <bridge/colors.hpp>
 #include <xmpp/xmpp_component.hpp>
+#include <xmpp/xmpp_stanza.hpp>
 #include <irc/irc_message.hpp>
 #include <network/poller.hpp>
 #include <utils/encoding.hpp>
@@ -220,45 +221,49 @@ void Bridge::send_irc_kick(const Iid& iid, const std::string& target, const std:
                            const std::string& iq_id, const std::string& to_jid)
 {
   IrcClient* irc = this->get_irc_client(iid.get_server());
-  if (irc)
+
+  if (!irc)
+    return;
+
+  irc->send_kick_command(iid.get_local(), target, reason);
+  irc_responder_callback_t cb = [this, target, iq_id, to_jid, iid](const std::string& irc_hostname,
+                                                                   const IrcMessage& message) -> bool
     {
-      irc->send_kick_command(iid.get_local(), target, reason);
-      this->add_waiting_iq([this, target, iq_id, to_jid, iid](const std::string& irc_hostname, const IrcMessage& message){
-          if (irc_hostname != iid.get_server())
+      if (irc_hostname != iid.get_server())
+        return false;
+      if (message.command == "KICK" && message.arguments.size() >= 2)
+        {
+          const std::string target_later = message.arguments[1];
+          const std::string chan_name_later = utils::tolower(message.arguments[0]);
+          if (target_later != target || chan_name_later != iid.get_local())
             return false;
-          if (message.command == "KICK" && message.arguments.size() >= 2)
-            {
-              const std::string target_later = message.arguments[1];
-              const std::string chan_name_later = utils::tolower(message.arguments[0]);
-              if (target_later != target || chan_name_later != iid.get_local())
-                return false;
-              this->xmpp->send_iq_result(iq_id, to_jid, std::to_string(iid));
-            }
-          else if (message.command == "401" && message.arguments.size() >= 2)
-            {
-              const std::string target_later = message.arguments[1];
-              if (target_later != target)
-                return false;
-              std::string error_message = "No such nick";
-              if (message.arguments.size() >= 3)
-                error_message = message.arguments[2];
-              this->xmpp->send_stanza_error("iq", to_jid, std::to_string(iid), iq_id, "cancel", "item-not-found",
-                                            error_message, false);
-            }
-          else if (message.command == "482" && message.arguments.size() >= 2)
-            {
-              const std::string chan_name_later = utils::tolower(message.arguments[1]);
-              if (chan_name_later != iid.get_local())
-                return false;
-              std::string error_message = "You're not channel operator";
-              if (message.arguments.size() >= 3)
-                error_message = message.arguments[2];
-              this->xmpp->send_stanza_error("iq", to_jid, std::to_string(iid), iq_id, "cancel", "not-allowed",
-                                            error_message, false);
-            }
-          return true;
-        });
-    }
+          this->xmpp->send_iq_result(iq_id, to_jid, std::to_string(iid));
+        }
+      else if (message.command == "401" && message.arguments.size() >= 2)
+        {
+          const std::string target_later = message.arguments[1];
+          if (target_later != target)
+            return false;
+          std::string error_message = "No such nick";
+          if (message.arguments.size() >= 3)
+            error_message = message.arguments[2];
+          this->xmpp->send_stanza_error("iq", to_jid, std::to_string(iid), iq_id, "cancel", "item-not-found",
+                                        error_message, false);
+        }
+      else if (message.command == "482" && message.arguments.size() >= 2)
+        {
+          const std::string chan_name_later = utils::tolower(message.arguments[1]);
+          if (chan_name_later != iid.get_local())
+            return false;
+          std::string error_message = "You're not channel operator";
+          if (message.arguments.size() >= 3)
+            error_message = message.arguments[2];
+          this->xmpp->send_stanza_error("iq", to_jid, std::to_string(iid), iq_id, "cancel", "not-allowed",
+                                        error_message, false);
+        }
+      return true;
+    };
+  this->add_waiting_irc(std::move(cb));
 }
 
 void Bridge::set_channel_topic(const Iid& iid, const std::string& subject)
@@ -284,7 +289,8 @@ void Bridge::send_irc_version_request(const std::string& irc_hostname, const std
 
   // TODO, add a timer to remove that waiting iq if the server does not
   // respond with a matching command before n seconds
-  this->add_waiting_iq([this, target, iq_id, to_jid, irc_hostname, from_jid](const std::string& hostname, const IrcMessage& message){
+  irc_responder_callback_t cb = [this, target, iq_id, to_jid, irc_hostname, from_jid](const std::string& hostname, const IrcMessage& message) -> bool
+    {
       if (irc_hostname != hostname)
         return false;
       IrcUser user(message.prefix);
@@ -307,9 +313,9 @@ void Bridge::send_irc_version_request(const std::string& irc_hostname, const std
           return true;
         }
       return false;
-    });
+    };
+  this->add_waiting_irc(std::move(cb));
 }
-
 
 void Bridge::send_message(const Iid& iid, const std::string& nick, const std::string& body, const bool muc)
 {
@@ -447,18 +453,18 @@ void Bridge::remove_preferred_from_jid(const std::string& nick)
     this->preferred_user_from.erase(it);
 }
 
-void Bridge::add_waiting_iq(iq_responder_callback_t&& callback)
+void Bridge::add_waiting_irc(irc_responder_callback_t&& callback)
 {
-  this->waiting_iq.emplace_back(std::move(callback));
+  this->waiting_irc.emplace_back(std::move(callback));
 }
 
-void Bridge::trigger_response_iq(const std::string& irc_hostname, const IrcMessage& message)
+void Bridge::trigger_on_irc_message(const std::string& irc_hostname, const IrcMessage& message)
 {
-  auto it = this->waiting_iq.begin();
-  while (it != this->waiting_iq.end())
+  auto it = this->waiting_irc.begin();
+  while (it != this->waiting_irc.end())
     {
       if ((*it)(irc_hostname, message) == true)
-        it = this->waiting_iq.erase(it);
+        it = this->waiting_irc.erase(it);
       else
         ++it;
     }

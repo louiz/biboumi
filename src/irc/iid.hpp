@@ -42,7 +42,7 @@
 class Iid
 {
 public:
-  explicit Iid(const std::string& iid);
+  Iid(const std::string& iid);
   explicit Iid(const Iid&);
   explicit Iid();
 

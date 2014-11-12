@@ -9,6 +9,7 @@
 #include <unordered_map>
 #include <memory>
 #include <string>
+#include <map>
 
 #define STREAM_NS        "http://etherx.jabber.org/streams"
 #define COMPONENT_NS     "jabber:component:accept"
@@ -23,6 +24,11 @@
 #define STREAMS_NS       "urn:ietf:params:xml:ns:xmpp-streams"
 #define VERSION_NS       "jabber:iq:version"
 #define ADHOC_NS         "http://jabber.org/protocol/commands"
+/**
+ * A callback called when the waited iq result is received (it is matched
+ * against the iq id)
+ */
+using iq_responder_callback_t = std::function<void(Bridge* bridge, const Stanza& stanza)>;
 
 /**
  * An XMPP component, communicating with an XMPP server using the protocole
@@ -255,6 +261,14 @@ private:
 
   std::unordered_map<std::string, std::function<void(const Stanza&)>> stanza_handlers;
   AdhocCommandsHandler adhoc_commands_handler;
+
+  /**
+   * A map of id -> callback.  When we want to wait for an iq result, we add
+   * the callback to this map, with the iq id as the key. When an iq result
+   * is received, we look for a corresponding callback in this map. If
+   * found, we call it and remove it.
+   */
+  std::map<std::string, iq_responder_callback_t> waiting_iq;
 
   /**
    * One bridge for each user of the component. Indexed by the user's full

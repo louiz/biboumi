@@ -156,7 +156,7 @@ void IrcClient::parse_in_buffer(const size_t)
       else
         log_info("No handler for command " << message.command);
       // Try to find a waiting_iq, which response will be triggered by this IrcMessage
-      this->bridge->trigger_response_iq(this->hostname, message);
+      this->bridge->trigger_on_irc_message(this->hostname, message);
     }
 }
 

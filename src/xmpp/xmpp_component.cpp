@@ -577,6 +577,15 @@ void XmppComponent::handle_iq(const Stanza& stanza)
           const Iid iid(to.local);
           bridge->send_xmpp_version_to_irc(iid, name, version, os);
         }
+      else
+        {
+          const auto it = this->waiting_iq.find(id);
+          if (it != this->waiting_iq.end())
+            {
+              it->second(bridge, stanza);
+              this->waiting_iq.erase(it);
+            }
+        }
     }
   error_type = "cancel";
   error_name = "feature-not-implemented";
