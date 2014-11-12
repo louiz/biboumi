@@ -409,6 +409,9 @@ void IrcClient::on_channel_message(const IrcMessage& message)
                   "/me"s + body.substr(7, body.size() - 8), muc);
       else if (body.substr(1, 8) == "VERSION\01")
         this->bridge->send_iq_version_request(nick, this->hostname);
+      else if (body.substr(1, 5) == "PING ")
+        this->bridge->send_xmpp_ping_request(nick, this->hostname,
+                                             body.substr(6, body.size() - 7));
     }
   else
     this->bridge->send_message(iid, nick, body, muc);

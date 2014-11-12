@@ -555,6 +555,16 @@ void XmppComponent::handle_iq(const Stanza& stanza)
               stanza_error.disable();
             }
         }
+      else if ((query = stanza.get_child("ping", PING_NS)))
+        {
+          Iid iid(to.local);
+          if (iid.is_user)
+            { // Ping any user (no check on the nick done ourself)
+              bridge->send_irc_user_ping_request(iid.get_server(),
+                                                 iid.get_local(), id, from, to_str);
+            }
+          stanza_error.disable();
+        }
     }
   else if (type == "result")
     {
@@ -1078,6 +1088,36 @@ void XmppComponent::send_iq_version_request(const std::string& from,
   iq.add_child(std::move(query));
   iq.close();
   this->send_stanza(iq);
+}
+
+void XmppComponent::send_ping_request(const std::string& from,
+                                      const std::string& jid_to,
+                                      const std::string& id)
+{
+  Stanza iq("iq");
+  iq["type"] = "get";
+  iq["id"] = id;
+  iq["from"] = from + "@" + this->served_hostname;
+  iq["to"] = jid_to;
+  XmlNode ping("ping");
+  ping["xmlns"] = PING_NS;
+  ping.close();
+  iq.add_child(std::move(ping));
+  iq.close();
+  this->send_stanza(iq);
+
+  auto result_cb = [from, id](Bridge* bridge, const Stanza& stanza)
+    {
+      Jid to(stanza.get_tag("to"));
+      if (to.local != from)
+        {
+          log_error("Received a corresponding ping result, but the 'to' from "
+                    "the response mismatches the 'from' of the request");
+        }
+      else
+        bridge->send_irc_ping_result(from, id);
+    };
+  this->waiting_iq[id] = result_cb;
 }
 
 void XmppComponent::send_iq_result(const std::string& id, const std::string& to_jid, const std::string& from_local_part)

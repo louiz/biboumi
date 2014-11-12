@@ -24,6 +24,8 @@
 #define STREAMS_NS       "urn:ietf:params:xml:ns:xmpp-streams"
 #define VERSION_NS       "jabber:iq:version"
 #define ADHOC_NS         "http://jabber.org/protocol/commands"
+#define PING_NS          "urn:xmpp:ping"
+
 /**
  * A callback called when the waited iq result is received (it is matched
  * against the iq id)
@@ -216,6 +218,12 @@ public:
    */
   void send_iq_version_request(const std::string& from,
                                const std::string& jid_to);
+  /**
+   * Send a ping request
+   */
+  void send_ping_request(const std::string& from,
+                         const std::string& jid_to,
+                         const std::string& id);
   /**
    * Send an empty iq of type result
    */

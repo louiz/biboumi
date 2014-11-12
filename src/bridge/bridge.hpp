@@ -68,9 +68,16 @@ public:
   void set_channel_topic(const Iid& iid, const std::string& subject);
   void send_xmpp_version_to_irc(const Iid& iid, const std::string& name, const std::string& version,
                                 const std::string& os);
+  void send_irc_ping_result(const Iid& iid, const std::string& id);
   void send_irc_version_request(const std::string& irc_hostname, const std::string& target,
                                 const std::string& iq_id, const std::string& to_jid,
                                 const std::string& from_jid);
+  /**
+   * Directly send a CTCP PING request to the IRC user
+   */
+  void send_irc_user_ping_request(const std::string& irc_hostname, const std::string& nick,
+                                  const std::string& iq_id, const std::string& to_jid,
+                                  const std::string& from_jid);
 
   /***
    **
@@ -128,7 +135,11 @@ public:
    * Send an iq version request coming from nick!hostname@
    */
   void send_iq_version_request(const std::string& nick, const std::string& hostname);
-
+  /**
+   * Send an iq ping request coming from nick!hostname@
+   */
+  void send_xmpp_ping_request(const std::string& nick, const std::string& hostname,
+                              const std::string& id);
   /**
    * Misc
    */

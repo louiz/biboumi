@@ -7,7 +7,9 @@
 #include <utils/encoding.hpp>
 #include <utils/tolower.hpp>
 #include <logger/logger.hpp>
+#include <utils/revstr.hpp>
 #include <utils/split.hpp>
+#include <xmpp/jid.hpp>
 #include <stdexcept>
 #include <iostream>
 #include <tuple>
@@ -280,6 +282,50 @@ void Bridge::send_xmpp_version_to_irc(const Iid& iid, const std::string& name, c
   this->send_private_message(iid, "\01VERSION "s + result + "\01", "NOTICE");
 }
 
+void Bridge::send_irc_ping_result(const Iid& iid, const std::string& id)
+{
+  this->send_private_message(iid, "\01PING "s + utils::revstr(id), "NOTICE");
+}
+
+void Bridge::send_irc_user_ping_request(const std::string& irc_hostname, const std::string& nick,
+                                        const std::string& iq_id, const std::string& to_jid,
+                                        const std::string& from_jid)
+{
+  Iid iid(nick + "!" + irc_hostname);
+  this->send_private_message(iid, "\01PING " + iq_id + "\01");
+
+  irc_responder_callback_t cb = [this, nick, iq_id, to_jid, irc_hostname, from_jid](const std::string& hostname, const IrcMessage& message) -> bool
+    {
+      if (irc_hostname != hostname)
+        return false;
+      IrcUser user(message.prefix);
+      const std::string body = message.arguments[1];
+      if (message.command == "NOTICE" && user.nick == nick &&
+          message.arguments.size() >= 2 && body.substr(0, 6) == "\01PING ")
+        {
+          const std::string id = body.substr(6, body.size() - 6);
+          if (id != iq_id)
+            return false;
+          Jid jid(from_jid);
+          this->xmpp->send_iq_result(iq_id, to_jid, jid.local);
+          return true;
+        }
+      if (message.command == "401" && message.arguments.size() >= 2
+          && message.arguments[1] == nick)
+        {
+          std::string error_message = "No such nick";
+          if (message.arguments.size() >= 3)
+            error_message = message.arguments[2];
+          this->xmpp->send_stanza_error("iq", to_jid, from_jid, iq_id, "cancel", "service-unavailable",
+                                        error_message, true);
+          return true;
+        }
+
+      return false;
+    };
+  this->add_waiting_irc(std::move(cb));
+}
+
 void Bridge::send_irc_version_request(const std::string& irc_hostname, const std::string& target,
                                       const std::string& iq_id, const std::string& to_jid,
                                       const std::string& from_jid)
@@ -435,6 +481,15 @@ void Bridge::send_affiliation_role_change(const Iid& iid, const std::string& tar
 void Bridge::send_iq_version_request(const std::string& nick, const std::string& hostname)
 {
   this->xmpp->send_iq_version_request(nick + "!" + hostname, this->user_jid);
+}
+
+void Bridge::send_xmpp_ping_request(const std::string& nick, const std::string& hostname,
+                                    const std::string& id)
+{
+  // Use revstr because the forwarded ping to target XMPP user must not be
+  // the same that the request iq, but we also need to get it back easily
+  // (revstr again)
+  this->xmpp->send_ping_request(nick + "!" + hostname, this->user_jid, utils::revstr(id));
 }
 
 void Bridge::set_preferred_from_jid(const std::string& nick, const std::string& full_jid)
