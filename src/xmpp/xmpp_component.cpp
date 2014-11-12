@@ -563,6 +563,11 @@ void XmppComponent::handle_iq(const Stanza& stanza)
               bridge->send_irc_user_ping_request(iid.get_server(),
                                                  iid.get_local(), id, from, to_str);
             }
+          else if (iid.is_channel && !to.resource.empty())
+            { // Ping a room participant (we check if the nick is in the room)
+              bridge->send_irc_participant_ping_request(iid,
+                                                        to.resource, id, from, to_str);
+            }
           stanza_error.disable();
         }
     }

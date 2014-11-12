@@ -78,6 +78,13 @@ public:
   void send_irc_user_ping_request(const std::string& irc_hostname, const std::string& nick,
                                   const std::string& iq_id, const std::string& to_jid,
                                   const std::string& from_jid);
+  /**
+   * First check if the participant is in the room, before sending a direct
+   * CTCP PING request to the IRC user
+   */
+  void send_irc_participant_ping_request(const Iid& iid, const std::string& nick,
+                                         const std::string& iq_id, const std::string& to_jid,
+                                         const std::string& from_jid);
 
   /***
    **

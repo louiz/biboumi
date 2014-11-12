@@ -326,13 +326,41 @@ void Bridge::send_irc_user_ping_request(const std::string& irc_hostname, const s
   this->add_waiting_irc(std::move(cb));
 }
 
+void Bridge::send_irc_participant_ping_request(const Iid& iid, const std::string& nick,
+                                               const std::string& iq_id, const std::string& to_jid,
+                                               const std::string& from_jid)
+{
+  IrcClient* irc = this->get_irc_client(iid.get_server());
+  if (!irc)
+    {
+      this->xmpp->send_stanza_error("iq", to_jid, from_jid, iq_id, "cancel", "item-not-found",
+                                    "Not connected to IRC server"s + iid.get_server(), true);
+      return;
+    }
+  IrcChannel* chan = irc->get_channel(iid.get_local());
+  if (!chan->joined)
+    {
+      this->xmpp->send_stanza_error("iq", to_jid, from_jid, iq_id, "cancel", "not-allowed",
+                                    "", true);
+      return;
+    }
+  if (chan->get_self()->nick != nick && !chan->find_user(nick))
+    {
+      this->xmpp->send_stanza_error("iq", to_jid, from_jid, iq_id, "cancel", "item-not-found",
+                                    "Recipient not in room", true);
+      return;
+    }
+
+  // The user is in the room, send it a direct PING
+  this->send_irc_user_ping_request(iid.get_server(), nick, iq_id, to_jid, from_jid);
+}
+
 void Bridge::send_irc_version_request(const std::string& irc_hostname, const std::string& target,
                                       const std::string& iq_id, const std::string& to_jid,
                                       const std::string& from_jid)
 {
   Iid iid(target + "!" + irc_hostname);
   this->send_private_message(iid, "\01VERSION\01");
-
   // TODO, add a timer to remove that waiting iq if the server does not
   // respond with a matching command before n seconds
   irc_responder_callback_t cb = [this, target, iq_id, to_jid, irc_hostname, from_jid](const std::string& hostname, const IrcMessage& message) -> bool
