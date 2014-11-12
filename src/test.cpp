@@ -10,6 +10,7 @@
 #include <config/config.hpp>
 #include <bridge/colors.hpp>
 #include <utils/tolower.hpp>
+#include <utils/revstr.hpp>
 #include <irc/irc_user.hpp>
 #include <utils/split.hpp>
 #include <xmpp/jid.hpp>
@@ -160,6 +161,9 @@ int main()
   const std::string lowercase = utils::tolower("CoUcOu LeS CoPaiNs ♥");
   std::cout << lowercase << std::endl;
   assert(lowercase == "coucou les copains ♥");
+
+  const std::string ltr = "coucou";
+  assert(utils::revstr(ltr) == "uocuoc");
 
   /**
    * XML parsing
