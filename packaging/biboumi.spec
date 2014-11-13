@@ -29,12 +29,13 @@ these channels were XMPP MUCs.
 
 
 %build
-cmake . -DCMAKE_BUILD_TYPE=release \
-    -DCMAKE_INSTALL_PREFIX=/usr \
-    -DPOLLER=EPOLL \
-    -DWITHOUT_BOTAN=1 \
-    -DWITH_SYSTEMD=1 \
-    -DWITH_LIBIDN=1
+cmake . -DCMAKE_CXX_FLAGS="%{optflags}" \
+      -DCMAKE_BUILD_TYPE=release \
+      -DCMAKE_INSTALL_PREFIX=/usr \
+      -DPOLLER=EPOLL \
+      -DWITHOUT_BOTAN=1 \
+      -DWITH_SYSTEMD=1 \
+      -DWITH_LIBIDN=1
 
 make %{?_smp_mflags}
 
@@ -72,6 +73,7 @@ make test_suite/fast VERBOSE=1
 %changelog
 * Wed Nov 13 2014 Le Coz Florent <louiz@louiz.org> - 1.1-2
 - Use the -DWITH(OUT) cmake flags for all optional dependencies
+- Build with the correct optflags
 
 * Wed Aug 18 2014 Le Coz Florent <louiz@louiz.org> - 1.1-1
 - Update to 1.1 release
