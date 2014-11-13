@@ -15,6 +15,8 @@ BuildRequires: cmake
 BuildRequires: systemd
 BuildRequires: rubygem-ronn
 
+%global _hardened_build 1
+
 %global biboumi_confdir %{_sysconfdir}/%{name}
 
 
@@ -74,6 +76,7 @@ make test_suite/fast VERBOSE=1
 * Wed Nov 13 2014 Le Coz Florent <louiz@louiz.org> - 1.1-2
 - Use the -DWITH(OUT) cmake flags for all optional dependencies
 - Build with the correct optflags
+- Use hardened_build
 
 * Wed Aug 18 2014 Le Coz Florent <louiz@louiz.org> - 1.1-1
 - Update to 1.1 release
