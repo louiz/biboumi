@@ -1,6 +1,6 @@
 Name:     biboumi
 Version:  1.1
-Release:  1%{?dist}
+Release:  2%{?dist}
 Summary:  Lightweight XMPP to IRC gateway
 
 License:  zlib
@@ -31,10 +31,15 @@ these channels were XMPP MUCs.
 %build
 cmake . -DCMAKE_BUILD_TYPE=release \
     -DCMAKE_INSTALL_PREFIX=/usr \
-    -DPOLLER=EPOLL
+    -DPOLLER=EPOLL \
+    -DWITHOUT_BOTAN=1 \
+    -DWITH_SYSTEMD=1 \
+    -DWITH_LIBIDN=1
+
+make %{?_smp_mflags}
+
 # The documentation is in utf-8, ronn fails to build it if that locale is
 # not specified
-make %{?_smp_mflags}
 LC_ALL=en_GB.utf-8 make doc
 
 
@@ -65,6 +70,9 @@ make test_suite/fast VERBOSE=1
 
 
 %changelog
+* Wed Nov 13 2014 Le Coz Florent <louiz@louiz.org> - 1.1-2
+- Use the -DWITH(OUT) cmake flags for all optional dependencies
+
 * Wed Aug 18 2014 Le Coz Florent <louiz@louiz.org> - 1.1-1
 - Update to 1.1 release
 
