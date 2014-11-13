@@ -18,14 +18,25 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D__FILENAME__='\"$(subst ${CMAKE_SOURCE
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 include(FindEXPAT)
 find_package(EXPAT REQUIRED)
-find_package(Iconv REQUIRED)
-find_package(Libuuid REQUIRED)
-find_package(Libidn)
-if(NOT WITHOUT_SYSTEMD)
-  find_package(SystemdDaemon)
+find_package(ICONV REQUIRED)
+find_package(LIBUUID REQUIRED)
+
+if(WITH_LIBIDN)
+  find_package(LIBIDN REQUIRED)
+elseif(NOT WITHOUT_LIBIDN)
+  find_package(LIBIDN)
 endif()
-if(NOT WITHOUT_BOTAN)
-  find_package(Botan)
+
+if(WITH_SYSTEMD)
+  find_package(SYSTEMD REQUIRED)
+elseif(NOT WITHOUT_SYSTEMD)
+  find_package(SYSTEMD)
+endif()
+
+if(WITH_BOTAN)
+  find_package(BOTAN REQUIRED)
+elseif(NOT WITHOUT_BOTAN)
+  find_package(BOTAN)
 endif()
 
 #

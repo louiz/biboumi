@@ -35,7 +35,7 @@ Libraries:
  Other branches than the 1.11 are not supported.
  http://botan.randombit.net/
 
-- systemd-daemon (optional)
+- systemd (optional)
  Provides the support for a systemd service of Type=notify. This is useful only
  if you are packaging biboumi in a distribution with Systemd.
 
@@ -67,33 +67,35 @@ In ccmake, first use 'c' to configure the build system, edit the values you
 need and finaly use 'g' to generate the Makefiles to build the system and
 quit ccmake.
 
-or you can also use an interactive mode with:
+You can also configure these options using a -D command line flag.
 
-% cmake -i .
+The list of available options:
 
-and respond to the questions when you are prompted to.
-
-You can, for example, select the poller used by biboumi, at compile-time,
-using the POLLER cmake option.  Available values are:
+- POLLER: lets you select the poller used by biboumi, at
+  compile-time. Possible values are:
  EPOLL: use the Linux-specific epoll(7). This is the default on Linux.
- POLL: use the standard poll(2). This is the default value on all non-Linux platforms.
+ POLL: use the standard poll(2). This is the default value on all non-Linux
+ platforms.
 
-Examples, configure the poller with cmake:
+- WITH_BOTAN and WITHOUT_BOTAN: The first force the usage of the Botan library,
+ if it is not found, the configuration process will fail. The second will
+ make the build process ignore the Botan library, it will not be used even
+ if it's available on the system.  If none of these option is specified, the
+ library will be used if available and will be ignored otherwise.
 
-% cmake . -DPOLLER=EPOLL
+- WITH_LIBIDN and WITHOUT_LIBIDN: Just like the WITH(OUT)_BOTAN options, but
+ for the IDN library
 
-You can also decide not to use two of the optional dependencies, even if
-they are present on your system, for example if Botan is available but you
-do not want to use it, you can set the value of WITHOUT_BOTAN to 1, like
-this:
+- WITH_SYSTEMD and WITHOUT_SYSTEMD: Just like the other WITH(OUT)_* options,
+  but for the Systemd library
 
-% cmake . -DWITHOUT_BOTAN=1
+Example:
 
-This way, the binary will not be linked with libotan at all (and all
-connection will then be made in clear text).
-You can also decide not to link with systemd, like this:
+% cmake . -DCMAKE_BUILD_TYPE=release -DCMAKE_INSTALL_PREFIX \
+          -DWITH_BOTAN=1 -DWITHOUT_SYSTEMD=1
 
-% cmake . -DWITHOUT_SYSTEMD=1
+This command will configure the project to build a release, with TLS enabled
+(using Botan) but without using Systemd (even if available on the system).
 
 
 ==============
