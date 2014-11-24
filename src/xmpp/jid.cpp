@@ -1,6 +1,7 @@
 #include <xmpp/jid.hpp>
 #include <config.h>
 #include <cstring>
+#include <map>
 
 #ifdef LIBIDN_FOUND
  #include <stringprep.h>
@@ -35,7 +36,14 @@ static constexpr size_t max_jid_part_len = 1023;
 std::string jidprep(const std::string& original)
 {
 #ifdef LIBIDN_FOUND
-  // TODO: cache the result
+  using CacheType = std::map<std::string, std::string>;
+  static CacheType cache;
+  std::pair<CacheType::iterator, bool> cached = cache.insert({original, {}});
+  if (std::get<1>(cached) == false)
+    { // Insertion failed: the result is already in the cache, return it
+      return std::get<0>(cached)->second;
+    }
+
   const std::string error_msg("Failed to convert " + original + " into a valid JID:");
   Jid jid(original);
 
@@ -61,7 +69,10 @@ std::string jidprep(const std::string& original)
 
   // If there is no resource, stop here
   if (jid.resource.empty())
-    return std::string(local) + "@" + domain;
+    {
+      std::get<0>(cached)->second = std::string(local) + "@" + domain;
+      return std::get<0>(cached)->second;
+    }
 
   // Otherwise, also process the resource part
   char resource[max_jid_part_len] = {};
@@ -73,7 +84,8 @@ std::string jidprep(const std::string& original)
       log_error(error_msg + stringprep_strerror(rc));
       return "";
     }
-  return std::string(local) + "@" + domain + "/" + resource;
+  std::get<0>(cached)->second = std::string(local) + "@" + domain + "/" + resource;
+  return std::get<0>(cached)->second;
 
 #else
   (void)original;

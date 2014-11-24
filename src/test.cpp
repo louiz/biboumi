@@ -288,7 +288,12 @@ int main()
   // Jidprep
   const std::string& badjid("~zigougou™@EpiK-7D9D1FDE.poez.io/Boujour/coucou/slt™");
   const std::string correctjid = jidprep(badjid);
+  std::cout << correctjid << std::endl;
   assert(correctjid == "~zigougoutm@epik-7d9d1fde.poez.io/Boujour/coucou/sltTM");
+  // Check that the cache do not break things when we prep the same string
+  // multiple times
+  assert(jidprep(badjid) == "~zigougoutm@epik-7d9d1fde.poez.io/Boujour/coucou/sltTM");
+  assert(jidprep(badjid) == "~zigougoutm@epik-7d9d1fde.poez.io/Boujour/coucou/sltTM");
 
   const std::string& badjid2("Zigougou@poez.io");
   const std::string correctjid2 = jidprep(badjid2);
