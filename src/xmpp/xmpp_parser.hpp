@@ -118,6 +118,9 @@ private:
   std::vector<std::function<void(const Stanza&)>> stanza_callbacks;
   std::vector<std::function<void(const XmlNode&)>> stream_open_callbacks;
   std::vector<std::function<void(const XmlNode&)>> stream_close_callbacks;
+
+  XmppParser(const XmppParser&) = delete;
+  XmppParser& operator=(const XmppParser&) = delete;
 };
 
 #endif // XMPP_PARSER_INCLUDED
