@@ -36,7 +36,7 @@ public:
    * Takes a copy of the <command/> node so we can actually edit it and use
    * it as our return value.
    */
-  XmlNode&& handle_request(const std::string& executor_jid, XmlNode command_node);
+  XmlNode handle_request(const std::string& executor_jid, XmlNode command_node);
   /**
    * Remove the session from the list. This is done to avoid filling the
    * memory with waiting session (for example due to a client that starts

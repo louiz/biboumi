@@ -29,7 +29,7 @@ const std::map<const std::string, const AdhocCommand>& AdhocCommandsHandler::get
   return this->commands;
 }
 
-XmlNode&& AdhocCommandsHandler::handle_request(const std::string& executor_jid, XmlNode command_node)
+XmlNode AdhocCommandsHandler::handle_request(const std::string& executor_jid, XmlNode command_node)
 {
   std::string action = command_node.get_tag("action");
   if (action.empty())
@@ -127,7 +127,7 @@ XmlNode&& AdhocCommandsHandler::handle_request(const std::string& executor_jid, 
           command_node.add_child(std::move(error));
         }
     }
-  return std::move(command_node);
+  return command_node;
 }
 
 void AdhocCommandsHandler::remove_session(const std::string& session_id, const std::string& initiator_jid)

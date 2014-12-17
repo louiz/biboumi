@@ -222,7 +222,7 @@ int main()
   IrcUser user2("coucou!~other@host.bla", prefixes);
   assert(user2.nick == "coucou");
   assert(user2.host == "~other@host.bla");
-  assert(user2.modes.size() == 0);
+  assert(user2.modes.empty());
   assert(user2.modes.find('a') == user2.modes.end());
 
   /**

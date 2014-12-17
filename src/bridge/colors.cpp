@@ -166,9 +166,7 @@ Xmpp::body irc_format_to_xhtmlim(const std::string& s)
     {
       current_node->close();
       result->add_child(current_node);
-      current_node = result.get();
     }
-
 
   result->close();
   Xmpp::body body_res = std::make_tuple(cleaned, std::move(result));

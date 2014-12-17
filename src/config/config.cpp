@@ -28,13 +28,6 @@ int Config::get_int(const std::string& option, const int& def)
     return def;
 }
 
-void Config::set_int(const std::string& option, const int& value, bool save)
-{
-  std::ostringstream os;
-  os << value;
-  Config::set(option, os.str(), save);
-}
-
 void Config::set(const std::string& option, const std::string& value, bool save)
 {
   Config* self = Config::instance().get();

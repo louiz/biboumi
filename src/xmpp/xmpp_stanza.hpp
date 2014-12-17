@@ -151,7 +151,7 @@ private:
 
 /**
  * An XMPP stanza is just an XML node of level 2 in the XMPP document (the
- * level 1 ones are the <stream::stream/>, and the ones about 2 are just the
+ * level 1 ones are the <stream::stream/>, and the ones above 2 are just the
  * content of the stanzas)
  */
 typedef XmlNode Stanza;

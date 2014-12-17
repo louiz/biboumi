@@ -53,14 +53,6 @@ public:
    */
   static void set(const std::string&, const std::string&, bool save = false);
   /**
-   * Set a value for the given option. And write all the config
-   * in the file from which it was read if boolean is set.
-   * @param option The option to set
-   * @param value The value to use
-   * @param save if true, save the config file
-   */
-  static void set_int(const std::string&, const int&, bool save = false);
-  /**
    * Adds a function to a list. This function will be called whenever a
    * configuration change occurs.
    */

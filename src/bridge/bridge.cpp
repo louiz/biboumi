@@ -480,7 +480,7 @@ void Bridge::send_user_join(const std::string& hostname,
                              affiliation, role, this->user_jid, self);
 }
 
-void Bridge::send_topic(const std::string& hostname, const std::string& chan_name, const std::string topic)
+void Bridge::send_topic(const std::string& hostname, const std::string& chan_name, const std::string& topic)
 {
   this->xmpp->send_topic(chan_name + "%" + hostname, this->make_xmpp_body(topic), this->user_jid);
 }

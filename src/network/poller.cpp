@@ -133,7 +133,7 @@ void Poller::stop_watching_send_events(SocketHandler* socket_handler)
 
 int Poller::poll(const std::chrono::milliseconds& timeout)
 {
-  if (this->socket_handlers.size() == 0)
+  if (this->socket_handlers.empty())
     return -1;
 #if POLLER == POLL
   int nb_events = ::poll(this->fds, this->nfds, timeout.count());

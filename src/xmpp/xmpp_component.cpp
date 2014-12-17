@@ -286,7 +286,6 @@ void XmppComponent::handle_handshake(const Stanza& stanza)
   uint64_t usec;
   if (sd_watchdog_enabled(0, &usec) > 0)
     {
-      std::chrono::microseconds delay(usec);
       TimedEventsManager::instance().add_event(TimedEvent(
              std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::microseconds(usec / 2)),
              []() { sd_notify(0, "WATCHDOG=1"); }));

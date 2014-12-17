@@ -197,6 +197,7 @@ namespace utils
               case E2BIG:
                 // This should never happen
                 done = true;
+                break;
               default:
                 // This should happen even neverer
                 done = true;
