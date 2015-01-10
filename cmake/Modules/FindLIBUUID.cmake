@@ -20,7 +20,7 @@ pkg_check_modules(LIBUUID uuid)
 
 if(NOT LIBUUID_FOUND)
   find_path(LIBUUID_INCLUDE_DIRS NAMES uuid.h
-    PATH uuid
+    PATH_SUFFIXES uuid
     DOC "The libuuid include directory")
 
   find_library(LIBUUID_LIBRARIES NAMES uuid
