@@ -306,7 +306,6 @@ void IrcClient::on_notice(const IrcMessage& message)
       if (this->nicks_to_treat_as_private.find(nick) !=
           this->nicks_to_treat_as_private.end())
         { // We previously sent a message to that nick)
-          // this->bridge->send_message(iid, nick, body, muc);
           this->bridge->send_message({nick + "!" + this->hostname}, nick, body,
                                      false);
         }
