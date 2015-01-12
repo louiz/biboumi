@@ -289,6 +289,10 @@ private:
    * connection succeeds on that port.
    */
   std::stack<std::pair<std::string, bool>> ports_to_try;
+  /**
+   * A set of (lowercase) nicknames to which we sent a private message.
+   */
+  std::set<std::string> nicks_to_treat_as_private;
 
   IrcClient(const IrcClient&) = delete;
   IrcClient(IrcClient&&) = delete;

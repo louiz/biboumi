@@ -1,5 +1,8 @@
 Version 2.0
-- Support PING requests in all directions
+ - Support PING requests in all directions
+ - Improve the way we forward received NOTICEs by remembering to
+   which users we previously sent a private message.  This improves the
+   user experience when talking to NickServ.
 
 Version 1.1                                             2014-16-07
 

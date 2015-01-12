@@ -243,7 +243,9 @@ void IrcClient::send_private_message(const std::string& username, const std::str
       this->send_message(IrcMessage(std::string(type), {username, body.substr(pos, 400)}));
       pos += 400;
     }
-
+  // We always try to insert and we don't care if the username was already
+  // in the set.
+  this->nicks_to_treat_as_private.insert(username);
 }
 
 void IrcClient::send_part_command(const std::string& chan_name, const std::string& status_message)
@@ -292,9 +294,30 @@ void IrcClient::on_notice(const IrcMessage& message)
   const std::string body = message.arguments[1];
 
   if (!to.empty() && this->chantypes.find(to[0]) == this->chantypes.end())
-    this->bridge->send_xmpp_message(this->hostname, from, body);
+    {
+      // The notice is for the us precisely.
+
+      // Find out if we already sent a private message to this user. If yes
+      // we treat that message as a private message coming from
+      // it. Otherwise we treat it as a notice coming from the server.
+      IrcUser user(from);
+      std::string nick = utils::tolower(user.nick);
+      log_debug("received notice from nick: " << nick);
+      if (this->nicks_to_treat_as_private.find(nick) !=
+          this->nicks_to_treat_as_private.end())
+        { // We previously sent a message to that nick)
+          // this->bridge->send_message(iid, nick, body, muc);
+          this->bridge->send_message({nick + "!" + this->hostname}, nick, body,
+                                     false);
+        }
+      else
+        this->bridge->send_xmpp_message(this->hostname, from, body);
+    }
   else
     {
+      // The notice was directed at a channel we are in. Modify the message
+      // to indicate that it is a notice, and make it a MUC message coming
+      // from the MUC JID
       IrcMessage modified_message(std::move(from), "PRIVMSG", {to, "\u000303[notice]\u0003 "s + body});
       this->on_channel_message(modified_message);
     }
