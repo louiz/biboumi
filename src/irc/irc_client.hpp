@@ -81,7 +81,7 @@ public:
   /**
    * Send the JOIN irc command.
    */
-  void send_join_command(const std::string& chan_name);
+  void send_join_command(const std::string& chan_name, const std::string& password = "");
   /**
    * Send a PRIVMSG command for a channel
    * Return true if the message was actually sent

@@ -108,7 +108,7 @@ IrcClient* Bridge::get_irc_client(const std::string& hostname)
     }
 }
 
-bool Bridge::join_irc_channel(const Iid& iid, const std::string& username)
+bool Bridge::join_irc_channel(const Iid& iid, const std::string& username, const std::string& password)
 {
   IrcClient* irc = this->get_irc_client(iid.get_server(), username);
   if (iid.get_local().empty())
@@ -135,7 +135,7 @@ bool Bridge::join_irc_channel(const Iid& iid, const std::string& username)
     }
   if (irc->is_channel_joined(iid.get_local()) == false)
     {
-      irc->send_join_command(iid.get_local());
+      irc->send_join_command(iid.get_local(), password);
       return true;
     }
   return false;

@@ -206,12 +206,12 @@ void IrcClient::send_quit_command(const std::string& reason)
   this->send_message(IrcMessage("QUIT", {reason}));
 }
 
-void IrcClient::send_join_command(const std::string& chan_name)
+void IrcClient::send_join_command(const std::string& chan_name, const std::string& password)
 {
   if (this->welcomed == false)
     this->channels_to_join.push_back(chan_name);
   else
-    this->send_message(IrcMessage("JOIN", {chan_name}));
+    this->send_message(IrcMessage("JOIN", {chan_name, password}));
   this->start();
 }
 

@@ -338,7 +338,9 @@ void XmppComponent::handle_presence(const Stanza& stanza)
           const std::string own_nick = bridge->get_own_nick(iid);
           if (!own_nick.empty() && own_nick != to.resource)
             bridge->send_irc_nick_change(iid, to.resource);
-          bridge->join_irc_channel(iid, to.resource);
+          XmlNode* x = stanza.get_child("x", MUC_NS);
+          XmlNode* password = x? x->get_child("password", MUC_NS): NULL;
+          bridge->join_irc_channel(iid, to.resource, password? password->get_inner(): "");
         }
       else if (type == "unavailable")
         {
