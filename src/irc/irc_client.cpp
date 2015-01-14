@@ -210,6 +210,8 @@ void IrcClient::send_join_command(const std::string& chan_name, const std::strin
 {
   if (this->welcomed == false)
     this->channels_to_join.emplace_back(chan_name, password);
+  else if (password.empty())
+    this->send_message(IrcMessage("JOIN", {chan_name}));
   else
     this->send_message(IrcMessage("JOIN", {chan_name, password}));
   this->start();
