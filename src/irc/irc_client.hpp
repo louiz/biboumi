@@ -8,6 +8,7 @@
 #include <network/tcp_socket_handler.hpp>
 
 #include <unordered_map>
+#include <utility>
 #include <memory>
 #include <vector>
 #include <string>
@@ -81,7 +82,7 @@ public:
   /**
    * Send the JOIN irc command.
    */
-  void send_join_command(const std::string& chan_name, const std::string& password = "");
+  void send_join_command(const std::string& chan_name, const std::string& password);
   /**
    * Send a PRIVMSG command for a channel
    * Return true if the message was actually sent
@@ -245,12 +246,13 @@ private:
    */
   DummyIrcChannel dummy_channel;
   /**
-   * A list of chan we want to join, but we need a response 001 from
-   * the server before sending the actual JOIN commands. So we just keep the
-   * channel names in a list, and send the JOIN commands for each of them
-   * whenever the WELCOME message is received.
+   * A list of chan we want to join (tuples with the channel name and the
+   * password, if any), but we need a response 001 from the server before
+   * sending the actual JOIN commands. So we just keep the channel names in
+   * a list, and send the JOIN commands for each of them whenever the
+   * WELCOME message is received.
    */
-  std::vector<std::string> channels_to_join;
+  std::vector<std::tuple<std::string, std::string>> channels_to_join;
   /**
    * This flag indicates that the server is completely joined (connection
    * has been established, we are authentified and we have a nick)

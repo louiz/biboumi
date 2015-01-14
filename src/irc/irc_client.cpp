@@ -74,9 +74,9 @@ void IrcClient::on_connection_failed(const std::string& reason)
   if (this->ports_to_try.empty())
     {
       // Send an error message for all room that the user wanted to join
-      for (const std::string& channel: this->channels_to_join)
+      for (const auto& tuple: this->channels_to_join)
         {
-          Iid iid(channel + "%" + this->hostname);
+          Iid iid(std::get<0>(tuple) + "%" + this->hostname);
           this->bridge->send_presence_error(iid, this->current_nick,
                                             "cancel", "item-not-found",
                                             "", reason);
@@ -209,7 +209,7 @@ void IrcClient::send_quit_command(const std::string& reason)
 void IrcClient::send_join_command(const std::string& chan_name, const std::string& password)
 {
   if (this->welcomed == false)
-    this->channels_to_join.push_back(chan_name);
+    this->channels_to_join.emplace_back(chan_name, password);
   else
     this->send_message(IrcMessage("JOIN", {chan_name, password}));
   this->start();
@@ -536,8 +536,8 @@ void IrcClient::on_welcome_message(const IrcMessage& message)
   // Install a repeated events to regularly send a PING
   TimedEventsManager::instance().add_event(TimedEvent(240s, std::bind(&IrcClient::send_ping_command, this),
                                                       "PING"s + this->hostname + this->bridge->get_jid()));
-  for (const std::string& chan_name: this->channels_to_join)
-    this->send_join_command(chan_name);
+  for (const auto& tuple: this->channels_to_join)
+    this->send_join_command(std::get<0>(tuple), std::get<1>(tuple));
   this->channels_to_join.clear();
   // Indicate that the dummy channel is joined as well, if needed
   if (this->dummy_channel.joining)
