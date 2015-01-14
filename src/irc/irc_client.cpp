@@ -304,7 +304,6 @@ void IrcClient::on_notice(const IrcMessage& message)
       // it. Otherwise we treat it as a notice coming from the server.
       IrcUser user(from);
       std::string nick = utils::tolower(user.nick);
-      log_debug("received notice from nick: " << nick);
       if (this->nicks_to_treat_as_private.find(nick) !=
           this->nicks_to_treat_as_private.end())
         { // We previously sent a message to that nick)
