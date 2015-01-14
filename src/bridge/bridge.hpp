@@ -58,7 +58,7 @@ public:
    * Try to join an irc_channel, does nothing and return true if the channel
    * was already joined.
    */
-  bool join_irc_channel(const Iid& iid, const std::string& username, const std::string& password = "");
+  bool join_irc_channel(const Iid& iid, const std::string& username, const std::string& password);
   void send_channel_message(const Iid& iid, const std::string& body);
   void send_private_message(const Iid& iid, const std::string& body, const std::string& type="PRIVMSG");
   void leave_irc_channel(Iid&& iid, std::string&& status_message);
