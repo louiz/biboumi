@@ -183,6 +183,72 @@ void Bridge::send_channel_message(const Iid& iid, const std::string& body)
     }
 }
 
+void Bridge::forward_affiliation_role_change(const Iid& iid, const std::string& nick,
+                                             const std::string& affiliation,
+                                             const std::string& role)
+{
+  IrcClient* irc = this->get_irc_client(iid.get_server());
+  if (!irc)
+    return;
+  IrcChannel* chan = irc->get_channel(iid.get_local());
+  if (!chan || !chan->joined)
+    return;
+  IrcUser* user = chan->find_user(nick);
+  if (!user)
+    return;
+  // For each affiliation or role, we have a “maximal” mode that we want to
+  // set. We must remove any superior mode at the same time. For example if
+  // the user already has +o mode, and we set its affiliation to member, we
+  // remove the +o mode, and add +v.  For each “superior” mode (for example,
+  // for +v, the superior modes are 'h', 'a', 'o' and 'q') we check if that
+  // user has it, and if yes we remove that mode
+
+  std::size_t nb = 1;               // the number of times the nick must be
+                                    // repeated in the argument list
+  std::string modes;                // The string of modes to
+                                    // add/remove. For example "+v-aoh"
+  std::vector<char> modes_to_remove; // List of modes to check for removal
+  if (affiliation == "none")
+    {
+      modes = "";
+      nb = 0;
+      modes_to_remove = {'v', 'h', 'o', 'a', 'q'};
+    }
+  else if (affiliation == "member")
+    {
+      modes = "+v";
+      modes_to_remove = {'h', 'o', 'a', 'q'};
+    }
+  else if (role == "moderator")
+    {
+      modes = "+h";
+      modes_to_remove = {'o', 'a', 'q'};
+    }
+  else if (affiliation == "admin")
+    {
+      modes = "+o";
+      modes_to_remove = {'a', 'q'};
+    }
+  else if (affiliation == "owner")
+    {
+      modes = "+a";
+      modes_to_remove = {'q'};
+    }
+  else
+    return;
+  for (const char mode: modes_to_remove)
+    if (user->modes.find(mode) != user->modes.end())
+      {
+        modes += "-"s + mode;
+        nb++;
+      }
+  if (modes.empty())
+    return;
+  std::vector<std::string> args(nb, nick);
+  args.insert(args.begin(), modes);
+  irc->send_mode_command(iid.get_local(), args);
+}
+
 void Bridge::send_private_message(const Iid& iid, const std::string& body, const std::string& type)
 {
   if (iid.get_local().empty() || iid.get_server().empty())

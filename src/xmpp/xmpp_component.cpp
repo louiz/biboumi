@@ -481,14 +481,20 @@ void XmppComponent::handle_iq(const Stanza& stanza)
             {
               std::string nick = child->get_tag("nick");
               std::string role = child->get_tag("role");
-              if (!nick.empty() && role == "none")
-                {               // This is a kick
-                  std::string reason;
-                  XmlNode* reason_el = child->get_child("reason", MUC_ADMIN_NS);
-                  if (reason_el)
-                    reason = reason_el->get_inner();
+              std::string affiliation = child->get_tag("affiliation");
+              if (!nick.empty())
+                {
                   Iid iid(to.local);
-                  bridge->send_irc_kick(iid, nick, reason, id, from);
+                  if (role == "none")
+                    {               // This is a kick
+                      std::string reason;
+                      XmlNode* reason_el = child->get_child("reason", MUC_ADMIN_NS);
+                      if (reason_el)
+                        reason = reason_el->get_inner();
+                      bridge->send_irc_kick(iid, nick, reason, id, from);
+                    }
+                  else
+                    bridge->forward_affiliation_role_change(iid, nick, affiliation, role);
                   stanza_error.disable();
                 }
             }
