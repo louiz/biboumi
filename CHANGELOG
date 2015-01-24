@@ -4,6 +4,9 @@ Version 2.0
    which users we previously sent a private message.  This improves the
    user experience when talking to NickServ.
  - Support joining key-protected channels
+ - Setting a participant's role/affiliation now results in a change of IRC
+   mode, instead of being ignored.  Setting Toto's affiliation to admin is
+   now equivalent to “/mode +o Toto”
 
 Version 1.1                                             2014-16-07
 

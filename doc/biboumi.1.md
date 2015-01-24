@@ -294,6 +294,28 @@ between IRC modes and XMPP features is as follow:
 
   Sets the participant’s role to `participant` and its affiliation to `member`.
 
+Similarly, when a biboumi user changes some participant's affiliation or role, biboumi translates that in an IRC mode change.
+
+Affiliation set to `none`
+
+  Sets mode to -vhoaq
+
+Affiliation set to `member`
+
+  Sets mode to +v-hoaq
+
+Role set to `moderator`
+
+  Sets mode to +h-oaq
+
+Affiliation set to `admin`
+
+  Sets mode to +o-aq
+
+Affiliation set to `owner`
+
+  Sets mode to +a-q
+
 ### Ad-hoc commands
 
 Biboumi supports a few ad-hoc commands, as described in the XEP 0050.
