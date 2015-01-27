@@ -1,4 +1,12 @@
 ==============
+  tl;dr:
+==============
+
+$ cmake . && make && ./biboumi
+
+If that didn’t work, read on.
+
+==============
  Dependencies
 ==============
 
