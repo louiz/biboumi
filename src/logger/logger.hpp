@@ -22,7 +22,7 @@
 #ifdef SYSTEMDDAEMON_FOUND
 # include <systemd/sd-daemon.h>
 #else
-# define SD_DEBUG    "[ERROR]: "
+# define SD_DEBUG    "[DEBUG]: "
 # define SD_INFO     "[INFO]: "
 # define SD_WARNING  "[WARNING]: "
 # define SD_ERR      "[ERROR]: "
