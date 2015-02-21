@@ -241,10 +241,6 @@ public:
    * Whether or not we ever succeeded our authentication to the XMPP server
    */
   bool ever_auth;
-  /**
-   * Whether or not the last connection+auth attempt was successful
-   */
-  bool last_auth;
 
 private:
   /**
