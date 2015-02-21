@@ -139,6 +139,6 @@ int main(int ac, char** av)
       xmpp_component->close_document();
     timeout = TimedEventsManager::instance().get_timeout();
   }
-  log_info("All connection cleanly closed, have a nice day.");
+  log_info("All connections cleanly closed, have a nice day.");
   return 0;
 }
