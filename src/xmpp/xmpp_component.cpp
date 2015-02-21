@@ -39,6 +39,7 @@ static std::set<std::string> kickable_errors{
 XmppComponent::XmppComponent(std::shared_ptr<Poller> poller, const std::string& hostname, const std::string& secret):
   TCPSocketHandler(poller),
   ever_auth(false),
+  first_connection_try(true),
   served_hostname(hostname),
   secret(secret),
   authenticated(false),
@@ -86,6 +87,7 @@ void XmppComponent::send_stanza(const Stanza& stanza)
 
 void XmppComponent::on_connection_failed(const std::string& reason)
 {
+  this->first_connection_try = false;
   log_error("Failed to connect to the XMPP server: " << reason);
 #ifdef SYSTEMDDAEMON_FOUND
   sd_notifyf(0, "STATUS=Failed to connect to the XMPP server: %s", reason.data());
@@ -95,6 +97,7 @@ void XmppComponent::on_connection_failed(const std::string& reason)
 void XmppComponent::on_connected()
 {
   log_info("connected to XMPP server");
+  this->first_connection_try = true;
   XmlNode node("", nullptr);
   node.set_name("stream:stream");
   node["xmlns"] = COMPONENT_NS;

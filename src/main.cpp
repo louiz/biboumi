@@ -108,6 +108,8 @@ int main(int ac, char** av)
       exiting = true;
       stop.store(false);
       xmpp_component->shutdown();
+      // Cancel the timer for an potential reconnection
+      TimedEventsManager::instance().cancel("XMPP reconnection");
     }
     if (reload)
     {
@@ -127,17 +129,34 @@ int main(int ac, char** av)
     if (!exiting && xmpp_component->ever_auth &&
         !xmpp_component->is_connected() &&
         !xmpp_component->is_connecting())
-      {
+    {
+      if (xmpp_component->first_connection_try == true)
+      { // immediately re-try to connect
         xmpp_component->reset();
         xmpp_component->start();
       }
+      else
+      { // Re-connecting failed, we now try only each few seconds
+        auto reconnect_later = [xmpp_component]()
+        {
+          xmpp_component->reset();
+          xmpp_component->start();
+        };
+        TimedEvent event(std::chrono::steady_clock::now() + 2s,
+                         reconnect_later, "XMPP reconnection");
+        TimedEventsManager::instance().add_event(std::move(event));
+      }
+    }
     // If the only existing connection is the one to the XMPP component:
     // close the XMPP stream.
     if (exiting && xmpp_component->is_connecting())
       xmpp_component->close();
     if (exiting && p->size() == 1 && xmpp_component->is_document_open())
       xmpp_component->close_document();
-    timeout = TimedEventsManager::instance().get_timeout();
+    if (exiting) // If we are exiting, do not wait for any timed event
+      timeout = utils::no_timeout;
+    else
+      timeout = TimedEventsManager::instance().get_timeout();
   }
   log_info("All connections cleanly closed, have a nice day.");
   return 0;

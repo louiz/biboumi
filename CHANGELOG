@@ -7,6 +7,8 @@ Version 2.0
  - Setting a participant's role/affiliation now results in a change of IRC
    mode, instead of being ignored.  Setting Toto's affiliation to admin is
    now equivalent to “/mode +o Toto”
+ - Fix the reconnection to the XMPP server to try every 2 seconds
+   instead of immediately. This avoid hogging resources for nothing
 
 Version 1.1                                             2014-16-07
 

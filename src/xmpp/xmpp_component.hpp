@@ -241,6 +241,12 @@ public:
    * Whether or not we ever succeeded our authentication to the XMPP server
    */
   bool ever_auth;
+  /**
+   * Whether or not this is the first consecutive try on connecting to the
+   * XMPP server.  We use this to delay the connection attempt for a few
+   * seconds, if it is not the first try.
+   */
+  bool first_connection_try;
 
 private:
   /**

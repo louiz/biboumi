@@ -1,5 +1,6 @@
 #include <network/poller.hpp>
 #include <logger/logger.hpp>
+#include <utils/timed_events.hpp>
 
 #include <assert.h>
 #include <errno.h>
@@ -133,7 +134,7 @@ void Poller::stop_watching_send_events(SocketHandler* socket_handler)
 
 int Poller::poll(const std::chrono::milliseconds& timeout)
 {
-  if (this->socket_handlers.empty())
+  if (this->socket_handlers.empty() && timeout == utils::no_timeout)
     return -1;
 #if POLLER == POLL
   int nb_events = ::poll(this->fds, this->nfds, timeout.count());
