@@ -44,7 +44,7 @@ public:
    */
   void add_socket_handler(SocketHandler* socket_handler);
   /**
-   * Remove (and stop managing) a SocketHandler, designed by the given socket_t.
+   * Remove (and stop managing) a SocketHandler, designated by the given socket_t.
    */
   void remove_socket_handler(const socket_t socket);
   /**
