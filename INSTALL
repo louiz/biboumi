@@ -37,6 +37,12 @@ Libraries:
  not provided.
  http://www.gnu.org/software/libidn/
 
+- c-ares (optional, but recommended)
+ Asynchronously resolve domain names. This offers better reactivity and
+ performances when connecting to a big number of IRC servers at the same
+ time.
+ http://c-ares.haxx.se/
+
 - libbotan 1.11 (optional)
  Provides TLS support. Without it, IRC connections are all made in
  plain-text mode.

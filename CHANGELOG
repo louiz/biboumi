@@ -9,6 +9,8 @@ Version 2.0
    now equivalent to “/mode +o Toto”
  - Fix the reconnection to the XMPP server to try every 2 seconds
    instead of immediately. This avoid hogging resources for nothing
+ - Asynchronously resolve domain names by optionally using the DNS
+   library c-ares.
 
 Version 1.1                                             2014-16-07
 
