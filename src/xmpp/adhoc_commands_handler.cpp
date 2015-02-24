@@ -15,7 +15,8 @@ AdhocCommandsHandler::AdhocCommandsHandler(XmppComponent* xmpp_component):
   commands{
   {"ping", AdhocCommand({&PingStep1}, "Do a ping", false)},
   {"hello", AdhocCommand({&HelloStep1, &HelloStep2}, "Receive a custom greeting", false)},
-  {"disconnect-user", AdhocCommand({&DisconnectUserStep1, &DisconnectUserStep2}, "Disconnect a user from the gateway", true)}
+  {"disconnect-user", AdhocCommand({&DisconnectUserStep1, &DisconnectUserStep2}, "Disconnect a user from the gateway", true)},
+  {"reload", AdhocCommand({&Reload}, "Reload biboumi’s configuration", true)}
   }
 {
 }

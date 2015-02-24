@@ -40,5 +40,6 @@ void HelloStep1(XmppComponent*, AdhocSession& session, XmlNode& command_node);
 void HelloStep2(XmppComponent*, AdhocSession& session, XmlNode& command_node);
 void DisconnectUserStep1(XmppComponent*, AdhocSession& session, XmlNode& command_node);
 void DisconnectUserStep2(XmppComponent*, AdhocSession& session, XmlNode& command_node);
+void Reload(XmppComponent*, AdhocSession& session, XmlNode& command_node);
 
 #endif // ADHOC_COMMAND_HPP

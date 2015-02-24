@@ -11,6 +11,7 @@ Version 2.0
    instead of immediately. This avoid hogging resources for nothing
  - Asynchronously resolve domain names by optionally using the DNS
    library c-ares.
+ - Add a reload add-hoc command, to reload biboumi's configuration
 
 Version 1.1                                             2014-16-07
 

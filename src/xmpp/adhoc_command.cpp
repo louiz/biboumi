@@ -3,6 +3,8 @@
 
 #include <bridge/bridge.hpp>
 
+#include <utils/reload.hpp>
+
 using namespace std::string_literals;
 
 AdhocCommand::AdhocCommand(std::vector<AdhocStep>&& callbacks, const std::string& name, const bool admin_only):
@@ -198,3 +200,13 @@ void DisconnectUserStep2(XmppComponent* xmpp_component, AdhocSession& session, X
   session.terminate();
 }
 
+void Reload(XmppComponent*, AdhocSession& session, XmlNode& command_node)
+{
+  ::reload_process();
+  command_node.delete_all_children();
+  XmlNode note("note");
+  note["type"] = "info";
+  note.set_inner("Configuration reloaded.");
+  note.close();
+  command_node.add_child(std::move(note));
+}

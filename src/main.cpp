@@ -3,6 +3,7 @@
 #include <network/poller.hpp>
 #include <config/config.hpp>
 #include <logger/logger.hpp>
+#include <utils/reload.hpp>
 
 #include <iostream>
 #include <memory>
@@ -123,13 +124,8 @@ int main(int ac, char** av)
     }
     if (reload)
     {
-      // Closing the config will just force it to be reopened the next time
-      // a configuration option is needed
       log_info("Signal received, reloading the config...");
-      Config::close();
-      // Destroy the logger instance, to be recreated the next time a log
-      // line needs to be written
-      Logger::instance().reset();
+      ::reload_process();
       reload.store(false);
     }
     // Reconnect to the XMPP server if this was not intended.  This may have
