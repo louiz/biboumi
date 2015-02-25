@@ -140,7 +140,7 @@ void IrcClient::parse_in_buffer(const size_t)
         break ;
       IrcMessage message(this->in_buf.substr(0, pos));
       this->in_buf = this->in_buf.substr(pos + 2, std::string::npos);
-      log_debug("IRC RECEIVING: " << message);
+      log_debug("IRC RECEIVING: (" << this->get_hostname() << ") " << message);
 
       // Call the standard callback (if any), associated with the command
       // name that we just received.
@@ -162,7 +162,7 @@ void IrcClient::parse_in_buffer(const size_t)
 
 void IrcClient::send_message(IrcMessage&& message)
 {
-  log_debug("IRC SENDING: " << message);
+  log_debug("IRC SENDING: (" << this->get_hostname() << ") " << message);
   std::string res;
   if (!message.prefix.empty())
     res += ":" + std::move(message.prefix) + " ";
