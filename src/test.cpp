@@ -369,13 +369,13 @@ int main()
 
     Iid iid2("#test%irc.example.org");
     std::cout << std::to_string(iid2) << std::endl;
-    assert(std::to_string(iid2) == "#test");
-    assert(iid2.get_local() == "#test");
+    assert(std::to_string(iid2) == "#test%irc.example.org");
+    assert(iid2.get_local() == "#test%irc.example.org");
     assert(iid2.get_server() == "fixed.example.com");
     assert(iid2.is_channel);
     assert(!iid2.is_user);
 
-    // Note that it is impossible to adress the XMPP server directly, or to
+    // Note that it is impossible to adress the IRC server directly, or to
     // use the virtual channel, in that mode
 
     // Iid iid3("%irc.example.org");
@@ -391,8 +391,8 @@ int main()
 
     Iid iid6("##channel%");
     std::cout << std::to_string(iid6) << std::endl;
-    assert(std::to_string(iid6) == "##channel");
-    assert(iid6.get_local() == "##channel");
+    assert(std::to_string(iid6) == "##channel%");
+    assert(iid6.get_local() == "##channel%");
     assert(iid6.get_server() == "fixed.example.com");
     assert(iid6.is_channel);
     assert(!iid6.is_user);

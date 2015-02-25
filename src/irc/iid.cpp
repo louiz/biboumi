@@ -35,7 +35,7 @@ void Iid::init_with_fixed_server(const std::string& iid, const std::string& host
 {
   this->set_server(hostname);
 
-  const std::string::size_type sep = iid.find_first_of("%!");
+  const std::string::size_type sep = iid.find("!");
 
   // Without any separator, we consider that it's a channel
   if (sep == std::string::npos)
@@ -47,9 +47,6 @@ void Iid::init_with_fixed_server(const std::string& iid, const std::string& host
        // but the part behind it (the hostname) is ignored
     {
       this->set_local(iid.substr(0, sep));
-      if (iid[sep] == '%')
-        this->is_channel = true;
-      else
         this->is_user = true;
     }
 }
