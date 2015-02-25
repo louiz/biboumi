@@ -59,6 +59,20 @@ The configuration file uses a simple format of the form
   privileges), for example some administration ad-hoc commands will only be
   available to that JID.
 
+`fixed_irc_server`
+
+  If this option contains the hostname of an IRC server (for example
+  irc.example.org), then biboumi will enforce the connexion to that IRC
+  server only.  This means that a JID like "#chan@irc.biboumi.org" must be
+  used instead of "#chan%irc.example.org@irc.biboumi.org".  In that mode,
+  the virtual channel (see *Connect to an IRC server*) is not available and
+  you still need to use the ! separator to send message to an IRC user (for
+  example "foo!@biboumi.example.com" to send a message to foo), although the
+  in-room JID still work as expected ("#channel@biboumi.example.com/Nick").
+  This option can for example be used by an administrator that just wants to
+  let their users join their own IRC server using an XMPP client, but
+  without letting them join any other IRC servers on the internet.
+
 `log_file`
 
   A filename into which logs are written.  If none is provided, the logs are

@@ -57,6 +57,10 @@ public:
   std::string get_sep() const;
 
 private:
+
+  void init(const std::string& iid);
+  void init_with_fixed_server(const std::string& iid, const std::string& hostname);
+
   std::string local;
   std::string server;
 

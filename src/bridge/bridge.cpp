@@ -4,6 +4,7 @@
 #include <xmpp/xmpp_stanza.hpp>
 #include <irc/irc_message.hpp>
 #include <network/poller.hpp>
+#include <utils/empty_if_fixed_server.hpp>
 #include <utils/encoding.hpp>
 #include <utils/tolower.hpp>
 #include <logger/logger.hpp>
@@ -542,13 +543,13 @@ void Bridge::send_user_join(const std::string& hostname,
   std::string role;
   std::tie(role, affiliation) = get_role_affiliation_from_irc_mode(user_mode);
 
-  this->xmpp->send_user_join(chan_name + "%" + hostname, user->nick, user->host,
+  this->xmpp->send_user_join(chan_name + utils::empty_if_fixed_server("%" + hostname), user->nick, user->host,
                              affiliation, role, this->user_jid, self);
 }
 
 void Bridge::send_topic(const std::string& hostname, const std::string& chan_name, const std::string& topic)
 {
-  this->xmpp->send_topic(chan_name + "%" + hostname, this->make_xmpp_body(topic), this->user_jid);
+  this->xmpp->send_topic(chan_name + utils::empty_if_fixed_server("%" + hostname), this->make_xmpp_body(topic), this->user_jid);
 }
 
 std::string Bridge::get_own_nick(const Iid& iid)
@@ -585,7 +586,7 @@ void Bridge::send_affiliation_role_change(const Iid& iid, const std::string& tar
 
 void Bridge::send_iq_version_request(const std::string& nick, const std::string& hostname)
 {
-  this->xmpp->send_iq_version_request(nick + "!" + hostname, this->user_jid);
+  this->xmpp->send_iq_version_request(nick + "!" + utils::empty_if_fixed_server(hostname), this->user_jid);
 }
 
 void Bridge::send_xmpp_ping_request(const std::string& nick, const std::string& hostname,
@@ -594,7 +595,7 @@ void Bridge::send_xmpp_ping_request(const std::string& nick, const std::string& 
   // Use revstr because the forwarded ping to target XMPP user must not be
   // the same that the request iq, but we also need to get it back easily
   // (revstr again)
-  this->xmpp->send_ping_request(nick + "!" + hostname, this->user_jid, utils::revstr(id));
+  this->xmpp->send_ping_request(nick + "!" + utils::empty_if_fixed_server(hostname), this->user_jid, utils::revstr(id));
 }
 
 void Bridge::set_preferred_from_jid(const std::string& nick, const std::string& full_jid)

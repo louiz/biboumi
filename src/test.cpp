@@ -303,38 +303,100 @@ int main()
   /**
    * IID parsing
    */
-  std::cout << color << "Testing IID parsing…" << reset << std::endl;
-  Iid iid1("foo!irc.example.org");
-  std::cout << std::to_string(iid1) << std::endl;
-  assert(std::to_string(iid1) == "foo!irc.example.org");
-  assert(iid1.get_local() == "foo");
-  assert(iid1.get_server() == "irc.example.org");
-  assert(!iid1.is_channel);
-  assert(iid1.is_user);
+  {
+    std::cout << color << "Testing IID parsing…" << reset << std::endl;
+    Iid iid1("foo!irc.example.org");
+    std::cout << std::to_string(iid1) << std::endl;
+    assert(std::to_string(iid1) == "foo!irc.example.org");
+    assert(iid1.get_local() == "foo");
+    assert(iid1.get_server() == "irc.example.org");
+    assert(!iid1.is_channel);
+    assert(iid1.is_user);
 
-  Iid iid2("#test%irc.example.org");
-  std::cout << std::to_string(iid2) << std::endl;
-  assert(std::to_string(iid2) == "#test%irc.example.org");
-  assert(iid2.get_local() == "#test");
-  assert(iid2.get_server() == "irc.example.org");
-  assert(iid2.is_channel);
-  assert(!iid2.is_user);
+    Iid iid2("#test%irc.example.org");
+    std::cout << std::to_string(iid2) << std::endl;
+    assert(std::to_string(iid2) == "#test%irc.example.org");
+    assert(iid2.get_local() == "#test");
+    assert(iid2.get_server() == "irc.example.org");
+    assert(iid2.is_channel);
+    assert(!iid2.is_user);
 
-  Iid iid3("%irc.example.org");
-  std::cout << std::to_string(iid3) << std::endl;
-  assert(std::to_string(iid3) == "%irc.example.org");
-  assert(iid3.get_local() == "");
-  assert(iid3.get_server() == "irc.example.org");
-  assert(iid3.is_channel);
-  assert(!iid3.is_user);
+    Iid iid3("%irc.example.org");
+    std::cout << std::to_string(iid3) << std::endl;
+    assert(std::to_string(iid3) == "%irc.example.org");
+    assert(iid3.get_local() == "");
+    assert(iid3.get_server() == "irc.example.org");
+    assert(iid3.is_channel);
+    assert(!iid3.is_user);
 
-  Iid iid4("irc.example.org");
-  std::cout << std::to_string(iid4) << std::endl;
-  assert(std::to_string(iid4) == "irc.example.org");
-  assert(iid4.get_local() == "");
-  assert(iid4.get_server() == "irc.example.org");
-  assert(!iid4.is_channel);
-  assert(!iid4.is_user);
+    Iid iid4("irc.example.org");
+    std::cout << std::to_string(iid4) << std::endl;
+    assert(std::to_string(iid4) == "irc.example.org");
+    assert(iid4.get_local() == "");
+    assert(iid4.get_server() == "irc.example.org");
+    assert(!iid4.is_channel);
+    assert(!iid4.is_user);
+
+    Iid iid5("nick!");
+    std::cout << std::to_string(iid5) << std::endl;
+    assert(std::to_string(iid5) == "nick!");
+    assert(iid5.get_local() == "nick");
+    assert(iid5.get_server() == "");
+    assert(!iid5.is_channel);
+    assert(iid5.is_user);
+
+    Iid iid6("##channel%");
+    std::cout << std::to_string(iid6) << std::endl;
+    assert(std::to_string(iid6) == "##channel%");
+    assert(iid6.get_local() == "##channel");
+    assert(iid6.get_server() == "");
+    assert(iid6.is_channel);
+    assert(!iid6.is_user);
+  }
+
+  {
+    std::cout << color << "Testing IID parsing with a fixed server configured…" << reset << std::endl;
+    // Now do the same tests, but with a configured fixed_irc_server
+    Config::set("fixed_irc_server", "fixed.example.com", false);
+
+    Iid iid1("foo!irc.example.org");
+    std::cout << std::to_string(iid1) << std::endl;
+    assert(std::to_string(iid1) == "foo!");
+    assert(iid1.get_local() == "foo");
+    assert(iid1.get_server() == "fixed.example.com");
+    assert(!iid1.is_channel);
+    assert(iid1.is_user);
+
+    Iid iid2("#test%irc.example.org");
+    std::cout << std::to_string(iid2) << std::endl;
+    assert(std::to_string(iid2) == "#test");
+    assert(iid2.get_local() == "#test");
+    assert(iid2.get_server() == "fixed.example.com");
+    assert(iid2.is_channel);
+    assert(!iid2.is_user);
+
+    // Note that it is impossible to adress the XMPP server directly, or to
+    // use the virtual channel, in that mode
+
+    // Iid iid3("%irc.example.org");
+    // Iid iid4("irc.example.org");
+
+    Iid iid5("nick!");
+    std::cout << std::to_string(iid5) << std::endl;
+    assert(std::to_string(iid5) == "nick!");
+    assert(iid5.get_local() == "nick");
+    assert(iid5.get_server() == "fixed.example.com");
+    assert(!iid5.is_channel);
+    assert(iid5.is_user);
+
+    Iid iid6("##channel%");
+    std::cout << std::to_string(iid6) << std::endl;
+    assert(std::to_string(iid6) == "##channel");
+    assert(iid6.get_local() == "##channel");
+    assert(iid6.get_server() == "fixed.example.com");
+    assert(iid6.is_channel);
+    assert(!iid6.is_user);
+  }
 
   return 0;
 }
