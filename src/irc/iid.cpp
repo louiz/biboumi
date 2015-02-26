@@ -1,10 +1,21 @@
 #include <utils/tolower.hpp>
+#include <config/config.hpp>
 
 #include <irc/iid.hpp>
 
 Iid::Iid(const std::string& iid):
   is_channel(false),
   is_user(false)
+{
+  const std::string fixed_irc_server = Config::get("fixed_irc_server", "");
+  if (fixed_irc_server.empty())
+    this->init(iid);
+  else
+    this->init_with_fixed_server(iid, fixed_irc_server);
+}
+
+
+void Iid::init(const std::string& iid)
 {
   const std::string::size_type sep = iid.find_first_of("%!");
   if (sep != std::string::npos)
@@ -18,6 +29,26 @@ Iid::Iid(const std::string& iid):
     }
   else
     this->set_server(iid);
+}
+
+void Iid::init_with_fixed_server(const std::string& iid, const std::string& hostname)
+{
+  this->set_server(hostname);
+
+  const std::string::size_type sep = iid.find("!");
+
+  // Without any separator, we consider that it's a channel
+  if (sep == std::string::npos)
+    {
+      this->is_channel = true;
+      this->set_local(iid);
+    }
+  else // A separator can be present to differenciate a channel from a user,
+       // but the part behind it (the hostname) is ignored
+    {
+      this->set_local(iid.substr(0, sep));
+        this->is_user = true;
+    }
 }
 
 Iid::Iid(const Iid& other):
@@ -66,6 +97,14 @@ std::string Iid::get_sep() const
 namespace std {
   const std::string to_string(const Iid& iid)
   {
-    return iid.get_local() + iid.get_sep() + iid.get_server();
+    if (Config::get("fixed_irc_server", "").empty())
+      return iid.get_local() + iid.get_sep() + iid.get_server();
+    else
+      {
+        if (iid.get_sep() == "!")
+          return iid.get_local() + iid.get_sep();
+        else
+          return iid.get_local();
+      }
   }
 }
