@@ -82,8 +82,8 @@ if(LIBIDN_FOUND)
   include_directories(${LIBIDN_INCLUDE_DIRS})
 endif()
 
-if(SYSTEMDDAEMON_FOUND)
-  include_directories(${SYSTEMDDAEMON_INCLUDE_DIRS})
+if(SYSTEMD_FOUND)
+  include_directories(${SYSTEMD_INCLUDE_DIRS})
 endif()
 
 if(BOTAN_FOUND)
@@ -198,8 +198,8 @@ target_link_libraries(${PROJECT_NAME}
   bridge
   utils
   config)
-if(SYSTEMDDAEMON_FOUND)
-  target_link_libraries(xmpp ${SYSTEMDDAEMON_LIBRARIES})
+if(SYSTEMD_FOUND)
+  target_link_libraries(xmpp ${SYSTEMD_LIBRARIES})
 endif()
 
 

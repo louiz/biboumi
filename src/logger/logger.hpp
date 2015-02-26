@@ -19,7 +19,7 @@
 
 #include "config.h"
 
-#ifdef SYSTEMDDAEMON_FOUND
+#ifdef SYSTEMD_FOUND
 # include <systemd/sd-daemon.h>
 #else
 # define SD_DEBUG    "[DEBUG]: "

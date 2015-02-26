@@ -17,7 +17,7 @@
 
 #include <uuid.h>
 
-#ifdef SYSTEMDDAEMON_FOUND
+#ifdef SYSTEMD_FOUND
 # include <systemd/sd-daemon.h>
 #endif
 
@@ -89,7 +89,7 @@ void XmppComponent::on_connection_failed(const std::string& reason)
 {
   this->first_connection_try = false;
   log_error("Failed to connect to the XMPP server: " << reason);
-#ifdef SYSTEMDDAEMON_FOUND
+#ifdef SYSTEMD_FOUND
   sd_notifyf(0, "STATUS=Failed to connect to the XMPP server: %s", reason.data());
 #endif
 }
@@ -279,7 +279,7 @@ void XmppComponent::handle_handshake(const Stanza& stanza)
   this->authenticated = true;
   this->ever_auth = true;
   log_info("Authenticated with the XMPP server");
-#ifdef SYSTEMDDAEMON_FOUND
+#ifdef SYSTEMD_FOUND
   sd_notify(0, "READY=1");
   // Install an event that sends a keepalive to systemd.  If biboumi crashes
   // or hangs for too long, systemd will restart it.
@@ -626,7 +626,7 @@ void XmppComponent::handle_error(const Stanza& stanza)
   if (text)
     error_message = text->get_inner();
   log_error("Stream error received from the XMPP server: " << error_message);
-#ifdef SYSTEMDDAEMON_FOUND
+#ifdef SYSTEMD_FOUND
   if (!this->ever_auth)
     sd_notifyf(0, "STATUS=Failed to authenticate to the XMPP server: %s", error_message.data());
 #endif
