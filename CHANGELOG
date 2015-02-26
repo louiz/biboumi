@@ -12,6 +12,8 @@ Version 2.0
  - Asynchronously resolve domain names by optionally using the DNS
    library c-ares.
  - Add a reload add-hoc command, to reload biboumi's configuration
+ - Add a fixed_irc_server option.  With this option enabled,
+   biboumi can only connect to the one single IRC server configured
 
 Version 1.1                                             2014-16-07
 
