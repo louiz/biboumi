@@ -26,6 +26,8 @@
 #define ADHOC_NS         "http://jabber.org/protocol/commands"
 #define PING_NS          "urn:xmpp:ping"
 
+class ListElement;
+
 /**
  * A callback called when the waited iq result is received (it is matched
  * against the iq id)
@@ -228,6 +230,12 @@ public:
    * Send an empty iq of type result
    */
   void send_iq_result(const std::string& id, const std::string& to_jid, const std::string& from);
+  /**
+   * Send the channels list in one big stanza
+   */
+  void send_iq_room_list_result(const std::string& id, const std::string to_jid,
+                                const std::string& from,
+                                const std::vector<ListElement>& rooms_list);
   /**
    * Handle the various stanza types
    */

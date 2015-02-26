@@ -1,5 +1,6 @@
 #include <bridge/bridge.hpp>
 #include <bridge/colors.hpp>
+#include <bridge/list_element.hpp>
 #include <xmpp/xmpp_component.hpp>
 #include <xmpp/xmpp_stanza.hpp>
 #include <irc/irc_message.hpp>
@@ -283,6 +284,43 @@ void Bridge::send_irc_nick_change(const Iid& iid, const std::string& new_nick)
   IrcClient* irc = this->get_irc_client(iid.get_server());
   if (irc)
     irc->send_nick_command(new_nick);
+}
+
+void Bridge::send_irc_channel_list_request(const Iid& iid, const std::string& iq_id,
+                                           const std::string& to_jid)
+{
+  IrcClient* irc = this->get_irc_client(iid.get_server());
+
+  if (!irc)
+    return;
+
+  irc->send_list_command();
+  irc_responder_callback_t cb = [this, iid, iq_id, to_jid](const std::string& irc_hostname,
+                                                           const IrcMessage& message) -> bool
+    {
+      static std::vector<ListElement> list;
+
+      if (irc_hostname != iid.get_server())
+        return false;
+      if (message.command == "263" || message.command == "RPL_TRYAGAIN")
+        { // TODO send an error iq
+          return true;
+        }
+      else if (message.command == "322" || message.command == "RPL_LIST")
+        { // Add element to list
+          if (message.arguments.size() == 4)
+            list.emplace_back(message.arguments[1], message.arguments[2],
+                              message.arguments[3]);
+          return false;
+        }
+      else if (message.command == "323" || message.command == "RPL_LISTEND")
+        { // Send the iq response with the content of the list
+          this->xmpp->send_iq_room_list_result(iq_id, to_jid, std::to_string(iid), list);
+          return true;
+        }
+      return false;
+    };
+  this->add_waiting_irc(std::move(cb));
 }
 
 void Bridge::send_irc_kick(const Iid& iid, const std::string& target, const std::string& reason,

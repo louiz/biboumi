@@ -196,6 +196,11 @@ void IrcClient::send_kick_command(const std::string& chan_name, const std::strin
   this->send_message(IrcMessage("KICK", {chan_name, target, reason}));
 }
 
+void IrcClient::send_list_command()
+{
+  this->send_message(IrcMessage("LIST", {}));
+}
+
 void IrcClient::send_topic_command(const std::string& chan_name, const std::string& topic)
 {
   this->send_message(IrcMessage("TOPIC", {chan_name, topic}));

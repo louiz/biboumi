@@ -4,6 +4,7 @@
 #include <logger/logger.hpp>
 
 #include <xmpp/xmpp_component.hpp>
+#include <bridge/list_element.hpp>
 #include <config/config.hpp>
 #include <xmpp/jid.hpp>
 #include <utils/sha1.hpp>
@@ -556,10 +557,16 @@ void XmppComponent::handle_iq(const Stanza& stanza)
         }
       else if ((query = stanza.get_child("query", DISCO_ITEMS_NS)))
         {
+          Iid iid(to.local);
           const std::string node = query->get_tag("node");
           if (node == ADHOC_NS)
             {
               this->send_adhoc_commands_list(id, from);
+              stanza_error.disable();
+            }
+          else if (node.empty() && !iid.is_user && !iid.is_channel)
+            { // Disco on an IRC server: get the list of channels
+              bridge->send_irc_channel_list_request(iid, id, from);
               stanza_error.disable();
             }
         }
@@ -1148,6 +1155,31 @@ void XmppComponent::send_iq_result(const std::string& id, const std::string& to_
   iq["to"] = to_jid;
   iq["id"] = id;
   iq["type"] = "result";
+  iq.close();
+  this->send_stanza(iq);
+}
+
+void XmppComponent::send_iq_room_list_result(const std::string& id,
+                                             const std::string to_jid,
+                                             const std::string& from,
+                                             const std::vector<ListElement>& rooms_list)
+{
+  Stanza iq("iq");
+  iq["from"] = from + "@" + this->served_hostname;
+  iq["to"] = to_jid;
+  iq["id"] = id;
+  iq["type"] = "result";
+  XmlNode query("query");
+  query["xmlns"] = DISCO_ITEMS_NS;
+  for (const auto& room: rooms_list)
+    {
+      XmlNode item("item");
+      item["jid"] = room.channel + "%" + from + "@" + this->served_hostname;
+      item.close();
+      query.add_child(std::move(item));
+    }
+  query.close();
+  iq.add_child(std::move(query));
   iq.close();
   this->send_stanza(iq);
 }

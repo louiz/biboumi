@@ -104,6 +104,10 @@ public:
    * Send the KICK irc command
    */
   void send_kick_command(const std::string& chan_name, const std::string& target, const std::string& reason);
+  /**
+   * Send the LIST irc command
+   */
+  void send_list_command();
   void send_topic_command(const std::string& chan_name, const std::string& topic);
   /**
    * Send the QUIT irc command

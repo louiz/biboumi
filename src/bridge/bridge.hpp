@@ -72,6 +72,8 @@ public:
   void send_irc_version_request(const std::string& irc_hostname, const std::string& target,
                                 const std::string& iq_id, const std::string& to_jid,
                                 const std::string& from_jid);
+  void send_irc_channel_list_request(const Iid& iid, const std::string& iq_id,
+                                     const std::string& to_jid);
   void forward_affiliation_role_change(const Iid& iid, const std::string& nick,
                                        const std::string& affiliation, const std::string& role);
   /**
