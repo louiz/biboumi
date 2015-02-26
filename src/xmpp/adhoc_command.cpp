@@ -200,7 +200,7 @@ void DisconnectUserStep2(XmppComponent* xmpp_component, AdhocSession& session, X
   session.terminate();
 }
 
-void Reload(XmppComponent*, AdhocSession& session, XmlNode& command_node)
+void Reload(XmppComponent*, AdhocSession&, XmlNode& command_node)
 {
   ::reload_process();
   command_node.delete_all_children();
