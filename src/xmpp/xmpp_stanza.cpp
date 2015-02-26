@@ -218,13 +218,12 @@ std::string XmlNode::to_string() const
   std::string res("<");
   res += this->name;
   for (const auto& it: this->attributes)
-    res += " " + utils::remove_invalid_xml_chars(it.first) + "='" +
-      utils::remove_invalid_xml_chars(it.second) + "'";
+    res += " " + it.first + "='" + sanitize(it.second) + "'";
   if (this->closed && !this->has_children() && this->inner.empty())
     res += "/>";
   else
     {
-      res += ">" + utils::remove_invalid_xml_chars(this->inner);
+      res += ">" + sanitize(this->inner);
       for (const auto& child: this->children)
         res += child->to_string();
       if (this->closed)
@@ -232,7 +231,7 @@ std::string XmlNode::to_string() const
           res += "</" + this->get_name() + ">";
         }
     }
-  res += utils::remove_invalid_xml_chars(this->tail);
+  res += sanitize(this->tail);
   return res;
 }
 
@@ -264,4 +263,12 @@ bool XmlNode::del_tag(const std::string& name)
 std::string& XmlNode::operator[](const std::string& name)
 {
   return this->attributes[name];
+}
+
+std::string sanitize(const std::string& data)
+{
+  if (utils::is_valid_utf8(data.data()))
+    return xml_escape(utils::remove_invalid_xml_chars(data));
+  else
+    return xml_escape(utils::remove_invalid_xml_chars(utils::convert_to_utf8(data, "ISO-8859-1")));
 }
