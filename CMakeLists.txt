@@ -64,7 +64,7 @@ if(RONN_EXECUTABLE)
 endif()
 
 if(NOT IS_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/louloulibs" OR
-    NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/loulou/CMakeLists.txt")
+    NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/louloulibs/CMakeLists.txt")
   message(FATAL_ERROR "louloulibs/ not found or empty. Make sure you fetched
   the submodules with 'git submodule init && git submodule update'")
 endif()
