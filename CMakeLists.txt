@@ -74,10 +74,18 @@ include_directories(${ICONV_INCLUDE_DIRS})
 include_directories(${LIBUUID_INCLUDE_DIRS})
 
 # If they are found in louloulibs CMakeLists.txt, we inherite these values
-include_directories(${LIBIDN_INCLUDE_DIRS})
-include_directories(${SYSTEMD_INCLUDE_DIRS})
-include_directories(SYSTEM ${BOTAN_INCLUDE_DIRS})
-include_directories(${CARES_INCLUDE_DIRS})
+if(LIBIDN_FOUND)
+  include_directories(${LIBIDN_INCLUDE_DIRS})
+endif()
+if(SYSTEMD_FOUND)
+  include_directories(${SYSTEMD_INCLUDE_DIRS})
+endif()
+if(BOTAN_FOUND)
+  include_directories(SYSTEM ${BOTAN_INCLUDE_DIRS})
+endif()
+if(CARES_FOUND)
+  include_directories(${CARES_INCLUDE_DIRS})
+endif()
 
 #
 ## irclib
