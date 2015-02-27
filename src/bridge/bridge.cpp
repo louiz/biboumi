@@ -1,7 +1,7 @@
 #include <bridge/bridge.hpp>
 #include <bridge/colors.hpp>
 #include <bridge/list_element.hpp>
-#include <xmpp/xmpp_component.hpp>
+#include <xmpp/biboumi_component.hpp>
 #include <xmpp/xmpp_stanza.hpp>
 #include <irc/irc_message.hpp>
 #include <network/poller.hpp>
@@ -20,7 +20,7 @@ using namespace std::string_literals;
 
 static const char* action_prefix = "\01ACTION ";
 
-Bridge::Bridge(const std::string& user_jid, XmppComponent* xmpp, std::shared_ptr<Poller> poller):
+Bridge::Bridge(const std::string& user_jid, BiboumiComponent* xmpp, std::shared_ptr<Poller> poller):
   user_jid(user_jid),
   xmpp(xmpp),
   poller(poller)

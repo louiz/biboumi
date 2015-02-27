@@ -12,7 +12,7 @@
 #include <string>
 #include <memory>
 
-class XmppComponent;
+class BiboumiComponent;
 class Poller;
 
 /**
@@ -32,7 +32,7 @@ using irc_responder_callback_t = std::function<bool(const std::string& irc_hostn
 class Bridge
 {
 public:
-  explicit Bridge(const std::string& user_jid, XmppComponent* xmpp, std::shared_ptr<Poller> poller);
+  explicit Bridge(const std::string& user_jid, BiboumiComponent* xmpp, std::shared_ptr<Poller> poller);
   ~Bridge();
   /**
    * QUIT all connected IRC servers.
@@ -211,7 +211,7 @@ private:
    * but we still need to communicate with it, when sending messages from
    * IRC to XMPP.
    */
-  XmppComponent* xmpp;
+  BiboumiComponent* xmpp;
   /**
    * Poller, to give it the IrcClients that we spawn, to make it manage
    * their sockets.

@@ -1,8 +1,8 @@
 #include <xmpp/jid.hpp>
-#include <config.h>
 #include <cstring>
 #include <map>
 
+#include <louloulibs.h>
 #ifdef LIBIDN_FOUND
  #include <stringprep.h>
 #endif

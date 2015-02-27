@@ -1,5 +1,5 @@
 #include <xmpp/adhoc_command.hpp>
-#include <xmpp/xmpp_component.hpp>
+#include <xmpp/biboumi_component.hpp>
 
 #include <bridge/bridge.hpp>
 
@@ -98,6 +98,8 @@ void HelloStep2(XmppComponent*, AdhocSession& session, XmlNode& command_node)
 
 void DisconnectUserStep1(XmppComponent* xmpp_component, AdhocSession&, XmlNode& command_node)
 {
+  auto biboumi_component = static_cast<BiboumiComponent*>(xmpp_component);
+
   XmlNode x("jabber:x:data:x");
   x["type"] = "form";
   XmlNode title("title");
@@ -115,7 +117,7 @@ void DisconnectUserStep1(XmppComponent* xmpp_component, AdhocSession&, XmlNode& 
   XmlNode required("required");
   required.close();
   jids_field.add_child(std::move(required));
-  for (Bridge* bridge: xmpp_component->get_bridges())
+  for (Bridge* bridge: biboumi_component->get_bridges())
     {
       XmlNode option("option");
       option["label"] = bridge->get_jid();
@@ -145,6 +147,8 @@ void DisconnectUserStep1(XmppComponent* xmpp_component, AdhocSession&, XmlNode& 
 
 void DisconnectUserStep2(XmppComponent* xmpp_component, AdhocSession& session, XmlNode& command_node)
 {
+  auto biboumi_component = static_cast<BiboumiComponent*>(xmpp_component);
+
   // Find out if the jids, and the quit message are provided in the form.
   std::string quit_message;
   XmlNode* x = command_node.get_child("x", "jabber:x:data");
@@ -168,7 +172,7 @@ void DisconnectUserStep2(XmppComponent* xmpp_component, AdhocSession& session, X
           std::size_t num = 0;
           for (XmlNode* value: jids_field->get_children("value", "jabber:x:data"))
             {
-              Bridge* bridge = xmpp_component->find_user_bridge(value->get_inner());
+              Bridge* bridge = biboumi_component->find_user_bridge(value->get_inner());
               if (bridge)
                 {
                   bridge->shutdown(quit_message);

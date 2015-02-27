@@ -1,4 +1,4 @@
-#include <xmpp/xmpp_component.hpp>
+#include <xmpp/biboumi_component.hpp>
 #include <utils/timed_events.hpp>
 #include <network/poller.hpp>
 #include <config/config.hpp>
@@ -72,7 +72,7 @@ int main(int ac, char** av)
     return config_help("hostname");
 
   auto p = std::make_shared<Poller>();
-  auto xmpp_component = std::make_shared<XmppComponent>(p,
+  auto xmpp_component = std::make_shared<BiboumiComponent>(p,
                                                         hostname,
                                                         password);
 
