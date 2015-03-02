@@ -5,6 +5,7 @@
 #include <utils/tolower.hpp>
 #include <logger/logger.hpp>
 #include <xmpp/adhoc_command.hpp>
+#include <xmpp/biboumi_adhoc_commands.hpp>
 #include <bridge/list_element.hpp>
 #include <config/config.hpp>
 #include <xmpp/jid.hpp>
