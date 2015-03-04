@@ -55,6 +55,9 @@ int main(int ac, char** av)
 {
   if (ac > 1)
     Config::filename = av[1];
+  else
+    Config::filename = "biboumi.cfg";
+
   Config::file_must_exist = true;
   std::cerr << "Using configuration file: " << Config::filename << std::endl;
 
