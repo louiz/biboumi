@@ -281,6 +281,10 @@ void IrcClient::send_pong_command(const IrcMessage& message)
   this->send_message(IrcMessage("PONG", {id}));
 }
 
+void IrcClient::on_pong(const IrcMessage& message)
+{
+}
+
 void IrcClient::send_ping_command()
 {
   this->send_message(IrcMessage("PING", {"biboumi"}));

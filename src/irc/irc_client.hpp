@@ -70,6 +70,11 @@ public:
    * Send the PONG irc command
    */
   void send_pong_command(const IrcMessage& message);
+  /**
+   * Do nothing when we receive a PONG command (but also do not log that no
+   * handler exist)
+   */
+  void on_pong(const IrcMessage& message);
   void send_ping_command();
   /**
    * Send the USER irc command
@@ -339,6 +344,7 @@ static const std::unordered_map<std::string, irc_callback_t> irc_callbacks = {
   {"NICK", &IrcClient::on_nick},
   {"MODE", &IrcClient::on_mode},
   {"PING", &IrcClient::send_pong_command},
+  {"PONG", &IrcClient::on_pong},
   {"KICK", &IrcClient::on_kick},
 
   {"401", &IrcClient::on_generic_error},
