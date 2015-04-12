@@ -74,11 +74,6 @@ int main(int ac, char** av)
   if (hostname.empty())
     return config_help("hostname");
 
-  auto p = std::make_shared<Poller>();
-  auto xmpp_component = std::make_shared<BiboumiComponent>(p,
-                                                        hostname,
-                                                        password);
-
   // Install the signals used to exit the process cleanly, or reload the
   // config
   sigset_t mask;
@@ -100,8 +95,10 @@ int main(int ac, char** av)
   sigaction(SIGUSR1, &on_sigusr, nullptr);
   sigaction(SIGUSR2, &on_sigusr, nullptr);
 
+  auto p = std::make_shared<Poller>();
+  auto xmpp_component =
+    std::make_shared<BiboumiComponent>(p, hostname, password);
   xmpp_component->start();
-
 
 #ifdef CARES_FOUND
   DNSHandler::instance.watch_dns_sockets(p);
@@ -119,10 +116,7 @@ int main(int ac, char** av)
       exiting = true;
       stop.store(false);
       xmpp_component->shutdown();
-#ifdef CARES_FOUND
-      DNSHandler::instance.destroy();
-#endif
-      // Cancel the timer for an potential reconnection
+      // Cancel the timer for a potential reconnection
       TimedEventsManager::instance().cancel("XMPP reconnection");
     }
     if (reload)
@@ -171,6 +165,9 @@ int main(int ac, char** av)
     else
       timeout = TimedEventsManager::instance().get_timeout();
   }
+#ifdef CARES_FOUND
+  DNSHandler::instance.destroy();
+#endif
   log_info("All connections cleanly closed, have a nice day.");
   return 0;
 }
