@@ -40,6 +40,18 @@ int config_help(const std::string& missing_option)
 
 static void sigint_handler(int sig, siginfo_t*, void*)
 {
+  // We reset the SIGTERM or SIGINT (the one that didn't trigger this
+  // handler) signal handler to its default value.  This avoid calling this
+  // handler twice, if the process receive both signals in a quick
+  // succession.
+  int sig_to_reset = (sig == SIGINT? SIGTERM: SIGINT);
+  sigset_t mask;
+  sigemptyset(&mask);
+  struct sigaction sigreset = {};
+  sigreset.sa_handler = SIG_DFL;
+  sigreset.sa_mask = mask;
+  sigaction(sig_to_reset, &sigreset, nullptr);
+
   // In 2 seconds, repeat the same signal, to force the exit
   TimedEventsManager::instance().add_event(TimedEvent(std::chrono::steady_clock::now() + 2s,
                                     [sig]() { raise(sig); }));
