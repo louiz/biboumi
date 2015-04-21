@@ -396,15 +396,7 @@ int main()
     assert(iid6.get_server() == "fixed.example.com");
     assert(iid6.is_channel);
     assert(!iid6.is_user);
-
-    Config::set("fixed_irc_server", "", false);
   }
-
-  std::cout << color << "Testing JID (xep 0106) decoding…" << reset << std::endl;
-  assert(Iid{"space\\20cadet!"}.get_local() == "space cadet");
-  assert(Iid{"call\\20me\\20\\22ishmael\\22!"}.get_local() == "call me \"ishmael\"");
-  assert(Iid{"\\2f.fanboy!"}.get_local() == "/.fanboy");
-  assert(Iid{"Q\\40CServe.quakenet.org!"}.get_local() == "q@cserve.quakenet.org");
 
   return 0;
 }

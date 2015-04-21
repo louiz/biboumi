@@ -1,6 +1,5 @@
 #include <utils/tolower.hpp>
 #include <config/config.hpp>
-#include <utils/encoding.hpp>
 
 #include <irc/iid.hpp>
 
@@ -69,7 +68,6 @@ Iid::Iid():
 void Iid::set_local(const std::string& loc)
 {
   this->local = utils::tolower(loc);
-  xep0106::decode(local);
 }
 
 void Iid::set_server(const std::string& serv)
