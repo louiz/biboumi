@@ -55,8 +55,8 @@ IrcClient::~IrcClient()
 
 void IrcClient::start()
 {
-  if (this->connected || this->connecting)
-    return ;
+  if (this->is_connecting() || this->is_connected())
+    return;
   std::string port;
   bool tls;
   std::tie(port, tls) = this->ports_to_try.top();
