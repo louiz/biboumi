@@ -160,6 +160,12 @@ IRC nicknames are case-insensitive, this means that the nicknames toto,
 Toto, tOtO and TOTO all represent the same IRC user.  This means you can
 talk to the user toto, and this will work.
 
+Also note that some IRC nicknames may contain characters that are not
+allowed in the local part of a JID (for example '@').  If you need to send a
+message to a nick containing such a character, you have to use a jid like
+`%irc.example.com@biboumi.example.com/AnnoyingNickn@me`, because the JID
+`AnnoyingNickn@me!irc.example.com@biboumi.example.com` would not work.
+
 Examples:
 
   `#foo%irc.example.com@biboumi.example.com` is the #foo IRC channel, on the
