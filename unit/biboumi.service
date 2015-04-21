@@ -6,7 +6,6 @@ After=network.target
 Type=notify
 ExecStart=/usr/bin/biboumi /etc/biboumi/biboumi.cfg
 ExecReload=/bin/kill -s USR1 $MAINPID
-ExecStop=/bin/kill -s INT $MAINPID
 WatchdogSec=10
 Restart=always
 User=nobody
