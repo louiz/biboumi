@@ -8,6 +8,7 @@
 #include <iostream>
 #include <memory>
 #include <atomic>
+#include <cstdlib>
 
 #include <signal.h>
 
@@ -68,7 +69,19 @@ int main(int ac, char** av)
   if (ac > 1)
     Config::filename = av[1];
   else
-    Config::filename = "biboumi.cfg";
+  {
+    const char* xdg_config_home = getenv("XDG_CONFIG_HOME");
+    if (xdg_config_home)
+      Config::filename = std::string{xdg_config_home} + "/" "biboumi" "/" "biboumi.cfg";
+    else
+    {
+      const char* home = getenv("HOME");
+      if (home)
+        Config::filename = std::string{home} + "/" ".config" "/" "biboumi" "/" "biboumi.cfg";
+      else
+        Config::filename = "biboumi.cfg";
+    }
+  }
 
   Config::file_must_exist = true;
   std::cerr << "Using configuration file: " << Config::filename << std::endl;
