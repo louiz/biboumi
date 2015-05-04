@@ -71,7 +71,7 @@ int main(int ac, char** av)
   else
   {
     const char* xdg_config_home = getenv("XDG_CONFIG_HOME");
-    if (xdg_config_home)
+    if (xdg_config_home && xdg_config_home[0] == '/')
       Config::filename = std::string{xdg_config_home} + "/" "biboumi" "/" "biboumi.cfg";
     else
     {
