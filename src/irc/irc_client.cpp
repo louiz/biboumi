@@ -181,6 +181,11 @@ void IrcClient::send_message(IrcMessage&& message)
   this->send_data(std::move(res));
 }
 
+void IrcClient::send_raw(const std::string& txt)
+{
+  this->send_data(txt + "\r\n");
+}
+
 void IrcClient::send_user_command(const std::string& username, const std::string& realname)
 {
   this->send_message(IrcMessage("USER", {username, "ignored", "ignored", realname}));

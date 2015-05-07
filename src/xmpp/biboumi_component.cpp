@@ -211,6 +211,11 @@ void BiboumiComponent::handle_message(const Stanza& stanza)
               bridge->send_private_message(user_iid, body->get_inner());
               bridge->set_preferred_from_jid(user_iid.get_local(), to_str);
             }
+          else if (!iid.is_user && !iid.is_channel)
+            { // Message sent to the server JID
+              // Convert the message body into a raw IRC message
+              bridge->send_raw_message(iid.get_server(), body->get_inner());
+            }
         }
     }
   else if (iid.is_user)

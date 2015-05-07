@@ -273,6 +273,17 @@ void Bridge::send_private_message(const Iid& iid, const std::string& body, const
     }
 }
 
+void Bridge::send_raw_message(const std::string& hostname, const std::string& body)
+{
+  IrcClient* irc = this->get_irc_client(hostname);
+  if (!irc)
+    {
+      log_warning("Cannot send message: no client exist for server " << hostname);
+      return ;
+    }
+  irc->send_raw(body);
+}
+
 void Bridge::leave_irc_channel(Iid&& iid, std::string&& status_message)
 {
   IrcClient* irc = this->get_irc_client(iid.get_server());

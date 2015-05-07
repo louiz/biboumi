@@ -357,6 +357,20 @@ Biboumi supports a few ad-hoc commands, as described in the XEP 0050.
     “Gateway shutdown” quit message, except that biboumi does not exit when
     using this ad-hoc command.
 
+### Raw IRC messages
+
+Biboumi tries to support as many IRC features as possible, but doesn’t
+handle everything yet (or ever).  In order to let the user send any
+arbitrary IRC message, biboumi forwards any XMPP message received on an IRC
+Server JID (see *ADDRESSING*) as a raw command to that IRC server.
+
+For example, to WHOIS the user Foo on the server irc.example.com, a user can
+send the message “WHOIS Foo” to “irc.example.com@biboumi.example.com”.
+
+The message will be forwarded as is, without any modification appart from
+adding "\r\n" at the end (to make it a valid IRC message).  You need to have
+a little bit of understanding of the IRC protocol to use this feature.
+
 SECURITY
 --------
 

@@ -66,6 +66,7 @@ public:
    * for send events to be ready)
    */
   void send_message(IrcMessage&& message);
+  void send_raw(const std::string& txt);
   /**
    * Send the PONG irc command
    */
