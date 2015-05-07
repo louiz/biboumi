@@ -211,6 +211,7 @@ public:
    */
   void on_channel_mode(const IrcMessage& message);
   void on_quit(const IrcMessage& message);
+  void on_unknown_message(const IrcMessage& message);
   /**
    * Return the number of joined channels
    */

@@ -8,6 +8,7 @@
 #include <utils/tolower.hpp>
 #include <utils/split.hpp>
 
+#include <sstream>
 #include <iostream>
 #include <stdexcept>
 
@@ -154,7 +155,11 @@ void IrcClient::parse_in_buffer(const size_t)
           }
         }
       else
-        log_info("No handler for command " << message.command);
+        {
+          log_info("No handler for command " << message.command <<
+                   ", forwarding the arguments to the user");
+          this->on_unknown_message(message);
+        }
       // Try to find a waiting_iq, which response will be triggered by this IrcMessage
       this->bridge->trigger_on_irc_message(this->hostname, message);
     }
@@ -795,6 +800,22 @@ void IrcClient::on_user_mode(const IrcMessage& message)
   this->bridge->send_xmpp_message(this->hostname, "",
                                   "User mode for "s + message.arguments[0] +
                                   " is [" + message.arguments[1] + "]");
+}
+
+void IrcClient::on_unknown_message(const IrcMessage& message)
+{
+  if (message.arguments.size() < 2)
+    return ;
+  std::string from = message.prefix;
+  const std::string to = message.arguments[0];
+  std::stringstream ss;
+  for (auto it = message.arguments.begin() + 1; it != message.arguments.end(); ++it)
+    {
+      ss << *it;
+      if (it + 1 != message.arguments.end())
+        ss << " ";
+    }
+  this->bridge->send_xmpp_message(this->hostname, from, ss.str());
 }
 
 size_t IrcClient::number_of_joined_channels() const
