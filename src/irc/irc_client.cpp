@@ -291,7 +291,7 @@ void IrcClient::send_pong_command(const IrcMessage& message)
   this->send_message(IrcMessage("PONG", {id}));
 }
 
-void IrcClient::on_pong(const IrcMessage& message)
+void IrcClient::on_pong(const IrcMessage&)
 {
 }
 
@@ -316,7 +316,7 @@ void IrcClient::on_notice(const IrcMessage& message)
 
   if (!to.empty() && this->chantypes.find(to[0]) == this->chantypes.end())
     {
-      // The notice is for the us precisely.
+      // The notice is for us precisely.
 
       // Find out if we already sent a private message to this user. If yes
       // we treat that message as a private message coming from
