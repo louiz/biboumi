@@ -409,13 +409,13 @@ void Bridge::send_irc_user_ping_request(const std::string& irc_hostname, const s
   Iid iid(nick + "!" + irc_hostname);
   this->send_private_message(iid, "\01PING " + iq_id + "\01");
 
-  irc_responder_callback_t cb = [this, nick, iq_id, to_jid, irc_hostname, from_jid](const std::string& hostname, const IrcMessage& message) -> bool
+  irc_responder_callback_t cb = [this, nick=utils::tolower(nick), iq_id, to_jid, irc_hostname, from_jid](const std::string& hostname, const IrcMessage& message) -> bool
     {
       if (irc_hostname != hostname)
         return false;
       IrcUser user(message.prefix);
       const std::string body = message.arguments[1];
-      if (message.command == "NOTICE" && user.nick == nick &&
+      if (message.command == "NOTICE" && utils::tolower(user.nick) == nick &&
           message.arguments.size() >= 2 && body.substr(0, 6) == "\01PING ")
         {
           const std::string id = body.substr(6, body.size() - 6);
