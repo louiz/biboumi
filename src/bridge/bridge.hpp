@@ -9,6 +9,7 @@
 
 #include <unordered_map>
 #include <functional>
+#include <exception>
 #include <string>
 #include <memory>
 
@@ -193,10 +194,14 @@ private:
    */
   IrcClient* get_irc_client(const std::string& hostname, const std::string& username);
   /**
-   * This version does not create the IrcClient if it does not exist, and
-   * returns nullptr in that case
+   * This version does not create the IrcClient if it does not exist, throws
+   * a IRCServerNotConnected error in that case.
    */
   IrcClient* get_irc_client(const std::string& hostname);
+  /**
+   * Idem, but returns nullptr if the server does not exist.
+   */
+  IrcClient* find_irc_client(const std::string& hostname);
   /**
    * The JID of the user associated with this bridge. Messages from/to this
    * JID are only managed by this bridge.
@@ -238,6 +243,13 @@ private:
   Bridge(Bridge&& other) = delete;
   Bridge& operator=(const Bridge&) = delete;
   Bridge& operator=(Bridge&&) = delete;
+};
+
+struct IRCNotConnected: public std::exception
+{
+  IRCNotConnected(const std::string& hostname):
+    hostname(hostname) {}
+  const std::string hostname;
 };
 
 #endif // BRIDGE_INCLUDED

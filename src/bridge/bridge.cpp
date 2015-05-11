@@ -106,6 +106,18 @@ IrcClient* Bridge::get_irc_client(const std::string& hostname)
     }
   catch (const std::out_of_range& exception)
     {
+      throw IRCNotConnected(hostname);
+    }
+}
+
+IrcClient* Bridge::find_irc_client(const std::string& hostname)
+{
+  try
+    {
+      return this->irc_clients.at(hostname).get();
+    }
+  catch (const std::out_of_range& exception)
+    {
       return nullptr;
     }
 }
@@ -145,17 +157,17 @@ bool Bridge::join_irc_channel(const Iid& iid, const std::string& username, const
 
 void Bridge::send_channel_message(const Iid& iid, const std::string& body)
 {
-  if (iid.get_local().empty() || iid.get_server().empty())
+  if (iid.get_server().empty())
     {
-      log_warning("Cannot send message to channel: [" << iid.get_local() << "] on server [" << iid.get_server() << "]");
+      this->xmpp->send_stanza_error("message", this->user_jid, std::to_string(iid), "",
+                                    "cancel", "remote-server-not-found",
+                                    std::to_string(iid) + " is not a valid channel name. "
+                                    "A correct room jid is of the form: #<chan>%<server>",
+                                    false);
       return;
     }
   IrcClient* irc = this->get_irc_client(iid.get_server());
-  if (!irc)
-    {
-      log_warning("Cannot send message: no client exist for server " << iid.get_server());
-      return;
-    }
+
   // Because an IRC message cannot contain \n, we need to convert each line
   // of text into a separate IRC message. For conveniance, we also cut the
   // message into submessages on the XMPP side, this way the user of the
@@ -190,8 +202,6 @@ void Bridge::forward_affiliation_role_change(const Iid& iid, const std::string& 
                                              const std::string& role)
 {
   IrcClient* irc = this->get_irc_client(iid.get_server());
-  if (!irc)
-    return;
   IrcChannel* chan = irc->get_channel(iid.get_local());
   if (!chan || !chan->joined)
     return;
@@ -254,13 +264,15 @@ void Bridge::forward_affiliation_role_change(const Iid& iid, const std::string& 
 void Bridge::send_private_message(const Iid& iid, const std::string& body, const std::string& type)
 {
   if (iid.get_local().empty() || iid.get_server().empty())
-    return ;
-  IrcClient* irc = this->get_irc_client(iid.get_server());
-  if (!irc)
     {
-      log_warning("Cannot send message: no client exist for server " << iid.get_server());
+      this->xmpp->send_stanza_error("message", this->user_jid, std::to_string(iid), "",
+                                    "cancel", "remote-server-not-found",
+                                    std::to_string(iid) + " is not a valid channel name. "
+                                    "A correct room jid is of the form: #<chan>%<server>",
+                                    false);
       return;
     }
+  IrcClient* irc = this->get_irc_client(iid.get_server());
   std::vector<std::string> lines = utils::split(body, '\n', true);
   if (lines.empty())
     return ;
@@ -276,26 +288,19 @@ void Bridge::send_private_message(const Iid& iid, const std::string& body, const
 void Bridge::send_raw_message(const std::string& hostname, const std::string& body)
 {
   IrcClient* irc = this->get_irc_client(hostname);
-  if (!irc)
-    {
-      log_warning("Cannot send message: no client exist for server " << hostname);
-      return ;
-    }
   irc->send_raw(body);
 }
 
 void Bridge::leave_irc_channel(Iid&& iid, std::string&& status_message)
 {
   IrcClient* irc = this->get_irc_client(iid.get_server());
-  if (irc)
-    irc->send_part_command(iid.get_local(), status_message);
+  irc->send_part_command(iid.get_local(), status_message);
 }
 
 void Bridge::send_irc_nick_change(const Iid& iid, const std::string& new_nick)
 {
   IrcClient* irc = this->get_irc_client(iid.get_server());
-  if (irc)
-    irc->send_nick_command(new_nick);
+  irc->send_nick_command(new_nick);
 }
 
 void Bridge::send_irc_channel_list_request(const Iid& iid, const std::string& iq_id,
@@ -303,10 +308,8 @@ void Bridge::send_irc_channel_list_request(const Iid& iid, const std::string& iq
 {
   IrcClient* irc = this->get_irc_client(iid.get_server());
 
-  if (!irc)
-    return;
-
   irc->send_list_command();
+
   irc_responder_callback_t cb = [this, iid, iq_id, to_jid](const std::string& irc_hostname,
                                                            const IrcMessage& message) -> bool
     {
@@ -339,9 +342,6 @@ void Bridge::send_irc_kick(const Iid& iid, const std::string& target, const std:
                            const std::string& iq_id, const std::string& to_jid)
 {
   IrcClient* irc = this->get_irc_client(iid.get_server());
-
-  if (!irc)
-    return;
 
   irc->send_kick_command(iid.get_local(), target, reason);
   irc_responder_callback_t cb = [this, target, iq_id, to_jid, iid](const std::string& irc_hostname,
@@ -387,8 +387,7 @@ void Bridge::send_irc_kick(const Iid& iid, const std::string& target, const std:
 void Bridge::set_channel_topic(const Iid& iid, const std::string& subject)
 {
   IrcClient* irc = this->get_irc_client(iid.get_server());
-  if (irc)
-    irc->send_topic_command(iid.get_local(), subject);
+  irc->send_topic_command(iid.get_local(), subject);
 }
 
 void Bridge::send_xmpp_version_to_irc(const Iid& iid, const std::string& name, const std::string& version, const std::string& os)
@@ -447,12 +446,6 @@ void Bridge::send_irc_participant_ping_request(const Iid& iid, const std::string
                                                const std::string& from_jid)
 {
   IrcClient* irc = this->get_irc_client(iid.get_server());
-  if (!irc)
-    {
-      this->xmpp->send_stanza_error("iq", to_jid, from_jid, iq_id, "cancel", "item-not-found",
-                                    "Not connected to IRC server"s + iid.get_server(), true);
-      return;
-    }
   IrcChannel* chan = irc->get_channel(iid.get_local());
   if (!chan->joined)
     {
@@ -475,7 +468,7 @@ void Bridge::on_gateway_ping(const std::string& irc_hostname, const std::string&
                              const std::string& from_jid)
 {
   Jid jid(from_jid);
-  if (irc_hostname.empty() || this->get_irc_client(irc_hostname))
+  if (irc_hostname.empty() || this->find_irc_client(irc_hostname))
     this->xmpp->send_iq_result(iq_id, to_jid, jid.local);
   else
     this->xmpp->send_stanza_error("iq", to_jid, from_jid, iq_id, "cancel", "service-unavailable",
@@ -548,7 +541,7 @@ void Bridge::send_presence_error(const Iid& iid, const std::string& nick,
 void Bridge::send_muc_leave(Iid&& iid, std::string&& nick, const std::string& message, const bool self)
 {
   this->xmpp->send_muc_leave(std::to_string(iid), std::move(nick), this->make_xmpp_body(message), this->user_jid, self);
-  IrcClient* irc = this->get_irc_client(iid.get_server());
+  IrcClient* irc = this->find_irc_client(iid.get_server());
   if (irc && irc->number_of_joined_channels() == 0)
     irc->send_quit_command("");
 }
@@ -603,7 +596,7 @@ void Bridge::send_topic(const std::string& hostname, const std::string& chan_nam
 
 std::string Bridge::get_own_nick(const Iid& iid)
 {
-  IrcClient* irc = this->get_irc_client(iid.get_server());
+  IrcClient* irc = this->find_irc_client(iid.get_server());
   if (irc)
     return irc->get_own_nick();
   return "";

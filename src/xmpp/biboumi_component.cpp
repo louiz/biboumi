@@ -166,6 +166,8 @@ void BiboumiComponent::handle_message(const Stanza& stanza)
                               error_type, error_name, "");
     });
   XmlNode* body = stanza.get_child("body", COMPONENT_NS);
+
+  try {                         // catch IRCNotConnected exceptions
   if (type == "groupchat" && iid.is_channel)
     {
       if (body && !body->get_inner().empty())
@@ -220,6 +222,13 @@ void BiboumiComponent::handle_message(const Stanza& stanza)
     }
   else if (iid.is_user)
     this->send_invalid_user_error(to.local, from);
+  } catch (const IRCNotConnected& ex)
+    {
+      this->send_stanza_error("message", from, to_str, id,
+                              "cancel", "remote-server-not-found",
+                              "Not connected to IRC server "s + ex.hostname,
+                              true);
+    }
   stanza_error.disable();
 }
 
@@ -262,6 +271,7 @@ void BiboumiComponent::handle_iq(const Stanza& stanza)
       this->send_stanza_error("iq", from, to_str, id,
                               error_type, error_name, "");
     });
+  try {
   if (type == "set")
     {
       XmlNode* query;
@@ -411,6 +421,16 @@ void BiboumiComponent::handle_iq(const Stanza& stanza)
               this->waiting_iq.erase(it);
             }
         }
+    }
+  }
+  catch (const IRCNotConnected& ex)
+    {
+      this->send_stanza_error("iq", from, to_str, id,
+                              "cancel", "remote-server-not-found",
+                              "Not connected to IRC server "s + ex.hostname,
+                              true);
+      stanza_error.disable();
+      return;
     }
   error_type = "cancel";
   error_name = "feature-not-implemented";
