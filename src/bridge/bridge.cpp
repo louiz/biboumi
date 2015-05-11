@@ -411,13 +411,14 @@ void Bridge::send_irc_user_ping_request(const std::string& irc_hostname, const s
 
   irc_responder_callback_t cb = [this, nick=utils::tolower(nick), iq_id, to_jid, irc_hostname, from_jid](const std::string& hostname, const IrcMessage& message) -> bool
     {
-      if (irc_hostname != hostname)
+      if (irc_hostname != hostname || message.arguments.size() < 2)
         return false;
       IrcUser user(message.prefix);
       const std::string body = message.arguments[1];
-      if (message.command == "NOTICE" && utils::tolower(user.nick) == nick &&
-          message.arguments.size() >= 2 && body.substr(0, 6) == "\01PING ")
+      if (message.command == "NOTICE" && utils::tolower(user.nick) == nick
+          && body.substr(0, 6) == "\01PING ")
         {
+          return false;
           const std::string id = body.substr(6, body.size() - 7);
           if (id != iq_id)
             return false;
@@ -425,8 +426,7 @@ void Bridge::send_irc_user_ping_request(const std::string& irc_hostname, const s
           this->xmpp->send_iq_result(iq_id, to_jid, jid.local);
           return true;
         }
-      if (message.command == "401" && message.arguments.size() >= 2
-          && message.arguments[1] == nick)
+      if (message.command == "401" && message.arguments[1] == nick)
         {
           std::string error_message = "No such nick";
           if (message.arguments.size() >= 3)
