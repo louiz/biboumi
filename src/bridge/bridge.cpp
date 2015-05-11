@@ -418,7 +418,7 @@ void Bridge::send_irc_user_ping_request(const std::string& irc_hostname, const s
       if (message.command == "NOTICE" && utils::tolower(user.nick) == nick &&
           message.arguments.size() >= 2 && body.substr(0, 6) == "\01PING ")
         {
-          const std::string id = body.substr(6, body.size() - 6);
+          const std::string id = body.substr(6, body.size() - 7);
           if (id != iq_id)
             return false;
           Jid jid(from_jid);
