@@ -116,6 +116,7 @@ void BiboumiComponent::handle_presence(const Stanza& stanza)
                               error_type, error_name, "");
         });
 
+  try {
   if (iid.is_channel && !iid.get_server().empty())
     { // presence toward a MUC that corresponds to an irc channel, or a
       // dummy channel if iid.chan is empty
@@ -140,6 +141,14 @@ void BiboumiComponent::handle_presence(const Stanza& stanza)
       // An user wants to join an invalid IRC channel, return a presence error to him
       if (type.empty())
         this->send_invalid_room_error(to.local, to.resource, from);
+    }
+  }
+  catch (const IRCNotConnected& ex)
+    {
+      this->send_stanza_error("presence", from, to_str, id,
+                              "cancel", "remote-server-not-found",
+                              "Not connected to IRC server "s + ex.hostname,
+                              true);
     }
   stanza_error.disable();
 }
