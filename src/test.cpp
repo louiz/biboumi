@@ -295,10 +295,15 @@ int main()
   assert(jidprep(badjid) == "~zigougoutm@epik-7d9d1fde.poez.io/Boujour/coucou/sltTM");
   assert(jidprep(badjid) == "~zigougoutm@epik-7d9d1fde.poez.io/Boujour/coucou/sltTM");
 
-  const std::string& badjid2("Zigougou@poez.io");
+  const std::string badjid2("Zigougou@poez.io");
   const std::string correctjid2 = jidprep(badjid2);
   std::cout << correctjid2 << std::endl;
   assert(correctjid2 == "zigougou@poez.io");
+
+  const std::string crappy("~Bisous@7ea8beb1:c5fd2849:da9a048e:ip");
+  const std::string fixed_crappy = jidprep(crappy);
+  std::cout << fixed_crappy << std::endl;
+  assert(fixed_crappy == "~bisous@7ea8beb1-c5fd2849-da9a048e-ip");
 
   /**
    * IID parsing
