@@ -21,11 +21,11 @@ Version 2.0
  - Add a fixed_irc_server option.  With this option enabled,
    biboumi can only connect to the one single IRC server configured
 
-Version 1.1                                             2014-16-07
+Version 1.1                                             2014-07-16
 
  - Fix a segmentation fault when connecting to an IRC server using IPv6
 
-Version 1.0                                             2014-12-07
+Version 1.0                                             2014-07-12
 
  - First stable release.
  - Mostly complete MUC to IRC, and IRC to MUC support
