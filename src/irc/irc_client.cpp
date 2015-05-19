@@ -459,6 +459,18 @@ void IrcClient::on_channel_message(const IrcMessage& message)
     this->bridge->send_message(iid, nick, body, muc);
 }
 
+void IrcClient::on_rpl_liststart(const IrcMessage&)
+{
+}
+
+void IrcClient::on_rpl_list(const IrcMessage&)
+{
+}
+
+void IrcClient::on_rpl_listend(const IrcMessage&)
+{
+}
+
 void IrcClient::empty_motd(const IrcMessage& message)
 {
   (void)message;

@@ -152,6 +152,23 @@ public:
    */
   void set_and_forward_user_list(const IrcMessage& message);
   /**
+   * Signal the start of the LIST response. The RFC says its obsolete and
+   * “not used”, but I we receive it on some servers, so just ignore it.
+   */
+  void on_rpl_liststart(const IrcMessage& message);
+  /**
+   * A single LIST response line (one channel)
+   *
+   * The command is handled in a wait_irc callback. This general handler is
+   * empty and just used to avoid sending a message stanza for each received
+   * channel.
+   */
+  void on_rpl_list(const IrcMessage& message);
+  /**
+   * Signal the end of the LIST response, ignore.
+   */
+  void on_rpl_listend(const IrcMessage& message);
+  /**
    * Remember our nick and host, when we are joined to the channel. The list
    * of user comes after so we do not send the self-presence over XMPP yet.
    */
@@ -324,6 +341,12 @@ static const std::unordered_map<std::string, irc_callback_t> irc_callbacks = {
   {"002", &IrcClient::forward_server_message},
   {"003", &IrcClient::forward_server_message},
   {"005", &IrcClient::on_isupport_message},
+  {"RPL_LISTSTART", &IrcClient::on_rpl_liststart},
+  {"321", &IrcClient::on_rpl_liststart},
+  {"RPL_LIST", &IrcClient::on_rpl_list},
+  {"322", &IrcClient::on_rpl_list},
+  {"RPL_LISTEND", &IrcClient::on_rpl_listend},
+  {"323", &IrcClient::on_rpl_listend},
   {"RPL_MOTDSTART", &IrcClient::empty_motd},
   {"375", &IrcClient::empty_motd},
   {"RPL_MOTD", &IrcClient::on_motd_line},
