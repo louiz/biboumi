@@ -224,6 +224,13 @@ messages to other users.  This means that the order of the messages
 displayed in your XMPP client may not be the same than the order on other
 IRC users’.
 
+### List channels
+
+You can list the IRC channels on a given IRC server by sending an XMPP disco
+items request on the IRC server JID.  The number of channels on some servers
+is huge, and biboumi does not (yet) support result set management (XEP 0059)
+so the result stanza may be very big.
+
 ### Nicknames
 
 On IRC, nicknames are server-wide.  This means that one user only has one
