@@ -317,8 +317,14 @@ void Bridge::send_irc_channel_list_request(const Iid& iid, const std::string& iq
 
       if (irc_hostname != iid.get_server())
         return false;
-      if (message.command == "263" || message.command == "RPL_TRYAGAIN")
-        { // TODO send an error iq
+      if (message.command == "263" || message.command == "RPL_TRYAGAIN" ||
+          message.command == "ERR_TOOMANYMATCHES" || message.command == "ERR_NOSUCHSERVER")
+        {
+          std::string text;
+          if (message.arguments.size() >= 2)
+            text = message.arguments[1];
+          this->xmpp->send_stanza_error("iq", to_jid, std::to_string(iid), iq_id,
+                                        "wait", "service-unavailable", text, false);
           return true;
         }
       else if (message.command == "322" || message.command == "RPL_LIST")
