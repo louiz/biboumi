@@ -399,7 +399,7 @@ void Bridge::send_xmpp_version_to_irc(const Iid& iid, const std::string& name, c
 
 void Bridge::send_irc_ping_result(const Iid& iid, const std::string& id)
 {
-  this->send_private_message(iid, "\01PING "s + utils::revstr(id), "NOTICE");
+  this->send_private_message(iid, "\01PING "s + utils::revstr(id) + "\01", "NOTICE");
 }
 
 void Bridge::send_irc_user_ping_request(const std::string& irc_hostname, const std::string& nick,
