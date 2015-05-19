@@ -1,5 +1,11 @@
 Version 2.0
- - Support PING requests in all directions
+
+ - List channels on an IRC server through an XMPP disco items request
+ - Let the user send any arbitrary raw IRC command by sending a
+   message to the IRC server’s JID.
+ - By default, look for the configuration file as per the XDG
+   basedir spec.
+ - Support PING requests in all directions.
  - Improve the way we forward received NOTICEs by remembering to
    which users we previously sent a private message.  This improves the
    user experience when talking to NickServ.
