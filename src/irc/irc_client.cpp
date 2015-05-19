@@ -314,6 +314,10 @@ void IrcClient::on_notice(const IrcMessage& message)
   const std::string to = message.arguments[0];
   const std::string body = message.arguments[1];
 
+  if (!body.empty() && body[0] == '\01' && body[body.size() - 1] == '\01')
+    // Do not forward the notice to the user if it's a CTCP command
+    return ;
+
   if (!to.empty() && this->chantypes.find(to[0]) == this->chantypes.end())
     {
       // The notice is for us precisely.
