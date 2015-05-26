@@ -153,6 +153,5 @@ endif()
 ## Generate a release tarball from the git sources
 #
 add_custom_target(dist
-  COMMAND git archive --prefix=${ARCHIVE_NAME}/ --format=tar HEAD
-  | xz > ${CMAKE_CURRENT_BINARY_DIR}/${ARCHIVE_NAME}.tar.xz
+  COMMAND git-archive-all ${CMAKE_CURRENT_BINARY_DIR}/${ARCHIVE_NAME}.tar.xz
   WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
