@@ -99,9 +99,19 @@ int main(int ac, char** av)
   if (hostname.empty())
     return config_help("hostname");
 
+  // Block the signals we want to manage. They will be unblocked only during
+  // the epoll_pwait or ppoll calls. This avoids some race conditions,
+  // explained in man 2 pselect on linux
+  sigset_t mask;
+  sigemptyset(&mask);
+  sigaddset(&mask, SIGINT);
+  sigaddset(&mask, SIGTERM);
+  sigaddset(&mask, SIGUSR1);
+  sigaddset(&mask, SIGUSR2);
+  sigprocmask(SIG_BLOCK, &mask, nullptr);
+
   // Install the signals used to exit the process cleanly, or reload the
   // config
-  sigset_t mask;
   sigemptyset(&mask);
   struct sigaction on_sigint;
   on_sigint.sa_sigaction = &sigint_handler;
