@@ -1,6 +1,6 @@
 Name:     biboumi
-Version:  1.1
-Release:  2%{?dist}
+Version:  2.0
+Release:  1%{?dist}
 Summary:  Lightweight XMPP to IRC gateway
 
 License:  zlib
@@ -73,6 +73,9 @@ make test_suite/fast VERBOSE=1
 
 
 %changelog
+* Fri May 29 2015 Le Coz Florent <louiz@louiz.org> - 2.0-1
+- Update to 2.0 sources
+
 * Wed Nov 13 2014 Le Coz Florent <louiz@louiz.org> - 1.1-2
 - Use the -DWITH(OUT) cmake flags for all optional dependencies
 - Build with the correct optflags

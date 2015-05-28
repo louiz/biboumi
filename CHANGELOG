@@ -1,4 +1,4 @@
-Version 2.0
+Version 2.0                                             2015-05-29
 
  - List channels on an IRC server through an XMPP disco items request
  - Let the user send any arbitrary raw IRC command by sending a
