@@ -184,7 +184,8 @@ public:
    * Send the list of all available ad-hoc commands to that JID. The list is
    * different depending on what JID made the request.
    */
-  void send_adhoc_commands_list(const std::string& id, const std::string& requester_jid);
+  void send_adhoc_commands_list(const std::string& id, const std::string& requester_jid,
+                                const bool with_admin_only);
   /**
    * Send an iq version request
    */

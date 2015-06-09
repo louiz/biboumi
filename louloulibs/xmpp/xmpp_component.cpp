@@ -651,7 +651,7 @@ void XmppComponent::send_version(const std::string& id, const std::string& jid_t
   this->send_stanza(iq);
 }
 
-void XmppComponent::send_adhoc_commands_list(const std::string& id, const std::string& requester_jid)
+void XmppComponent::send_adhoc_commands_list(const std::string& id, const std::string& requester_jid, const bool with_admin_only)
 {
   Stanza iq("iq");
   iq["type"] = "result";
@@ -663,6 +663,8 @@ void XmppComponent::send_adhoc_commands_list(const std::string& id, const std::s
   query["node"] = ADHOC_NS;
   for (const auto& kv: this->adhoc_commands_handler.get_commands())
     {
+      if (kv.second.is_admin_only() && !with_admin_only)
+        continue;
       XmlNode item("item");
       item["jid"] = this->served_hostname;
       item["node"] = kv.first;

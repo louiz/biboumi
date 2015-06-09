@@ -50,7 +50,7 @@ BiboumiComponent::BiboumiComponent(std::shared_ptr<Poller> poller, const std::st
   this->stanza_handlers.emplace("iq",
                                 std::bind(&BiboumiComponent::handle_iq, this,std::placeholders::_1));
 
-  this->adhoc_commands_handler.get_commands()= {
+  this->adhoc_commands_handler.get_commands() = {
     {"ping", AdhocCommand({&PingStep1}, "Do a ping", false)},
     {"hello", AdhocCommand({&HelloStep1, &HelloStep2}, "Receive a custom greeting", false)},
     {"disconnect-user", AdhocCommand({&DisconnectUserStep1, &DisconnectUserStep2}, "Disconnect a user from the gateway", true)},
@@ -370,7 +370,10 @@ void BiboumiComponent::handle_iq(const Stanza& stanza)
           const std::string node = query->get_tag("node");
           if (node == ADHOC_NS)
             {
-              this->send_adhoc_commands_list(id, from);
+              Jid from_jid(from);
+              this->send_adhoc_commands_list(id, from,
+                                             (Config::get("admin", "") ==
+                                              from_jid.local + "@" + from_jid.domain));
               stanza_error.disable();
             }
           else if (node.empty() && !iid.is_user && !iid.is_channel)
