@@ -53,11 +53,6 @@ public:
    */
   void send_self_disco_info(const std::string& id, const std::string& jid_to);
   /**
-   * Send the list of all available ad-hoc commands to that JID. The list is
-   * different depending on what JID made the request.
-   */
-  void send_adhoc_commands_list(const std::string& id, const std::string& requester_jid);
-  /**
    * Send an iq version request
    */
   void send_iq_version_request(const std::string& from,

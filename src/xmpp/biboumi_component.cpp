@@ -506,31 +506,6 @@ void BiboumiComponent::send_self_disco_info(const std::string& id, const std::st
   this->send_stanza(iq);
 }
 
-void BiboumiComponent::send_adhoc_commands_list(const std::string& id, const std::string& requester_jid)
-{
-  Stanza iq("iq");
-  iq["type"] = "result";
-  iq["id"] = id;
-  iq["to"] = requester_jid;
-  iq["from"] = this->served_hostname;
-  XmlNode query("query");
-  query["xmlns"] = DISCO_ITEMS_NS;
-  query["node"] = ADHOC_NS;
-  for (const auto& kv: this->adhoc_commands_handler.get_commands())
-    {
-      XmlNode item("item");
-      item["jid"] = this->served_hostname;
-      item["node"] = kv.first;
-      item["name"] = kv.second.name;
-      item.close();
-      query.add_child(std::move(item));
-    }
-  query.close();
-  iq.add_child(std::move(query));
-  iq.close();
-  this->send_stanza(iq);
-}
-
 void BiboumiComponent::send_iq_version_request(const std::string& from,
                                             const std::string& jid_to)
 {
