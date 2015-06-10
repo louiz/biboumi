@@ -203,6 +203,8 @@ int main(int ac, char** av)
 #ifdef CARES_FOUND
   DNSHandler::instance.destroy();
 #endif
+  if (!xmpp_component->ever_auth)
+    return 1; // To signal that the process did not properly start
   log_info("All connections cleanly closed, have a nice day.");
   return 0;
 }
