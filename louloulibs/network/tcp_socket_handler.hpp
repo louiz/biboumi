@@ -272,11 +272,11 @@ private:
   static Botan::TLS::Session_Manager_In_Memory session_manager;
   /**
    * We use a unique_ptr because we may not want to create the object at
-   * all. The Botan::TLS::Client object generates a handshake message as
-   * soon and calls the output_fn callback with it as soon as it is
-   * created. Therefore, we do not want to create it if do not intend to do
-   * send any TLS-encrypted message. We create the object only when needed
-   * (for example after we have negociated a TLS session using a STARTTLS
+   * all. The Botan::TLS::Client object generates a handshake message and
+   * calls the output_fn callback with it as soon as it is created.
+   * Therefore, we do not want to create it if we do not intend to send any
+   * TLS-encrypted message. We create the object only when needed (for
+   * example after we have negociated a TLS session using a STARTTLS
    * message, or stuf like that).
    *
    * See start_tls for the method where this object is created.
