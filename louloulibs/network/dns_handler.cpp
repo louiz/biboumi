@@ -6,6 +6,8 @@
 #include <network/dns_handler.hpp>
 #include <network/poller.hpp>
 
+#include <utils/timed_events.hpp>
+
 #include <algorithm>
 #include <stdexcept>
 
@@ -30,7 +32,13 @@ DNSHandler::DNSHandler()
   int ares_error;
   if ((ares_error = ::ares_library_init(ARES_LIB_INIT_ALL)) != 0)
     throw std::runtime_error("Failed to initialize c-ares lib: "s + ares_strerror(ares_error));
-  if ((ares_error = ::ares_init(&this->channel)) != ARES_SUCCESS)
+  struct ares_options options = {};
+  // The default timeout values are way too high
+  options.timeout = 1000;
+  options.tries = 3;
+  if ((ares_error = ::ares_init_options(&this->channel,
+                                        &options,
+                                        ARES_OPT_TIMEOUTMS|ARES_OPT_TRIES)) != ARES_SUCCESS)
     throw std::runtime_error("Failed to initialize c-ares channel: "s + ares_strerror(ares_error));
 }
 
@@ -99,13 +107,31 @@ void DNSHandler::watch_dns_sockets(std::shared_ptr<Poller>& poller)
         { // If not found, create it because we need to watch it
           if (it == this->socket_handlers.end())
             {
-              this->socket_handlers.emplace_front(std::make_unique<DNSSocketHandler>(poller, i));
+              this->socket_handlers.emplace(this->socket_handlers.begin(),
+                                            std::make_unique<DNSSocketHandler>(poller, i));
               it = this->socket_handlers.begin();
             }
           poller->add_socket_handler(it->get());
           if (write)
             poller->watch_send_events(it->get());
         }
+    }
+  // Cancel previous timer, if any.
+  TimedEventsManager::instance().cancel("DNS timeout");
+  struct timeval tv;
+  struct timeval* tvp;
+  tvp = ::ares_timeout(this->channel, NULL, &tv);
+  if (tvp)
+    {
+      auto future_time = std::chrono::steady_clock::now() + std::chrono::seconds(tvp->tv_sec) + \
+        std::chrono::microseconds(tvp->tv_usec);
+      TimedEventsManager::instance().add_event(TimedEvent(std::move(future_time),
+                                                          [this]()
+             {
+               for (auto& dns_socket_handler: this->socket_handlers)
+                 dns_socket_handler->on_recv();
+             },
+                                                          "DNS timeout"));
     }
 }
 

@@ -11,7 +11,7 @@ class DNSSocketHandler;
 # include <ares.h>
 # include <memory>
 # include <string>
-# include <list>
+# include <vector>
 
 void on_hostname4_resolved(void* arg, int status, int, struct hostent* hostent);
 void on_hostname6_resolved(void* arg, int status, int, struct hostent* hostent);
@@ -49,7 +49,7 @@ private:
    * call to ares_fds.  DNSSocketHandlers are added to it or removed from it
    * in the watch_dns_sockets() method
    */
-  std::list<std::unique_ptr<DNSSocketHandler>> socket_handlers;
+  std::vector<std::unique_ptr<DNSSocketHandler>> socket_handlers;
   ares_channel channel;
 
   DNSHandler(const DNSHandler&) = delete;
