@@ -58,7 +58,7 @@ int XmppParser::feed(const char* data, const int len, const bool is_final)
   if (res == XML_STATUS_ERROR &&
       (XML_GetErrorCode(this->parser) != XML_ERROR_FINISHED))
     log_error("Xml_Parse encountered an error: " <<
-              XML_ErrorString(XML_GetErrorCode(this->parser)))
+              XML_ErrorString(XML_GetErrorCode(this->parser)));
   return res;
 }
 

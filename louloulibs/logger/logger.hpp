@@ -37,16 +37,16 @@
   __FILENAME__ << ":" << __LINE__
 
 #define log_debug(text)\
-  Logger::instance()->get_stream(debug_lvl) << SD_DEBUG << WHERE << ":\t" << text << std::endl;
+  Logger::instance()->get_stream(debug_lvl) << SD_DEBUG << WHERE << ":\t" << text << std::endl
 
 #define log_info(text)\
-  Logger::instance()->get_stream(info_lvl) << SD_INFO << WHERE << ":\t" << text << std::endl;
+  Logger::instance()->get_stream(info_lvl) << SD_INFO << WHERE << ":\t" << text << std::endl
 
 #define log_warning(text)\
-  Logger::instance()->get_stream(warning_lvl) << SD_WARNING << WHERE << ":\t" << text << std::endl;
+  Logger::instance()->get_stream(warning_lvl) << SD_WARNING << WHERE << ":\t" << text << std::endl
 
 #define log_error(text)\
-  Logger::instance()->get_stream(error_lvl) << SD_ERR << WHERE << ":\t" << text << std::endl;
+  Logger::instance()->get_stream(error_lvl) << SD_ERR << WHERE << ":\t" << text << std::endl
 
 /**
  * Juste a structure representing a stream doing nothing with its input.
