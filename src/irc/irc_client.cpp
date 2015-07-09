@@ -72,6 +72,11 @@ void IrcClient::on_connection_failed(const std::string& reason)
 {
   this->bridge->send_xmpp_message(this->hostname, "",
                                   "Connection failed: "s + reason);
+
+  if (this->hostname_resolution_failed)
+    while (!this->ports_to_try.empty())
+      this->ports_to_try.pop();
+
   if (this->ports_to_try.empty())
     {
       // Send an error message for all room that the user wanted to join

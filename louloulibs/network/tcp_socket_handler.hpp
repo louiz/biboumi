@@ -256,6 +256,8 @@ protected:
   std::string cares_error;
 #endif  // CARES_FOUND
 
+  bool hostname_resolution_failed;
+
 private:
   TCPSocketHandler(const TCPSocketHandler&) = delete;
   TCPSocketHandler(TCPSocketHandler&&) = delete;

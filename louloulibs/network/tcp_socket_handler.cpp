@@ -40,15 +40,16 @@ TCPSocketHandler::TCPSocketHandler(std::shared_ptr<Poller> poller):
   SocketHandler(poller, -1),
   use_tls(false),
   connected(false),
-  connecting(false)
+  connecting(false),
 #ifdef CARES_FOUND
-  ,resolving(false),
+  resolving(false),
   resolved(false),
   resolved4(false),
   resolved6(false),
   cares_addrinfo(nullptr),
-  cares_error()
+  cares_error(),
 #endif
+  hostname_resolution_failed(false)
 {}
 
 TCPSocketHandler::~TCPSocketHandler()
@@ -109,6 +110,7 @@ void TCPSocketHandler::connect(const std::string& address, const std::string& po
           addr_res = this->cares_addrinfo;
           if (!addr_res)
             {
+              this->hostname_resolution_failed = true;
               const auto msg = this->cares_error;
               this->close();
               this->on_connection_failed(msg);
@@ -129,6 +131,7 @@ void TCPSocketHandler::connect(const std::string& address, const std::string& po
       if (res != 0)
         {
           log_warning("getaddrinfo failed: "s + gai_strerror(res));
+          this->hostname_resolution_failed = true;
           this->close();
           this->on_connection_failed(gai_strerror(res));
           return ;
