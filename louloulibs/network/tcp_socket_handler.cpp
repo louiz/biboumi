@@ -109,8 +109,9 @@ void TCPSocketHandler::connect(const std::string& address, const std::string& po
           addr_res = this->cares_addrinfo;
           if (!addr_res)
             {
+              const auto msg = this->cares_error;
               this->close();
-              this->on_connection_failed(this->cares_error);
+              this->on_connection_failed(msg);
               return ;
             }
         }
