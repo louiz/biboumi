@@ -16,6 +16,7 @@
 #include <fcntl.h>
 
 #include <iostream>
+#include <arpa/inet.h>
 
 #ifdef BOTAN_FOUND
 # include <botan/hex.h>
@@ -159,6 +160,9 @@ void TCPSocketHandler::connect(const std::string& address, const std::string& po
             break;
           }
         }
+
+      this->display_resolved_ip(rp);
+
       if (::connect(this->socket, rp->ai_addr, rp->ai_addrlen) == 0
           || errno == EISCONN)
         {
@@ -341,6 +345,19 @@ void TCPSocketHandler::close()
   this->in_buf.clear();
   this->out_buf.clear();
   this->port.clear();
+}
+
+void TCPSocketHandler::display_resolved_ip(struct addrinfo* rp) const
+{
+  char buf[INET6_ADDRSTRLEN];
+  if (rp->ai_family == AF_INET)
+    log_debug("Connecting to IP address " << ::inet_ntop(rp->ai_family,
+              &reinterpret_cast<sockaddr_in*>(rp->ai_addr)->sin_addr,
+                                                         buf, sizeof(buf)));
+  else if (rp->ai_family == AF_INET6)
+    log_debug("Connecting to IPv6 address " << ::inet_ntop(rp->ai_family,
+              &reinterpret_cast<sockaddr_in6*>(rp->ai_addr)->sin6_addr,
+                                                           buf, sizeof(buf)));
 }
 
 void TCPSocketHandler::send_data(std::string&& data)

@@ -264,6 +264,11 @@ private:
   TCPSocketHandler& operator=(const TCPSocketHandler&) = delete;
   TCPSocketHandler& operator=(TCPSocketHandler&&) = delete;
 
+  /**
+   * Display the resolved IP, just for information purpose.
+   */
+  void display_resolved_ip(struct addrinfo* rp) const;
+
 #ifdef BOTAN_FOUND
   /**
    * Botan stuff to manipulate a TLS session.
