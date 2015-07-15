@@ -63,11 +63,6 @@ if(RONN_EXECUTABLE)
   add_custom_target(doc DEPENDS ${MAN_PAGE})
 endif()
 
-if(NOT IS_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/louloulibs" OR
-    NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/louloulibs/CMakeLists.txt")
-  message(FATAL_ERROR "louloulibs/ not found or empty. Make sure you fetched
-  the submodules with 'git submodule update --init'")
-endif()
 add_subdirectory("louloulibs")
 include_directories("louloulibs")
 
