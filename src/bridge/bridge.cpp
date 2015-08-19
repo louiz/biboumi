@@ -181,9 +181,9 @@ void Bridge::send_channel_message(const Iid& iid, const std::string& body)
     return ;
   for (const std::string& line: lines)
     {
-      if (line.substr(0, 6) == "/mode ")
+      if (line.substr(0, 5) == "/mode")
         {
-          std::vector<std::string> args = utils::split(line.substr(6), ' ', false);
+          std::vector<std::string> args = utils::split(line.substr(5), ' ', false);
           irc->send_mode_command(iid.get_local(), args);
           continue;             // We do not want to send that back to the
                                 // XMPP user, that’s not a textual message.
