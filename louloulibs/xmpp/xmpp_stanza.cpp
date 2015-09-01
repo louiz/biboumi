@@ -5,6 +5,7 @@
 
 #include <stdexcept>
 #include <iostream>
+#include <sstream>
 
 #include <string.h>
 
@@ -207,21 +208,21 @@ const std::string XmlNode::get_name() const
 
 std::string XmlNode::to_string() const
 {
-  std::string res("<");
-  res += this->name;
+  std::ostringstream res;
+  res << "<" << this->name;
   for (const auto& it: this->attributes)
-    res += " " + it.first + "='" + sanitize(it.second) + "'";
+    res << " " << it.first << "='" << sanitize(it.second) + "'";
   if (!this->has_children() && this->inner.empty())
-    res += "/>";
+    res << "/>";
   else
     {
-      res += ">" + sanitize(this->inner);
+      res << ">" + sanitize(this->inner);
       for (const auto& child: this->children)
-        res += child->to_string();
-      res += "</" + this->get_name() + ">";
+        res << child->to_string();
+      res << "</" << this->get_name() << ">";
     }
-  res += sanitize(this->tail);
-  return res;
+  res << sanitize(this->tail);
+  return res.str();
 }
 
 bool XmlNode::has_children() const
