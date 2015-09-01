@@ -62,7 +62,9 @@ Xmpp::body irc_format_to_xhtmlim(const std::string& s)
   std::unique_ptr<XmlNode> result = std::make_unique<XmlNode>("body");
   (*result)["xmlns"] = XHTML_NS;
 
+  std::unique_ptr<XmlNode> current_node_up;
   XmlNode* current_node = result.get();
+
   std::string::size_type pos_start = 0;
   std::string::size_type pos_end;
 
@@ -79,8 +81,7 @@ Xmpp::body irc_format_to_xhtmlim(const std::string& s)
         styles.strong = !styles.strong;
       else if (s[pos_end] == IRC_FORMAT_NEWLINE_CHAR)
         {
-          XmlNode* br_node = new XmlNode("br");
-          current_node->add_child(br_node);
+          current_node->add_child(std::make_unique<XmlNode>("br"));
           cleaned += '\n';
         }
       else if (s[pos_end] == IRC_FORMAT_UNDERLINE_CHAR)
@@ -125,7 +126,7 @@ Xmpp::body irc_format_to_xhtmlim(const std::string& s)
       // close opened span, if any
       if (current_node != result.get())
         {
-          result->add_child(current_node);
+          result->add_child(std::move(current_node_up));
           current_node = result.get();
         }
       // Take all currently-applied style and create a new span with it
@@ -144,7 +145,8 @@ Xmpp::body irc_format_to_xhtmlim(const std::string& s)
           irc_colors_to_css[styles.bg % IRC_NUM_COLORS] + ";";
       if (!styles_str.empty())
         {
-          current_node = new XmlNode("span");
+          current_node_up = std::make_unique<XmlNode>("span");
+          current_node = current_node_up.get();
           (*current_node)["style"] = styles_str;
         }
 
@@ -161,7 +163,7 @@ Xmpp::body irc_format_to_xhtmlim(const std::string& s)
     current_node->add_to_inner(txt);
 
   if (current_node != result.get())
-    result->add_child(current_node);
+    result->add_child(std::move(current_node_up));
 
   Xmpp::body body_res = std::make_tuple(cleaned, std::move(result));
   return body_res;

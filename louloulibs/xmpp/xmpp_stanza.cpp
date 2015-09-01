@@ -103,17 +103,8 @@ XmlNode::XmlNode(const std::string& name):
 {
 }
 
-XmlNode::~XmlNode()
-{
-  this->delete_all_children();
-}
-
 void XmlNode::delete_all_children()
 {
-  for (auto& child: this->children)
-    {
-      delete child;
-    }
   this->children.clear();
 }
 
@@ -152,43 +143,44 @@ std::string XmlNode::get_tail() const
   return this->tail;
 }
 
-XmlNode* XmlNode::get_child(const std::string& name, const std::string& xmlns) const
+const XmlNode* XmlNode::get_child(const std::string& name, const std::string& xmlns) const
 {
-  for (auto& child: this->children)
+  for (const auto& child: this->children)
     {
       if (child->name == name && child->get_tag("xmlns") == xmlns)
-        return child;
+        return child.get();
     }
   return nullptr;
 }
 
-std::vector<XmlNode*> XmlNode::get_children(const std::string& name, const std::string& xmlns) const
+std::vector<const XmlNode*> XmlNode::get_children(const std::string& name, const std::string& xmlns) const
 {
-  std::vector<XmlNode*> res;
-  for (auto& child: this->children)
+  std::vector<const XmlNode*> res;
+  for (const auto& child: this->children)
     {
       if (child->name == name && child->get_tag("xmlns") == xmlns)
-        res.push_back(child);
+        res.push_back(child.get());
     }
   return res;
 }
 
-XmlNode* XmlNode::add_child(XmlNode* child)
+XmlNode* XmlNode::add_child(std::unique_ptr<XmlNode> child)
 {
   child->parent = this;
-  this->children.push_back(child);
-  return child;
+  auto ret = child.get();
+  this->children.push_back(std::move(child));
+  return ret;
 }
 
 XmlNode* XmlNode::add_child(XmlNode&& child)
 {
-  XmlNode* new_node = new XmlNode(std::move(child));
-  return this->add_child(new_node);
+  auto new_node = std::make_unique<XmlNode>(std::move(child));
+  return this->add_child(std::move(new_node));
 }
 
 XmlNode* XmlNode::get_last_child() const
 {
-  return this->children.back();
+  return this->children.back().get();
 }
 
 XmlNode* XmlNode::get_parent() const

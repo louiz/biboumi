@@ -48,26 +48,26 @@ void DisconnectUserStep2(XmppComponent* xmpp_component, AdhocSession& session, X
 
   // Find out if the jids, and the quit message are provided in the form.
   std::string quit_message;
-  XmlNode* x = command_node.get_child("x", "jabber:x:data");
+  const XmlNode* x = command_node.get_child("x", "jabber:x:data");
   if (x)
     {
-      XmlNode* message_field = nullptr;
-      XmlNode* jids_field = nullptr;
-      for (XmlNode* field: x->get_children("field", "jabber:x:data"))
+      const XmlNode* message_field = nullptr;
+      const XmlNode* jids_field = nullptr;
+      for (const XmlNode* field: x->get_children("field", "jabber:x:data"))
         if (field->get_tag("var") == "jids")
           jids_field = field;
         else if (field->get_tag("var") == "quit-message")
           message_field = field;
       if (message_field)
         {
-          XmlNode* value = message_field->get_child("value", "jabber:x:data");
+          const XmlNode* value = message_field->get_child("value", "jabber:x:data");
           if (value)
             quit_message = value->get_inner();
         }
       if (jids_field)
         {
           std::size_t num = 0;
-          for (XmlNode* value: jids_field->get_children("value", "jabber:x:data"))
+          for (const XmlNode* value: jids_field->get_children("value", "jabber:x:data"))
             {
               Bridge* bridge = biboumi_component->find_user_bridge(value->get_inner());
               if (bridge)

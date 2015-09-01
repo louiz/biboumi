@@ -51,11 +51,11 @@ void HelloStep1(XmppComponent*, AdhocSession&, XmlNode& command_node)
 void HelloStep2(XmppComponent*, AdhocSession& session, XmlNode& command_node)
 {
   // Find out if the name was provided in the form.
-  XmlNode* x = command_node.get_child("x", "jabber:x:data");
+  const XmlNode* x = command_node.get_child("x", "jabber:x:data");
   if (x)
     {
-      XmlNode* name_field = nullptr;
-      for (XmlNode* field: x->get_children("field", "jabber:x:data"))
+      const XmlNode* name_field = nullptr;
+      for (const XmlNode* field: x->get_children("field", "jabber:x:data"))
         if (field->get_tag("var") == "name")
           {
             name_field = field;
@@ -63,7 +63,7 @@ void HelloStep2(XmppComponent*, AdhocSession& session, XmlNode& command_node)
           }
       if (name_field)
         {
-          XmlNode* value = name_field->get_child("value", "jabber:x:data");
+          const XmlNode* value = name_field->get_child("value", "jabber:x:data");
           if (value)
             {
               XmlNode note("note");

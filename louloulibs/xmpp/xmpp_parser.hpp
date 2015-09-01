@@ -112,6 +112,11 @@ private:
    */
   XmlNode* current_node;
   /**
+   * The root node has no parent, so we keep it here: the XmppParser object
+   * is its owner.
+   */
+  std::unique_ptr<XmlNode> root;
+  /**
    * A list of callbacks to be called on an *_event, receiving the
    * concerned Stanza/XmlNode.
    */

@@ -29,7 +29,8 @@ static void character_data_handler(void *user_data, const XML_Char *s, int len)
 
 XmppParser::XmppParser():
   level(0),
-  current_node(nullptr)
+  current_node(nullptr),
+  root(nullptr)
 {
   this->init_xml_parser();
 }
@@ -47,8 +48,6 @@ void XmppParser::init_xml_parser()
 
 XmppParser::~XmppParser()
 {
-  if (this->current_node)
-    delete this->current_node;
   XML_ParserFree(this->parser);
 }
 
@@ -75,9 +74,8 @@ void XmppParser::reset()
 {
   XML_ParserFree(this->parser);
   this->init_xml_parser();
-  if (this->current_node)
-    delete this->current_node;
   this->current_node = nullptr;
+  this->root.reset(nullptr);
   this->level = 0;
 }
 
@@ -90,10 +88,13 @@ void XmppParser::start_element(const XML_Char* name, const XML_Char** attribute)
 {
   level++;
 
-  XmlNode* new_node = new XmlNode(name, this->current_node);
+  auto new_node = std::make_unique<XmlNode>(name, this->current_node);
+  auto new_node_ptr = new_node.get();
   if (this->current_node)
-    this->current_node->add_child(new_node);
-  this->current_node = new_node;
+    this->current_node->add_child(std::move(new_node));
+  else
+    this->root = std::move(new_node);
+  this->current_node = new_node_ptr;
   for (size_t i = 0; attribute[i]; i += 2)
     this->current_node->set_attribute(attribute[i], attribute[i+1]);
   if (this->level == 1)
@@ -111,8 +112,8 @@ void XmppParser::end_element(const XML_Char* name)
   if (level == 0)
     {
       this->stream_close_event(*this->current_node);
-      delete this->current_node;
       this->current_node = nullptr;
+      this->root.reset();
     }
   else
     this->current_node = this->current_node->get_parent();

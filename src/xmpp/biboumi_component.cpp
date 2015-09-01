@@ -125,14 +125,14 @@ void BiboumiComponent::handle_presence(const Stanza& stanza)
           const std::string own_nick = bridge->get_own_nick(iid);
           if (!own_nick.empty() && own_nick != to.resource)
             bridge->send_irc_nick_change(iid, to.resource);
-          XmlNode* x = stanza.get_child("x", MUC_NS);
-          XmlNode* password = x ? x->get_child("password", MUC_NS): nullptr;
+          const XmlNode* x = stanza.get_child("x", MUC_NS);
+          const XmlNode* password = x ? x->get_child("password", MUC_NS): nullptr;
           bridge->join_irc_channel(iid, to.resource,
                                    password ? password->get_inner() : "");
         }
       else if (type == "unavailable")
         {
-          XmlNode* status = stanza.get_child("status", COMPONENT_NS);
+          const XmlNode* status = stanza.get_child("status", COMPONENT_NS);
           bridge->leave_irc_channel(std::move(iid), status ? std::move(status->get_inner()) : "");
         }
     }
@@ -174,7 +174,7 @@ void BiboumiComponent::handle_message(const Stanza& stanza)
       this->send_stanza_error("message", from, to_str, id,
                               error_type, error_name, "");
     });
-  XmlNode* body = stanza.get_child("body", COMPONENT_NS);
+  const XmlNode* body = stanza.get_child("body", COMPONENT_NS);
 
   try {                         // catch IRCNotConnected exceptions
   if (type == "groupchat" && iid.is_channel)
@@ -183,7 +183,7 @@ void BiboumiComponent::handle_message(const Stanza& stanza)
         {
           bridge->send_channel_message(iid, body->get_inner());
         }
-      XmlNode* subject = stanza.get_child("subject", COMPONENT_NS);
+      const XmlNode* subject = stanza.get_child("subject", COMPONENT_NS);
       if (subject)
         bridge->set_channel_topic(iid, subject->get_inner());
     }
@@ -283,7 +283,7 @@ void BiboumiComponent::handle_iq(const Stanza& stanza)
   try {
   if (type == "set")
     {
-      XmlNode* query;
+      const XmlNode* query;
       if ((query = stanza.get_child("query", MUC_ADMIN_NS)))
         {
           const XmlNode* child = query->get_child("item", MUC_ADMIN_NS);
@@ -298,7 +298,7 @@ void BiboumiComponent::handle_iq(const Stanza& stanza)
                   if (role == "none")
                     {               // This is a kick
                       std::string reason;
-                      XmlNode* reason_el = child->get_child("reason", MUC_ADMIN_NS);
+                      const XmlNode* reason_el = child->get_child("reason", MUC_ADMIN_NS);
                       if (reason_el)
                         reason = reason_el->get_inner();
                       bridge->send_irc_kick(iid, nick, reason, id, from);
@@ -327,7 +327,7 @@ void BiboumiComponent::handle_iq(const Stanza& stanza)
     }
   else if (type == "get")
     {
-      XmlNode* query;
+      const XmlNode* query;
       if ((query = stanza.get_child("query", DISCO_INFO_NS)))
         { // Disco info
           if (to_str == this->served_hostname)
@@ -405,12 +405,12 @@ void BiboumiComponent::handle_iq(const Stanza& stanza)
   else if (type == "result")
     {
       stanza_error.disable();
-      XmlNode* query;
+      const XmlNode* query;
       if ((query = stanza.get_child("query", VERSION_NS)))
         {
-          XmlNode* name_node = query->get_child("name", VERSION_NS);
-          XmlNode* version_node = query->get_child("version", VERSION_NS);
-          XmlNode* os_node = query->get_child("os", VERSION_NS);
+          const XmlNode* name_node = query->get_child("name", VERSION_NS);
+          const XmlNode* version_node = query->get_child("version", VERSION_NS);
+          const XmlNode* os_node = query->get_child("os", VERSION_NS);
           std::string name;
           std::string version;
           std::string os;

@@ -256,7 +256,7 @@ void XmppComponent::handle_handshake(const Stanza& stanza)
 
 void XmppComponent::handle_error(const Stanza& stanza)
 {
-  XmlNode* text = stanza.get_child("text", STREAMS_NS);
+  const XmlNode* text = stanza.get_child("text", STREAMS_NS);
   std::string error_message("Unspecified error");
   if (text)
     error_message = text->get_inner();
@@ -291,7 +291,7 @@ void XmppComponent::send_message(const std::string& from, Xmpp::body&& body, con
       XmlNode html("html");
       html["xmlns"] = XHTMLIM_NS;
       // Pass the ownership of the pointer to this xmlnode
-      html.add_child(std::get<1>(body).release());
+      html.add_child(std::move(std::get<1>(body)));
       node.add_child(std::move(html));
     }
   this->send_stanza(node);
@@ -420,7 +420,7 @@ void XmppComponent::send_muc_message(const std::string& muc_name, const std::str
       XmlNode html("html");
       html["xmlns"] = XHTMLIM_NS;
       // Pass the ownership of the pointer to this xmlnode
-      html.add_child(std::get<1>(xmpp_body).release());
+      html.add_child(std::move(std::get<1>(xmpp_body)));
       message.add_child(std::move(html));
     }
   this->send_stanza(message);

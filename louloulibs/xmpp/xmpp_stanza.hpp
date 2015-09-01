@@ -4,6 +4,7 @@
 #include <map>
 #include <string>
 #include <vector>
+#include <memory>
 
 std::string xml_escape(const std::string& data);
 std::string xml_unescape(const std::string& data);
@@ -37,14 +38,11 @@ public:
     inner(node.inner),
     tail(node.tail)
   {
-    for (XmlNode* child: node.children)
-      {
-        XmlNode* child_copy = new XmlNode(*child);
-        this->add_child(child_copy);
-      }
+    for (const auto& child: node.children)
+      this->add_child(std::make_unique<XmlNode>(*child));
   }
 
-  ~XmlNode();
+  ~XmlNode() = default;
 
   void delete_all_children();
   void set_attribute(const std::string& name, const std::string& value);
@@ -78,16 +76,16 @@ public:
   /**
    * Get a pointer to the first child element with that name and that xml namespace
    */
-  XmlNode* get_child(const std::string& name, const std::string& xmlns) const;
+  const XmlNode* get_child(const std::string& name, const std::string& xmlns) const;
   /**
    * Get a vector of all the children that have that name and that xml namespace.
    */
-  std::vector<XmlNode*> get_children(const std::string& name, const std::string& xmlns) const;
+  std::vector<const XmlNode*> get_children(const std::string& name, const std::string& xmlns) const;
   /**
    * Add a node child to this node. Assign this node to the child’s parent.
    * Returns a pointer to the newly added child.
    */
-  XmlNode* add_child(XmlNode* child);
+  XmlNode* add_child(std::unique_ptr<XmlNode> child);
   XmlNode* add_child(XmlNode&& child);
   /**
    * Returns the last of the children. If the node doesn't have any child,
@@ -126,7 +124,7 @@ private:
   std::string name;
   XmlNode* parent;
   std::map<std::string, std::string> attributes;
-  std::vector<XmlNode*> children;
+  std::vector<std::unique_ptr<XmlNode>> children;
   std::string inner;
   std::string tail;
 
