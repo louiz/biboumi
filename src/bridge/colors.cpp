@@ -80,7 +80,6 @@ Xmpp::body irc_format_to_xhtmlim(const std::string& s)
       else if (s[pos_end] == IRC_FORMAT_NEWLINE_CHAR)
         {
           XmlNode* br_node = new XmlNode("br");
-          br_node->close();
           current_node->add_child(br_node);
           cleaned += '\n';
         }
@@ -126,7 +125,6 @@ Xmpp::body irc_format_to_xhtmlim(const std::string& s)
       // close opened span, if any
       if (current_node != result.get())
         {
-          current_node->close();
           result->add_child(current_node);
           current_node = result.get();
         }
@@ -163,12 +161,8 @@ Xmpp::body irc_format_to_xhtmlim(const std::string& s)
     current_node->add_to_inner(txt);
 
   if (current_node != result.get())
-    {
-      current_node->close();
-      result->add_child(current_node);
-    }
+    result->add_child(current_node);
 
-  result->close();
   Xmpp::body body_res = std::make_tuple(cleaned, std::move(result));
   return body_res;
 }

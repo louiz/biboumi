@@ -89,12 +89,9 @@ void XmppComponent::on_connected()
 {
   log_info("connected to XMPP server");
   this->first_connection_try = true;
-  XmlNode node("", nullptr);
-  node.set_name("stream:stream");
-  node["xmlns"] = COMPONENT_NS;
-  node["xmlns:stream"] = STREAM_NS;
-  node["to"] = this->served_hostname;
-  this->send_stanza(node);
+  this->send_data("<stream:stream to='");
+  this->send_data(std::string{this->served_hostname});
+  this->send_data("' xmlns:stream='http://etherx.jabber.org/streams' xmlns='" COMPONENT_NS "'>");
   this->doc_open = true;
   // We may have some pending data to send: this happens when we try to send
   // some data before we are actually connected.  We send that data right now, if any
@@ -152,10 +149,9 @@ void XmppComponent::on_remote_stream_open(const XmlNode& node)
     sprintf(digest + (i*2), "%02x", result[i]);
   digest[HASH_LENGTH * 2] = '\0';
 
-  Stanza handshake(COMPONENT_NS":handshake");
-  handshake.set_inner(digest);
-  handshake.close();
-  this->send_stanza(handshake);
+  this->send_data("<handshake xmlns='" COMPONENT_NS "'>");
+  this->send_data(digest);
+  this->send_data("</handshake>");
 }
 
 void XmppComponent::on_remote_stream_close(const XmlNode& node)
@@ -192,9 +188,7 @@ void XmppComponent::send_stream_error(const std::string& name, const std::string
   error["xmlns"] = STREAM_NS;
   if (!explanation.empty())
     error.set_inner(explanation);
-  error.close();
   node.add_child(std::move(error));
-  node.close();
   this->send_stanza(node);
 }
 
@@ -220,19 +214,15 @@ void XmppComponent::send_stanza_error(const std::string& kind, const std::string
   error["type"] = error_type;
   XmlNode inner_error(defined_condition);
   inner_error["xmlns"] = STANZA_NS;
-  inner_error.close();
   error.add_child(std::move(inner_error));
   if (!text.empty())
     {
       XmlNode text_node("text");
       text_node["xmlns"] = STANZA_NS;
       text_node.set_inner(text);
-      text_node.close();
       error.add_child(std::move(text_node));
     }
-  error.close();
   node.add_child(std::move(error));
-  node.close();
   this->send_stanza(node);
 }
 
@@ -295,7 +285,6 @@ void XmppComponent::send_message(const std::string& from, Xmpp::body&& body, con
     node["type"] = type;
   XmlNode body_node("body");
   body_node.set_inner(std::get<0>(body));
-  body_node.close();
   node.add_child(std::move(body_node));
   if (std::get<1>(body))
     {
@@ -303,10 +292,8 @@ void XmppComponent::send_message(const std::string& from, Xmpp::body&& body, con
       html["xmlns"] = XHTMLIM_NS;
       // Pass the ownership of the pointer to this xmlnode
       html.add_child(std::get<1>(body).release());
-      html.close();
       node.add_child(std::move(html));
     }
-  node.close();
   this->send_stanza(node);
 }
 
@@ -336,19 +323,15 @@ void XmppComponent::send_user_join(const std::string& from,
       if (!preped_jid.empty())
         item["jid"] = preped_jid;
     }
-  item.close();
   x.add_child(std::move(item));
 
   if (self)
     {
       XmlNode status("status");
       status["code"] = "110";
-      status.close();
       x.add_child(std::move(status));
     }
-  x.close();
   node.add_child(std::move(x));
-  node.close();
   this->send_stanza(node);
 }
 
@@ -365,14 +348,12 @@ void XmppComponent::send_invalid_room_error(const std::string& muc_name,
   presence["type"] = "error";
   XmlNode x("x");
   x["xmlns"] = MUC_NS;
-  x.close();
   presence.add_child(std::move(x));
   XmlNode error("error");
   error["by"] = muc_name + "@" + this->served_hostname;
   error["type"] = "cancel";
   XmlNode item_not_found("item-not-found");
   item_not_found["xmlns"] = STANZA_NS;
-  item_not_found.close();
   error.add_child(std::move(item_not_found));
   XmlNode text("text");
   text["xmlns"] = STANZA_NS;
@@ -380,11 +361,8 @@ void XmppComponent::send_invalid_room_error(const std::string& muc_name,
   text.set_inner(muc_name +
                  " is not a valid IRC channel name. A correct room jid is of the form: #<chan>%<server>@" +
                  this->served_hostname);
-  text.close();
   error.add_child(std::move(text));
-  error.close();
   presence.add_child(std::move(error));
-  presence.close();
   this->send_stanza(presence);
 }
 
@@ -396,13 +374,11 @@ void XmppComponent::send_invalid_user_error(const std::string& user_name, const 
   message["type"] = "error";
   XmlNode x("x");
   x["xmlns"] = MUC_NS;
-  x.close();
   message.add_child(std::move(x));
   XmlNode error("error");
   error["type"] = "cancel";
   XmlNode item_not_found("item-not-found");
   item_not_found["xmlns"] = STANZA_NS;
-  item_not_found.close();
   error.add_child(std::move(item_not_found));
   XmlNode text("text");
   text["xmlns"] = STANZA_NS;
@@ -410,11 +386,8 @@ void XmppComponent::send_invalid_user_error(const std::string& user_name, const 
   text.set_inner(user_name +
                  " is not a valid IRC user name. A correct user jid is of the form: <nick>!<server>@" +
                  this->served_hostname);
-  text.close();
   error.add_child(std::move(text));
-  error.close();
   message.add_child(std::move(error));
-  message.close();
   this->send_stanza(message);
 }
 
@@ -426,9 +399,7 @@ void XmppComponent::send_topic(const std::string& from, Xmpp::body&& topic, cons
   message["type"] = "groupchat";
   XmlNode subject("subject");
   subject.set_inner(std::get<0>(topic));
-  subject.close();
   message.add_child(std::move(subject));
-  message.close();
   this->send_stanza(message);
 }
 
@@ -443,7 +414,6 @@ void XmppComponent::send_muc_message(const std::string& muc_name, const std::str
   message["type"] = "groupchat";
   XmlNode body("body");
   body.set_inner(std::get<0>(xmpp_body));
-  body.close();
   message.add_child(std::move(body));
   if (std::get<1>(xmpp_body))
     {
@@ -451,10 +421,8 @@ void XmppComponent::send_muc_message(const std::string& muc_name, const std::str
       html["xmlns"] = XHTMLIM_NS;
       // Pass the ownership of the pointer to this xmlnode
       html.add_child(std::get<1>(xmpp_body).release());
-      html.close();
       message.add_child(std::move(html));
     }
-  message.close();
   this->send_stanza(message);
 }
 
@@ -471,19 +439,15 @@ void XmppComponent::send_muc_leave(const std::string& muc_name, std::string&& ni
     {
       XmlNode status("status");
       status["code"] = "110";
-      status.close();
       x.add_child(std::move(status));
     }
-  x.close();
   presence.add_child(std::move(x));
   if (!message_str.empty())
     {
       XmlNode status("status");
       status.set_inner(message_str);
-      status.close();
       presence.add_child(std::move(status));
     }
-  presence.close();
   this->send_stanza(presence);
 }
 
@@ -503,22 +467,17 @@ void XmppComponent::send_nick_change(const std::string& muc_name,
   x["xmlns"] = MUC_USER_NS;
   XmlNode item("item");
   item["nick"] = new_nick;
-  item.close();
   x.add_child(std::move(item));
   XmlNode status("status");
   status["code"] = "303";
-  status.close();
   x.add_child(std::move(status));
   if (self)
     {
       XmlNode status2("status");
       status2["code"] = "110";
-      status2.close();
       x.add_child(std::move(status2));
     }
-  x.close();
   presence.add_child(std::move(x));
-  presence.close();
   this->send_stanza(presence);
 
   this->send_user_join(muc_name, new_nick, "", affiliation, role, jid_to, self);
@@ -542,21 +501,15 @@ void XmppComponent::kick_user(const std::string& muc_name,
   XmlNode actor("actor");
   actor["nick"] = author;
   actor["jid"] = author; // backward compatibility with old clients
-  actor.close();
   item.add_child(std::move(actor));
   XmlNode reason("reason");
   reason.set_inner(txt);
-  reason.close();
   item.add_child(std::move(reason));
-  item.close();
   x.add_child(std::move(item));
   XmlNode status("status");
   status["code"] = "307";
-  status.close();
   x.add_child(std::move(status));
-  x.close();
   presence.add_child(std::move(x));
-  presence.close();
   this->send_stanza(presence);
 }
 
@@ -574,7 +527,6 @@ void XmppComponent::send_presence_error(const std::string& muc_name,
   presence["type"] = "error";
   XmlNode x("x");
   x["xmlns"] = MUC_NS;
-  x.close();
   presence.add_child(std::move(x));
   XmlNode error("error");
   error["by"] = muc_name + "@" + this->served_hostname;
@@ -583,11 +535,8 @@ void XmppComponent::send_presence_error(const std::string& muc_name,
     error["code"] = error_code;
   XmlNode subnode(condition);
   subnode["xmlns"] = STANZA_NS;
-  subnode.close();
   error.add_child(std::move(subnode));
-  error.close();
   presence.add_child(std::move(error));
-  presence.close();
   this->send_stanza(presence);
 }
 
@@ -605,11 +554,8 @@ void XmppComponent::send_affiliation_role_change(const std::string& muc_name,
   XmlNode item("item");
   item["affiliation"] = affiliation;
   item["role"] = role;
-  item.close();
   x.add_child(std::move(item));
-  x.close();
   presence.add_child(std::move(x));
-  presence.close();
   this->send_stanza(presence);
 }
 
@@ -627,27 +573,21 @@ void XmppComponent::send_version(const std::string& id, const std::string& jid_t
     {
       XmlNode name("name");
       name.set_inner("biboumi");
-      name.close();
       query.add_child(std::move(name));
       XmlNode version("version");
       version.set_inner(SOFTWARE_VERSION);
-      version.close();
       query.add_child(std::move(version));
       XmlNode os("os");
       os.set_inner(SYSTEM_NAME);
-      os.close();
       query.add_child(std::move(os));
     }
   else
     {
       XmlNode name("name");
       name.set_inner(version);
-      name.close();
       query.add_child(std::move(name));
     }
-  query.close();
   iq.add_child(std::move(query));
-  iq.close();
   this->send_stanza(iq);
 }
 
@@ -669,12 +609,9 @@ void XmppComponent::send_adhoc_commands_list(const std::string& id, const std::s
       item["jid"] = this->served_hostname;
       item["node"] = kv.first;
       item["name"] = kv.second.name;
-      item.close();
       query.add_child(std::move(item));
     }
-  query.close();
   iq.add_child(std::move(query));
-  iq.close();
   this->send_stanza(iq);
 }
 
@@ -688,9 +625,7 @@ void XmppComponent::send_iq_version_request(const std::string& from,
   iq["to"] = jid_to;
   XmlNode query("query");
   query["xmlns"] = VERSION_NS;
-  query.close();
   iq.add_child(std::move(query));
-  iq.close();
   this->send_stanza(iq);
 }
 
@@ -704,7 +639,6 @@ void XmppComponent::send_iq_result(const std::string& id, const std::string& to_
   iq["to"] = to_jid;
   iq["id"] = id;
   iq["type"] = "result";
-  iq.close();
   this->send_stanza(iq);
 }
 

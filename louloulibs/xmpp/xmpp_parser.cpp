@@ -104,7 +104,6 @@ void XmppParser::end_element(const XML_Char* name)
 {
   (void)name;
   level--;
-  this->current_node->close();
   if (level == 1)
     {
       this->stanza_event(*this->current_node);

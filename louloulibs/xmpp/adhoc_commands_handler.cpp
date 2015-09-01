@@ -36,9 +36,7 @@ XmlNode AdhocCommandsHandler::handle_request(const std::string& executor_jid, Xm
       XmlNode error(ADHOC_NS":error");
       error["type"] = "cancel";
       XmlNode condition(STANZA_NS":item-not-found");
-      condition.close();
       error.add_child(std::move(condition));
-      error.close();
       command_node.add_child(std::move(error));
     }
   else if (command_it->second.is_admin_only() &&
@@ -47,9 +45,7 @@ XmlNode AdhocCommandsHandler::handle_request(const std::string& executor_jid, Xm
       XmlNode error(ADHOC_NS":error");
       error["type"] = "cancel";
       XmlNode condition(STANZA_NS":forbidden");
-      condition.close();
       error.add_child(std::move(condition));
-      error.close();
       command_node.add_child(std::move(error));
     }
   else
@@ -72,9 +68,7 @@ XmlNode AdhocCommandsHandler::handle_request(const std::string& executor_jid, Xm
           XmlNode error(ADHOC_NS":error");
           error["type"] = "modify";
           XmlNode condition(STANZA_NS":bad-request");
-          condition.close();
           error.add_child(std::move(condition));
-          error.close();
           command_node.add_child(std::move(error));
         }
       else if (action == "execute" || action == "next" || action == "complete")
@@ -95,9 +89,7 @@ XmlNode AdhocCommandsHandler::handle_request(const std::string& executor_jid, Xm
               command_node["status"] = "executing";
               XmlNode actions("actions");
               XmlNode next("next");
-              next.close();
               actions.add_child(std::move(next));
-              actions.close();
               command_node.add_child(std::move(actions));
             }
         }
@@ -112,9 +104,7 @@ XmlNode AdhocCommandsHandler::handle_request(const std::string& executor_jid, Xm
           XmlNode error(ADHOC_NS":error");
           error["type"] = "modify";
           XmlNode condition(STANZA_NS":bad-request");
-          condition.close();
           error.add_child(std::move(condition));
-          error.close();
           command_node.add_child(std::move(error));
         }
     }

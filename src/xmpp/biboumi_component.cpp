@@ -321,7 +321,6 @@ void BiboumiComponent::handle_iq(const Stanza& stanza)
           else
             response["type"] = "result";
           response.add_child(std::move(inner_node));
-          response.close();
           this->send_stanza(response);
           stanza_error.disable();
         }
@@ -494,18 +493,14 @@ void BiboumiComponent::send_self_disco_info(const std::string& id, const std::st
   identity["category"] = "conference";
   identity["type"] = "irc";
   identity["name"] = "Biboumi XMPP-IRC gateway";
-  identity.close();
   query.add_child(std::move(identity));
   for (const std::string& ns: {DISCO_INFO_NS, MUC_NS, ADHOC_NS})
     {
       XmlNode feature("feature");
       feature["var"] = ns;
-      feature.close();
       query.add_child(std::move(feature));
     }
-  query.close();
   iq.add_child(std::move(query));
-  iq.close();
   this->send_stanza(iq);
 }
 
@@ -519,9 +514,7 @@ void BiboumiComponent::send_iq_version_request(const std::string& from,
   iq["to"] = jid_to;
   XmlNode query("query");
   query["xmlns"] = VERSION_NS;
-  query.close();
   iq.add_child(std::move(query));
-  iq.close();
   this->send_stanza(iq);
 }
 
@@ -536,9 +529,7 @@ void BiboumiComponent::send_ping_request(const std::string& from,
   iq["to"] = jid_to;
   XmlNode ping("ping");
   ping["xmlns"] = PING_NS;
-  ping.close();
   iq.add_child(std::move(ping));
-  iq.close();
   this->send_stanza(iq);
 
   auto result_cb = [from, id](Bridge* bridge, const Stanza& stanza)
@@ -571,11 +562,8 @@ void BiboumiComponent::send_iq_room_list_result(const std::string& id,
     {
       XmlNode item("item");
       item["jid"] = room.channel + "%" + from + "@" + this->served_hostname;
-      item.close();
       query.add_child(std::move(item));
     }
-  query.close();
   iq.add_child(std::move(query));
-  iq.close();
   this->send_stanza(iq);
 }

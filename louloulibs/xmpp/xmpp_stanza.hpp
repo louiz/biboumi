@@ -27,7 +27,6 @@ public:
   XmlNode(XmlNode&& node):
     name(std::move(node.name)),
     parent(node.parent),
-    closed(node.closed),
     attributes(std::move(node.attributes)),
     children(std::move(node.children)),
     inner(std::move(node.inner)),
@@ -42,7 +41,6 @@ public:
   XmlNode(const XmlNode& node):
     name(node.name),
     parent(nullptr),
-    closed(node.closed),
     attributes(node.attributes),
     children{},
     inner(node.inner),
@@ -106,10 +104,6 @@ public:
    * by calling has_children() for example.
    */
   XmlNode* get_last_child() const;
-  /**
-   * Mark this node as closed, nothing else
-   */
-  void close();
   XmlNode* get_parent() const;
   void set_name(const std::string& name);
   const std::string get_name() const;
@@ -140,7 +134,6 @@ public:
 private:
   std::string name;
   XmlNode* parent;
-  bool closed;
   std::unordered_map<std::string, std::string> attributes;
   std::vector<XmlNode*> children;
   std::string inner;

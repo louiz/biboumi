@@ -10,18 +10,15 @@ void DisconnectUserStep1(XmppComponent* xmpp_component, AdhocSession&, XmlNode& 
   x["type"] = "form";
   XmlNode title("title");
   title.set_inner("Disconnect a user from the gateway");
-  title.close();
   x.add_child(std::move(title));
   XmlNode instructions("instructions");
   instructions.set_inner("Choose a user JID and a quit message");
-  instructions.close();
   x.add_child(std::move(instructions));
   XmlNode jids_field("field");
   jids_field["var"] = "jids";
   jids_field["type"] = "list-multi";
   jids_field["label"] = "The JIDs to disconnect";
   XmlNode required("required");
-  required.close();
   jids_field.add_child(std::move(required));
   for (Bridge* bridge: biboumi_component->get_bridges())
     {
@@ -29,12 +26,9 @@ void DisconnectUserStep1(XmppComponent* xmpp_component, AdhocSession&, XmlNode& 
       option["label"] = bridge->get_jid();
       XmlNode value("value");
       value.set_inner(bridge->get_jid());
-      value.close();
       option.add_child(std::move(value));
-      option.close();
       jids_field.add_child(std::move(option));
     }
-  jids_field.close();
   x.add_child(std::move(jids_field));
 
   XmlNode message_field("field");
@@ -43,11 +37,8 @@ void DisconnectUserStep1(XmppComponent* xmpp_component, AdhocSession&, XmlNode& 
   message_field["label"] = "Quit message";
   XmlNode message_value("value");
   message_value.set_inner("Disconnected by admin");
-  message_value.close();
   message_field.add_child(std::move(message_value));
-  message_field.close();
   x.add_child(std::move(message_field));
-  x.close();
   command_node.add_child(std::move(x));
 }
 
@@ -95,7 +86,6 @@ void DisconnectUserStep2(XmppComponent* xmpp_component, AdhocSession& session, X
             note.set_inner("1 user has been disconnected.");
           else
             note.set_inner(std::to_string(num) + " users have been disconnected.");
-          note.close();
           command_node.add_child(std::move(note));
           return;
         }
@@ -103,9 +93,7 @@ void DisconnectUserStep2(XmppComponent* xmpp_component, AdhocSession& session, X
   XmlNode error(ADHOC_NS":error");
   error["type"] = "modify";
   XmlNode condition(STANZA_NS":bad-request");
-  condition.close();
   error.add_child(std::move(condition));
-  error.close();
   command_node.add_child(std::move(error));
   session.terminate();
 }

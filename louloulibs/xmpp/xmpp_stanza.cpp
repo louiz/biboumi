@@ -84,8 +84,7 @@ std::string xml_unescape(const std::string& data)
 }
 
 XmlNode::XmlNode(const std::string& name, XmlNode* parent):
-  parent(parent),
-  closed(false)
+  parent(parent)
 {
   // split the namespace and the name
   auto n = name.rfind(":");
@@ -191,13 +190,6 @@ XmlNode* XmlNode::get_last_child() const
   return this->children.back();
 }
 
-void XmlNode::close()
-{
-  if (this->closed)
-    throw std::runtime_error("Closing an already closed XmlNode");
-  this->closed = true;
-}
-
 XmlNode* XmlNode::get_parent() const
 {
   return this->parent;
@@ -219,17 +211,14 @@ std::string XmlNode::to_string() const
   res += this->name;
   for (const auto& it: this->attributes)
     res += " " + it.first + "='" + sanitize(it.second) + "'";
-  if (this->closed && !this->has_children() && this->inner.empty())
+  if (!this->has_children() && this->inner.empty())
     res += "/>";
   else
     {
       res += ">" + sanitize(this->inner);
       for (const auto& child: this->children)
         res += child->to_string();
-      if (this->closed)
-        {
-          res += "</" + this->get_name() + ">";
-        }
+      res += "</" + this->get_name() + ">";
     }
   res += sanitize(this->tail);
   return res;

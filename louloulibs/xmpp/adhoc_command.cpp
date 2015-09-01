@@ -25,7 +25,6 @@ void PingStep1(XmppComponent*, AdhocSession&, XmlNode& command_node)
   XmlNode note("note");
   note["type"] = "info";
   note.set_inner("Pong");
-  note.close();
   command_node.add_child(std::move(note));
 }
 
@@ -35,22 +34,17 @@ void HelloStep1(XmppComponent*, AdhocSession&, XmlNode& command_node)
   x["type"] = "form";
   XmlNode title("title");
   title.set_inner("Configure your name.");
-  title.close();
   x.add_child(std::move(title));
   XmlNode instructions("instructions");
   instructions.set_inner("Please provide your name.");
-  instructions.close();
   x.add_child(std::move(instructions));
   XmlNode name_field("field");
   name_field["var"] = "name";
   name_field["type"] = "text-single";
   name_field["label"] = "Your name";
   XmlNode required("required");
-  required.close();
   name_field.add_child(std::move(required));
-  name_field.close();
   x.add_child(std::move(name_field));
-  x.close();
   command_node.add_child(std::move(x));
 }
 
@@ -75,7 +69,6 @@ void HelloStep2(XmppComponent*, AdhocSession& session, XmlNode& command_node)
               XmlNode note("note");
               note["type"] = "info";
               note.set_inner("Hello "s + value->get_inner() + "!"s);
-              note.close();
               command_node.delete_all_children();
               command_node.add_child(std::move(note));
               return;
@@ -86,9 +79,7 @@ void HelloStep2(XmppComponent*, AdhocSession& session, XmlNode& command_node)
   XmlNode error(ADHOC_NS":error");
   error["type"] = "modify";
   XmlNode condition(STANZA_NS":bad-request");
-  condition.close();
   error.add_child(std::move(condition));
-  error.close();
   command_node.add_child(std::move(error));
   session.terminate();
 }
@@ -100,6 +91,5 @@ void Reload(XmppComponent*, AdhocSession&, XmlNode& command_node)
   XmlNode note("note");
   note["type"] = "info";
   note.set_inner("Configuration reloaded.");
-  note.close();
   command_node.add_child(std::move(note));
 }
