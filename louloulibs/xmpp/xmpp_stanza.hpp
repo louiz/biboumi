@@ -1,7 +1,7 @@
 #ifndef XMPP_STANZA_INCLUDED
 # define XMPP_STANZA_INCLUDED
 
-#include <unordered_map>
+#include <map>
 #include <string>
 #include <vector>
 
@@ -24,18 +24,9 @@ class XmlNode
 public:
   explicit XmlNode(const std::string& name, XmlNode* parent);
   explicit XmlNode(const std::string& name);
-  XmlNode(XmlNode&& node):
-    name(std::move(node.name)),
-    parent(node.parent),
-    attributes(std::move(node.attributes)),
-    children(std::move(node.children)),
-    inner(std::move(node.inner)),
-    tail(std::move(node.tail))
-  {
-    node.parent = nullptr;
-  }
+  XmlNode(XmlNode&& node) = default;
   /**
-   * The copy constructor do not copy the parent attribute. The children
+   * The copy constructor does not copy the parent attribute. The children
    * nodes are all copied recursively.
    */
   XmlNode(const XmlNode& node):
@@ -134,7 +125,7 @@ public:
 private:
   std::string name;
   XmlNode* parent;
-  std::unordered_map<std::string, std::string> attributes;
+  std::map<std::string, std::string> attributes;
   std::vector<XmlNode*> children;
   std::string inner;
   std::string tail;
