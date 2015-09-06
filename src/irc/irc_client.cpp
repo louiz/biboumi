@@ -492,9 +492,8 @@ void IrcClient::on_rpl_listend(const IrcMessage&)
 {
 }
 
-void IrcClient::empty_motd(const IrcMessage& message)
+void IrcClient::empty_motd(const IrcMessage&)
 {
-  (void)message;
   this->motd.erase();
 }
 
@@ -507,16 +506,13 @@ void IrcClient::on_motd_line(const IrcMessage& message)
   this->motd += body+"\n";
 }
 
-void IrcClient::send_motd(const IrcMessage& message)
+void IrcClient::send_motd(const IrcMessage&)
 {
-  (void)message;
   this->bridge->send_xmpp_message(this->hostname, "", this->motd);
 }
 
 void IrcClient::on_topic_received(const IrcMessage& message)
 {
-  if (message.arguments.size() < 2)
-    return;
   const std::string chan_name = utils::tolower(message.arguments[message.arguments.size() - 2]);
   IrcChannel* channel = this->get_channel(chan_name);
   channel->topic = message.arguments[message.arguments.size() - 1];
@@ -709,9 +705,9 @@ void IrcClient::on_nick(const IrcMessage& message)
 
 void IrcClient::on_kick(const IrcMessage& message)
 {
+  const std::string chan_name = utils::tolower(message.arguments[0]);
   const std::string target = message.arguments[1];
   const std::string reason = message.arguments[2];
-  const std::string chan_name = utils::tolower(message.arguments[0]);
   IrcChannel* channel = this->get_channel(chan_name);
   if (!channel->joined)
     return ;
