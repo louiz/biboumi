@@ -150,14 +150,26 @@ void IrcClient::parse_in_buffer(const size_t)
 
       // Call the standard callback (if any), associated with the command
       // name that we just received.
-      auto cb = irc_callbacks.find(message.command);
-      if (cb != irc_callbacks.end())
+      auto it = irc_callbacks.find(message.command);
+      if (it != irc_callbacks.end())
         {
-          try {
-            (this->*(cb->second))(message);
-          } catch (const std::exception& e) {
-            log_error("Unhandled exception: " << e.what());
-          }
+          const auto& limits = it->second.second;
+          // Check that the Message is well formed before actually calling
+          // the callback. limits.first is the min number of arguments,
+          // second is the max
+          if (message.arguments.size() < limits.first ||
+              (limits.second > 0 && message.arguments.size() > limits.second))
+            log_warning("Invalid number of arguments for IRC command “" << message.command <<
+                        "”: " << message.arguments.size());
+          else
+            {
+              const auto& cb = it->second.first;
+              try {
+                (this->*(cb))(message);
+              } catch (const std::exception& e) {
+                log_error("Unhandled exception: " << e.what());
+              }
+            }
         }
       else
         {
