@@ -87,6 +87,7 @@ public:
    */
   XmlNode* add_child(std::unique_ptr<XmlNode> child);
   XmlNode* add_child(XmlNode&& child);
+  XmlNode* add_child(const XmlNode& child);
   /**
    * Returns the last of the children. If the node doesn't have any child,
    * the behaviour is undefined. The user should make sure this is the case

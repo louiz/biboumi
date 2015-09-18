@@ -178,6 +178,12 @@ XmlNode* XmlNode::add_child(XmlNode&& child)
   return this->add_child(std::move(new_node));
 }
 
+XmlNode* XmlNode::add_child(const XmlNode& child)
+{
+  auto new_node = std::make_unique<XmlNode>(child);
+  return this->add_child(std::move(new_node));
+}
+
 XmlNode* XmlNode::get_last_child() const
 {
   return this->children.back().get();
