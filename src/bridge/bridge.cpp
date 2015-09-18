@@ -74,6 +74,12 @@ const std::string& Bridge::get_jid() const
   return this->user_jid;
 }
 
+std::string Bridge::get_bare_jid() const
+{
+  Jid jid(this->user_jid);
+  return jid.local + "@" + jid.domain;
+}
+
 Xmpp::body Bridge::make_xmpp_body(const std::string& str)
 {
   std::string res;

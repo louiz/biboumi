@@ -47,6 +47,7 @@ public:
    * Return the jid of the XMPP user using this bridge
    */
   const std::string& get_jid() const;
+  std::string get_bare_jid() const;
 
   static Xmpp::body make_xmpp_body(const std::string& str);
   /***
