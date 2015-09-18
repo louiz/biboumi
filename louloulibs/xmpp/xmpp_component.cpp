@@ -587,22 +587,22 @@ void XmppComponent::send_version(const std::string& id, const std::string& jid_t
   this->send_stanza(iq);
 }
 
-void XmppComponent::send_adhoc_commands_list(const std::string& id, const std::string& requester_jid, const bool with_admin_only)
+void XmppComponent::send_adhoc_commands_list(const std::string& id, const std::string& requester_jid, const std::string& from_jid, const bool with_admin_only, const AdhocCommandsHandler& adhoc_handler)
 {
   Stanza iq("iq");
   iq["type"] = "result";
   iq["id"] = id;
   iq["to"] = requester_jid;
-  iq["from"] = this->served_hostname;
+  iq["from"] = from_jid;
   XmlNode query("query");
   query["xmlns"] = DISCO_ITEMS_NS;
   query["node"] = ADHOC_NS;
-  for (const auto& kv: this->adhoc_commands_handler.get_commands())
+  for (const auto& kv: adhoc_handler.get_commands())
     {
       if (kv.second.is_admin_only() && !with_admin_only)
         continue;
       XmlNode item("item");
-      item["jid"] = this->served_hostname;
+      item["jid"] = from_jid;
       item["node"] = kv.first;
       item["name"] = kv.second.name;
       query.add_child(std::move(item));

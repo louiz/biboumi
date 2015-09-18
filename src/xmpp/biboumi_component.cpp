@@ -41,7 +41,8 @@ static std::set<std::string> kickable_errors{
 
 
 BiboumiComponent::BiboumiComponent(std::shared_ptr<Poller> poller, const std::string& hostname, const std::string& secret):
-  XmppComponent(poller, hostname, secret)
+  XmppComponent(poller, hostname, secret),
+  irc_server_adhoc_commands_handler(this)
 {
   this->stanza_handlers.emplace("presence",
                                 std::bind(&BiboumiComponent::handle_presence, this,std::placeholders::_1));
@@ -313,9 +314,21 @@ void BiboumiComponent::handle_iq(const Stanza& stanza)
         {
           Stanza response("iq");
           response["to"] = from;
-          response["from"] = this->served_hostname;
+          response["from"] = to_str;
           response["id"] = id;
-          XmlNode inner_node = this->adhoc_commands_handler.handle_request(from, *query);
+
+          // Depending on the 'to' jid in the request, we use one adhoc
+          // command handler or an other
+          Iid iid(to.local);
+          AdhocCommandsHandler* adhoc_handler;
+          if (!to.local.empty() && !iid.is_user && !iid.is_channel)
+            adhoc_handler = &this->irc_server_adhoc_commands_handler;
+          else
+            adhoc_handler = &this->adhoc_commands_handler;
+
+          // Execute the command, if any, and get a result XmlNode that we
+          // insert in our response
+          XmlNode inner_node = adhoc_handler->handle_request(from, to_str, *query);
           if (inner_node.get_child("error", ADHOC_NS))
             response["type"] = "error";
           else
@@ -370,10 +383,22 @@ void BiboumiComponent::handle_iq(const Stanza& stanza)
           if (node == ADHOC_NS)
             {
               Jid from_jid(from);
-              this->send_adhoc_commands_list(id, from,
-                                             (Config::get("admin", "") ==
-                                              from_jid.local + "@" + from_jid.domain));
-              stanza_error.disable();
+              if (to.local.empty())
+                {               // Get biboumi's adhoc commands
+                  this->send_adhoc_commands_list(id, from, this->served_hostname,
+                                                 (Config::get("admin", "") ==
+                                                  from_jid.local + "@" + from_jid.domain),
+                                                 this->adhoc_commands_handler);
+                  stanza_error.disable();
+                }
+              else if (!iid.is_user && !iid.is_channel)
+                {               // Get the server's adhoc commands
+                  this->send_adhoc_commands_list(id, from, to_str,
+                                                 (Config::get("admin", "") ==
+                                                  from_jid.local + "@" + from_jid.domain),
+                                                 this->irc_server_adhoc_commands_handler);
+                  stanza_error.disable();
+                }
             }
           else if (node.empty() && !iid.is_user && !iid.is_channel)
             { // Disco on an IRC server: get the list of channels
