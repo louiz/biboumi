@@ -1,4 +1,5 @@
 #include <utils/timed_events.hpp>
+#include <database/database.hpp>
 #include <irc/irc_message.hpp>
 #include <irc/irc_client.hpp>
 #include <bridge/bridge.hpp>
@@ -94,6 +95,12 @@ void IrcClient::on_connection_failed(const std::string& reason)
 
 void IrcClient::on_connected()
 {
+#ifdef USE_DATABASE
+  auto options = Database::get_irc_server_options(this->bridge->get_bare_jid(),
+                                                  this->get_hostname());
+  if (!options.pass.value().empty())
+    this->send_pass_command(options.pass.value());
+#endif
   this->send_nick_command(this->username);
   this->send_user_command(this->username, this->username);
   this->send_gateway_message("Connected to IRC server"s + (this->use_tls ? " (encrypted)": "") + ".");
@@ -216,6 +223,11 @@ void IrcClient::send_user_command(const std::string& username, const std::string
 void IrcClient::send_nick_command(const std::string& nick)
 {
   this->send_message(IrcMessage("NICK", {nick}));
+}
+
+void IrcClient::send_pass_command(const std::string& password)
+{
+  this->send_message(IrcMessage("PASS", {password}));
 }
 
 void IrcClient::send_kick_command(const std::string& chan_name, const std::string& target, const std::string& reason)

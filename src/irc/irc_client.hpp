@@ -85,6 +85,7 @@ public:
    * Send the NICK irc command
    */
   void send_nick_command(const std::string& username);
+  void send_pass_command(const std::string& password);
   /**
    * Send the JOIN irc command.
    */
