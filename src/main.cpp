@@ -69,7 +69,7 @@ int main(int ac, char** av)
   if (ac > 1)
     Config::filename = av[1];
   else
-    Config::filename = xdg_path("biboumi.cfg");
+    Config::filename = xdg_config_path("biboumi.cfg");
 
   Config::file_must_exist = true;
   std::cerr << "Using configuration file: " << Config::filename << std::endl;

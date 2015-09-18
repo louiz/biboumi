@@ -13,6 +13,7 @@
 #include <utils/revstr.hpp>
 #include <irc/irc_user.hpp>
 #include <utils/split.hpp>
+#include <utils/xdg.hpp>
 #include <xmpp/jid.hpp>
 #include <irc/iid.hpp>
 #include <string.h>
@@ -423,6 +424,12 @@ int main()
     res = xdg_config_path("coucou.txt");
     std::cout << res << std::endl;
     assert(res == "/some_weird_dir/biboumi/coucou.txt");
+
+    ::setenv("XDG_DATA_HOME", "/datadir", 1);
+    res = xdg_data_path("bonjour.txt");
+    std::cout << res << std::endl;
+    assert(res == "/datadir/biboumi/bonjour.txt");
+
   }
 
   return 0;
