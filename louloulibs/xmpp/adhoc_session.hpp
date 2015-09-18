@@ -23,7 +23,8 @@ typedef std::function<void(XmppComponent*, AdhocSession&, XmlNode&)> AdhocStep;
 class AdhocSession
 {
 public:
-  explicit AdhocSession(const AdhocCommand& command, const std::string& jid);
+  explicit AdhocSession(const AdhocCommand& command, const std::string& owner_jid,
+                        const std::string& to_jid);
   ~AdhocSession();
   /**
    * Return the function to be executed, found in our AdhocCommand, for the
@@ -41,6 +42,15 @@ public:
    */
   void terminate();
   bool is_terminated() const;
+  std::string get_target_jid() const
+  {
+    return this->to_jid;
+  }
+  std::string get_owner_jid() const
+  {
+    return this->owner_jid;
+  }
+
 
 private:
   /**
@@ -54,6 +64,10 @@ private:
    * this session.
    */
   const std::string& owner_jid;
+  /**
+   * The 'to' attribute in the request stanza.  This is the target of the current session.
+   */
+  const std::string& to_jid;
   /**
    * The current step we are at. It starts at zero. It is used to index the
    * associated AdhocCommand::callbacks vector.

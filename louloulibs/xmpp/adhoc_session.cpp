@@ -3,9 +3,11 @@
 
 #include <assert.h>
 
-AdhocSession::AdhocSession(const AdhocCommand& command, const std::string& jid):
+AdhocSession::AdhocSession(const AdhocCommand& command, const std::string& owner_jid,
+                           const std::string& to_jid):
   command(command),
-  owner_jid(jid),
+  owner_jid(owner_jid),
+  to_jid(to_jid),
   current_step(0),
   terminated(false)
 {

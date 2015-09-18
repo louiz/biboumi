@@ -20,7 +20,7 @@ std::map<const std::string, const AdhocCommand>& AdhocCommandsHandler::get_comma
   return this->commands;
 }
 
-XmlNode AdhocCommandsHandler::handle_request(const std::string& executor_jid, XmlNode command_node)
+XmlNode AdhocCommandsHandler::handle_request(const std::string& executor_jid, const std::string& to, XmlNode command_node)
 {
   std::string action = command_node.get_tag("action");
   if (action.empty())
@@ -57,7 +57,7 @@ XmlNode AdhocCommandsHandler::handle_request(const std::string& executor_jid, Xm
           command_node["sessionid"] = sessionid;
           this->sessions.emplace(std::piecewise_construct,
                                  std::forward_as_tuple(sessionid, executor_jid),
-                                 std::forward_as_tuple(command_it->second, executor_jid));
+                                 std::forward_as_tuple(command_it->second, executor_jid, to));
           TimedEventsManager::instance().add_event(TimedEvent(std::chrono::steady_clock::now() + 3600s,
                                                               std::bind(&AdhocCommandsHandler::remove_session, this, sessionid, executor_jid),
                                                               "adhocsession"s + sessionid + executor_jid));
