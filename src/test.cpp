@@ -4,6 +4,7 @@
 
 #include <xmpp/xmpp_component.hpp>
 #include <utils/timed_events.hpp>
+#include <database/database.hpp>
 #include <xmpp/xmpp_parser.hpp>
 #include <utils/encoding.hpp>
 #include <logger/logger.hpp>
@@ -16,11 +17,14 @@
 #include <utils/xdg.hpp>
 #include <xmpp/jid.hpp>
 #include <irc/iid.hpp>
+#include <unistd.h>
 #include <string.h>
 
 #include <iostream>
 #include <thread>
 #include <vector>
+
+#include "biboumi.h"
 
 #undef NDEBUG
 #include <assert.h>
@@ -403,8 +407,39 @@ int main()
     assert(iid6.is_channel);
     assert(!iid6.is_user);
   }
+#ifdef USE_DATABASE
   {
+    std::cout << color << "Testing the Database…" << reset << std::endl;
+    // Remove any potential existing db
+    unlink("./test.db");
+    Config::set("db_name", "test.db");
+    Database::set_verbose(true);
+    auto o = Database::get_irc_server_options("zouzou@example.com", "irc.example.com");
+    o.requireTls = false;
+    o.update();
+    auto a = Database::get_irc_server_options("zouzou@example.com", "irc.example.com");
+    assert(a.requireTls == false);
+    auto b = Database::get_irc_server_options("moumou@example.com", "irc.example.com");
+    assert(b.requireTls == true);
 
+    // b does not yet exist in the db, the object is created but not yet
+    // inserted
+    assert(1 == Database::count<db::IrcServerOptions>());
+
+    b.update();
+    assert(2 == Database::count<db::IrcServerOptions>());
+
+    assert(b.pass == "");
+    assert(b.pass.value() == "");
+
+    std::vector<litesql::FieldType> ftypes;
+    db::IrcServerOptions::getFieldTypes(ftypes);
+    for (const auto& type: ftypes)
+      {
+        std::cout << type.type() << std::endl;
+      }
+  }
+#endif
   {
     std::cout << color << "Testing the xdg_path function…" << reset << std::endl;
     std::string res;

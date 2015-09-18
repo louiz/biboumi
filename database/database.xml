@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<!DOCTYPE database SYSTEM "litesql.dtd">
+
+<database name="BibouDB" namespace="db">
+  <object name="IrcServerOptions">
+    <field name="owner" type="string" length="3071"/>
+    <field name="server" type="string" length="3071"/>
+
+    <field name="requireTls" type="boolean" default="true"/>
+    <field name="pass" type="string" length="1024"/>
+
+    <index unique="true">
+      <indexfield name="owner"/>
+      <indexfield name="server"/>
+    </index>
+
+  </object>
+</database>

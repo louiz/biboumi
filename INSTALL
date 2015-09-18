@@ -49,6 +49,12 @@ Libraries:
  Other branches than the 1.11 are not supported.
  http://botan.randombit.net/
 
+- litesql (optional)
+ Provides a way to store various options in a (sqlite3) database. Each user
+ of the gateway can store their own values (for example their prefered port,
+ or their IRC password).
+ http://git.louiz.org/litesql
+
 - systemd (optional)
  Provides the support for a systemd service of Type=notify. This is useful only
  if you are packaging biboumi in a distribution with Systemd.
