@@ -17,6 +17,7 @@
 #include <stdio.h>
 
 #include <louloulibs.h>
+#include <biboumi.h>
 
 #include <uuid.h>
 
@@ -56,6 +57,12 @@ BiboumiComponent::BiboumiComponent(std::shared_ptr<Poller> poller, const std::st
     {"hello", AdhocCommand({&HelloStep1, &HelloStep2}, "Receive a custom greeting", false)},
     {"disconnect-user", AdhocCommand({&DisconnectUserStep1, &DisconnectUserStep2}, "Disconnect a user from the gateway", true)},
     {"reload", AdhocCommand({&Reload}, "Reload biboumi’s configuration", true)}
+  };
+
+  this->irc_server_adhoc_commands_handler.get_commands() = {
+#ifdef USE_DATABASE
+    {"configure", AdhocCommand({&ConfigureIrcServerStep1, &ConfigureIrcServerStep2}, "Configure a few settings for that IRC server", false)},
+#endif
   };
 }
 

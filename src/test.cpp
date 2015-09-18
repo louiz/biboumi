@@ -13,6 +13,7 @@
 #include <utils/tolower.hpp>
 #include <utils/revstr.hpp>
 #include <irc/irc_user.hpp>
+#include <utils/string.hpp>
 #include <utils/split.hpp>
 #include <utils/xdg.hpp>
 #include <xmpp/jid.hpp>
@@ -169,6 +170,13 @@ int main()
 
   const std::string ltr = "coucou";
   assert(utils::revstr(ltr) == "uocuoc");
+
+  assert(to_bool("true"));
+  assert(!to_bool("trou"));
+  assert(to_bool("1"));
+  assert(!to_bool("0"));
+  assert(!to_bool("-1"));
+  assert(!to_bool("false"));
 
   /**
    * XML parsing
