@@ -6,3 +6,4 @@
 #cmakedefine BOTAN_FOUND
 #cmakedefine CARES_FOUND
 #cmakedefine SOFTWARE_VERSION "${SOFTWARE_VERSION}"
+#cmakedefine PROJECT_NAME "${PROJECT_NAME}"

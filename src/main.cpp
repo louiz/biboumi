@@ -4,11 +4,11 @@
 #include <config/config.hpp>
 #include <logger/logger.hpp>
 #include <utils/reload.hpp>
+#include <utils/xdg.hpp>
 
 #include <iostream>
 #include <memory>
 #include <atomic>
-#include <cstdlib>
 
 #include <signal.h>
 
@@ -69,19 +69,7 @@ int main(int ac, char** av)
   if (ac > 1)
     Config::filename = av[1];
   else
-  {
-    const char* xdg_config_home = getenv("XDG_CONFIG_HOME");
-    if (xdg_config_home && xdg_config_home[0] == '/')
-      Config::filename = std::string{xdg_config_home} + "/" "biboumi" "/" "biboumi.cfg";
-    else
-    {
-      const char* home = getenv("HOME");
-      if (home)
-        Config::filename = std::string{home} + "/" ".config" "/" "biboumi" "/" "biboumi.cfg";
-      else
-        Config::filename = "biboumi.cfg";
-    }
-  }
+    Config::filename = xdg_path("biboumi.cfg");
 
   Config::file_must_exist = true;
   std::cerr << "Using configuration file: " << Config::filename << std::endl;

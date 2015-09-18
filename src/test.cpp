@@ -402,6 +402,28 @@ int main()
     assert(iid6.is_channel);
     assert(!iid6.is_user);
   }
+  {
+
+  {
+    std::cout << color << "Testing the xdg_path function…" << reset << std::endl;
+    std::string res;
+
+    ::unsetenv("XDG_CONFIG_HOME");
+    ::unsetenv("HOME");
+    res = xdg_config_path("coucou.txt");
+    std::cout << res << std::endl;
+    assert(res == "coucou.txt");
+
+    ::setenv("HOME", "/home/user", 1);
+    res = xdg_config_path("coucou.txt");
+    std::cout << res << std::endl;
+    assert(res == "/home/user/.config/biboumi/coucou.txt");
+
+    ::setenv("XDG_CONFIG_HOME", "/some_weird_dir", 1);
+    res = xdg_config_path("coucou.txt");
+    std::cout << res << std::endl;
+    assert(res == "/some_weird_dir/biboumi/coucou.txt");
+  }
 
   return 0;
 }
