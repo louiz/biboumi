@@ -423,12 +423,9 @@ int main()
     Config::set("db_name", "test.db");
     Database::set_verbose(true);
     auto o = Database::get_irc_server_options("zouzou@example.com", "irc.example.com");
-    o.requireTls = false;
     o.update();
     auto a = Database::get_irc_server_options("zouzou@example.com", "irc.example.com");
-    assert(a.requireTls == false);
     auto b = Database::get_irc_server_options("moumou@example.com", "irc.example.com");
-    assert(b.requireTls == true);
 
     // b does not yet exist in the db, the object is created but not yet
     // inserted
@@ -439,13 +436,6 @@ int main()
 
     assert(b.pass == "");
     assert(b.pass.value() == "");
-
-    std::vector<litesql::FieldType> ftypes;
-    db::IrcServerOptions::getFieldTypes(ftypes);
-    for (const auto& type: ftypes)
-      {
-        std::cout << type.type() << std::endl;
-      }
   }
 #endif
   {

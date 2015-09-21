@@ -16,10 +16,12 @@
 #include <chrono>
 #include <string>
 
+#include "biboumi.h"
 #include "louloulibs.h"
 
 using namespace std::string_literals;
 using namespace std::chrono_literals;
+
 
 IrcClient::IrcClient(std::shared_ptr<Poller> poller, const std::string& hostname, const std::string& username, Bridge* bridge):
   TCPSocketHandler(poller),
@@ -39,13 +41,25 @@ IrcClient::IrcClient(std::shared_ptr<Poller> poller, const std::string& hostname
                               "alive without having to join a real channel of that server. "
                               "To disconnect from the IRC server, leave this room and all "
                               "other IRC channels of that server.";
-  // TODO: get the values from the preferences of the user, and only use the
-  // list of default ports if the user didn't specify anything
+#ifdef USE_DATABASE
+  auto options = Database::get_irc_server_options(this->bridge->get_bare_jid(),
+                                                  this->get_hostname());
+  std::vector<std::string> ports = utils::split(options.ports, ';', false);
+  for (auto it = ports.rbegin(); it != ports.rend(); ++it)
+    this->ports_to_try.emplace(*it, false);
+# ifdef BOTAN_FOUND
+  ports = utils::split(options.tlsPorts, ';', false);
+  for (auto it = ports.rbegin(); it != ports.rend(); ++it)
+    this->ports_to_try.emplace(*it, true);
+# endif // BOTAN_FOUND
+
+#else  // not USE_DATABASE
   this->ports_to_try.emplace("6667", false); // standard non-encrypted port
-#ifdef BOTAN_FOUND
+# ifdef BOTAN_FOUND
   this->ports_to_try.emplace("6670", true);  // non-standard but I want it for some servers
   this->ports_to_try.emplace("6697", true);  // standard encrypted port
-#endif // BOTAN_FOUND
+# endif // BOTAN_FOUND
+#endif // USE_DATABASE
 }
 
 IrcClient::~IrcClient()

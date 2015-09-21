@@ -6,8 +6,9 @@
     <field name="owner" type="string" length="3071"/>
     <field name="server" type="string" length="3071"/>
 
-    <field name="requireTls" type="boolean" default="true"/>
-    <field name="pass" type="string" length="1024"/>
+    <field name="pass" type="string" length="1024" default=""/>
+    <field name="tlsPorts" type="string" length="4096" default="6697;6670" />
+    <field name="ports" type="string" length="4096" default="6667" />
 
     <index unique="true">
       <indexfield name="owner"/>

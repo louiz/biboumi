@@ -2,6 +2,7 @@
 #include <xmpp/biboumi_component.hpp>
 #include <bridge/bridge.hpp>
 #include <utils/string.hpp>
+#include <utils/split.hpp>
 #include <xmpp/jid.hpp>
 
 #include <biboumi.h>
@@ -9,6 +10,8 @@
 #ifdef USE_DATABASE
 #include <database/database.hpp>
 #endif
+
+#include <louloulibs.h>
 
 using namespace std::string_literals;
 
@@ -127,16 +130,39 @@ void ConfigureIrcServerStep1(XmppComponent* xmpp_component, AdhocSession& sessio
   instructions.set_inner("Edit the form, to configure the settings of the IRC server "s + target.local);
   x.add_child(std::move(instructions));
 
-  XmlNode require_tls("field");
-  require_tls["var"] = "require_tls";
-  require_tls["type"] = "boolean";
-  require_tls["label"] = "Require TLS (refuse to connect insecurely)";
-  XmlNode require_tls_value("value");
-  require_tls_value.set_inner(options.requireTls ? "true": "false");
-  require_tls.add_child(std::move(require_tls_value));
   XmlNode required("required");
-  require_tls.add_child(required);
-  x.add_child(std::move(require_tls));
+
+  XmlNode ports("field");
+  ports["var"] = "ports";
+  ports["type"] = "text-multi";
+  ports["label"] = "Ports";
+  ports["desc"] = "List of ports to try, without TLS. Defaults: 6667.";
+  auto vals = utils::split(options.ports.value(), ';', false);
+  for (const auto& val: vals)
+    {
+      XmlNode ports_value("value");
+      ports_value.set_inner(val);
+      ports.add_child(std::move(ports_value));
+    }
+  ports.add_child(required);
+  x.add_child(std::move(ports));
+
+#ifdef BOTAN_FOUND
+  XmlNode tls_ports("field");
+  tls_ports["var"] = "tls_ports";
+  tls_ports["type"] = "text-multi";
+  tls_ports["label"] = "TLS ports";
+  tls_ports["desc"] = "List of ports to try, with TLS. Defaults: 6697, 6670.";
+  vals = utils::split(options.tlsPorts.value(), ';', false);
+  for (const auto& val: vals)
+    {
+      XmlNode tls_ports_value("value");
+      tls_ports_value.set_inner(val);
+      tls_ports.add_child(std::move(tls_ports_value));
+    }
+  tls_ports.add_child(required);
+  x.add_child(std::move(tls_ports));
+#endif
 
   XmlNode pass("field");
   pass["var"] = "pass";
@@ -168,12 +194,27 @@ void ConfigureIrcServerStep2(XmppComponent* xmpp_component, AdhocSession& sessio
       for (const XmlNode* field: x->get_children("field", "jabber:x:data"))
         {
           const XmlNode* value = field->get_child("value", "jabber:x:data");
-          if (field->get_tag("var") == "require_tls" &&
-              value && !value->get_inner().empty())
-            options.requireTls = to_bool(value->get_inner());
+          const std::vector<const XmlNode*> values = field->get_children("value", "jabber:x:data");
+          if (field->get_tag("var") == "ports")
+            {
+              std::string ports;
+              for (const auto& val: values)
+                ports += val->get_inner() + ";";
+              options.ports = ports;
+            }
+
+#ifdef BOTAN_FOUND
+          else if (field->get_tag("var") == "tls_ports")
+            {
+              std::string ports;
+              for (const auto& val: values)
+                ports += val->get_inner() + ";";
+              options.tlsPorts = ports;
+            }
+#endif // BOTAN_FOUND
 
           else if (field->get_tag("var") == "pass" &&
-              value && !value->get_inner().empty())
+                   value && !value->get_inner().empty())
             options.pass = value->get_inner();
         }
 
