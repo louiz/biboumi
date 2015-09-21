@@ -177,6 +177,20 @@ void ConfigureIrcServerStep1(XmppComponent* xmpp_component, AdhocSession& sessio
   pass.add_child(required);
   x.add_child(std::move(pass));
 
+  XmlNode after_cnt_cmd("field");
+  after_cnt_cmd["var"] = "after_connect_command";
+  after_cnt_cmd["type"] = "text-single";
+  after_cnt_cmd["desc"] = "Custom IRC command sent after the connection is established with the server.";
+  after_cnt_cmd["label"] = "After-connection IRC command";
+  if (!options.afterConnectionCommand.value().empty())
+    {
+      XmlNode after_cnt_cmd_value("value");
+      after_cnt_cmd_value.set_inner(options.afterConnectionCommand.value());
+      after_cnt_cmd.add_child(std::move(after_cnt_cmd_value));
+    }
+  after_cnt_cmd.add_child(required);
+  x.add_child(std::move(after_cnt_cmd));
+
   command_node.add_child(std::move(x));
 }
 
@@ -216,6 +230,10 @@ void ConfigureIrcServerStep2(XmppComponent* xmpp_component, AdhocSession& sessio
           else if (field->get_tag("var") == "pass" &&
                    value && !value->get_inner().empty())
             options.pass = value->get_inner();
+
+          else if (field->get_tag("var") == "after_connect_command" &&
+                   value && !value->get_inner().empty())
+            options.afterConnectionCommand = value->get_inner();
         }
 
       options.update();

@@ -226,6 +226,7 @@ void IrcClient::send_message(IrcMessage&& message)
 
 void IrcClient::send_raw(const std::string& txt)
 {
+  log_debug("IRC SENDING (raw): (" << this->get_hostname() << ") " << txt);
   this->send_data(txt + "\r\n");
 }
 
@@ -608,6 +609,12 @@ void IrcClient::on_welcome_message(const IrcMessage& message)
 {
   this->current_nick = message.arguments[0];
   this->welcomed = true;
+#ifdef USE_DATABASE
+  auto options = Database::get_irc_server_options(this->bridge->get_bare_jid(),
+                                                  this->get_hostname());
+  if (!options.afterConnectionCommand.value().empty())
+    this->send_raw(options.afterConnectionCommand.value());
+#endif
   // Install a repeated events to regularly send a PING
   TimedEventsManager::instance().add_event(TimedEvent(240s, std::bind(&IrcClient::send_ping_command, this),
                                                       "PING"s + this->hostname + this->bridge->get_jid()));

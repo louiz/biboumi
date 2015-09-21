@@ -7,6 +7,7 @@
     <field name="server" type="string" length="3071"/>
 
     <field name="pass" type="string" length="1024" default=""/>
+    <field name="afterConnectionCommand" type="string" length="510" default=""/>
     <field name="tlsPorts" type="string" length="4096" default="6697;6670" />
     <field name="ports" type="string" length="4096" default="6667" />
 
