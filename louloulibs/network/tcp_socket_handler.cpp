@@ -20,6 +20,7 @@
 
 #ifdef BOTAN_FOUND
 # include <botan/hex.h>
+# include <botan/tls_exceptn.h>
 
 Botan::AutoSeeded_RNG TCPSocketHandler::rng;
 Permissive_Credentials_Manager TCPSocketHandler::credential_manager;
@@ -364,7 +365,13 @@ void TCPSocketHandler::send_data(std::string&& data)
 {
 #ifdef BOTAN_FOUND
   if (this->use_tls)
-    this->tls_send(std::move(data));
+    try {
+      this->tls_send(std::move(data));
+    } catch (const Botan::TLS::TLS_Exception& e) {
+      this->on_connection_close("TLS error: "s + e.what());
+      this->close();
+      return ;
+    }
   else
 #endif
     this->raw_send(std::move(data));
@@ -426,8 +433,17 @@ void TCPSocketHandler::tls_recv()
   if (size > 0)
     {
       const bool was_active = this->tls->is_active();
-      this->tls->received_data(reinterpret_cast<const Botan::byte*>(recv_buf),
-                              static_cast<size_t>(size));
+      try {
+        this->tls->received_data(reinterpret_cast<const Botan::byte*>(recv_buf),
+                                 static_cast<size_t>(size));
+      } catch (const Botan::TLS::TLS_Exception& e) {
+        // May happen if the server sends malformed TLS data (buggy server,
+        // or more probably we are just connected to a server that sends
+        // plain-text)
+        this->on_connection_close("TLS error: "s + e.what());
+        this->close();
+        return ;
+      }
       if (!was_active && this->tls->is_active())
         this->on_tls_activated();
     }
@@ -441,7 +457,7 @@ void TCPSocketHandler::tls_send(std::string&& data)
       if (!this->pre_buf.empty())
         {
           this->tls->send(reinterpret_cast<const Botan::byte*>(this->pre_buf.data()),
-                         this->pre_buf.size());
+                          this->pre_buf.size());
           this->pre_buf = "";
         }
       if (!data.empty())
