@@ -9,7 +9,7 @@
 #include <string>
 #include <map>
 
-class ListElement;
+struct ListElement;
 
 /**
  * A callback called when the waited iq result is received (it is matched

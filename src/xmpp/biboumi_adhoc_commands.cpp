@@ -112,10 +112,8 @@ void DisconnectUserStep2(XmppComponent* xmpp_component, AdhocSession& session, X
 }
 
 #ifdef USE_DATABASE
-void ConfigureIrcServerStep1(XmppComponent* xmpp_component, AdhocSession& session, XmlNode& command_node)
+void ConfigureIrcServerStep1(XmppComponent*, AdhocSession& session, XmlNode& command_node)
 {
-  auto biboumi_component = static_cast<BiboumiComponent*>(xmpp_component);
-
   const Jid owner(session.get_owner_jid());
   const Jid target(session.get_target_jid());
   auto options = Database::get_irc_server_options(owner.local + "@" + owner.domain,
@@ -194,10 +192,8 @@ void ConfigureIrcServerStep1(XmppComponent* xmpp_component, AdhocSession& sessio
   command_node.add_child(std::move(x));
 }
 
-void ConfigureIrcServerStep2(XmppComponent* xmpp_component, AdhocSession& session, XmlNode& command_node)
+void ConfigureIrcServerStep2(XmppComponent*, AdhocSession& session, XmlNode& command_node)
 {
-  auto biboumi_component = static_cast<BiboumiComponent*>(xmpp_component);
-
   const XmlNode* x = command_node.get_child("x", "jabber:x:data");
   if (x)
     {
