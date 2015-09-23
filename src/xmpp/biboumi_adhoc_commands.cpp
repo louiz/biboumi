@@ -13,6 +13,8 @@
 
 #include <louloulibs.h>
 
+#include <algorithm>
+
 using namespace std::string_literals;
 
 void DisconnectUserStep1(XmppComponent* xmpp_component, AdhocSession&, XmlNode& command_node)
@@ -259,7 +261,13 @@ void ConfigureIrcServerStep2(XmppComponent*, AdhocSession& session, XmlNode& com
 
           else if (field->get_tag("var") == "username" &&
                    value && !value->get_inner().empty())
-            options.username = value->get_inner();
+            {
+              auto username = value->get_inner();
+              // The username must not contain spaces
+              std::replace(&username[0], &username[username.size() - 1],
+                           ' ', '_');
+              options.username = username;
+            }
 
           else if (field->get_tag("var") == "realname" &&
                    value && !value->get_inner().empty())
