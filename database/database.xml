@@ -10,6 +10,8 @@
     <field name="afterConnectionCommand" type="string" length="510" default=""/>
     <field name="tlsPorts" type="string" length="4096" default="6697;6670" />
     <field name="ports" type="string" length="4096" default="6667" />
+    <field name="username" type="string" length="1024" default=""/>
+    <field name="realname" type="string" length="1024" default=""/>
 
     <index unique="true">
       <indexfield name="owner"/>

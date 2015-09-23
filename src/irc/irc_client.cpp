@@ -116,7 +116,17 @@ void IrcClient::on_connected()
     this->send_pass_command(options.pass.value());
 #endif
   this->send_nick_command(this->username);
+#ifdef USE_DATABASE
+  std::string username = this->username;
+  if (!options.username.value().empty())
+    username = options.username.value();
+  std::string realname = this->username;
+  if (!options.realname.value().empty())
+    realname = options.realname.value();
+  this->send_user_command(username, realname);
+#else
   this->send_user_command(this->username, this->username);
+#endif // USE_DATABASE
   this->send_gateway_message("Connected to IRC server"s + (this->use_tls ? " (encrypted)": "") + ".");
   this->send_pending_data();
 }

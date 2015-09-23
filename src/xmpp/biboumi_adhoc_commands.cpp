@@ -189,6 +189,32 @@ void ConfigureIrcServerStep1(XmppComponent*, AdhocSession& session, XmlNode& com
   after_cnt_cmd.add_child(required);
   x.add_child(std::move(after_cnt_cmd));
 
+  XmlNode username("field");
+  username["var"] = "username";
+  username["type"] = "text-single";
+  username["label"] = "Username";
+  if (!options.username.value().empty())
+    {
+      XmlNode username_value("value");
+      username_value.set_inner(options.username.value());
+      username.add_child(std::move(username_value));
+    }
+  username.add_child(required);
+  x.add_child(std::move(username));
+
+  XmlNode realname("field");
+  realname["var"] = "realname";
+  realname["type"] = "text-single";
+  realname["label"] = "Realname";
+  if (!options.realname.value().empty())
+    {
+      XmlNode realname_value("value");
+      realname_value.set_inner(options.realname.value());
+      realname.add_child(std::move(realname_value));
+    }
+  realname.add_child(required);
+  x.add_child(std::move(realname));
+
   command_node.add_child(std::move(x));
 }
 
@@ -230,6 +256,14 @@ void ConfigureIrcServerStep2(XmppComponent*, AdhocSession& session, XmlNode& com
           else if (field->get_tag("var") == "after_connect_command" &&
                    value && !value->get_inner().empty())
             options.afterConnectionCommand = value->get_inner();
+
+          else if (field->get_tag("var") == "username" &&
+                   value && !value->get_inner().empty())
+            options.username = value->get_inner();
+
+          else if (field->get_tag("var") == "realname" &&
+                   value && !value->get_inner().empty())
+            options.realname = value->get_inner();
         }
 
       options.update();
