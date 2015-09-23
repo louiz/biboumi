@@ -264,8 +264,7 @@ void ConfigureIrcServerStep2(XmppComponent*, AdhocSession& session, XmlNode& com
             {
               auto username = value->get_inner();
               // The username must not contain spaces
-              std::replace(&username[0], &username[username.size() - 1],
-                           ' ', '_');
+              std::replace(username.begin(), username.end(), ' ', '_');
               options.username = username;
             }
 
