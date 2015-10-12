@@ -254,9 +254,13 @@ private:
    */
   const std::string hostname;
   /**
-   * The user name used in the USER irc command
+   * The username used in the USER irc command
    */
-  const std::string username;
+  std::string username;
+  /**
+   * The realname used in the USER irc command
+   */
+  std::string realname;
   /**
    * Our current nickname on the server
    */

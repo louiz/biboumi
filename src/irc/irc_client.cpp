@@ -27,6 +27,7 @@ IrcClient::IrcClient(std::shared_ptr<Poller> poller, const std::string& hostname
   TCPSocketHandler(poller),
   hostname(hostname),
   username(username),
+  realname(username),
   current_nick(username),
   bridge(bridge),
   welcomed(false),
@@ -115,18 +116,18 @@ void IrcClient::on_connected()
   if (!options.pass.value().empty())
     this->send_pass_command(options.pass.value());
 #endif
+
   this->send_nick_command(this->username);
+
 #ifdef USE_DATABASE
-  std::string username = this->username;
   if (!options.username.value().empty())
-    username = options.username.value();
-  std::string realname = this->username;
+    this->username = options.username.value();
   if (!options.realname.value().empty())
-    realname = options.realname.value();
+    this->realname = options.realname.value();
   this->send_user_command(username, realname);
-#else
-  this->send_user_command(this->username, this->username);
-#endif // USE_DATABASE
+#endif
+  this->send_user_command(this->username, this->realname);
+
   this->send_gateway_message("Connected to IRC server"s + (this->use_tls ? " (encrypted)": "") + ".");
   this->send_pending_data();
 }
