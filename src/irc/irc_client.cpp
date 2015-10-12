@@ -6,6 +6,7 @@
 #include <irc/irc_user.hpp>
 
 #include <logger/logger.hpp>
+#include <config/config.hpp>
 #include <utils/tolower.hpp>
 #include <utils/split.hpp>
 
@@ -120,11 +121,14 @@ void IrcClient::on_connected()
   this->send_nick_command(this->username);
 
 #ifdef USE_DATABASE
-  if (!options.username.value().empty())
-    this->username = options.username.value();
-  if (!options.realname.value().empty())
-    this->realname = options.realname.value();
-  this->send_user_command(username, realname);
+  if (Config::get("realname_customization", "true") == "true")
+    {
+      if (!options.username.value().empty())
+        this->username = options.username.value();
+      if (!options.realname.value().empty())
+        this->realname = options.realname.value();
+      this->send_user_command(username, realname);
+    }
 #endif
   this->send_user_command(this->username, this->realname);
 

@@ -77,6 +77,12 @@ The configuration file uses a simple format of the form
   users join their own IRC server using an XMPP client, while forbidding
   access to any other IRC server.
 
+`realname_customization`
+
+ If this option is set to “false” (default is “true”), the users will not be
+ able to use the ad-hoc commands that lets them configure their realname and
+ username.
+
 `log_file`
 
   A filename into which logs are written.  If none is provided, the logs are

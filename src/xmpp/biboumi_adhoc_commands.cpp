@@ -1,6 +1,7 @@
 #include <xmpp/biboumi_adhoc_commands.hpp>
 #include <xmpp/biboumi_component.hpp>
 #include <bridge/bridge.hpp>
+#include <config/config.hpp>
 #include <utils/string.hpp>
 #include <utils/split.hpp>
 #include <xmpp/jid.hpp>
@@ -191,31 +192,34 @@ void ConfigureIrcServerStep1(XmppComponent*, AdhocSession& session, XmlNode& com
   after_cnt_cmd.add_child(required);
   x.add_child(std::move(after_cnt_cmd));
 
-  XmlNode username("field");
-  username["var"] = "username";
-  username["type"] = "text-single";
-  username["label"] = "Username";
-  if (!options.username.value().empty())
+  if (Config::get("realname_customization", "true") == "true")
     {
-      XmlNode username_value("value");
-      username_value.set_inner(options.username.value());
-      username.add_child(std::move(username_value));
-    }
-  username.add_child(required);
-  x.add_child(std::move(username));
+      XmlNode username("field");
+      username["var"] = "username";
+      username["type"] = "text-single";
+      username["label"] = "Username";
+      if (!options.username.value().empty())
+        {
+          XmlNode username_value("value");
+          username_value.set_inner(options.username.value());
+          username.add_child(std::move(username_value));
+        }
+      username.add_child(required);
+      x.add_child(std::move(username));
 
-  XmlNode realname("field");
-  realname["var"] = "realname";
-  realname["type"] = "text-single";
-  realname["label"] = "Realname";
-  if (!options.realname.value().empty())
-    {
-      XmlNode realname_value("value");
-      realname_value.set_inner(options.realname.value());
-      realname.add_child(std::move(realname_value));
+      XmlNode realname("field");
+      realname["var"] = "realname";
+      realname["type"] = "text-single";
+      realname["label"] = "Realname";
+      if (!options.realname.value().empty())
+        {
+          XmlNode realname_value("value");
+          realname_value.set_inner(options.realname.value());
+          realname.add_child(std::move(realname_value));
+        }
+      realname.add_child(required);
+      x.add_child(std::move(realname));
     }
-  realname.add_child(required);
-  x.add_child(std::move(realname));
 
   command_node.add_child(std::move(x));
 }
