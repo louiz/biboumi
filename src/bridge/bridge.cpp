@@ -90,7 +90,7 @@ Xmpp::body Bridge::make_xmpp_body(const std::string& str)
   return irc_format_to_xhtmlim(res);
 }
 
-IrcClient* Bridge::get_irc_client(const std::string& hostname, const std::string& username)
+IrcClient* Bridge::make_irc_client(const std::string& hostname, const std::string& nickname)
 {
   try
     {
@@ -98,7 +98,18 @@ IrcClient* Bridge::get_irc_client(const std::string& hostname, const std::string
     }
   catch (const std::out_of_range& exception)
     {
-      this->irc_clients.emplace(hostname, std::make_shared<IrcClient>(this->poller, hostname, username, this));
+      auto username = nickname;
+      auto realname = nickname;
+      if (Config::get("realname_from_jid", "false") == "true")
+        {
+          Jid jid(this->user_jid);
+          username = jid.local;
+          realname = this->get_bare_jid();
+        }
+      this->irc_clients.emplace(hostname,
+                                std::make_shared<IrcClient>(this->poller, hostname,
+                                                            nickname, username,
+                                                            realname, this));
       std::shared_ptr<IrcClient> irc = this->irc_clients.at(hostname);
       return irc.get();
     }
@@ -128,9 +139,9 @@ IrcClient* Bridge::find_irc_client(const std::string& hostname)
     }
 }
 
-bool Bridge::join_irc_channel(const Iid& iid, const std::string& username, const std::string& password)
+bool Bridge::join_irc_channel(const Iid& iid, const std::string& nickname, const std::string& password)
 {
-  IrcClient* irc = this->get_irc_client(iid.get_server(), username);
+  IrcClient* irc = this->make_irc_client(iid.get_server(), nickname);
   if (iid.get_local().empty())
     { // Join the dummy channel
       if (irc->is_welcomed())

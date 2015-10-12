@@ -24,12 +24,14 @@ using namespace std::string_literals;
 using namespace std::chrono_literals;
 
 
-IrcClient::IrcClient(std::shared_ptr<Poller> poller, const std::string& hostname, const std::string& username, Bridge* bridge):
+IrcClient::IrcClient(std::shared_ptr<Poller> poller, const std::string& hostname,
+                     const std::string& nickname, const std::string& username,
+                     const std::string& realname, Bridge* bridge):
   TCPSocketHandler(poller),
   hostname(hostname),
   username(username),
-  realname(username),
-  current_nick(username),
+  realname(realname),
+  current_nick(nickname),
   bridge(bridge),
   welcomed(false),
   chanmodes({"", "", "", ""}),

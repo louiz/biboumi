@@ -25,7 +25,9 @@ class Bridge;
 class IrcClient: public TCPSocketHandler
 {
 public:
-  explicit IrcClient(std::shared_ptr<Poller> poller, const std::string& hostname, const std::string& username, Bridge* bridge);
+  explicit IrcClient(std::shared_ptr<Poller> poller, const std::string& hostname,
+                     const std::string& nickname, const std::string& username,
+                     const std::string& realname, Bridge* bridge);
   ~IrcClient();
   /**
    * Connect to the IRC server

@@ -60,7 +60,8 @@ public:
    * Try to join an irc_channel, does nothing and return true if the channel
    * was already joined.
    */
-  bool join_irc_channel(const Iid& iid, const std::string& username, const std::string& password);
+  bool join_irc_channel(const Iid& iid, const std::string& nickname, const std::string& password);
+
   void send_channel_message(const Iid& iid, const std::string& body);
   void send_private_message(const Iid& iid, const std::string& body, const std::string& type="PRIVMSG");
   void send_raw_message(const std::string& hostname, const std::string& body);
@@ -193,7 +194,7 @@ private:
    * username in this case) if none is found, and connect that newly-created
    * client immediately.
    */
-  IrcClient* get_irc_client(const std::string& hostname, const std::string& username);
+  IrcClient* make_irc_client(const std::string& hostname, const std::string& nickname);
   /**
    * This version does not create the IrcClient if it does not exist, throws
    * a IRCServerNotConnected error in that case.

@@ -83,6 +83,19 @@ The configuration file uses a simple format of the form
  able to use the ad-hoc commands that lets them configure their realname and
  username.
 
+`realname_from_jid`
+
+ If this option is set to “true”, the realname and username of each biboumi
+ user will be extracted from their JID.  The realname is their bare JID, and
+ the username is the node-part of their JID.  Note that if
+ `realname_customization` is “true”, each user will still be able to
+ customize their realname and username, this option just decides the default
+ realname and username.
+
+ If this option is set to “false” (the default value), the realname and
+ username of each user will be set to the nick they used to connect to the
+ IRC server.
+
 `log_file`
 
   A filename into which logs are written.  If none is provided, the logs are
