@@ -2,7 +2,6 @@
 #ifdef CARES_FOUND
 
 #include <network/dns_socket_handler.hpp>
-#include <network/tcp_socket_handler.hpp>
 #include <network/dns_handler.hpp>
 #include <network/poller.hpp>
 
@@ -14,19 +13,6 @@
 DNSHandler DNSHandler::instance;
 
 using namespace std::string_literals;
-
-void on_hostname4_resolved(void* arg, int status, int, struct hostent* hostent)
-{
-  TCPSocketHandler* socket_handler = static_cast<TCPSocketHandler*>(arg);
-  socket_handler->on_hostname4_resolved(status, hostent);
-}
-
-void on_hostname6_resolved(void* arg, int status, int, struct hostent* hostent)
-{
-  TCPSocketHandler* socket_handler = static_cast<TCPSocketHandler*>(arg);
-  socket_handler->on_hostname6_resolved(status, hostent);
-}
-
 DNSHandler::DNSHandler()
 {
   int ares_error;
@@ -54,16 +40,15 @@ void DNSHandler::destroy()
   ::ares_library_cleanup();
 }
 
-void DNSHandler::gethostbyname(const std::string& name,
-                               TCPSocketHandler* socket_handler, int family)
+void DNSHandler::gethostbyname(const std::string& name, ares_host_callback callback,
+                               void* data, int family)
 {
-  socket_handler->free_cares_addrinfo();
   if (family == AF_INET)
     ::ares_gethostbyname(this->channel, name.data(), family,
-                         &::on_hostname4_resolved, socket_handler);
+                         callback, data);
   else
     ::ares_gethostbyname(this->channel, name.data(), family,
-                         &::on_hostname6_resolved, socket_handler);
+                         callback, data);
 }
 
 void DNSHandler::watch_dns_sockets(std::shared_ptr<Poller>& poller)

@@ -2,6 +2,7 @@
 # define SOCKET_HANDLER_INCLUDED
 
 #include <network/socket_handler.hpp>
+#include <network/resolver.hpp>
 
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -13,10 +14,6 @@
 #include <list>
 
 #include "louloulibs.h"
-
-#ifdef CARES_FOUND
-# include <ares.h>
-#endif
 
 #ifdef BOTAN_FOUND
 # include <botan/botan.h>
@@ -43,7 +40,7 @@ public:
 class TCPSocketHandler: public SocketHandler
 {
 protected:
-  ~TCPSocketHandler();
+  ~TCPSocketHandler() = default;
 
 public:
   explicit TCPSocketHandler(std::shared_ptr<Poller> poller);
@@ -108,16 +105,6 @@ public:
   virtual void parse_in_buffer(const size_t size) = 0;
   bool is_connected() const override final;
   bool is_connecting() const;
-
-#ifdef CARES_FOUND
-  void on_hostname4_resolved(int status, struct hostent* hostent);
-  void on_hostname6_resolved(int status, struct hostent* hostent);
-
-  void free_cares_addrinfo();
-
-  void fill_ares_addrinfo4(const struct hostent* hostent);
-  void fill_ares_addrinfo6(const struct hostent* hostent);
-#endif
 
 private:
   /**
@@ -194,9 +181,13 @@ private:
    */
   std::list<std::string> out_buf;
   /**
-   * Keep the details of the addrinfo that triggered a EINPROGRESS error when
-   * connect()ing to it, to reuse it directly when connect() is called
-   * again.
+   * DNS resolver
+   */
+  Resolver resolver;
+  /**
+   * Keep the details of the addrinfo returned by the resolver that
+   * triggered a EINPROGRESS error when connect()ing to it, to reuse it
+   * directly when connect() is called again.
    */
   struct addrinfo addrinfo;
   struct sockaddr_in6 ai_addr;
@@ -233,28 +224,6 @@ protected:
 
   bool connected;
   bool connecting;
-
-#ifdef CARES_FOUND
-  bool resolving;
-  /**
-   * Whether or not the DNS resolution was successfully done
-   */
-  bool resolved;
-  bool resolved4;
-  bool resolved6;
-  /**
-   * When using c-ares to resolve the host asynchronously, we need the
-   * c-ares callback to fill a structure (a struct addrinfo, for
-   * compatibility with getaddrinfo and the rest of the code that works when
-   * c-ares is not used) with all returned values (for example an IPv6 and
-   * an IPv4). The next call of connect() will then try all these values
-   * (exactly like we do with the result of getaddrinfo) and save the one
-   * that worked (or returned EINPROGRESS) in the other struct addrinfo (see
-   * the members addrinfo, ai_addrlen, and ai_addr).
-   */
-  struct addrinfo* cares_addrinfo;
-  std::string cares_error;
-#endif  // CARES_FOUND
 
   bool hostname_resolution_failed;
 

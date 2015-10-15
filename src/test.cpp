@@ -3,10 +3,13 @@
  */
 
 #include <xmpp/xmpp_component.hpp>
+#include <network/dns_handler.hpp>
 #include <utils/timed_events.hpp>
 #include <database/database.hpp>
 #include <xmpp/xmpp_parser.hpp>
+#include <network/resolver.hpp>
 #include <utils/encoding.hpp>
+#include <network/poller.hpp>
 #include <logger/logger.hpp>
 #include <config/config.hpp>
 #include <bridge/colors.hpp>
@@ -462,7 +465,84 @@ int main()
     res = xdg_data_path("bonjour.txt");
     std::cout << res << std::endl;
     assert(res == "/datadir/biboumi/bonjour.txt");
+  }
 
+
+  {
+    std::cout << color << "Testing the DNS resolver…" << reset << std::endl;
+
+    Resolver resolver;
+
+    /**
+     * If we are using cares, we need to run a poller loop until each
+     * resolution is finished. Without cares we get the result before
+     * resolve() returns because it’s blocking.
+     */
+#ifdef CARES_FOUND
+    auto p = std::make_shared<Poller>();
+
+    const auto loop = [&p]()
+      {
+        do
+          {
+            DNSHandler::instance.watch_dns_sockets(p);
+          }
+        while (p->poll(utils::no_timeout) != -1);
+      };
+#else
+    // We don’t need to do anything if we are not using cares.
+    const auto loop = [](){};
+#endif
+
+    std::string hostname;
+    std::string port = "6667";
+
+    bool success = true;
+
+    auto error_cb = [&success, &hostname, &port](const char* msg)
+      {
+        std::cout << "Failed to resolve " << hostname << ":" << port << ": " << msg << std::endl;
+        success = false;
+      };
+    auto success_cb = [&success, &hostname, &port](const struct addrinfo* addr)
+      {
+        std::cout << "Successfully resolved " << hostname << ":" << port << ": " << addr_to_string(addr) << std::endl;
+        success = true;
+      };
+
+    hostname = "example.com";
+    resolver.resolve(hostname, port,
+                     success_cb, error_cb);
+    loop();
+    assert(success);
+
+    hostname = "this.should.fail.because.it.is..misformatted";
+    resolver.resolve(hostname, port,
+                     success_cb, error_cb);
+    loop();
+    assert(!success);
+
+    hostname = "this.should.fail.because.it.is.does.not.exist.invalid";
+    resolver.resolve(hostname, port,
+                     success_cb, error_cb);
+    loop();
+    assert(!success);
+
+    hostname = "localhost6";
+    resolver.resolve(hostname, port,
+                     success_cb, error_cb);
+    loop();
+    assert(success);
+
+    hostname = "localhost";
+    resolver.resolve(hostname, port,
+                     success_cb, error_cb);
+    loop();
+    assert(success);
+
+#ifdef CARES_FOUND
+    DNSHandler::instance.destroy();
+#endif
   }
 
   return 0;

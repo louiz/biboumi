@@ -13,9 +13,6 @@ class DNSSocketHandler;
 # include <string>
 # include <vector>
 
-void on_hostname4_resolved(void* arg, int status, int, struct hostent* hostent);
-void on_hostname6_resolved(void* arg, int status, int, struct hostent* hostent);
-
 /**
  * Class managing DNS resolution.  It should only be statically instanciated
  * once in SocketHandler.  It manages ares channel and calls various
@@ -27,8 +24,8 @@ class DNSHandler
 public:
   DNSHandler();
   ~DNSHandler() = default;
-  void gethostbyname(const std::string& name, TCPSocketHandler* socket_handler,
-                     int family);
+  void gethostbyname(const std::string& name, ares_host_callback callback,
+                     void* socket_handler, int family);
   /**
    * Call ares_fds to know what fd needs to be watched by the poller, create
    * or destroy DNSSocketHandlers depending on the result.
