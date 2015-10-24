@@ -1,3 +1,6 @@
+#include "biboumi.h"
+#ifdef USE_DATABASE
+
 #include <database/database.hpp>
 #include <config/config.hpp>
 #include <utils/xdg.hpp>
@@ -52,3 +55,5 @@ void Database::close()
 {
   Database::db.reset(nullptr);
 }
+
+#endif
