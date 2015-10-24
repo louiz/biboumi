@@ -30,6 +30,7 @@
 using namespace std::chrono_literals;
 
 static const std::string color("[35m");
+static const std::string success_color("[32m");
 static const std::string reset("[m");
 
 int main()
@@ -541,5 +542,6 @@ int main()
 #endif
   }
 
+  std::cout << success_color << "All test passed successfully!" << reset << std::endl;
   return 0;
 }
