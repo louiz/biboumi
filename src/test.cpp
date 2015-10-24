@@ -6,7 +6,6 @@
 #include <network/dns_handler.hpp>
 #include <utils/timed_events.hpp>
 #include <database/database.hpp>
-#include <xmpp/xmpp_parser.hpp>
 #include <network/resolver.hpp>
 #include <utils/encoding.hpp>
 #include <network/poller.hpp>
@@ -22,16 +21,13 @@
 #include <xmpp/jid.hpp>
 #include <irc/iid.hpp>
 #include <unistd.h>
-#include <string.h>
 
-#include <iostream>
 #include <thread>
-#include <vector>
-
-#include "biboumi.h"
 
 #undef NDEBUG
 #include <assert.h>
+
+using namespace std::chrono_literals;
 
 static const std::string color("[35m");
 static const std::string reset("[m");
@@ -109,7 +105,7 @@ int main()
    */
   std::cout << color << "Testing encoding…" << reset << std::endl;
   const char* valid = "C̡͔͕̩͙̽ͫ̈́ͥ̿̆ͧ̚r̸̩̘͍̻͖̆͆͛͊̉̕͡o͇͈̳̤̱̊̈͢q̻͍̦̮͕ͥͬͬ̽ͭ͌̾ͅǔ͉͕͇͚̙͉̭͉̇̽ȇ͈̮̼͍͔ͣ͊͞͝ͅ ͫ̾ͪ̓ͥ̆̋̔҉̢̦̠͈͔̖̲̯̦ụ̶̯͐̃̋ͮ͆͝n̬̱̭͇̻̱̰̖̤̏͛̏̿̑͟ë́͐҉̸̥̪͕̹̻̙͉̰ ̹̼̱̦̥ͩ͑̈́͑͝ͅt͍̥͈̹̝ͣ̃̔̈̔ͧ̕͝ḙ̸̖̟̙͙ͪ͢ų̯̞̼̲͓̻̞͛̃̀́b̮̰̗̩̰̊̆͗̾̎̆ͯ͌͝.̗̙͎̦ͫ̈́ͥ͌̈̓ͬ";
-  assert(utils::is_valid_utf8(valid) == true);
+  assert(utils::is_valid_utf8(valid));
   const char* invalid = "\xF0\x0F";
   assert(utils::is_valid_utf8(invalid) == false);
   const char* invalid2 = "\xFE\xFE\xFF\xFF";
@@ -302,7 +298,7 @@ int main()
   assert(jid2.resource == "coucou@coucou/coucou");
 
   // Jidprep
-  const std::string& badjid("~zigougou™@EpiK-7D9D1FDE.poez.io/Boujour/coucou/slt™");
+  const std::string badjid("~zigougou™@EpiK-7D9D1FDE.poez.io/Boujour/coucou/slt™");
   const std::string correctjid = jidprep(badjid);
   std::cout << correctjid << std::endl;
   assert(correctjid == "~zigougoutm@epik-7d9d1fde.poez.io/Boujour/coucou/sltTM");
