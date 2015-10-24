@@ -1,6 +1,5 @@
 #include <xmpp/biboumi_adhoc_commands.hpp>
 #include <xmpp/biboumi_component.hpp>
-#include <bridge/bridge.hpp>
 #include <config/config.hpp>
 #include <utils/string.hpp>
 #include <utils/split.hpp>
