@@ -158,7 +158,8 @@ target_link_libraries(test_suite
   bridge
   utils
   config
-  logger)
+  logger
+  network)
 
 if(USE_DATABASE)
   target_link_libraries(test_suite
