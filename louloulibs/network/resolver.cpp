@@ -3,9 +3,6 @@
 #include <string.h>
 #include <arpa/inet.h>
 
-// remove me
-#include <iostream>
-
 using namespace std::string_literals;
 
 Resolver::Resolver():
@@ -34,7 +31,6 @@ void Resolver::resolve(const std::string& hostname, const std::string& port,
 #ifdef CARES_FOUND
 void Resolver::start_resolving(const std::string& hostname, const std::string& port)
 {
-  std::cout << "start_resolving: " << hostname << port << std::endl;
   this->resolving = true;
   this->resolved = false;
   this->resolved4 = false;
