@@ -302,8 +302,9 @@ int main()
   const std::string badjid("~zigougou™@EpiK-7D9D1FDE.poez.io/Boujour/coucou/slt™");
   const std::string correctjid = jidprep(badjid);
   std::cout << correctjid << std::endl;
+#ifdef LIBIDN_FOUND
   assert(correctjid == "~zigougoutm@epik-7d9d1fde.poez.io/Boujour/coucou/sltTM");
-  // Check that the cache do not break things when we prep the same string
+  // Check that the cache does not break things when we prep the same string
   // multiple times
   assert(jidprep(badjid) == "~zigougoutm@epik-7d9d1fde.poez.io/Boujour/coucou/sltTM");
   assert(jidprep(badjid) == "~zigougoutm@epik-7d9d1fde.poez.io/Boujour/coucou/sltTM");
@@ -317,6 +318,9 @@ int main()
   const std::string fixed_crappy = jidprep(crappy);
   std::cout << fixed_crappy << std::endl;
   assert(fixed_crappy == "~bisous@7ea8beb1-c5fd2849-da9a048e-ip");
+#else // Without libidn, jidprep always returns an empty string
+  assert(jidprep(badjid) == "");
+#endif
 
   /**
    * IID parsing
