@@ -104,20 +104,24 @@ void XmppParser::start_element(const XML_Char* name, const XML_Char** attribute)
 void XmppParser::end_element(const XML_Char*)
 {
   this->level--;
-  if (this->level == 1)
-    {
-      this->stanza_event(*this->current_node);
-    }
   if (this->level == 0)
-    {
+    { // End of the whole stream
       this->stream_close_event(*this->current_node);
       this->current_node = nullptr;
       this->root.reset();
     }
   else
-    this->current_node = this->current_node->get_parent();
-  if (this->level == 1)
-    this->current_node->delete_all_children();
+    {
+      auto parent = this->current_node->get_parent();
+      if (this->level == 1)
+        { // End of a stanza
+          this->stanza_event(*this->current_node);
+          // Note: deleting all the children of our parent deletes ourself,
+          // so current_node is an invalid pointer after this line
+          this->current_node->get_parent()->delete_all_children();
+        }
+      this->current_node = parent;
+    }
 }
 
 void XmppParser::char_data(const XML_Char* data, int len)
