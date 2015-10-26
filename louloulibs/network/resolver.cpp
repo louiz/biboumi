@@ -29,7 +29,7 @@ void Resolver::resolve(const std::string& hostname, const std::string& port,
 }
 
 #ifdef CARES_FOUND
-void Resolver::start_resolving(const std::string& hostname, const std::string& port)
+void Resolver::start_resolving(const std::string& hostname, const std::string&)
 {
   this->resolving = true;
   this->resolved = false;
