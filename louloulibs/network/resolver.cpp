@@ -23,7 +23,9 @@ void Resolver::resolve(const std::string& hostname, const std::string& port,
 {
   this->error_cb = error_cb;
   this->success_cb = success_cb;
+#ifdef CARES_FOUND
   this->port = port;
+#endif
 
   this->start_resolving(hostname, port);
 }

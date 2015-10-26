@@ -66,12 +66,12 @@ public:
 #ifdef CARES_FOUND
     this->resolved6 = false;
     this->resolved4 = false;
-#endif
-    this->resolved = false;
     this->resolving = false;
-    this->addr.reset();
     this->cares_addrinfo = nullptr;
     this->port.clear();
+#endif
+    this->resolved = false;
+    this->addr.reset();
     this->error_msg.clear();
   }
 
