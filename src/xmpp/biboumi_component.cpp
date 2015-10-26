@@ -579,7 +579,7 @@ void BiboumiComponent::send_ping_request(const std::string& from,
 }
 
 void BiboumiComponent::send_iq_room_list_result(const std::string& id,
-                                             const std::string to_jid,
+                                             const std::string& to_jid,
                                              const std::string& from,
                                              const std::vector<ListElement>& rooms_list)
 {

@@ -66,7 +66,7 @@ public:
   /**
    * Send the channels list in one big stanza
    */
-  void send_iq_room_list_result(const std::string& id, const std::string to_jid,
+  void send_iq_room_list_result(const std::string& id, const std::string& to_jid,
                                 const std::string& from,
                                 const std::vector<ListElement>& rooms_list);
   /**

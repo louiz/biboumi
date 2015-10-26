@@ -247,7 +247,7 @@ void TCPSocketHandler::on_send()
   struct msghdr msg{nullptr, 0,
       msg_iov,
       0, nullptr, 0, 0};
-  for (std::string& s: this->out_buf)
+  for (const std::string& s: this->out_buf)
     {
       // unconsting the content of s is ok, sendmsg will never modify it
       msg_iov[msg.msg_iovlen].iov_base = const_cast<char*>(s.data());

@@ -888,7 +888,6 @@ void IrcClient::on_unknown_message(const IrcMessage& message)
   if (message.arguments.size() < 2)
     return ;
   std::string from = message.prefix;
-  const std::string to = message.arguments[0];
   std::stringstream ss;
   for (auto it = message.arguments.begin() + 1; it != message.arguments.end(); ++it)
     {
