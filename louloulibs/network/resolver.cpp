@@ -101,7 +101,6 @@ void Resolver::on_resolved()
 
 void Resolver::fill_ares_addrinfo4(const struct hostent* hostent)
 {
-  std::cout << "fill_ares_addrinfo4" << this->port << std::endl;
   struct addrinfo* prev = this->cares_addrinfo;
   struct in_addr** address = reinterpret_cast<struct in_addr**>(hostent->h_addr_list);
 
@@ -133,7 +132,6 @@ void Resolver::fill_ares_addrinfo4(const struct hostent* hostent)
 
 void Resolver::fill_ares_addrinfo6(const struct hostent* hostent)
 {
-  std::cout << "fill_ares_addrinfo6" << this->port << std::endl;
   struct addrinfo* prev = this->cares_addrinfo;
   struct in6_addr** address = reinterpret_cast<struct in6_addr**>(hostent->h_addr_list);
 
