@@ -86,7 +86,7 @@ void* XmppParser::get_buffer(const size_t size) const
 
 void XmppParser::start_element(const XML_Char* name, const XML_Char** attribute)
 {
-  level++;
+  this->level++;
 
   auto new_node = std::make_unique<XmlNode>(name, this->current_node);
   auto new_node_ptr = new_node.get();
@@ -101,15 +101,14 @@ void XmppParser::start_element(const XML_Char* name, const XML_Char** attribute)
     this->stream_open_event(*this->current_node);
 }
 
-void XmppParser::end_element(const XML_Char* name)
+void XmppParser::end_element(const XML_Char*)
 {
-  (void)name;
-  level--;
-  if (level == 1)
+  this->level--;
+  if (this->level == 1)
     {
       this->stanza_event(*this->current_node);
     }
-  if (level == 0)
+  if (this->level == 0)
     {
       this->stream_close_event(*this->current_node);
       this->current_node = nullptr;
@@ -117,7 +116,7 @@ void XmppParser::end_element(const XML_Char* name)
     }
   else
     this->current_node = this->current_node->get_parent();
-  if (level == 1)
+  if (this->level == 1)
     this->current_node->delete_all_children();
 }
 
