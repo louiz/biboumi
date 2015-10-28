@@ -4,4 +4,4 @@ set -e -x
 
 cmake .. $@
 make -j$(nproc) biboumi test_suite
-./test_suite
+make -j$(nproc) check

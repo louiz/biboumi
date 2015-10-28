@@ -145,12 +145,13 @@ if(SYSTEMD_FOUND)
   target_link_libraries(xmpp ${SYSTEMD_LIBRARIES})
 endif()
 
-
 #
 ## Tests
 #
+file(GLOB source_tests
+  tests/*.cpp)
 add_executable(test_suite EXCLUDE_FROM_ALL
-  src/test.cpp)
+  ${source_tests})
 target_link_libraries(test_suite
   xmpplib
   xmpp
@@ -160,11 +161,26 @@ target_link_libraries(test_suite
   config
   logger
   network)
-
 if(USE_DATABASE)
   target_link_libraries(test_suite
   database)
 endif()
+include(ExternalProject)
+ExternalProject_Add(catch
+  GIT_REPOSITORY "https://github.com/philsquared/Catch.git"
+  PREFIX "external"
+  UPDATE_COMMAND ""
+  CONFIGURE_COMMAND ""
+  BUILD_COMMAND ""
+  INSTALL_COMMAND ""
+)
+ExternalProject_Get_Property(catch SOURCE_DIR)
+target_include_directories(test_suite
+  PUBLIC "${SOURCE_DIR}/include/"
+)
+add_dependencies(test_suite catch)
+add_custom_target(check COMMAND "test_suite"
+  DEPENDS test_suite)
 
 #
 ## Install target
