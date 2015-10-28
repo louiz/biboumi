@@ -7,6 +7,7 @@ set(${PROJECT_NAME}_VERSION_MINOR 0)
 set(${PROJECT_NAME}_VERSION_SUFFIX "~dev")
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++1y -pedantic -Wall -Wextra")
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fprofile-arcs -ftest-coverage --coverage")
 
 # Define a __FILENAME__ macro to get the filename of each file, instead of
 # the full path as in __FILE__
@@ -181,6 +182,15 @@ target_include_directories(test_suite
 add_dependencies(test_suite catch)
 add_custom_target(check COMMAND "test_suite"
   DEPENDS test_suite)
+
+#
+## Code coverage
+#
+include(CodeCoverage)
+SETUP_TARGET_FOR_COVERAGE(coverage
+  test_suite
+  coverage
+)
 
 #
 ## Install target
