@@ -73,18 +73,30 @@ FIND_PROGRAM( LCOV_PATH lcov )
 FIND_PROGRAM( GENHTML_PATH genhtml )
 FIND_PROGRAM( GCOVR_PATH gcovr PATHS ${CMAKE_SOURCE_DIR}/tests)
 
+# Display an error when the target is called. If no error is found, this
+# function will be overridden by the real one later in this file
+FUNCTION(SETUP_TARGET_FOR_COVERAGE _targetname _testrunner _outputname)
+	ADD_CUSTOM_TARGET(${_targetname}
+          COMMAND echo "Coverage is not available: ${ERROR_MSG}"
+	)
+ENDFUNCTION()
+
 IF(NOT GCOV_PATH)
-	MESSAGE(FATAL_ERROR "gcov not found! Aborting...")
-ENDIF() # NOT GCOV_PATH
-
+  set(ERROR_MSG "gcov not found")
+  return()
+ENDIF()
+IF(NOT LCOV_PATH)
+  set(ERROR_MSG "lcov not found")
+  return()
+ENDIF()
+IF(NOT GENHTML_PATH)
+  set(ERROR_MSG "genhtml not found")
+  return()
+ENDIF()
 IF(NOT CMAKE_COMPILER_IS_GNUCXX)
-	# Clang version 3.0.0 and greater now supports gcov as well.
-	MESSAGE(WARNING "Compiler is not GNU gcc! Clang Version 3.0.0 and greater supports gcov as well, but older versions don't.")
-
-	IF(NOT "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-		MESSAGE(FATAL_ERROR "Compiler is not GNU gcc! Aborting...")
-	ENDIF()
-ENDIF() # NOT CMAKE_COMPILER_IS_GNUCXX
+  set(ERROR_MSG "Compiler is not gcc")
+  return()
+ENDIF()
 
 SET(CMAKE_CXX_FLAGS_COVERAGE
     "-g -O0 --coverage -fprofile-arcs -ftest-coverage"
@@ -123,19 +135,11 @@ ENDIF() # NOT CMAKE_BUILD_TYPE STREQUAL "Debug"
 #   Pass them in list form, e.g.: "-j;2" for -j 2
 FUNCTION(SETUP_TARGET_FOR_COVERAGE _targetname _testrunner _outputname)
 
-	IF(NOT LCOV_PATH)
-		MESSAGE(FATAL_ERROR "lcov not found! Aborting...")
-	ENDIF() # NOT LCOV_PATH
-
-	IF(NOT GENHTML_PATH)
-		MESSAGE(FATAL_ERROR "genhtml not found! Aborting...")
-	ENDIF() # NOT GENHTML_PATH
-
 	# Setup target
 	ADD_CUSTOM_TARGET(${_targetname}
 
 		# Cleanup lcov
-		${LCOV_PATH} --directory . --zerocounters
+		COMMAND ${LCOV_PATH} --directory . --zerocounters
 
                 # Create baseline coverage data file
                 COMMAND ${LCOV_PATH} -c -i -d . -o ${_outputname}.baseline.info -q

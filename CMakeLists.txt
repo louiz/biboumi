@@ -186,7 +186,7 @@ add_custom_target(check COMMAND "test_suite"
 #
 ## Code coverage
 #
-if(CMAKE_BUILD_TYPE MATCHES DEBUG)
+if(CMAKE_BUILD_TYPE MATCHES Debug)
   include(CodeCoverage)
   SETUP_TARGET_FOR_COVERAGE(coverage
     test_suite
