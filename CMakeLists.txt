@@ -175,6 +175,7 @@ ExternalProject_Add(catch
   BUILD_COMMAND ""
   INSTALL_COMMAND ""
 )
+set_target_properties(catch PROPERTIES EXCLUDE_FROM_ALL TRUE)
 ExternalProject_Get_Property(catch SOURCE_DIR)
 target_include_directories(test_suite
   PUBLIC "${SOURCE_DIR}/include/"
