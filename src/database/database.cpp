@@ -17,8 +17,6 @@ db::BibouDB& Database::get_db()
     {
       const std::string db_filename = Config::get("db_name",
                                                   xdg_data_path("biboumi.sqlite"));
-      // log_info("Opening database: " << db_filename);
-      std::cout << "Opening database: " << db_filename << std::endl;
       Database::db = std::make_unique<db::BibouDB>("sqlite3",
                                                    "database="s + db_filename);
     }
