@@ -137,6 +137,24 @@ This command will configure the project to build a release, with TLS enabled
 
 
 =============
+   Testing
+=============
+
+You can run the test suite with
+
+% make check
+
+This project uses the Catch unit test framework, it will be automatically
+fetched with cmake, by cloning the github repository.
+
+You can also check the overall code coverage of this test suite by running
+
+% make coverage
+
+This requires gcov and lcov to be installed.
+
+
+=============
      Run
 =============
 
