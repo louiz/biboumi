@@ -131,9 +131,11 @@ void IrcClient::on_connected()
         this->realname = options.realname.value();
       this->send_user_command(username, realname);
     }
-#endif
+  else
+    this->send_user_command(this->username, this->realname);
+#else
   this->send_user_command(this->username, this->realname);
-
+#endif
   this->send_gateway_message("Connected to IRC server"s + (this->use_tls ? " (encrypted)": "") + ".");
   this->send_pending_data();
 }
