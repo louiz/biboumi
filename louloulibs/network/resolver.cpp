@@ -155,7 +155,6 @@ void Resolver::fill_ares_addrinfo6(const struct hostent* hostent)
       addr->sin6_scope_id = 0;
 
       current->ai_addr = reinterpret_cast<struct sockaddr*>(addr);
-      current->ai_next = nullptr;
       current->ai_canonname = nullptr;
 
       current->ai_next = prev;
