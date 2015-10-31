@@ -26,5 +26,7 @@ TEST_CASE("Database")
 
   CHECK(b.pass == "");
   CHECK(b.pass.value() == "");
+
+  Database::close();
 #endif
 }

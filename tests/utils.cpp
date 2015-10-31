@@ -5,6 +5,7 @@
 #include <utils/string.hpp>
 #include <utils/split.hpp>
 #include <utils/xdg.hpp>
+#include <utils/empty_if_fixed_server.hpp>
 
 TEST_CASE("String split")
 {
@@ -69,4 +70,21 @@ TEST_CASE("xdg_*_path")
       res = xdg_data_path("bonjour.txt");
       CHECK(res == "/datadir/biboumi/bonjour.txt");
     }
+}
+
+TEST_CASE("empty if fixed irc server")
+{
+  GIVEN("A config with fixed_irc_server")
+    {
+      Config::set("fixed_irc_server", "irc.localhost");
+      THEN("our string is made empty")
+        CHECK(utils::empty_if_fixed_server("coucou coucou") == "");
+    }
+  GIVEN("A config with NO fixed_irc_server")
+    {
+      Config::set("fixed_irc_server", "");
+      THEN("our string is returned untouched")
+        CHECK(utils::empty_if_fixed_server("coucou coucou") == "coucou coucou");
+    }
+
 }

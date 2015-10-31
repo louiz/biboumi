@@ -26,6 +26,8 @@ TEST_CASE("Test basic XML parsing")
         // Do the same checks on a copy of that stanza.
         Stanza copy(stanza);
         check_stanza(copy);
+        // And do the same checks on moved-constructed stanza
+        Stanza moved(std::move(copy));
       });
   xml.feed(doc.data(), doc.size(), true);
 
@@ -44,4 +46,3 @@ TEST_CASE("XML escape/unescape")
   CHECK(xml_escape(unescaped) == "&apos;coucou&apos;&lt;cc&gt;/&amp;&quot;gaga&quot;");
   CHECK(xml_unescape(xml_escape(unescaped)) == unescaped);
 }
-

@@ -23,3 +23,32 @@ TEST_CASE("Config basic")
     }
   CHECK_FALSE(error);
 }
+
+TEST_CASE("Config callbacks")
+{
+  bool switched = false;
+  Config::connect([&switched]()
+                  {
+                    switched = !switched;
+                  });
+  CHECK_FALSE(switched);
+  Config::set("un", "deux", true);
+  CHECK(switched);
+  Config::set("un", "trois", true);
+  CHECK_FALSE(switched);
+
+  Config::set("un", "trois", false);
+  CHECK_FALSE(switched);
+}
+
+TEST_CASE("Config get_int")
+{
+  auto res = Config::get_int("number", 0);
+  CHECK(res == 0);
+  Config::set("number", "88");
+  res = Config::get_int("number", 0);
+  CHECK(res == 88);
+  Config::set("number", "pouet");
+  res = Config::get_int("number", -1);
+  CHECK(res == 0);
+}
