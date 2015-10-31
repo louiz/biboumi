@@ -9,24 +9,24 @@ botan_cares_systemd_idn:
 botan_cares_systemd:
   script:
     - cmake .. -DCMAKE_BUILD_TYPE=Debug -DWITH_BOTAN=1 -DWITH_CARES=1 -DWITH_SYSTEMD=1 -DWITHOUT_LIBIDN=1
-    - make -j$(nproc) biboumi coverage
+    - make -j$(nproc) biboumi check
 
 botan_cares_idn:
   script:
     - cmake .. -DCMAKE_BUILD_TYPE=Debug -DWITH_BOTAN=1 -DWITH_CARES=1 -DWITHOUT_SYSTEMD=1 -DWITH_LIBIDN=1
-    - make -j$(nproc) biboumi coverage
+    - make -j$(nproc) biboumi check
 
 botan_systemd_idn:
   script:
     - cmake .. -DCMAKE_BUILD_TYPE=Debug -DWITH_BOTAN=1 -DWITHOUT_CARES=1 -DWITH_SYSTEMD=1 -DWITH_LIBIDN=1
-    - make -j$(nproc) biboumi coverage
+    - make -j$(nproc) biboumi check
 
 cares_systemd_idn:
   script:
     - cmake .. -DCMAKE_BUILD_TYPE=Debug -DWITHOUT_BOTAN=1 -DWITH_CARES=1 -DWITH_SYSTEMD=1 -DWITH_LIBIDN=1
-    - make -j$(nproc) biboumi coverage
+    - make -j$(nproc) biboumi check
 
 cares_systemd:
   script:
     - cmake .. -DCMAKE_BUILD_TYPE=Debug -DWITHOUT_BOTAN=1 -DWITH_CARES=1 -DWITH_SYSTEMD=1 -DWITHOUT_LIBIDN=1
-    - make -j$(nproc) biboumi coverage
+    - make -j$(nproc) biboumi check
