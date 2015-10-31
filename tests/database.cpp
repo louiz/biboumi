@@ -2,15 +2,12 @@
 
 #include <database/database.hpp>
 
-#include <unistd.h>
 #include <config/config.hpp>
 
 TEST_CASE("Database")
 {
 #ifdef USE_DATABASE
-  // Remove any potential existing db
-  ::unlink("./test.db");
-  Config::set("db_name", "test.db");
+  Config::set("db_name", ":memory:");
   Database::set_verbose(false);
   auto o = Database::get_irc_server_options("zouzou@example.com", "irc.example.com");
   o.update();
