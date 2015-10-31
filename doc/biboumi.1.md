@@ -96,6 +96,13 @@ The configuration file uses a simple format of the form
  username of each user will be set to the nick they used to connect to the
  IRC server.
 
+`webirc_password`
+
+ Configure a password to be communicated to the IRC server, as part of the
+ WEBIRC message (see https://kiwiirc.com/docs/webirc).  If this option is
+ set, an additional DNS resolution of the hostname of each XMPP server will
+ be made when connecting to an IRC server.
+
 `log_file`
 
   A filename into which logs are written.  If none is provided, the logs are

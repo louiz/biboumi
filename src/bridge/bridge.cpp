@@ -56,7 +56,8 @@ void Bridge::clean()
   while (it != this->irc_clients.end())
   {
     IrcClient* client = it->second.get();
-    if (!client->is_connected() && !client->is_connecting())
+    if (!client->is_connected() && !client->is_connecting() &&
+        !client->get_resolver().is_resolving())
       it = this->irc_clients.erase(it);
     else
       ++it;
@@ -94,16 +95,17 @@ IrcClient* Bridge::make_irc_client(const std::string& hostname, const std::strin
     {
       auto username = nickname;
       auto realname = nickname;
+      Jid jid(this->user_jid);
       if (Config::get("realname_from_jid", "false") == "true")
         {
-          Jid jid(this->user_jid);
           username = jid.local;
           realname = this->get_bare_jid();
         }
       this->irc_clients.emplace(hostname,
                                 std::make_shared<IrcClient>(this->poller, hostname,
                                                             nickname, username,
-                                                            realname, this));
+                                                            realname, jid.domain,
+                                                            this));
       std::shared_ptr<IrcClient> irc = this->irc_clients.at(hostname);
       return irc.get();
     }

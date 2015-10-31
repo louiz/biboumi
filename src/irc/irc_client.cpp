@@ -26,9 +26,11 @@ using namespace std::chrono_literals;
 
 IrcClient::IrcClient(std::shared_ptr<Poller> poller, const std::string& hostname,
                      const std::string& nickname, const std::string& username,
-                     const std::string& realname, Bridge* bridge):
+                     const std::string& realname, const std::string& user_hostname,
+                     Bridge* bridge):
   TCPSocketHandler(poller),
   hostname(hostname),
+  user_hostname(user_hostname),
   username(username),
   realname(realname),
   current_nick(nickname),
@@ -113,6 +115,39 @@ void IrcClient::on_connection_failed(const std::string& reason)
 
 void IrcClient::on_connected()
 {
+  const auto webirc_password = Config::get("webirc_password", "");
+  static std::string resolved_ip;
+
+  if (!webirc_password.empty())
+    {
+      if (!resolved_ip.empty())
+        this->send_webirc_command(webirc_password, resolved_ip);
+      else
+        {  // Start resolving the hostname of the user, and call
+           // on_connected again when it’s done
+          this->dns_resolver.resolve(this->user_hostname, "5222",
+                                     [this](const struct addrinfo* addr)
+                                     {
+                                       resolved_ip = addr_to_string(addr);
+                                       // Only continue the process if we
+                                       // didn’t get connected while we were
+                                       // resolving
+                                       if (this->is_connected())
+                                         this->on_connected();
+                                     },
+                                     [this](const char* error_msg)
+                                     {
+                                       if (this->is_connected())
+                                         {
+                                           this->on_connection_close("Could not resolve hostname "s + this->user_hostname +
+                                                                     ": " + error_msg);
+                                           this->send_quit_command("");
+                                         }
+                                     });
+          return;
+        }
+    }
+
 #ifdef USE_DATABASE
   auto options = Database::get_irc_server_options(this->bridge->get_bare_jid(),
                                                   this->get_hostname());
@@ -253,7 +288,7 @@ void IrcClient::send_raw(const std::string& txt)
 
 void IrcClient::send_user_command(const std::string& username, const std::string& realname)
 {
-  this->send_message(IrcMessage("USER", {username, "ignored", "ignored", realname}));
+  this->send_message(IrcMessage("USER", {username, this->user_hostname, "ignored", realname}));
 }
 
 void IrcClient::send_nick_command(const std::string& nick)
@@ -264,6 +299,11 @@ void IrcClient::send_nick_command(const std::string& nick)
 void IrcClient::send_pass_command(const std::string& password)
 {
   this->send_message(IrcMessage("PASS", {password}));
+}
+
+void IrcClient::send_webirc_command(const std::string& password, const std::string& user_ip)
+{
+  this->send_message(IrcMessage("WEBIRC", {password, "biboumi", this->user_hostname, user_ip}));
 }
 
 void IrcClient::send_kick_command(const std::string& chan_name, const std::string& target, const std::string& reason)

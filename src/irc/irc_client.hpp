@@ -6,6 +6,7 @@
 #include <irc/iid.hpp>
 
 #include <network/tcp_socket_handler.hpp>
+#include <network/resolver.hpp>
 
 #include <unordered_map>
 #include <utility>
@@ -27,7 +28,8 @@ class IrcClient: public TCPSocketHandler
 public:
   explicit IrcClient(std::shared_ptr<Poller> poller, const std::string& hostname,
                      const std::string& nickname, const std::string& username,
-                     const std::string& realname, Bridge* bridge);
+                     const std::string& realname, const std::string& user_hostname,
+                     Bridge* bridge);
   ~IrcClient();
   /**
    * Connect to the IRC server
@@ -88,6 +90,7 @@ public:
    */
   void send_nick_command(const std::string& username);
   void send_pass_command(const std::string& password);
+  void send_webirc_command(const std::string& password, const std::string& user_ip);
   /**
    * Send the JOIN irc command.
    */
@@ -250,11 +253,18 @@ public:
   std::string get_nick() const { return this->current_nick; }
   bool is_welcomed() const { return this->welcomed; }
 
+  const Resolver& get_resolver() const;
+
 private:
   /**
    * The hostname of the server we are connected to.
    */
   const std::string hostname;
+  /**
+   * The hostname of the user.  This is used in the USER and the WEBIRC
+   * commands, but only the one in WEBIRC will be used by the IRC server.
+   */
+  const std::string user_hostname;
   /**
    * The username used in the USER irc command
    */
@@ -330,6 +340,11 @@ private:
    * A set of (lowercase) nicknames to which we sent a private message.
    */
   std::set<std::string> nicks_to_treat_as_private;
+  /**
+   * DNS resolver, used to resolve the hostname of the user if we are using
+   * the WebIRC protocole.
+   */
+  Resolver dns_resolver;
 
   IrcClient(const IrcClient&) = delete;
   IrcClient(IrcClient&&) = delete;
