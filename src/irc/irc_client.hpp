@@ -253,7 +253,7 @@ public:
   std::string get_nick() const { return this->current_nick; }
   bool is_welcomed() const { return this->welcomed; }
 
-  const Resolver& get_resolver() const;
+  const Resolver& get_resolver() const { return this->dns_resolver; }
 
 private:
   /**
