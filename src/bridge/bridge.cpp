@@ -1,9 +1,6 @@
 #include <bridge/bridge.hpp>
-#include <bridge/colors.hpp>
 #include <bridge/list_element.hpp>
 #include <xmpp/biboumi_component.hpp>
-#include <xmpp/xmpp_stanza.hpp>
-#include <irc/irc_message.hpp>
 #include <network/poller.hpp>
 #include <utils/empty_if_fixed_server.hpp>
 #include <utils/encoding.hpp>
@@ -12,9 +9,6 @@
 #include <utils/revstr.hpp>
 #include <utils/split.hpp>
 #include <xmpp/jid.hpp>
-#include <stdexcept>
-#include <iostream>
-#include <tuple>
 
 using namespace std::string_literals;
 
