@@ -11,7 +11,7 @@ void Basic_Credentials_Manager::verify_certificate_chain(const std::string& type
                                                          const std::vector<Botan::X509_Certificate>& certs)
 {
   log_debug("Checking remote certificate (" << type << ") for hostname " << purported_hostname);
-  Botan::Credentials_Manager::verify_certificate_chain(type, "louiz.org", certs);
+  Botan::Credentials_Manager::verify_certificate_chain(type, purported_hostname, certs);
   log_debug("Certificate is valid");
 }
 void Basic_Credentials_Manager::load_certs()
