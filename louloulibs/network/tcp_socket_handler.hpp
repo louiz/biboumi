@@ -1,8 +1,12 @@
 #ifndef SOCKET_HANDLER_INCLUDED
 # define SOCKET_HANDLER_INCLUDED
 
+#include "louloulibs.h"
+
 #include <network/socket_handler.hpp>
 #include <network/resolver.hpp>
+
+#include <network/credentials_manager.hpp>
 
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -13,23 +17,6 @@
 #include <string>
 #include <list>
 
-#include "louloulibs.h"
-
-#ifdef BOTAN_FOUND
-# include <botan/botan.h>
-# include <botan/tls_client.h>
-
-/**
- * A very simple credential manager that accepts any certificate.
- */
-class Permissive_Credentials_Manager: public Botan::Credentials_Manager
-{
-public:
-  void verify_certificate_chain(const std::string& type,
-                                const std::string& purported_hostname,
-                                const std::vector<Botan::X509_Certificate>&);
-};
-#endif // BOTAN_FOUND
 
 /**
  * An interface, with a series of callbacks that should be implemented in
@@ -243,7 +230,7 @@ private:
    * Botan stuff to manipulate a TLS session.
    */
   static Botan::AutoSeeded_RNG rng;
-  static Permissive_Credentials_Manager credential_manager;
+  static Basic_Credentials_Manager credential_manager;
   static Botan::TLS::Policy policy;
   static Botan::TLS::Session_Manager_In_Memory session_manager;
   /**
@@ -267,3 +254,4 @@ private:
 };
 
 #endif // SOCKET_HANDLER_INCLUDED
+

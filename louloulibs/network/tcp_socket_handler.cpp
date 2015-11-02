@@ -19,7 +19,7 @@
 # include <botan/tls_exceptn.h>
 
 Botan::AutoSeeded_RNG TCPSocketHandler::rng;
-Permissive_Credentials_Manager TCPSocketHandler::credential_manager;
+Basic_Credentials_Manager TCPSocketHandler::credential_manager;
 Botan::TLS::Policy TCPSocketHandler::policy;
 Botan::TLS::Session_Manager_In_Memory TCPSocketHandler::session_manager(TCPSocketHandler::rng);
 
@@ -451,15 +451,7 @@ bool TCPSocketHandler::tls_handshake_cb(const Botan::TLS::Session& session)
 
 void TCPSocketHandler::on_tls_activated()
 {
-  this->send_data("");
-}
-
-void Permissive_Credentials_Manager::verify_certificate_chain(const std::string& type,
-                                                              const std::string& purported_hostname,
-                                                              const std::vector<Botan::X509_Certificate>&)
-{ // TODO: Offer the admin to disallow connection on untrusted
-  // certificates
-  log_debug("Checking remote certificate (" << type << ") for hostname " << purported_hostname);
+  this->send_data({});
 }
 
 #endif // BOTAN_FOUND
