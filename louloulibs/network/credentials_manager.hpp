@@ -1,6 +1,10 @@
 #ifndef BIBOUMI_CREDENTIALS_MANAGER_HPP
 #define BIBOUMI_CREDENTIALS_MANAGER_HPP
 
+#include "louloulibs.h"
+
+#ifdef BOTAN_FOUND
+
 #include <botan/botan.h>
 #include <botan/tls_client.h>
 
@@ -19,4 +23,5 @@ private:
   Botan::Certificate_Store_In_Memory certificate_store;
 };
 
+#endif //BOTAN_FOUND
 #endif //BIBOUMI_CREDENTIALS_MANAGER_HPP

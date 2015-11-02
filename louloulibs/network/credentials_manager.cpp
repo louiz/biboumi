@@ -1,5 +1,9 @@
+#include "louloulibs.h"
+
+#ifdef BOTAN_FOUND
 #include <network/credentials_manager.hpp>
 #include <logger/logger.hpp>
+#include <botan/tls_exceptn.h>
 
 Basic_Credentials_Manager::Basic_Credentials_Manager():
     Botan::Credentials_Manager()
@@ -31,3 +35,5 @@ std::vector<Botan::Certificate_Store*> Basic_Credentials_Manager::trusted_certif
 {
   return {&this->certificate_store};
 }
+
+#endif
