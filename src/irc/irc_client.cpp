@@ -155,7 +155,7 @@ void IrcClient::on_connected()
     this->send_pass_command(options.pass.value());
 #endif
 
-  this->send_nick_command(this->username);
+  this->send_nick_command(this->current_nick);
 
 #ifdef USE_DATABASE
   if (Config::get("realname_customization", "true") == "true")
