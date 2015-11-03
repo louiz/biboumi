@@ -162,6 +162,19 @@ void ConfigureIrcServerStep1(XmppComponent*, AdhocSession& session, XmlNode& com
     }
   tls_ports.add_child(required);
   x.add_child(std::move(tls_ports));
+
+  XmlNode verify_cert("field");
+  verify_cert["var"] = "verify_cert";
+  verify_cert["type"] = "boolean";
+  verify_cert["label"] = "Verify certificate";
+  verify_cert["desc"] = "Whether or not to abort the connection if the server’s TLS certificate is invalid";
+  XmlNode verify_cert_value("value");
+  if (options.verifyCert.value())
+    verify_cert_value.set_inner("true");
+  else
+    verify_cert_value.set_inner("false");
+  verify_cert.add_child(std::move(verify_cert_value));
+  x.add_child(std::move(verify_cert));
 #endif
 
   XmlNode pass("field");
@@ -251,6 +264,13 @@ void ConfigureIrcServerStep2(XmppComponent*, AdhocSession& session, XmlNode& com
               for (const auto& val: values)
                 ports += val->get_inner() + ";";
               options.tlsPorts = ports;
+            }
+
+            else if (field->get_tag("var") == "verify_cert" && value
+              && !value->get_inner().empty())
+            {
+              auto val = to_bool(value->get_inner());
+              options.verifyCert = val;
             }
 #endif // BOTAN_FOUND
 

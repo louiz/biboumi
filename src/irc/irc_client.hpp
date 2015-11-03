@@ -52,6 +52,9 @@ public:
    * complete messages from it.
    */
   void parse_in_buffer(const size_t) override final;
+#ifdef BOTAN_FOUND
+  virtual bool abort_on_invalid_cert() const override final;
+#endif
   /**
    * Return the channel with this name, create it if it does not yet exist
    */

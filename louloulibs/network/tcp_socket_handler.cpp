@@ -19,7 +19,6 @@
 # include <botan/tls_exceptn.h>
 
 Botan::AutoSeeded_RNG TCPSocketHandler::rng;
-Basic_Credentials_Manager TCPSocketHandler::credential_manager;
 Botan::TLS::Policy TCPSocketHandler::policy;
 Botan::TLS::Session_Manager_In_Memory TCPSocketHandler::session_manager(TCPSocketHandler::rng);
 
@@ -40,6 +39,9 @@ TCPSocketHandler::TCPSocketHandler(std::shared_ptr<Poller> poller):
   connected(false),
   connecting(false),
   hostname_resolution_failed(false)
+#ifdef BOTAN_FOUND
+  ,credential_manager(this)
+#endif
 {}
 
 void TCPSocketHandler::init_socket(const struct addrinfo* rp)
@@ -369,7 +371,7 @@ void TCPSocketHandler::start_tls()
       std::bind(&TCPSocketHandler::tls_data_cb, this, ph::_1, ph::_2),
       std::bind(&TCPSocketHandler::tls_alert_cb, this, ph::_1, ph::_2, ph::_3),
       std::bind(&TCPSocketHandler::tls_handshake_cb, this, ph::_1),
-      session_manager, credential_manager, policy,
+      session_manager, this->credential_manager, policy,
       rng, server_info, Botan::TLS::Protocol_Version::latest_tls_version());
 }
 

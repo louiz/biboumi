@@ -90,6 +90,16 @@ public:
    * The size argument is the size of the last chunk of data that was added to the buffer.
    */
   virtual void parse_in_buffer(const size_t size) = 0;
+#ifdef BOTAN_FOUND
+  /**
+   * Tell whether the credential manager should cancel the connection when the
+   * certificate is invalid.
+   */
+  virtual bool abort_on_invalid_cert() const
+  {
+    return true;
+  }
+#endif
   bool is_connected() const override final;
   bool is_connecting() const;
 
@@ -230,9 +240,9 @@ private:
    * Botan stuff to manipulate a TLS session.
    */
   static Botan::AutoSeeded_RNG rng;
-  static Basic_Credentials_Manager credential_manager;
   static Botan::TLS::Policy policy;
   static Botan::TLS::Session_Manager_In_Memory session_manager;
+  Basic_Credentials_Manager credential_manager;
   /**
    * We use a unique_ptr because we may not want to create the object at
    * all. The Botan::TLS::Client object generates a handshake message and

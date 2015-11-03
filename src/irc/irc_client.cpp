@@ -962,3 +962,14 @@ void IrcClient::leave_dummy_channel(const std::string& exit_message)
   this->dummy_channel.remove_all_users();
   this->bridge->send_muc_leave(Iid("%"s + this->hostname), std::string(this->current_nick), exit_message, true);
 }
+
+#ifdef BOTAN_FOUND
+bool IrcClient::abort_on_invalid_cert() const
+{
+#ifdef USE_DATABASE
+  auto options = Database::get_irc_server_options(this->bridge->get_bare_jid(), this->hostname);
+  return options.verifyCert.value();
+#endif
+  return true;
+}
+#endif
