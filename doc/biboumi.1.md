@@ -114,6 +114,12 @@ The configuration file uses a simple format of the form
   from 0 to 3.  0 is debug, 1 is info, 2 is warning, 3 is error.  The
   default is 0, but a more practical value for production use is 1.
 
+`ca_file`
+
+  Specifies which file should be use as the list of trusted CA when
+  negociating a TLS session. By default this value is unset and biboumi
+  tries a list of well-known paths.
+
 The configuration can be re-read at runtime (you can for example change the
 log level without having to restart biboumi) by sending SIGUSR1 or SIGUSR2
 (see kill(1)) to the process.

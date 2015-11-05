@@ -5,10 +5,21 @@
 #include <network/credentials_manager.hpp>
 #include <logger/logger.hpp>
 #include <botan/tls_exceptn.h>
+#include <config/config.hpp>
 
 #ifdef USE_DATABASE
 # include <database/database.hpp>
 #endif
+
+/**
+ * TODO find a standard way to find that out.
+ */
+static const std::vector<std::string> default_cert_files = {
+    "/etc/ssl/certs/ca-bundle.crt",
+    "/etc/pki/tls/certs/ca-bundle.crt",
+    "/etc/ssl/certs/ca-certificates.crt",
+    "/etc/ca-certificates/extracted/tls-ca-bundle.pem"
+};
 
 Botan::Certificate_Store_In_Memory Basic_Credentials_Manager::certificate_store;
 bool Basic_Credentials_Manager::certs_loaded = false;
@@ -43,16 +54,34 @@ void Basic_Credentials_Manager::load_certs()
   //  Only load the certificates the first time
   if (Basic_Credentials_Manager::certs_loaded)
     return;
-  const std::vector<std::string> paths = {"/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem"};
+  const std::string conf_path = Config::get("ca_file", "");
+  std::vector<std::string> paths;
+  if (conf_path.empty())
+    paths = default_cert_files;
+  else
+    paths.push_back(conf_path);
   for (const auto& path: paths)
     {
-      Botan::DataSource_Stream bundle(path);
-      while (!bundle.end_of_data() && bundle.check_available(27))
+      try
         {
-          const Botan::X509_Certificate cert(bundle);
-          Basic_Credentials_Manager::certificate_store.add_certificate(cert);
+          Botan::DataSource_Stream bundle(path);
+          log_debug("Using ca bundle: " << path);
+          while (!bundle.end_of_data() && bundle.check_available(27))
+            {
+              const Botan::X509_Certificate cert(bundle);
+              Basic_Credentials_Manager::certificate_store.add_certificate(cert);
+            }
+          // Only use the first file that can successfully be read.
+          goto success;
+        }
+      catch (Botan::Stream_IO_Error& e)
+        {
+          log_debug(e.what());
         }
     }
+  //  If we could not open one of the files, print a warning
+  log_warning("The CA could not be loaded, TLS negociation will probably fail.");
+  success:
   Basic_Credentials_Manager::certs_loaded = true;
 }
 
