@@ -27,7 +27,7 @@
 class TCPSocketHandler: public SocketHandler
 {
 protected:
-  ~TCPSocketHandler() = default;
+  ~TCPSocketHandler();
 
 public:
   explicit TCPSocketHandler(std::shared_ptr<Poller> poller);

@@ -44,8 +44,16 @@ TCPSocketHandler::TCPSocketHandler(std::shared_ptr<Poller> poller):
 #endif
 {}
 
+TCPSocketHandler::~TCPSocketHandler()
+{
+  this->close();
+}
+
+
 void TCPSocketHandler::init_socket(const struct addrinfo* rp)
 {
+  if (this->socket != -1)
+    ::close(this->socket);
   if ((this->socket = ::socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol)) == -1)
     throw std::runtime_error("Could not create socket: "s + strerror(errno));
   int optval = 1;
