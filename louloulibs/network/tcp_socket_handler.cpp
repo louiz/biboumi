@@ -410,7 +410,9 @@ void TCPSocketHandler::tls_recv()
 
 void TCPSocketHandler::tls_send(std::string&& data)
 {
-  if (this->tls->is_active())
+  // We may not be connected yet, or the tls session has
+  // not yet been negociated
+  if (this->tls && this->tls->is_active())
     {
       const bool was_active = this->tls->is_active();
       if (!this->pre_buf.empty())
