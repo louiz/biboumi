@@ -275,6 +275,11 @@ given IRC server will be your nickname in all other channels that you join
 on that same IRC server.
 If you explicitely change your nickname on one channel, your nickname will
 be changed on all channels on the same server as well.
+Joining a new channel with a different nick, however, will not change your
+nick.  The provided nick will be ignored, in order to avoid changing your
+nick on the whole server by mistake.  If you want to have a different
+nickname in the channel you’re going to join, you need to do it explicitly
+with the NICK command before joining the channel.
 
 ### Private messages
 
