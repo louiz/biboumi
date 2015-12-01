@@ -266,7 +266,10 @@ ssize_t TCPSocketHandler::do_recv(void* recv_buf, const size_t buf_size)
     }
   else if (-1 == size)
     {
-      log_warning("Error while reading from socket: " << strerror(errno));
+      if (this->connecting)
+        log_warning("Error connecting: " << strerror(errno));
+      else
+        log_warning("Error while reading from socket: " << strerror(errno));
       // Remember if we were connecting, or already connected when this
       // happened, because close() sets this->connecting to false
       const auto were_connecting = this->connecting;
