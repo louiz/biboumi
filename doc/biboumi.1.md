@@ -120,6 +120,15 @@ The configuration file uses a simple format of the form
   negociating a TLS session. By default this value is unset and biboumi
   tries a list of well-known paths.
 
+`outgoing_bind`
+
+  An address (IPv4 or IPv6) to bind the outgoing sockets to.  If no value is
+  specified, it will use the one assigned by the operating system.  You can
+  for example use outgoing_bind=192.168.1.11 to force biboumi to use the
+  interface with this address.  Note that this is only used for connections
+  to IRC servers, the connection to the XMPP server is always done locally
+  on 127.0.0.1.
+
 The configuration can be re-read at runtime (you can for example change the
 log level without having to restart biboumi) by sending SIGUSR1 or SIGUSR2
 (see kill(1)) to the process.

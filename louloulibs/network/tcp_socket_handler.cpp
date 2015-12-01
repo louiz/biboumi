@@ -56,6 +56,34 @@ void TCPSocketHandler::init_socket(const struct addrinfo* rp)
     ::close(this->socket);
   if ((this->socket = ::socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol)) == -1)
     throw std::runtime_error("Could not create socket: "s + strerror(errno));
+  // Bind the socket to a specific address, if specified
+  if (!this->bind_addr.empty())
+    {
+      // Convert the address from string format to a sockaddr that can be
+      // used in bind()
+      struct addrinfo* result;
+      int err = ::getaddrinfo(this->bind_addr.data(), nullptr, nullptr, &result);
+      if (err != 0)
+        log_error("Failed to bind socket to " << this->bind_addr << ": "
+                  << gai_strerror(err));
+      else
+        {
+          struct addrinfo* rp;
+          int bind_error;
+          for (rp = result; rp; rp = rp->ai_next)
+            {
+              if ((bind_error = ::bind(this->socket,
+                         reinterpret_cast<const struct sockaddr*>(rp->ai_addr),
+                         rp->ai_addrlen)) == 0)
+                break;
+            }
+          if (!rp)
+            log_error("Failed to bind socket to " << this->bind_addr << ": "
+                      << strerror(bind_error));
+          else
+            log_info("Socket successfully bound to " << this->bind_addr);
+        }
+    }
   int optval = 1;
   if (::setsockopt(this->socket, SOL_SOCKET, SO_KEEPALIVE, &optval, sizeof(optval)) == -1)
     log_warning("Failed to enable TCP keepalive on socket: " << strerror(errno));

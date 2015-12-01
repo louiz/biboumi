@@ -86,6 +86,9 @@ void IrcClient::start()
   this->bridge->send_xmpp_message(this->hostname, "", "Connecting to "s +
                                   this->hostname + ":" + port + " (" +
                                   (tls ? "encrypted" : "not encrypted") + ")");
+
+  this->bind_addr = Config::get("outgoing_bind", "");
+
   this->connect(this->hostname, port, tls);
 }
 

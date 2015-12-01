@@ -224,6 +224,12 @@ protected:
 
   bool hostname_resolution_failed;
 
+  /**
+   * Address to bind the socket to, before calling connect().
+   * If empty, it’s equivalent to binding to INADDR_ANY.
+   */
+  std::string bind_addr;
+
 private:
   TCPSocketHandler(const TCPSocketHandler&) = delete;
   TCPSocketHandler(TCPSocketHandler&&) = delete;
