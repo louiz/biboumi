@@ -5,6 +5,7 @@
 
 #include <functional>
 #include <string>
+#include <map>
 
 class XmppComponent;
 
@@ -75,6 +76,15 @@ private:
   size_t current_step;
   bool terminated;
 
+public:
+  /**
+   * A map to store various things that we may want to remember between two
+   * steps of the same session. A step can insert any value associated to
+   * any key in there.
+   */
+  std::map<std::string, std::string> vars;
+
+private:
   AdhocSession(const AdhocSession&) = delete;
   AdhocSession(AdhocSession&&) = delete;
   AdhocSession& operator=(const AdhocSession&) = delete;
