@@ -394,7 +394,7 @@ void BiboumiComponent::handle_iq(const Stanza& stanza)
                 {               // Get biboumi's adhoc commands
                   this->send_adhoc_commands_list(id, from, this->served_hostname,
                                                  (Config::get("admin", "") ==
-                                                  from_jid.local + "@" + from_jid.domain),
+                                                  from_jid.bare()),
                                                  this->adhoc_commands_handler);
                   stanza_error.disable();
                 }
@@ -402,7 +402,7 @@ void BiboumiComponent::handle_iq(const Stanza& stanza)
                 {               // Get the server's adhoc commands
                   this->send_adhoc_commands_list(id, from, to_str,
                                                  (Config::get("admin", "") ==
-                                                  from_jid.local + "@" + from_jid.domain),
+                                                  from_jid.bare()),
                                                  this->irc_server_adhoc_commands_handler);
                   stanza_error.disable();
                 }

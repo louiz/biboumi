@@ -15,6 +15,15 @@ public:
   std::string local;
   std::string resource;
 
+  std::string bare() const
+  {
+    return this->local + "@" + this->domain;
+  }
+  std::string full() const
+  {
+    return this->local + "@" + this->domain + "/" + this->resource;
+  }
+
 private:
   Jid(const Jid&) = delete;
   Jid(Jid&&) = delete;
