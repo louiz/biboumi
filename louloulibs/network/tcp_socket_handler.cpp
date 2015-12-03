@@ -68,6 +68,7 @@ void TCPSocketHandler::init_socket(const struct addrinfo* rp)
                   << gai_strerror(err));
       else
         {
+          utils::ScopeGuard sg([result](){ freeaddrinfo(result); });
           struct addrinfo* rp;
           int bind_error;
           for (rp = result; rp; rp = rp->ai_next)
