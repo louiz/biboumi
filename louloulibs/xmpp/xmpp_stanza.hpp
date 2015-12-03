@@ -140,4 +140,6 @@ private:
  */
 typedef XmlNode Stanza;
 
+std::ostream& operator<<(std::ostream& os, const XmlNode& node);
+
 #endif // XMPP_STANZA_INCLUDED

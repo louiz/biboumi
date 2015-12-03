@@ -313,3 +313,169 @@ void ConfigureIrcServerStep2(XmppComponent*, AdhocSession& session, XmlNode& com
   session.terminate();
 }
 #endif  // USE_DATABASE
+
+void DisconnectUserFromServerStep1(XmppComponent* xmpp_component, AdhocSession& session, XmlNode& command_node)
+{
+  const Jid owner(session.get_owner_jid());
+  if (owner.bare() != Config::get("admin", ""))
+    { // A non-admin is not allowed to disconnect other users, only
+      // him/herself, so we just skip this step
+      auto next_step = session.get_next_step();
+      next_step(xmpp_component, session, command_node);
+    }
+  else
+    { // Send a form to select the user to disconnect
+      auto biboumi_component = static_cast<BiboumiComponent*>(xmpp_component);
+
+      XmlNode x("jabber:x:data:x");
+      x["type"] = "form";
+      XmlNode title("title");
+      title.set_inner("Disconnect a user from selected IRC servers");
+      x.add_child(std::move(title));
+      XmlNode instructions("instructions");
+      instructions.set_inner("Choose a user JID");
+      x.add_child(std::move(instructions));
+      XmlNode jids_field("field");
+      jids_field["var"] = "jid";
+      jids_field["type"] = "list-single";
+      jids_field["label"] = "The JID to disconnect";
+      XmlNode required("required");
+      jids_field.add_child(std::move(required));
+      for (Bridge* bridge: biboumi_component->get_bridges())
+        {
+          XmlNode option("option");
+          option["label"] = bridge->get_jid();
+          XmlNode value("value");
+          value.set_inner(bridge->get_jid());
+          option.add_child(std::move(value));
+          jids_field.add_child(std::move(option));
+        }
+      x.add_child(std::move(jids_field));
+      command_node.add_child(std::move(x));
+    }
+}
+
+void DisconnectUserFromServerStep2(XmppComponent* xmpp_component, AdhocSession& session, XmlNode& command_node)
+{
+  // If no JID is contained in the command node, it means we skipped the
+  // previous stage, and the jid to disconnect is the executor's jid
+  std::string jid_to_disconnect = session.get_owner_jid();
+
+  if (const XmlNode* x = command_node.get_child("x", "jabber:x:data"))
+    {
+      for (const XmlNode* field: x->get_children("field", "jabber:x:data"))
+        if (field->get_tag("var") == "jid")
+          {
+            if (const XmlNode* value = field->get_child("value", "jabber:x:data"))
+              jid_to_disconnect = value->get_inner();
+          }
+    }
+
+  // Save that JID for the last step
+  session.vars["jid"] = jid_to_disconnect;
+
+  // Send a data form to let the user choose which server to disconnect the
+  // user from
+  command_node.delete_all_children();
+  auto biboumi_component = static_cast<BiboumiComponent*>(xmpp_component);
+
+  XmlNode x("jabber:x:data:x");
+  x["type"] = "form";
+  XmlNode title("title");
+  title.set_inner("Disconnect a user from selected IRC servers");
+  x.add_child(std::move(title));
+  XmlNode instructions("instructions");
+  instructions.set_inner("Choose one or more servers to disconnect this JID from");
+  x.add_child(std::move(instructions));
+  XmlNode jids_field("field");
+  jids_field["var"] = "irc-servers";
+  jids_field["type"] = "list-multi";
+  jids_field["label"] = "The servers to disconnect from";
+  XmlNode required("required");
+  jids_field.add_child(std::move(required));
+  Bridge* bridge = biboumi_component->find_user_bridge(jid_to_disconnect);
+
+  if (!bridge || bridge->get_irc_clients().empty())
+    {
+      XmlNode note("note");
+      note["type"] = "info";
+      note.set_inner("User "s + jid_to_disconnect + " is not connected to any IRC server.");
+      command_node.add_child(std::move(note));
+      session.terminate();
+      return ;
+    }
+
+  for (const auto& pair: bridge->get_irc_clients())
+    {
+      XmlNode option("option");
+      option["label"] = pair.first;
+      XmlNode value("value");
+      value.set_inner(pair.first);
+      option.add_child(std::move(value));
+      jids_field.add_child(std::move(option));
+    }
+  x.add_child(std::move(jids_field));
+
+  XmlNode message_field("field");
+  message_field["var"] = "quit-message";
+  message_field["type"] = "text-single";
+  message_field["label"] = "Quit message";
+  XmlNode message_value("value");
+  message_value.set_inner("Killed by admin");
+  message_field.add_child(std::move(message_value));
+  x.add_child(std::move(message_field));
+
+  command_node.add_child(std::move(x));
+}
+
+void DisconnectUserFromServerStep3(XmppComponent* xmpp_component, AdhocSession& session, XmlNode& command_node)
+{
+  const auto it = session.vars.find("jid");
+  if (it == session.vars.end())
+    return ;
+  const auto jid_to_disconnect = it->second;
+
+  std::vector<std::string> servers;
+  std::string quit_message;
+
+  if (const XmlNode* x = command_node.get_child("x", "jabber:x:data"))
+    {
+      for (const XmlNode* field: x->get_children("field", "jabber:x:data"))
+        {
+          if (field->get_tag("var") == "irc-servers")
+            {
+              for (const XmlNode* value: field->get_children("value", "jabber:x:data"))
+                servers.push_back(value->get_inner());
+            }
+          else if (field->get_tag("var") == "quit-message")
+            if (const XmlNode* value = field->get_child("value", "jabber:x:data"))
+              quit_message = value->get_inner();
+        }
+    }
+
+  auto biboumi_component = static_cast<BiboumiComponent*>(xmpp_component);
+  Bridge* bridge = biboumi_component->find_user_bridge(jid_to_disconnect);
+  auto& clients = bridge->get_irc_clients();
+
+  std::size_t number = 0;
+
+  for (const auto& hostname: servers)
+    {
+      auto it = clients.find(hostname);
+      if (it != clients.end())
+        {
+          it->second->on_error({"ERROR", {quit_message}});
+          clients.erase(it);
+          number++;
+        }
+    }
+  command_node.delete_all_children();
+  XmlNode note("note");
+  note["type"] = "info";
+  std::string msg = jid_to_disconnect + " was disconnected from " + std::to_string(number) + " IRC server";
+  if (number > 1)
+    msg += "s";
+  msg += ".";
+  note.set_inner(msg);
+  command_node.add_child(std::move(note));
+}

@@ -187,6 +187,7 @@ public:
    * iq_responder_callback_t and remove the callback from the list.
    */
   void trigger_on_irc_message(const std::string& irc_hostname, const IrcMessage& message);
+  std::unordered_map<std::string, std::shared_ptr<IrcClient>>& get_irc_clients();
 
 private:
   /**

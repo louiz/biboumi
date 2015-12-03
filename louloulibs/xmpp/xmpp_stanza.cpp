@@ -260,3 +260,8 @@ std::string sanitize(const std::string& data)
   else
     return xml_escape(utils::remove_invalid_xml_chars(utils::convert_to_utf8(data, "ISO-8859-1")));
 }
+
+std::ostream& operator<<(std::ostream& os, const XmlNode& node)
+{
+  return os << node.to_string();
+}

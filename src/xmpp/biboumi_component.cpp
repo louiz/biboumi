@@ -55,7 +55,8 @@ BiboumiComponent::BiboumiComponent(std::shared_ptr<Poller> poller, const std::st
   this->adhoc_commands_handler.get_commands() = {
     {"ping", AdhocCommand({&PingStep1}, "Do a ping", false)},
     {"hello", AdhocCommand({&HelloStep1, &HelloStep2}, "Receive a custom greeting", false)},
-    {"disconnect-user", AdhocCommand({&DisconnectUserStep1, &DisconnectUserStep2}, "Disconnect a user from the gateway", true)},
+    {"disconnect-user", AdhocCommand({&DisconnectUserStep1, &DisconnectUserStep2}, "Disconnect selected users from the gateway", true)},
+    {"disconnect-from-irc-servers", AdhocCommand({&DisconnectUserFromServerStep1, &DisconnectUserFromServerStep2, &DisconnectUserFromServerStep3}, "Disconnect from the selected IRC servers", false)},
     {"reload", AdhocCommand({&Reload}, "Reload biboumi’s configuration", true)}
   };
 

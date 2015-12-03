@@ -8,9 +8,9 @@
 class IrcMessage
 {
 public:
-  explicit IrcMessage(std::string&& line);
-  explicit IrcMessage(std::string&& prefix, std::string&& command, std::vector<std::string>&& args);
-  explicit IrcMessage(std::string&& command, std::vector<std::string>&& args);
+  IrcMessage(std::string&& line);
+  IrcMessage(std::string&& prefix, std::string&& command, std::vector<std::string>&& args);
+  IrcMessage(std::string&& command, std::vector<std::string>&& args);
   ~IrcMessage();
 
   std::string prefix;

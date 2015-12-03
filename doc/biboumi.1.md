@@ -410,6 +410,12 @@ Biboumi supports a few ad-hoc commands, as described in the XEP 0050.
     “Gateway shutdown” quit message, except that biboumi does not exit when
     using this ad-hoc command.
 
+  - disconnect-from-irc-servers: Disconnect a single user from one or more
+    IRC server.  The user is immediately disconnected by closing the socket,
+    no message is sent to the IRC server, but the user is of course notified
+    with an XMPP message.  The administrator can disconnect any user, while
+    the other users can only disconnect themselves.
+
 ### Raw IRC messages
 
 Biboumi tries to support as many IRC features as possible, but doesn’t

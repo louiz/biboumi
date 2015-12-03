@@ -690,3 +690,8 @@ void Bridge::trigger_on_irc_message(const std::string& irc_hostname, const IrcMe
         ++it;
     }
 }
+
+std::unordered_map<std::string, std::shared_ptr<IrcClient>>& Bridge::get_irc_clients()
+{
+  return this->irc_clients;
+}

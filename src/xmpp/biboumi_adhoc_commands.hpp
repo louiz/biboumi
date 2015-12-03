@@ -13,4 +13,8 @@ void DisconnectUserStep2(XmppComponent*, AdhocSession& session, XmlNode& command
 void ConfigureIrcServerStep1(XmppComponent*, AdhocSession& session, XmlNode& command_node);
 void ConfigureIrcServerStep2(XmppComponent*, AdhocSession& session, XmlNode& command_node);
 
+void DisconnectUserFromServerStep1(XmppComponent*, AdhocSession& session, XmlNode& command_node);
+void DisconnectUserFromServerStep2(XmppComponent*, AdhocSession& session, XmlNode& command_node);
+void DisconnectUserFromServerStep3(XmppComponent*, AdhocSession& session, XmlNode& command_node);
+
 #endif /* BIBOUMI_ADHOC_COMMANDS_HPP_INCLUDED */
