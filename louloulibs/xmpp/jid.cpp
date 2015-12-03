@@ -30,8 +30,6 @@ Jid::Jid(const std::string& jid)
   this->domain = jid.substr(at, slash - at);
 }
 
-#include <iostream>
-
 static constexpr size_t max_jid_part_len = 1023;
 
 std::string jidprep(const std::string& original)

@@ -16,17 +16,15 @@ class AdhocSession;
  * A function executed as an ad-hoc command step. It takes a <command/>
  * XmlNode and modifies it accordingly (inserting for example an <error/>
  * node, or a data form…).
- * TODO fix this:
- * It also must call one of step_passed(), cancel() etc on the AdhocSession object.
  */
-typedef std::function<void(XmppComponent*, AdhocSession&, XmlNode&)> AdhocStep;
+using AdhocStep = std::function<void(XmppComponent*, AdhocSession&, XmlNode&)>;
 
 class AdhocSession
 {
 public:
   explicit AdhocSession(const AdhocCommand& command, const std::string& owner_jid,
                         const std::string& to_jid);
-  ~AdhocSession();
+  ~AdhocSession() = default;
   /**
    * Return the function to be executed, found in our AdhocCommand, for the
    * current_step. And increment the current_step.
@@ -51,7 +49,6 @@ public:
   {
     return this->owner_jid;
   }
-
 
 private:
   /**

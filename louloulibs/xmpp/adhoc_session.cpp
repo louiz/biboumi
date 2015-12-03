@@ -13,10 +13,6 @@ AdhocSession::AdhocSession(const AdhocCommand& command, const std::string& owner
 {
 }
 
-AdhocSession::~AdhocSession()
-{
-}
-
 const AdhocStep& AdhocSession::get_next_step()
 {
   assert(this->current_step < this->command.callbacks.size());
