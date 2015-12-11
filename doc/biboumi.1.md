@@ -47,6 +47,12 @@ The configuration file uses a simple format of the form
   This password must be configured in the XMPP server, associated with the
   external component on *hostname*.
 
+`xmpp_server_ip`
+
+  The IP address to connect to the XMPP server on. The connection to the XMPP
+  server is unencrypted, so the biboumi instance and the server should normally
+  be on the same host. The default value is 127.0.0.1.
+
 `port`
 
   The TCP port to use to connect to the local XMPP component. The default

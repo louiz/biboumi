@@ -61,7 +61,7 @@ XmppComponent::XmppComponent(std::shared_ptr<Poller> poller, const std::string& 
 
 void XmppComponent::start()
 {
-  this->connect("127.0.0.1", Config::get("port", "5347"), false);
+  this->connect(Config::get("xmpp_server_ip", "127.0.0.1"), Config::get("port", "5347"), false);
 }
 
 bool XmppComponent::is_document_open() const
