@@ -29,7 +29,7 @@ public:
   explicit IrcClient(std::shared_ptr<Poller> poller, const std::string& hostname,
                      const std::string& nickname, const std::string& username,
                      const std::string& realname, const std::string& user_hostname,
-                     Bridge* bridge);
+                     Bridge& bridge);
   ~IrcClient();
   /**
    * Connect to the IRC server
@@ -281,9 +281,9 @@ private:
    */
   std::string current_nick;
   /**
-   * Raw pointer because the bridge owns us.
+   * To communicate back with the bridge
    */
-  Bridge* bridge;
+  Bridge& bridge;
   /**
    * The list of joined channels, indexed by name
    */

@@ -488,7 +488,7 @@ Bridge* BiboumiComponent::get_user_bridge(const std::string& user_jid)
     }
   catch (const std::out_of_range& exception)
     {
-      this->bridges.emplace(user_jid, std::make_unique<Bridge>(user_jid, this, this->poller));
+      this->bridges.emplace(user_jid, std::make_unique<Bridge>(user_jid, *this, this->poller));
       return this->bridges.at(user_jid).get();
     }
 }
