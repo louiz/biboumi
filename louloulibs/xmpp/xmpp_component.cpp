@@ -45,7 +45,7 @@ XmppComponent::XmppComponent(std::shared_ptr<Poller> poller, const std::string& 
   doc_open(false),
   served_hostname(hostname),
   stanza_handlers{},
-  adhoc_commands_handler(this)
+  adhoc_commands_handler(*this)
 {
   this->parser.add_stream_open_callback(std::bind(&XmppComponent::on_remote_stream_open, this,
                                                   std::placeholders::_1));

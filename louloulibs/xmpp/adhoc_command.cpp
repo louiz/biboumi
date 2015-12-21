@@ -20,7 +20,7 @@ bool AdhocCommand::is_admin_only() const
   return this->admin_only;
 }
 
-void PingStep1(XmppComponent*, AdhocSession&, XmlNode& command_node)
+void PingStep1(XmppComponent&, AdhocSession&, XmlNode& command_node)
 {
   XmlNode note("note");
   note["type"] = "info";
@@ -28,7 +28,7 @@ void PingStep1(XmppComponent*, AdhocSession&, XmlNode& command_node)
   command_node.add_child(std::move(note));
 }
 
-void HelloStep1(XmppComponent*, AdhocSession&, XmlNode& command_node)
+void HelloStep1(XmppComponent&, AdhocSession&, XmlNode& command_node)
 {
   XmlNode x("jabber:x:data:x");
   x["type"] = "form";
@@ -48,11 +48,10 @@ void HelloStep1(XmppComponent*, AdhocSession&, XmlNode& command_node)
   command_node.add_child(std::move(x));
 }
 
-void HelloStep2(XmppComponent*, AdhocSession& session, XmlNode& command_node)
+void HelloStep2(XmppComponent&, AdhocSession& session, XmlNode& command_node)
 {
   // Find out if the name was provided in the form.
-  const XmlNode* x = command_node.get_child("x", "jabber:x:data");
-  if (x)
+  if (const XmlNode* x = command_node.get_child("x", "jabber:x:data"))
     {
       const XmlNode* name_field = nullptr;
       for (const XmlNode* field: x->get_children("field", "jabber:x:data"))
@@ -63,8 +62,7 @@ void HelloStep2(XmppComponent*, AdhocSession& session, XmlNode& command_node)
           }
       if (name_field)
         {
-          const XmlNode* value = name_field->get_child("value", "jabber:x:data");
-          if (value)
+          if (const XmlNode* value = name_field->get_child("value", "jabber:x:data"))
             {
               XmlNode note("note");
               note["type"] = "info";
@@ -84,7 +82,7 @@ void HelloStep2(XmppComponent*, AdhocSession& session, XmlNode& command_node)
   session.terminate();
 }
 
-void Reload(XmppComponent*, AdhocSession&, XmlNode& command_node)
+void Reload(XmppComponent&, AdhocSession&, XmlNode& command_node)
 {
   ::reload_process();
   command_node.delete_all_children();

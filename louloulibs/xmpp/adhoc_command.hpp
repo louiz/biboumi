@@ -35,9 +35,9 @@ private:
   const bool admin_only;
 };
 
-void PingStep1(XmppComponent*, AdhocSession& session, XmlNode& command_node);
-void HelloStep1(XmppComponent*, AdhocSession& session, XmlNode& command_node);
-void HelloStep2(XmppComponent*, AdhocSession& session, XmlNode& command_node);
-void Reload(XmppComponent*, AdhocSession& session, XmlNode& command_node);
+void PingStep1(XmppComponent&, AdhocSession& session, XmlNode& command_node);
+void HelloStep1(XmppComponent&, AdhocSession& session, XmlNode& command_node);
+void HelloStep2(XmppComponent&, AdhocSession& session, XmlNode& command_node);
+void Reload(XmppComponent&, AdhocSession& session, XmlNode& command_node);
 
 #endif // ADHOC_COMMAND_HPP

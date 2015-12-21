@@ -17,7 +17,7 @@ class AdhocSession;
  * XmlNode and modifies it accordingly (inserting for example an <error/>
  * node, or a data form…).
  */
-using AdhocStep = std::function<void(XmppComponent*, AdhocSession&, XmlNode&)>;
+using AdhocStep = std::function<void(XmppComponent&, AdhocSession&, XmlNode&)>;
 
 class AdhocSession
 {

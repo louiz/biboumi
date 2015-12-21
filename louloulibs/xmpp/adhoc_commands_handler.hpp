@@ -16,7 +16,7 @@
 class AdhocCommandsHandler
 {
 public:
-  explicit AdhocCommandsHandler(XmppComponent* xmpp_component):
+  explicit AdhocCommandsHandler(XmppComponent& xmpp_component):
     xmpp_component(xmpp_component),
     commands{}
   { }
@@ -50,10 +50,9 @@ public:
   void remove_session(const std::string& session_id, const std::string& initiator_jid);
 private:
   /**
-   * A pointer to the XmppComponent, to access to basically anything in the
-   * gateway.
+   * To access basically anything in the gateway.
    */
-  XmppComponent* xmpp_component;
+  XmppComponent& xmpp_component;
   /**
    * The list of all available commands.
    */
