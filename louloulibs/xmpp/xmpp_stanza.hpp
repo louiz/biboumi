@@ -96,6 +96,7 @@ public:
   XmlNode* get_last_child() const;
   XmlNode* get_parent() const;
   void set_name(const std::string& name);
+  void set_name(std::string&& name);
   const std::string get_name() const;
   /**
    * Serialize the stanza into a string
@@ -110,7 +111,7 @@ public:
    * Gets the value for the given attribute, returns an empty string if the
    * node as no such attribute.
    */
-  const std::string get_tag(const std::string& name) const;
+  const std::string& get_tag(const std::string& name) const;
   /**
    * Remove the attribute of the node. Does nothing if that attribute is not
    * present. Returns true if the tag was removed, false if it was absent.
@@ -133,13 +134,13 @@ private:
   XmlNode& operator=(XmlNode&&) = delete;
 };
 
+std::ostream& operator<<(std::ostream& os, const XmlNode& node);
+
 /**
  * An XMPP stanza is just an XML node of level 2 in the XMPP document (the
  * level 1 ones are the <stream::stream/>, and the ones above 2 are just the
  * content of the stanzas)
  */
-typedef XmlNode Stanza;
-
-std::ostream& operator<<(std::ostream& os, const XmlNode& node);
+using Stanza = XmlNode;
 
 #endif // XMPP_STANZA_INCLUDED

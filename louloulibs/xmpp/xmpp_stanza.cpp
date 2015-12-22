@@ -199,6 +199,11 @@ void XmlNode::set_name(const std::string& name)
   this->name = name;
 }
 
+void XmlNode::set_name(std::string&& name)
+{
+  this->name = std::move(name);
+}
+
 const std::string XmlNode::get_name() const
 {
   return this->name;
@@ -228,7 +233,7 @@ bool XmlNode::has_children() const
   return !this->children.empty();
 }
 
-const std::string XmlNode::get_tag(const std::string& name) const
+const std::string& XmlNode::get_tag(const std::string& name) const
 {
   try
     {
@@ -237,7 +242,8 @@ const std::string XmlNode::get_tag(const std::string& name) const
     }
   catch (const std::out_of_range& e)
     {
-      return "";
+      static const std::string def{};
+      return def;
     }
 }
 

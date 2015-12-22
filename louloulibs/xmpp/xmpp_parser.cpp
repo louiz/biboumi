@@ -124,12 +124,12 @@ void XmppParser::end_element(const XML_Char*)
     }
 }
 
-void XmppParser::char_data(const XML_Char* data, int len)
+void XmppParser::char_data(const XML_Char* data, const size_t len)
 {
   if (this->current_node->has_children())
-    this->current_node->get_last_child()->add_to_tail(std::string(data, len));
+    this->current_node->get_last_child()->add_to_tail({data, len});
   else
-    this->current_node->add_to_inner(std::string(data, len));
+    this->current_node->add_to_inner({data, len});
 }
 
 void XmppParser::stanza_event(const Stanza& stanza) const

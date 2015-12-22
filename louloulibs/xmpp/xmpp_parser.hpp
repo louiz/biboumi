@@ -82,7 +82,7 @@ public:
   /**
    * Some inner or tail data has been parsed
    */
-  void char_data(const XML_Char* data, int len);
+  void char_data(const XML_Char* data, const size_t len);
   /**
    * Calls all the stanza_callbacks one by one.
    */

@@ -7,7 +7,7 @@
  * If you want to exit if the file does not exist when it is open for
  * reading, set Config::file_must_exist = true.
  *
- * Config::get() can the be used to access the values in the conf.
+ * Config::get() can then be used to access the values in the conf.
  *
  * Use Config::close() when you're done getting/setting value. This will
  * save the config into the file.
@@ -33,35 +33,29 @@ public:
   /**
    * returns a value from the config. If it doesn’t exist, use
    * the second argument as the default.
-   * @param option The option we want
-   * @param def The default value in case the option does not exist
    */
   static std::string get(const std::string&, const std::string&);
   /**
    * returns a value from the config. If it doesn’t exist, use
    * the second argument as the default.
-   * @param option The option we want
-   * @param def The default value in case the option does not exist
    */
   static int get_int(const std::string&, const int&);
   /**
    * Set a value for the given option. And write all the config
-   * in the file from which it was read if boolean is set.
-   * @param option The option to set
-   * @param value The value to use
-   * @param save if true, save the config file
+   * in the file from which it was read if save is true.
    */
   static void set(const std::string&, const std::string&, bool save = false);
   /**
    * Adds a function to a list. This function will be called whenever a
-   * configuration change occurs.
+   * configuration change occurs (when set() is called, or when the initial
+   * conf is read)
    */
   static void connect(t_config_changed_callback);
   /**
-   * Close the config file, saving it to the file is save == true.
+   * Destroy the instance, forcing it to be recreated (with potentially
+   * different parameters) the next time it’s needed.
    */
   static void close();
-
   /**
    * Set the value of the filename to use, before calling any method.
    */
