@@ -16,6 +16,10 @@
 # include <network/dns_handler.hpp>
 #endif
 
+#ifdef SYSTEMD_FOUND
+# include <systemd/sd-daemon.h>
+#endif
+
 // A flag set by the SIGINT signal handler.
 static volatile std::atomic<bool> stop(false);
 // Flag set by the SIGUSR1/2 signal handler.
@@ -136,6 +140,9 @@ int main(int ac, char** av)
     if (stop)
     {
       log_info("Signal received, exiting...");
+#ifdef SYSTEMD_FOUND
+      sd_notify(0, "STOPPING=1");
+#endif
       exiting = true;
       stop.store(false);
       xmpp_component->shutdown();
