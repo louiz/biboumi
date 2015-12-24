@@ -14,9 +14,27 @@
         <field name="realname" type="string" length="1024" default=""/>
         <field name="verifyCert" type="boolean" default="true"/>
 
+        <field name="encodingOut" type="string" default="utf-8"/>
+        <field name="encodingIn"  type="string" default="utf-8"/>
+
         <index unique="true">
             <indexfield name="owner"/>
             <indexfield name="server"/>
+        </index>
+    </object>
+
+    <object name="IrcChannelOptions">
+        <field name="owner" type="string" length="3071"/>
+        <field name="server" type="string" length="3071"/>
+        <field name="channel" type="string" length="1024"/>
+
+        <field name="encodingOut" type="string"/>
+        <field name="encodingIn"  type="string"/>
+
+        <index unique="true">
+            <indexfield name="owner"/>
+            <indexfield name="server"/>
+            <indexfield name="channel"/>
         </index>
     </object>
 

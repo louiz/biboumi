@@ -29,6 +29,12 @@ public:
    */
   static db::IrcServerOptions get_irc_server_options(const std::string& owner,
                                                      const std::string& server);
+  static db::IrcChannelOptions get_irc_channel_options(const std::string& owner,
+                                                       const std::string& server,
+                                                       const std::string& channel);
+  static db::IrcChannelOptions get_irc_channel_options_with_server_default(const std::string& owner,
+                                                                           const std::string& server,
+                                                                           const std::string& channel);
 
   static void close();
 
