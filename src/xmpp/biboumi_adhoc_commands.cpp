@@ -312,6 +312,96 @@ void ConfigureIrcServerStep2(XmppComponent&, AdhocSession& session, XmlNode& com
   command_node.add_child(std::move(error));
   session.terminate();
 }
+
+void ConfigureIrcChannelStep1(XmppComponent&, AdhocSession& session, XmlNode& command_node)
+{
+  const Jid owner(session.get_owner_jid());
+  const Jid target(session.get_target_jid());
+  const Iid iid(target.local);
+  auto options = Database::get_irc_channel_options_with_server_default(owner.local + "@" + owner.domain,
+                                                                       iid.get_server(), iid.get_local());
+
+  XmlNode x("jabber:x:data:x");
+  x["type"] = "form";
+  XmlNode title("title");
+  title.set_inner("Configure the IRC channel "s + iid.get_local() + " on server "s + iid.get_server());
+  x.add_child(std::move(title));
+  XmlNode instructions("instructions");
+  instructions.set_inner("Edit the form, to configure the settings of the IRC channel "s + iid.get_local());
+  x.add_child(std::move(instructions));
+
+  XmlNode required("required");
+
+  XmlNode encoding_out("field");
+  encoding_out["var"] = "encoding_out";
+  encoding_out["type"] = "text-single";
+  encoding_out["desc"] = "The encoding used when sending messages to the IRC server. Defaults to the server's “out encoding” if unset for the channel";
+  encoding_out["label"] = "Out encoding";
+  if (!options.encodingOut.value().empty())
+    {
+      XmlNode encoding_out_value("value");
+      encoding_out_value.set_inner(options.encodingOut.value());
+      encoding_out.add_child(std::move(encoding_out_value));
+    }
+  encoding_out.add_child(required);
+  x.add_child(std::move(encoding_out));
+
+  XmlNode encoding_in("field");
+  encoding_in["var"] = "encoding_in";
+  encoding_in["type"] = "text-single";
+  encoding_in["desc"] = "The encoding used to decode message received from the IRC server. Defaults to the server's “in encoding” if unset for the channel";
+  encoding_in["label"] = "In encoding";
+  if (!options.encodingIn.value().empty())
+    {
+      XmlNode encoding_in_value("value");
+      encoding_in_value.set_inner(options.encodingIn.value());
+      encoding_in.add_child(std::move(encoding_in_value));
+    }
+  encoding_in.add_child(required);
+  x.add_child(std::move(encoding_in));
+
+  command_node.add_child(std::move(x));
+}
+
+void ConfigureIrcChannelStep2(XmppComponent&, AdhocSession& session, XmlNode& command_node)
+{
+  const XmlNode* x = command_node.get_child("x", "jabber:x:data");
+  if (x)
+    {
+      const Jid owner(session.get_owner_jid());
+      const Jid target(session.get_target_jid());
+      const Iid iid(target.local);
+      auto options = Database::get_irc_channel_options(owner.local + "@" + owner.domain,
+                                                       iid.get_server(), iid.get_local());
+      for (const XmlNode* field: x->get_children("field", "jabber:x:data"))
+        {
+          const XmlNode* value = field->get_child("value", "jabber:x:data");
+
+          if (field->get_tag("var") == "encoding_out" &&
+                   value && !value->get_inner().empty())
+            options.encodingOut = value->get_inner();
+
+          else if (field->get_tag("var") == "encoding_in" &&
+                   value && !value->get_inner().empty())
+            options.encodingIn = value->get_inner();
+        }
+
+      options.update();
+
+      command_node.delete_all_children();
+      XmlNode note("note");
+      note["type"] = "info";
+      note.set_inner("Configuration successfully applied.");
+      command_node.add_child(std::move(note));
+      return;
+    }
+  XmlNode error(ADHOC_NS":error");
+  error["type"] = "modify";
+  XmlNode condition(STANZA_NS":bad-request");
+  error.add_child(std::move(condition));
+  command_node.add_child(std::move(error));
+  session.terminate();
+}
 #endif  // USE_DATABASE
 
 void DisconnectUserFromServerStep1(XmppComponent& xmpp_component, AdhocSession& session, XmlNode& command_node)

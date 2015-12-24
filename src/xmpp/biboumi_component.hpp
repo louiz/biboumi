@@ -98,6 +98,7 @@ private:
   std::unordered_map<std::string, std::unique_ptr<Bridge>> bridges;
 
   AdhocCommandsHandler irc_server_adhoc_commands_handler;
+  AdhocCommandsHandler irc_channel_adhoc_commands_handler;
 
   BiboumiComponent(const BiboumiComponent&) = delete;
   BiboumiComponent(BiboumiComponent&&) = delete;

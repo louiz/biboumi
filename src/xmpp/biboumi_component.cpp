@@ -43,7 +43,8 @@ static std::set<std::string> kickable_errors{
 
 BiboumiComponent::BiboumiComponent(std::shared_ptr<Poller> poller, const std::string& hostname, const std::string& secret):
   XmppComponent(poller, hostname, secret),
-  irc_server_adhoc_commands_handler(*this)
+  irc_server_adhoc_commands_handler(*this),
+  irc_channel_adhoc_commands_handler(*this)
 {
   this->stanza_handlers.emplace("presence",
                                 std::bind(&BiboumiComponent::handle_presence, this,std::placeholders::_1));
@@ -64,6 +65,9 @@ BiboumiComponent::BiboumiComponent(std::shared_ptr<Poller> poller, const std::st
 #ifdef USE_DATABASE
     {"configure", AdhocCommand({&ConfigureIrcServerStep1, &ConfigureIrcServerStep2}, "Configure a few settings for that IRC server", false)},
 #endif
+  };
+  this->irc_channel_adhoc_commands_handler.get_commands() = {
+    {"configure", AdhocCommand({&ConfigureIrcChannelStep1, &ConfigureIrcChannelStep2}, "Configure a few settings for that IRC channel", false)},
   };
 }
 
@@ -331,6 +335,8 @@ void BiboumiComponent::handle_iq(const Stanza& stanza)
           AdhocCommandsHandler* adhoc_handler;
           if (!to.local.empty() && !iid.is_user && !iid.is_channel)
             adhoc_handler = &this->irc_server_adhoc_commands_handler;
+          else if (!to.local.empty() && iid.is_channel)
+            adhoc_handler = &this->irc_channel_adhoc_commands_handler;
           else
             adhoc_handler = &this->adhoc_commands_handler;
 
@@ -405,6 +411,14 @@ void BiboumiComponent::handle_iq(const Stanza& stanza)
                                                  (Config::get("admin", "") ==
                                                   from_jid.bare()),
                                                  this->irc_server_adhoc_commands_handler);
+                  stanza_error.disable();
+                }
+              else if (!iid.is_user && iid.is_channel)
+                {               // Get the channel's adhoc commands
+                  this->send_adhoc_commands_list(id, from, to_str,
+                                                 (Config::get("admin", "") ==
+                                                  from_jid.bare()),
+                                                 this->irc_channel_adhoc_commands_handler);
                   stanza_error.disable();
                 }
             }
