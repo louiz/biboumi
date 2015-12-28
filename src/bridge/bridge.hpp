@@ -49,7 +49,7 @@ public:
   const std::string& get_jid() const;
   std::string get_bare_jid() const;
 
-  static Xmpp::body make_xmpp_body(const std::string& str);
+  static Xmpp::body make_xmpp_body(const std::string& str, const std::string& encodin = "ISO-8859-1");
   /***
    **
    ** From XMPP to IRC.
@@ -108,7 +108,7 @@ public:
 
   /**
    * Send a message corresponding to a server NOTICE, the from attribute
-   * should be juste the server hostname@irc.component.
+   * should be juste the server hostname.
    */
   void send_xmpp_message(const std::string& from, const std::string& author, const std::string& msg);
   /**

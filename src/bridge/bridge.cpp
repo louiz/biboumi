@@ -9,10 +9,34 @@
 #include <utils/revstr.hpp>
 #include <utils/split.hpp>
 #include <xmpp/jid.hpp>
+#include <database/database.hpp>
 
 using namespace std::string_literals;
 
 static const char* action_prefix = "\01ACTION ";
+
+
+static std::string out_encoding_for(const Bridge& bridge, const Iid& iid)
+{
+#ifdef USE_DATABASE
+  const auto jid = bridge.get_bare_jid();
+  auto options = Database::get_irc_channel_options_with_server_default(jid, iid.get_server(), iid.get_local());
+  return options.encodingOut.value();
+#else
+  return {"ISO-8859-1"};
+#endif
+}
+
+static std::string in_encoding_for(const Bridge& bridge, const Iid& iid)
+{
+#ifdef USE_DATABASE
+  const auto jid = bridge.get_bare_jid();
+  auto options = Database::get_irc_channel_options_with_server_default(jid, iid.get_server(), iid.get_local());
+  return options.encodingIn.value();
+#else
+  return {"ISO-8859-1"};
+#endif
+}
 
 Bridge::Bridge(const std::string& user_jid, BiboumiComponent& xmpp, std::shared_ptr<Poller> poller):
   user_jid(user_jid),
@@ -75,13 +99,13 @@ std::string Bridge::get_bare_jid() const
   return jid.local + "@" + jid.domain;
 }
 
-Xmpp::body Bridge::make_xmpp_body(const std::string& str)
+Xmpp::body Bridge::make_xmpp_body(const std::string& str, const std::string& encoding)
 {
   std::string res;
   if (utils::is_valid_utf8(str.c_str()))
     res = str;
   else
-    res = utils::convert_to_utf8(str, "ISO-8859-1");
+    res = utils::convert_to_utf8(str, encoding.data());
   return irc_format_to_xhtmlim(res);
 }
 
@@ -531,9 +555,10 @@ void Bridge::send_irc_version_request(const std::string& irc_hostname, const std
 
 void Bridge::send_message(const Iid& iid, const std::string& nick, const std::string& body, const bool muc)
 {
+  const auto encoding = in_encoding_for(*this, iid);
   if (muc)
     this->xmpp.send_muc_message(std::to_string(iid), nick,
-                                 this->make_xmpp_body(body), this->user_jid);
+                                 this->make_xmpp_body(body, encoding), this->user_jid);
   else
     {
       std::string target = std::to_string(iid);
@@ -544,7 +569,7 @@ void Bridge::send_message(const Iid& iid, const std::string& nick, const std::st
           target = it->second;
           fulljid = true;
         }
-      this->xmpp.send_message(target, this->make_xmpp_body(body),
+      this->xmpp.send_message(target, this->make_xmpp_body(body, encoding),
                                this->user_jid, "chat", fulljid);
     }
 }
@@ -590,7 +615,9 @@ void Bridge::send_xmpp_message(const std::string& from, const std::string& autho
     }
   else
     body = msg;
-  this->xmpp.send_message(from, this->make_xmpp_body(body), this->user_jid, "chat");
+
+  const auto encoding = in_encoding_for(*this, {from});
+  this->xmpp.send_message(from, this->make_xmpp_body(body, encoding), this->user_jid, "chat");
 }
 
 void Bridge::send_user_join(const std::string& hostname,
@@ -609,7 +636,8 @@ void Bridge::send_user_join(const std::string& hostname,
 
 void Bridge::send_topic(const std::string& hostname, const std::string& chan_name, const std::string& topic)
 {
-  this->xmpp.send_topic(chan_name + utils::empty_if_fixed_server("%" + hostname), this->make_xmpp_body(topic), this->user_jid);
+  const auto encoding = in_encoding_for(*this, {chan_name + '%' + hostname});
+  this->xmpp.send_topic(chan_name + utils::empty_if_fixed_server("%" + hostname), this->make_xmpp_body(topic, encoding), this->user_jid);
 }
 
 std::string Bridge::get_own_nick(const Iid& iid)

@@ -8,7 +8,7 @@
 
 std::string xml_escape(const std::string& data);
 std::string xml_unescape(const std::string& data);
-std::string sanitize(const std::string& data);
+std::string sanitize(const std::string& data, const std::string& encoding = "ISO-8859-1");
 
 /**
  * Represent an XML node. It has

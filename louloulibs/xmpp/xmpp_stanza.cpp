@@ -84,6 +84,14 @@ std::string xml_unescape(const std::string& data)
   return res;
 }
 
+std::string sanitize(const std::string& data, const std::string& encoding)
+{
+  if (utils::is_valid_utf8(data.data()))
+    return xml_escape(utils::remove_invalid_xml_chars(data));
+  else
+    return xml_escape(utils::remove_invalid_xml_chars(utils::convert_to_utf8(data, encoding.data())));
+}
+
 XmlNode::XmlNode(const std::string& name, XmlNode* parent):
   parent(parent)
 {
@@ -257,14 +265,6 @@ bool XmlNode::del_tag(const std::string& name)
 std::string& XmlNode::operator[](const std::string& name)
 {
   return this->attributes[name];
-}
-
-std::string sanitize(const std::string& data)
-{
-  if (utils::is_valid_utf8(data.data()))
-    return xml_escape(utils::remove_invalid_xml_chars(data));
-  else
-    return xml_escape(utils::remove_invalid_xml_chars(utils::convert_to_utf8(data, "ISO-8859-1")));
 }
 
 std::ostream& operator<<(std::ostream& os, const XmlNode& node)

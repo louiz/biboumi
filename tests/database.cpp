@@ -83,6 +83,12 @@ TEST_CASE("Database")
             THEN("we get the channel option")
               CHECK(r.encodingIn == "channelEncoding");
           }
+        WHEN("we fetch that option, with no channel specified")
+          {
+            auto r = Database::get_irc_channel_options_with_server_default(owner, server, "");
+            THEN("we get the server option")
+              CHECK(r.encodingIn == "serverEncoding");
+          }
         }
     }
 
