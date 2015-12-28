@@ -233,6 +233,35 @@ void ConfigureIrcServerStep1(XmppComponent&, AdhocSession& session, XmlNode& com
       x.add_child(std::move(realname));
     }
 
+  XmlNode encoding_out("field");
+  encoding_out["var"] = "encoding_out";
+  encoding_out["type"] = "text-single";
+  encoding_out["desc"] = "The encoding used when sending messages to the IRC server.";
+  encoding_out["label"] = "Out encoding";
+  if (!options.encodingOut.value().empty())
+    {
+      XmlNode encoding_out_value("value");
+      encoding_out_value.set_inner(options.encodingOut.value());
+      encoding_out.add_child(std::move(encoding_out_value));
+    }
+  encoding_out.add_child(required);
+  x.add_child(std::move(encoding_out));
+
+  XmlNode encoding_in("field");
+  encoding_in["var"] = "encoding_in";
+  encoding_in["type"] = "text-single";
+  encoding_in["desc"] = "The encoding used to decode message received from the IRC server.";
+  encoding_in["label"] = "In encoding";
+  if (!options.encodingIn.value().empty())
+    {
+      XmlNode encoding_in_value("value");
+      encoding_in_value.set_inner(options.encodingIn.value());
+      encoding_in.add_child(std::move(encoding_in_value));
+    }
+  encoding_in.add_child(required);
+  x.add_child(std::move(encoding_in));
+
+
   command_node.add_child(std::move(x));
 }
 
@@ -294,6 +323,15 @@ void ConfigureIrcServerStep2(XmppComponent&, AdhocSession& session, XmlNode& com
           else if (field->get_tag("var") == "realname" &&
                    value && !value->get_inner().empty())
             options.realname = value->get_inner();
+
+          else if (field->get_tag("var") == "encoding_out" &&
+                   value && !value->get_inner().empty())
+            options.encodingOut = value->get_inner();
+
+          else if (field->get_tag("var") == "encoding_in" &&
+                   value && !value->get_inner().empty())
+            options.encodingIn = value->get_inner();
+
         }
 
       options.update();
