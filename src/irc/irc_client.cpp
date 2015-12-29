@@ -151,6 +151,9 @@ void IrcClient::on_connected()
         }
     }
 
+  this->send_message({"CAP", {"REQ", "multi-prefix"}});
+  this->send_message({"CAP", {"END"}});
+
 #ifdef USE_DATABASE
   auto options = Database::get_irc_server_options(this->bridge.get_bare_jid(),
                                                   this->get_hostname());

@@ -7,8 +7,20 @@ IrcUser::IrcUser(const std::string& name,
 {
   if (name.empty())
     return ;
-  const std::map<char, char>::const_iterator prefix = prefix_to_mode.find(name[0]);
-  const std::string::size_type name_begin = prefix == prefix_to_mode.end()? 0: 1;
+
+  // One or more prefix (with multi-prefix support) may come before the
+  // actual nick
+  std::string::size_type name_begin = 0;
+  while (name_begin != name.size())
+    {
+      const auto prefix = prefix_to_mode.find(name[name_begin]);
+      // This is not a prefix
+      if (prefix == prefix_to_mode.end())
+        break;
+      this->modes.insert(prefix->second);
+      name_begin++;
+    }
+
   const std::string::size_type sep = name.find("!", name_begin);
   if (sep == std::string::npos)
     this->nick = name.substr(name_begin);
@@ -17,8 +29,6 @@ IrcUser::IrcUser(const std::string& name,
       this->nick = name.substr(name_begin, sep-name_begin);
       this->host = name.substr(sep+1);
     }
-  if (prefix != prefix_to_mode.end())
-    this->modes.insert(prefix->second);
 }
 
 IrcUser::IrcUser(const std::string& name):

@@ -8,7 +8,6 @@
 TEST_CASE("Irc user parsing")
 {
   const std::map<char, char> prefixes{{'!', 'a'}, {'@', 'o'}};
-
   IrcUser user1("!nick!~some@host.bla", prefixes);
   CHECK(user1.nick == "nick");
   CHECK(user1.host == "~some@host.bla");
@@ -20,6 +19,15 @@ TEST_CASE("Irc user parsing")
   CHECK(user2.host == "~other@host.bla");
   CHECK(user2.modes.empty());
   CHECK(user2.modes.find('a') == user2.modes.end());
+}
+
+TEST_CASE("multi-prefix")
+{
+  const std::map<char, char> prefixes{{'!', 'a'}, {'@', 'o'}, {'~', 'f'}};
+  IrcUser user("!@~nick", prefixes);
+  CHECK(user.nick == "nick");
+  CHECK(user.modes.size() == 3);
+  CHECK(user.modes.find('f') != user.modes.end());
 }
 
 /**
