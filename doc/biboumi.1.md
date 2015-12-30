@@ -401,6 +401,9 @@ Affiliation set to `owner`
 ### Ad-hoc commands
 
 Biboumi supports a few ad-hoc commands, as described in the XEP 0050.
+Different ad-hoc commands are available for each JID type.
+
+#### On the gateway itself (e.g on the JID biboumi.example.com):
 
   - ping: Just respond “pong”
 
@@ -420,6 +423,20 @@ Biboumi supports a few ad-hoc commands, as described in the XEP 0050.
     no message is sent to the IRC server, but the user is of course notified
     with an XMPP message.  The administrator can disconnect any user, while
     the other users can only disconnect themselves.
+
+#### On a server JID (e.g on the JID chat.freenode.org@biboumi.example.com)
+
+  - Configure: Lets each user configure some options that applies to the
+    concerned IRC server.
+
+#### On a channel JID (e.g on the JID #test%chat.freenode.org@biboumi.example.com)
+
+  - Configure: Lets each user configure some options that applies to the
+    concerned IRC channel.  Some of these options, if not configured for a
+    specific channel, defaults to the value configured at the IRC server
+    level.  For example the encoding can be specified for both the channel
+    and the server.  If an encoding is not specified for a channel, the
+    encoding configured in the server applies.
 
 ### Raw IRC messages
 
