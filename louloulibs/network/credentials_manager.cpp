@@ -26,9 +26,15 @@ bool Basic_Credentials_Manager::certs_loaded = false;
 
 Basic_Credentials_Manager::Basic_Credentials_Manager(const TCPSocketHandler* const socket_handler):
     Botan::Credentials_Manager(),
-    socket_handler(socket_handler)
+    socket_handler(socket_handler),
+    trusted_fingerprint{}
 {
   this->load_certs();
+}
+
+void Basic_Credentials_Manager::set_trusted_fingerprint(const std::string& fingerprint)
+{
+  this->trusted_fingerprint = fingerprint;
 }
 
 void Basic_Credentials_Manager::verify_certificate_chain(const std::string& type,
@@ -44,6 +50,13 @@ void Basic_Credentials_Manager::verify_certificate_chain(const std::string& type
   catch (const std::exception& tls_exception)
     {
       log_warning("TLS certificate check failed: " << tls_exception.what());
+      if (!this->trusted_fingerprint.empty() && !certs.empty() &&
+          this->trusted_fingerprint == certs[0].fingerprint() &&
+          certs[0].matches_dns_name(purported_hostname))
+        // We trust the certificate, based on the trusted fingerprint and
+        // the fact that the hostname matches
+        return;
+
       if (this->socket_handler->abort_on_invalid_cert())
         throw;
     }

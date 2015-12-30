@@ -175,6 +175,19 @@ void ConfigureIrcServerStep1(XmppComponent&, AdhocSession& session, XmlNode& com
     verify_cert_value.set_inner("false");
   verify_cert.add_child(std::move(verify_cert_value));
   x.add_child(std::move(verify_cert));
+
+  XmlNode fingerprint("field");
+  fingerprint["var"] = "fingerprint";
+  fingerprint["type"] = "text-single";
+  fingerprint["label"] = "SHA-1 fingerprint of the TLS certificate to trust.";
+  if (!options.trustedFingerprint.value().empty())
+    {
+      XmlNode fingerprint_value("value");
+      fingerprint_value.set_inner(options.trustedFingerprint.value());
+      fingerprint.add_child(std::move(fingerprint_value));
+    }
+  fingerprint.add_child(required);
+  x.add_child(std::move(fingerprint));
 #endif
 
   XmlNode pass("field");
@@ -295,12 +308,19 @@ void ConfigureIrcServerStep2(XmppComponent&, AdhocSession& session, XmlNode& com
               options.tlsPorts = ports;
             }
 
-            else if (field->get_tag("var") == "verify_cert" && value
+          else if (field->get_tag("var") == "verify_cert" && value
               && !value->get_inner().empty())
             {
               auto val = to_bool(value->get_inner());
               options.verifyCert = val;
             }
+
+          else if (field->get_tag("var") == "fingerprint" && value &&
+                   !value->get_inner().empty())
+            {
+              options.trustedFingerprint = value->get_inner();
+            }
+
 #endif // BOTAN_FOUND
 
           else if (field->get_tag("var") == "pass" &&

@@ -89,6 +89,13 @@ void IrcClient::start()
 
   this->bind_addr = Config::get("outgoing_bind", "");
 
+#ifdef BOTAN_FOUND
+# ifdef USE_DATABASE
+  auto options = Database::get_irc_server_options(this->bridge.get_bare_jid(),
+                                                  this->get_hostname());
+  this->credential_manager.set_trusted_fingerprint(options.trustedFingerprint);
+# endif
+#endif
   this->connect(this->hostname, port, tls);
 }
 

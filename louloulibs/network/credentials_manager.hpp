@@ -19,6 +19,7 @@ public:
                                 const std::vector<Botan::X509_Certificate>&) override final;
   std::vector<Botan::Certificate_Store*> trusted_certificate_authorities(const std::string& type,
                                                                          const std::string& context) override final;
+  void set_trusted_fingerprint(const std::string& fingerprint);
 
 private:
   const TCPSocketHandler* const socket_handler;
@@ -26,6 +27,7 @@ private:
   static void load_certs();
   static Botan::Certificate_Store_In_Memory certificate_store;
   static bool certs_loaded;
+  std::string trusted_fingerprint;
 };
 
 #endif //BOTAN_FOUND
