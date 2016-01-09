@@ -67,7 +67,9 @@ BiboumiComponent::BiboumiComponent(std::shared_ptr<Poller> poller, const std::st
 #endif
   };
   this->irc_channel_adhoc_commands_handler.get_commands() = {
+#ifdef USE_DATABASE
     {"configure", AdhocCommand({&ConfigureIrcChannelStep1, &ConfigureIrcChannelStep2}, "Configure a few settings for that IRC channel", false)},
+#endif
   };
 }
 
