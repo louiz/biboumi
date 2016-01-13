@@ -49,14 +49,6 @@ LC_ALL=en_GB.utf-8 make doc
 %install
 make install DESTDIR=%{buildroot}
 
-# Default config file
-install -D -p -m 644 conf/biboumi.cfg \
-    %{buildroot}%{biboumi_confdir}/biboumi.cfg
-
-# Systemd unit file
-install -D -p -m 644 unit/%{name}.service \
-    %{buildroot}%{_unitdir}/%{name}.service
-
 
 %check
 make test_suite/fast VERBOSE=1
@@ -73,6 +65,10 @@ make test_suite/fast VERBOSE=1
 
 
 %changelog
+* Wed Jan 13 2016 Le Coz Florent <louiz@louiz.org> - 2.0-2
+- Do not install the systemd unit and configuration files, because
+  “make install” does it itself now
+
 * Fri May 29 2015 Le Coz Florent <louiz@louiz.org> - 2.0-1
 - Update to 2.0 sources
 

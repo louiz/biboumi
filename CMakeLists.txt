@@ -200,11 +200,10 @@ endif()
 #
 ## Install target
 #
-install(TARGETS ${PROJECT_NAME}
-  RUNTIME DESTINATION bin)
-if(WITH_DOC)
-  install(FILES ${MAN_PAGE} DESTINATION share/man/man1 OPTIONAL)
-endif()
+install(TARGETS ${PROJECT_NAME} RUNTIME                     DESTINATION bin)
+install(FILES   ${MAN_PAGE}                                 DESTINATION share/man/man1         OPTIONAL COMPONENT documentation)
+install(FILES   ${CMAKE_CURRENT_BINARY_DIR}/biboumi.service DESTINATION /etc/systemd/system    COMPONENT init)
+install(FILES   conf/biboumi.cfg                            DESTINATION /etc/biboumi           COMPONENT configuration)
 
 #
 ## Dist target
@@ -228,4 +227,11 @@ endif()
 add_custom_target(PrintBuildParameters ALL
   ${CMAKE_COMMAND} -E cmake_echo_color --cyan "Compiling ${PROJECT_NAME} with ${STR_WITH_BOTAN}, ${STR_WITH_CARES}")
 
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/biboumi.h.cmake ${CMAKE_BINARY_DIR}/src/biboumi.h)
+configure_file(biboumi.h.cmake src/biboumi.h)
+
+if(SYSTEMD_FOUND)
+  set(SYSTEMD_SERVICE_TYPE "notify")
+else()
+  set(SYSTEMD_SERVICE_TYPE "simple")
+endif()
+configure_file(unit/biboumi.service.cmake biboumi.service)
