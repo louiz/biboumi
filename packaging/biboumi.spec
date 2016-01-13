@@ -50,9 +50,7 @@ make install DESTDIR=%{buildroot}
 
 
 %check
-make test_suite/fast VERBOSE=1
-
-./test_suite || exit 1
+make check
 
 
 %files
