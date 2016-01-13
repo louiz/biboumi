@@ -222,6 +222,7 @@ add_custom_target(dist
   COMMAND rm -f ${CMAKE_CURRENT_BINARY_DIR}/${ARCHIVE_NAME}.tar.xz
   # Compress the archive
   COMMAND xz ${CMAKE_CURRENT_BINARY_DIR}/${ARCHIVE_NAME}.tar
+  COMMAND ${CMAKE_COMMAND} -E cmake_echo_color --cyan "${ARCHIVE_NAME}.tar.xz created."
   WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
 
 if(BOTAN_FOUND)
