@@ -50,7 +50,7 @@ make install DESTDIR=%{buildroot}
 
 
 %check
-make check
+make check %{?_smp_mflags}
 
 
 %files
