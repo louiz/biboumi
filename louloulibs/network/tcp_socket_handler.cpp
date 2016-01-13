@@ -63,14 +63,14 @@ void TCPSocketHandler::init_socket(const struct addrinfo* rp)
       // used in bind()
       struct addrinfo* result;
       int err = ::getaddrinfo(this->bind_addr.data(), nullptr, nullptr, &result);
-      if (err != 0)
+      if (err != 0 || !result)
         log_error("Failed to bind socket to " << this->bind_addr << ": "
                   << gai_strerror(err));
       else
         {
           utils::ScopeGuard sg([result](){ freeaddrinfo(result); });
           struct addrinfo* rp;
-          int bind_error;
+          int bind_error = 0;
           for (rp = result; rp; rp = rp->ai_next)
             {
               if ((bind_error = ::bind(this->socket,
