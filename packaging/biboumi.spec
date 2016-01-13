@@ -39,11 +39,10 @@ cmake . -DCMAKE_CXX_FLAGS="%{optflags}" \
       -DWITH_SYSTEMD=1 \
       -DWITH_LIBIDN=1
 
-make %{?_smp_mflags}
-
 # The documentation is in utf-8, ronn fails to build it if that locale is
 # not specified
-LC_ALL=en_GB.utf-8 make doc
+export LC_ALL=en_GB.utf-8
+make %{?_smp_mflags}
 
 
 %install

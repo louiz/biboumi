@@ -67,7 +67,7 @@ if(RONN_EXECUTABLE)
   add_custom_command(OUTPUT ${MAN_PAGE}
     COMMAND ${RONN_EXECUTABLE} --roff < ${DOC_PAGE} > ${MAN_PAGE}
     DEPENDS ${DOC_PAGE})
-  add_custom_target(doc DEPENDS ${MAN_PAGE})
+  add_custom_target(doc ALL DEPENDS ${MAN_PAGE})
 endif()
 
 # Look for litesql and enable the database if found
@@ -124,6 +124,7 @@ target_link_libraries(xmpp xmpplib bridge network utils logger)
 
 if(USE_DATABASE)
   target_link_libraries(xmpp database)
+  target_link_libraries(irc database)
 endif()
 
 #
