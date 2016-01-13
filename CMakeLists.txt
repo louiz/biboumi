@@ -215,7 +215,13 @@ install(FILES   conf/biboumi.cfg                            DESTINATION /etc/bib
 #
 add_custom_target(dist
   COMMAND git archive --prefix=${ARCHIVE_NAME}/ --format=tar HEAD
-  | xz > ${CMAKE_CURRENT_BINARY_DIR}/${ARCHIVE_NAME}.tar.xz
+          > ${CMAKE_CURRENT_BINARY_DIR}/${ARCHIVE_NAME}.tar
+  # Append this specific file that is not part of the git repo
+  COMMAND tar -rf ${CMAKE_CURRENT_BINARY_DIR}/${ARCHIVE_NAME}.tar -P ${SOURCE_DIR}/single_include/catch.hpp --xform 's|/.*/|${ARCHIVE_NAME}/tests/|g'
+  # Remove a potential existing archive
+  COMMAND rm -f ${CMAKE_CURRENT_BINARY_DIR}/${ARCHIVE_NAME}.tar.xz
+  # Compress the archive
+  COMMAND xz ${CMAKE_CURRENT_BINARY_DIR}/${ARCHIVE_NAME}.tar
   WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
 
 if(BOTAN_FOUND)
