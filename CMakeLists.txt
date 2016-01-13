@@ -206,7 +206,7 @@ endif()
 #
 install(TARGETS ${PROJECT_NAME} RUNTIME                     DESTINATION bin)
 install(FILES   ${MAN_PAGE}                                 DESTINATION share/man/man1         OPTIONAL COMPONENT documentation)
-install(FILES   ${CMAKE_CURRENT_BINARY_DIR}/biboumi.service DESTINATION /etc/systemd/system    COMPONENT init)
+install(FILES   ${CMAKE_CURRENT_BINARY_DIR}/biboumi.service DESTINATION lib/systemd/system     COMPONENT init)
 install(FILES   conf/biboumi.cfg                            DESTINATION /etc/biboumi           COMPONENT configuration)
 
 #
