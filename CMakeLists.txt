@@ -169,6 +169,7 @@ if(USE_DATABASE)
   target_link_libraries(test_suite
   database)
 endif()
+
 include(ExternalProject)
 ExternalProject_Add(catch
   GIT_REPOSITORY "https://github.com/philsquared/Catch.git"
@@ -177,13 +178,15 @@ ExternalProject_Add(catch
   CONFIGURE_COMMAND ""
   BUILD_COMMAND ""
   INSTALL_COMMAND ""
-)
+  )
 set_target_properties(catch PROPERTIES EXCLUDE_FROM_ALL TRUE)
 ExternalProject_Get_Property(catch SOURCE_DIR)
-target_include_directories(test_suite
-  PUBLIC "${SOURCE_DIR}/include/"
-)
-add_dependencies(test_suite catch)
+if(NOT EXISTS ${CMAKE_SOURCE_DIR}/tests/catch.hpp)
+  target_include_directories(test_suite
+    PUBLIC "${SOURCE_DIR}/include/"
+    )
+  add_dependencies(test_suite catch)
+endif()
 add_custom_target(check COMMAND "test_suite"
   DEPENDS test_suite)
 
