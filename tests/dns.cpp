@@ -65,12 +65,6 @@ TEST_CASE("DNS resolver")
     loop();
     CHECK(!success);
 
-    hostname = "localhost6";
-    resolver.resolve(hostname, port,
-                     success_cb, error_cb);
-    loop();
-    CHECK(success);
-
     hostname = "localhost";
     resolver.resolve(hostname, port,
                      success_cb, error_cb);
