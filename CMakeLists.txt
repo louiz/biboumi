@@ -84,7 +84,10 @@ if(LITESQL_FOUND)
 
   add_library(database STATIC src/database/database.cpp
     ${LITESQL_GENERATED_SOURCES})
-  target_link_libraries(database ${LITESQL_LIBRARIES} ${BOTAN_LIBRARIES})
+  target_link_libraries(database ${LITESQL_LIBRARIES})
+  if(BOTAN_FOUND)
+    target_link_libraries(database ${BOTAN_LIBRARIES})
+  endif()
   set(USE_DATABASE TRUE)
 endif()
 
