@@ -35,3 +35,8 @@ cares_systemd:
   script:
     - cmake .. -DCMAKE_BUILD_TYPE=Debug -DWITHOUT_BOTAN=1 -DWITH_CARES=1 -DWITH_SYSTEMD=1 -DWITHOUT_LIBIDN=1
     - make -j$(nproc) biboumi check
+
+rpm:
+  script:
+    - cmake ..
+    - make rpm
