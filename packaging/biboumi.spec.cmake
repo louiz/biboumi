@@ -1,5 +1,5 @@
 Name:     biboumi
-Version:  2.0
+Version:  ${RPM_VERSION}
 Release:  1%{?dist}
 Summary:  Lightweight XMPP to IRC gateway
 
@@ -62,6 +62,9 @@ make check %{?_smp_mflags}
 
 
 %changelog
+* ${RPM_DATE} Le Coz Florent <louiz@louiz.org> - ${RPM_VERSION}-1
+- Build latest git revision
+
 * Wed Jan 13 2016 Le Coz Florent <louiz@louiz.org> - 2.0-2
 - Do not install the systemd unit and configuration files, because
   “make install” does it itself now
@@ -69,12 +72,12 @@ make check %{?_smp_mflags}
 * Fri May 29 2015 Le Coz Florent <louiz@louiz.org> - 2.0-1
 - Update to 2.0 sources
 
-* Wed Nov 13 2014 Le Coz Florent <louiz@louiz.org> - 1.1-2
+* Thu Nov 13 2014 Le Coz Florent <louiz@louiz.org> - 1.1-2
 - Use the -DWITH(OUT) cmake flags for all optional dependencies
 - Build with the correct optflags
 - Use hardened_build
 
-* Wed Aug 18 2014 Le Coz Florent <louiz@louiz.org> - 1.1-1
+* Mon Aug 18 2014 Le Coz Florent <louiz@louiz.org> - 1.1-1
 - Update to 1.1 release
 
 * Wed Jun 25 2014 Le Coz Florent <louiz@louiz.org> - 1.0-1

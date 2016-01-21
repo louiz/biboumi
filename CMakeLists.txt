@@ -24,8 +24,11 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake/Mo
 ## Get the software version
 #
 set(ARCHIVE_NAME ${CMAKE_PROJECT_NAME}-${${PROJECT_NAME}_VERSION_MAJOR}.${${PROJECT_NAME}_VERSION_MINOR})
+set(RPM_VERSION ${${PROJECT_NAME}_VERSION_MAJOR}.${${PROJECT_NAME}_VERSION_MINOR})
+
 if(${PROJECT_NAME}_VERSION_SUFFIX MATCHES ".+")
   set(ARCHIVE_NAME ${ARCHIVE_NAME}${${PROJECT_NAME}_VERSION_SUFFIX})
+  set(RPM_VERSION ${RPM_VERSION}${${PROJECT_NAME}_VERSION_SUFFIX})
 endif()
 
 if(${PROJECT_NAME}_VERSION_SUFFIX MATCHES "^~dev$")
@@ -39,6 +42,7 @@ if(${PROJECT_NAME}_VERSION_SUFFIX MATCHES "^~dev$")
     if(GIT_REVISION)
       set(${PROJECT_NAME}_VERSION_SUFFIX "${${PROJECT_NAME}_VERSION_SUFFIX} (${GIT_REVISION})")
       set(ARCHIVE_NAME ${ARCHIVE_NAME}${GIT_REVISION})
+      set(RPM_VERSION ${RPM_VERSION}${GIT_REVISION})
     endif()
   endif()
 endif()
@@ -251,3 +255,8 @@ else()
   set(WATCHDOG_SEC "")
 endif()
 configure_file(unit/biboumi.service.cmake biboumi.service)
+
+execute_process(COMMAND "date" "+%a %b %d %Y" OUTPUT_VARIABLE RPM_DATE
+                OUTPUT_STRIP_TRAILING_WHITESPACE)
+
+configure_file(packaging/biboumi.spec.cmake biboumi.spec)
