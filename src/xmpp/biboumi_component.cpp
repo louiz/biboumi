@@ -543,7 +543,7 @@ void BiboumiComponent::send_self_disco_info(const std::string& id, const std::st
   identity["type"] = "irc";
   identity["name"] = "Biboumi XMPP-IRC gateway";
   query.add_child(std::move(identity));
-  for (const std::string& ns: {DISCO_INFO_NS, MUC_NS, ADHOC_NS})
+  for (const char* ns: {DISCO_INFO_NS, MUC_NS, ADHOC_NS})
     {
       XmlNode feature("feature");
       feature["var"] = ns;
