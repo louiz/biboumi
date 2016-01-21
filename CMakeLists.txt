@@ -230,7 +230,15 @@ add_custom_target(dist
   # Compress the archive
   COMMAND xz ${CMAKE_CURRENT_BINARY_DIR}/${ARCHIVE_NAME}.tar
   COMMAND ${CMAKE_COMMAND} -E cmake_echo_color --cyan "${ARCHIVE_NAME}.tar.xz created."
-  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+  )
+add_dependencies(dist catch)
+
+add_custom_target(rpm
+  COMMAND mkdir -p rpmbuild/{BUILD,RPMS,SOURCES,SPECS,SRPMS}
+  COMMAND rpmbuild --define "_topdir `pwd`/rpmbuild/" --define "_sourcedir `pwd`" -ba biboumi.spec
+  )
+add_dependencies(rpm dist)
 
 if(BOTAN_FOUND)
   set(STR_WITH_BOTAN "Botan: yes")
