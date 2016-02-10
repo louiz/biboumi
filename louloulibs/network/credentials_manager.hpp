@@ -10,10 +10,10 @@
 
 class TCPSocketHandler;
 
-class Basic_Credentials_Manager: public Botan::Credentials_Manager
+class BasicCredentialsManager: public Botan::Credentials_Manager
 {
 public:
-  Basic_Credentials_Manager(const TCPSocketHandler* const socket_handler);
+  BasicCredentialsManager(const TCPSocketHandler* const socket_handler);
   void verify_certificate_chain(const std::string& type,
                                 const std::string& purported_hostname,
                                 const std::vector<Botan::X509_Certificate>&) override final;

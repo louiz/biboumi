@@ -21,10 +21,10 @@ static const std::vector<std::string> default_cert_files = {
     "/etc/ca-certificates/extracted/tls-ca-bundle.pem"
 };
 
-Botan::Certificate_Store_In_Memory Basic_Credentials_Manager::certificate_store;
-bool Basic_Credentials_Manager::certs_loaded = false;
+Botan::Certificate_Store_In_Memory BasicCredentialsManager::certificate_store;
+bool BasicCredentialsManager::certs_loaded = false;
 
-Basic_Credentials_Manager::Basic_Credentials_Manager(const TCPSocketHandler* const socket_handler):
+BasicCredentialsManager::BasicCredentialsManager(const TCPSocketHandler* const socket_handler):
     Botan::Credentials_Manager(),
     socket_handler(socket_handler),
     trusted_fingerprint{}
@@ -32,14 +32,14 @@ Basic_Credentials_Manager::Basic_Credentials_Manager(const TCPSocketHandler* con
   this->load_certs();
 }
 
-void Basic_Credentials_Manager::set_trusted_fingerprint(const std::string& fingerprint)
+void BasicCredentialsManager::set_trusted_fingerprint(const std::string& fingerprint)
 {
   this->trusted_fingerprint = fingerprint;
 }
 
-void Basic_Credentials_Manager::verify_certificate_chain(const std::string& type,
-                                                         const std::string& purported_hostname,
-                                                         const std::vector<Botan::X509_Certificate>& certs)
+void BasicCredentialsManager::verify_certificate_chain(const std::string& type,
+                                                       const std::string& purported_hostname,
+                                                       const std::vector<Botan::X509_Certificate>& certs)
 {
   log_debug("Checking remote certificate (" << type << ") for hostname " << purported_hostname);
   try
@@ -62,10 +62,10 @@ void Basic_Credentials_Manager::verify_certificate_chain(const std::string& type
     }
 }
 
-void Basic_Credentials_Manager::load_certs()
+void BasicCredentialsManager::load_certs()
 {
   //  Only load the certificates the first time
-  if (Basic_Credentials_Manager::certs_loaded)
+  if (BasicCredentialsManager::certs_loaded)
     return;
   const std::string conf_path = Config::get("ca_file", "");
   std::vector<std::string> paths;
@@ -82,7 +82,7 @@ void Basic_Credentials_Manager::load_certs()
           while (!bundle.end_of_data() && bundle.check_available(27))
             {
               const Botan::X509_Certificate cert(bundle);
-              Basic_Credentials_Manager::certificate_store.add_certificate(cert);
+              BasicCredentialsManager::certificate_store.add_certificate(cert);
             }
           // Only use the first file that can successfully be read.
           goto success;
@@ -95,10 +95,10 @@ void Basic_Credentials_Manager::load_certs()
   //  If we could not open one of the files, print a warning
   log_warning("The CA could not be loaded, TLS negociation will probably fail.");
   success:
-  Basic_Credentials_Manager::certs_loaded = true;
+  BasicCredentialsManager::certs_loaded = true;
 }
 
-std::vector<Botan::Certificate_Store*> Basic_Credentials_Manager::trusted_certificate_authorities(const std::string&, const std::string&)
+std::vector<Botan::Certificate_Store*> BasicCredentialsManager::trusted_certificate_authorities(const std::string&, const std::string&)
 {
   return {&this->certificate_store};
 }

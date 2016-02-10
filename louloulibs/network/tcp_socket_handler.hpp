@@ -249,7 +249,7 @@ private:
   static Botan::TLS::Policy policy;
   static Botan::TLS::Session_Manager_In_Memory session_manager;
 protected:
-  Basic_Credentials_Manager credential_manager;
+  BasicCredentialsManager credential_manager;
 private:
   /**
    * We use a unique_ptr because we may not want to create the object at
