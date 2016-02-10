@@ -40,9 +40,8 @@ TEST_CASE("Test basic XML parsing")
   xml.feed(doc2.data(), doc.size(), true);
 }
 
-TEST_CASE("XML escape/unescape")
+TEST_CASE("XML escape")
 {
   const std::string unescaped = "'coucou'<cc>/&\"gaga\"";
   CHECK(xml_escape(unescaped) == "&apos;coucou&apos;&lt;cc&gt;/&amp;&quot;gaga&quot;");
-  CHECK(xml_unescape(xml_escape(unescaped)) == unescaped);
 }

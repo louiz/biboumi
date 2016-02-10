@@ -40,50 +40,6 @@ std::string xml_escape(const std::string& data)
   return res;
 }
 
-std::string xml_unescape(const std::string& data)
-{
-  std::string res;
-  res.reserve(data.size());
-  const char* str = data.c_str();
-  while (str && *str && static_cast<size_t>(str - data.c_str()) < data.size())
-    {
-      if (*str == '&')
-        {
-          if (strncmp(str+1, "amp;", 4) == 0)
-            {
-              res += "&";
-              str += 4;
-            }
-          else if (strncmp(str+1, "lt;", 3) == 0)
-            {
-              res += "<";
-              str += 3;
-            }
-          else if (strncmp(str+1, "gt;", 3) == 0)
-            {
-              res += ">";
-              str += 3;
-            }
-          else if (strncmp(str+1, "quot;", 5) == 0)
-            {
-              res += "\"";
-              str += 5;
-            }
-          else if (strncmp(str+1, "apos;", 5) == 0)
-            {
-              res += "'";
-              str += 5;
-            }
-          else
-            res += "&";
-        }
-      else
-        res += *str;
-      str++;
-    }
-  return res;
-}
-
 std::string sanitize(const std::string& data, const std::string& encoding)
 {
   if (utils::is_valid_utf8(data.data()))
