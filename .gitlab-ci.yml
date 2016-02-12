@@ -6,11 +6,6 @@ coverage_botan_cares_systemd_idn:
     - cmake .. -DCMAKE_BUILD_TYPE=Debug -DWITH_BOTAN=1 -DWITH_CARES=1 -DWITH_SYSTEMD=1 -DWITH_LIBIDN=1
     - make -j$(nproc) biboumi coverage
 
-clang_botan_cares_systemd_idn:
-  script:
-    - cmake .. -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_BUILD_TYPE=Debug -DWITH_BOTAN=1 -DWITH_CARES=1 -DWITH_SYSTEMD=1 -DWITH_LIBIDN=1
-    - make -j$(nproc) biboumi check
-
 botan_cares_systemd:
   script:
     - cmake .. -DCMAKE_BUILD_TYPE=Debug -DWITH_BOTAN=1 -DWITH_CARES=1 -DWITH_SYSTEMD=1 -DWITHOUT_LIBIDN=1
