@@ -205,15 +205,12 @@ int Poller::poll(const std::chrono::milliseconds& timeout)
   for (int i = 0; i < nb_events; ++i)
     {
       auto socket_handler = static_cast<SocketHandler*>(revents[i].data.ptr);
-      if (revents[i].events & EPOLLIN)
+      if (revents[i].events & EPOLLIN && socket_handler->is_connected())
         socket_handler->on_recv();
+      else if (revents[i].events & EPOLLOUT && socket_handler->is_connected())
+        socket_handler->on_send();
       else if (revents[i].events & EPOLLOUT)
-        {
-          if (socket_handler->is_connected())
-            socket_handler->on_send();
-          else
-            socket_handler->connect();
-        }
+        socket_handler->connect();
     }
   return nb_events;
 #endif
