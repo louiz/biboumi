@@ -89,9 +89,10 @@ void XmppComponent::on_connected()
 {
   log_info("connected to XMPP server");
   this->first_connection_try = true;
-  this->send_data("<stream:stream to='");
-  this->send_data(std::string{this->served_hostname});
-  this->send_data("' xmlns:stream='http://etherx.jabber.org/streams' xmlns='" COMPONENT_NS "'>");
+  auto data = "<stream:stream to='"s + this->served_hostname + \
+    "' xmlns:stream='http://etherx.jabber.org/streams' xmlns='" COMPONENT_NS "'>";
+  log_debug("XMPP SENDING: " << data);
+  this->send_data(std::move(data));
   this->doc_open = true;
   // We may have some pending data to send: this happens when we try to send
   // some data before we are actually connected.  We send that data right now, if any
@@ -124,7 +125,7 @@ void XmppComponent::parse_in_buffer(const size_t size)
 
 void XmppComponent::on_remote_stream_open(const XmlNode& node)
 {
-  log_debug("XMPP DOCUMENT OPEN: " << node.to_string());
+  log_debug("XMPP RECEIVING: " << node.to_string());
   this->stream_id = node.get_tag("id");
   if (this->stream_id.empty())
     {
@@ -145,14 +146,14 @@ void XmppComponent::on_remote_stream_open(const XmlNode& node)
     sprintf(digest + (i*2), "%02x", result[i]);
   digest[HASH_LENGTH * 2] = '\0';
 
-  this->send_data("<handshake xmlns='" COMPONENT_NS "'>");
-  this->send_data(digest);
-  this->send_data("</handshake>");
+  auto data = "<handshake xmlns='" COMPONENT_NS "'>"s + digest + "</handshake>";
+  log_debug("XMPP SENDING: " << data);
+  this->send_data(std::move(data));
 }
 
 void XmppComponent::on_remote_stream_close(const XmlNode& node)
 {
-  log_debug("XMPP DOCUMENT CLOSE " << node.to_string());
+  log_debug("XMPP RECEIVING: " << node.to_string());
   this->doc_open = false;
 }
 
