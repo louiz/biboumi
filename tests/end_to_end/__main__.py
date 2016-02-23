@@ -151,6 +151,9 @@ class BiboumiTest:
                             format='%(levelname)-8s %(message)s',
                             filename=output_filename)
 
+        with open("test.conf", "w") as fd:
+            fd.write(confs['basic'])
+
         # Start the XMPP component and biboumi
         biboumi = BiboumiRunner(scenario.name, with_valgrind)
         xmpp = XMPPComponent(self.scenario, biboumi)
@@ -176,6 +179,11 @@ class BiboumiTest:
 
         return not failed
 
+confs = {'basic':
+"""hostname=biboumi.localhost
+password=coucou
+db_name=biboumi.sqlite
+port=8811"""}
 
 if __name__ == '__main__':
 
