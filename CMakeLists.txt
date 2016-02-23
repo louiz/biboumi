@@ -195,7 +195,8 @@ if(NOT EXISTS ${CMAKE_SOURCE_DIR}/tests/catch.hpp)
   add_dependencies(test_suite catch)
 endif()
 add_custom_target(check COMMAND "test_suite"
-  DEPENDS test_suite)
+  COMMAND "python3" "${CMAKE_CURRENT_SOURCE_DIR}/tests/end_to_end/"
+  DEPENDS test_suite biboumi)
 
 #
 ## Code coverage
