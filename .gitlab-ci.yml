@@ -13,11 +13,11 @@ build:
     - cd build
     - cmake .. -DCMAKE_CXX_COMPILER=g++ -DCMAKE_BUILD_TYPE=Debug -DWITH_BOTAN=1 -DWITH_CARES=1 -DWITH_SYSTEMD=1 -DWITH_LIBIDN=1 -DWITH_LITESQL=1
     - make biboumi -j$(nproc)
-    - make rpm
-    - make check -j$(nproc)
+    - make coverage -j$(nproc)
+    - make check
   artifacts:
     paths:
-      - build/rpmbuild/RPMS/
+      - build/
 
 
 
