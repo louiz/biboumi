@@ -171,21 +171,22 @@ int Poller::poll(const std::chrono::milliseconds& timeout)
   assert(static_cast<unsigned int>(nb_events) <= this->nfds);
   for (size_t i = 0; i <= this->nfds && nb_events != 0; ++i)
     {
+      auto socket_handler = this->socket_handlers.at(this->fds[i].fd);
       if (this->fds[i].revents == 0)
         continue;
-      else if (this->fds[i].revents & POLLIN)
+      else if (this->fds[i].revents & POLLIN && socket_handler->is_connected())
         {
-          auto socket_handler = this->socket_handlers.at(this->fds[i].fd);
           socket_handler->on_recv();
           nb_events--;
         }
+      else if (this->fds[i].revents & POLLOUT && socket_handler->is_connected())
+        {
+            socket_handler->on_send();
+            nb_events--;
+        }
       else if (this->fds[i].revents & POLLOUT)
         {
-          auto socket_handler = this->socket_handlers.at(this->fds[i].fd);
-          if (socket_handler->is_connected())
-            socket_handler->on_send();
-          else
-            socket_handler->connect();
+          socket_handler->connect();
           nb_events--;
         }
     }
