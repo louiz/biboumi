@@ -6,6 +6,7 @@
 #include <errno.h>
 #include <stdio.h>
 #include <signal.h>
+#include <unistd.h>
 
 #include <cstring>
 #include <iostream>
@@ -27,6 +28,8 @@ Poller::Poller()
 
 Poller::~Poller()
 {
+  if (this->epfd > 0)
+    ::close(this->epfd);
 }
 
 void Poller::add_socket_handler(SocketHandler* socket_handler)
