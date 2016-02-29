@@ -16,6 +16,10 @@ class MatchAll(slixmpp.xmlstream.matcher.base.MatcherBase):
         return True
 
 
+class StanzaError(Exception):
+    pass
+
+
 class XMPPComponent(slixmpp.BaseXMPP):
     """
     XMPPComponent sending a “scenario” of stanzas, checking that the responses
@@ -41,7 +45,9 @@ class XMPPComponent(slixmpp.BaseXMPP):
 
         self.scenario = scenario
         self.biboumi = biboumi
-        self.expected_xpath = None
+        # A callable, taking a stanza as argument and raising a StanzaError
+        # exception if the test should fail.
+        self.stanza_checker = None
         self.failed = False
         self.accepting_server = None
 
@@ -54,11 +60,12 @@ class XMPPComponent(slixmpp.BaseXMPP):
         self.loop.stop()
 
     def handle_incoming_stanza(self, stanza):
-        if self.expected_xpath:
-            matched = slixmpp.xmlstream.matcher.xpath.MatchXPath(self.expected_xpath).match(stanza)
-            if not matched:
-                self.error("Received stanza “%s” did not match expected xpath “%s”" % (stanza, self.expected_xpath))
-            self.expected_xpath = None
+        if self.stanza_checker:
+            try:
+                self.stanza_checker(stanza)
+            except StanzaError as e:
+                self.error(e)
+            self.stanza_checker = None
         self.run_scenario()
 
     def run_scenario(self):
@@ -73,6 +80,10 @@ class XMPPComponent(slixmpp.BaseXMPP):
         self.accepting_server = yield from self.loop.create_server(lambda: self,
                                                                    "127.0.0.1", "8811", reuse_address=True)
 
+def check_xpath(xpath, stanza):
+    matched = slixmpp.xmlstream.matcher.xpath.MatchXPath(xpath).match(stanza)
+    if not matched:
+        raise StanzaError("Received stanza “%s” did not match expected xpath “%s”" % (stanza, self.expected_xpath))
 
 class Scenario:
     """Defines a list of actions that are executed in sequence, until one of
@@ -127,7 +138,7 @@ def send_stanza(stanza, xmpp, biboumi):
 
 
 def expect_stanza(xpath, xmpp, biboumi):
-    xmpp.expected_xpath = xpath
+    xmpp.stanza_checker = partial(check_xpath, xpath)
 
 
 class BiboumiTest:
