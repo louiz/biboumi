@@ -56,7 +56,7 @@ make check %{?_smp_mflags}
 %files
 %{_bindir}/%{name}
 %{_mandir}/man1/%{name}.1*
-%doc README COPYING doc/biboumi.1.md
+%doc README.md COPYING doc/biboumi.1.md
 %{_unitdir}/%{name}.service
 %config(noreplace) %{biboumi_confdir}/biboumi.cfg
 

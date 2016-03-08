@@ -1,14 +1,12 @@
-==============
-  tl;dr:
-==============
+tl;dr
+=====
 
-$ cmake . && make && ./biboumi
+    cmake . && make && ./biboumi
 
 If that didn’t work, read on.
 
-==============
- Dependencies
-==============
+Dependencies
+============
 
 Build and runtime dependencies:
 
@@ -60,14 +58,13 @@ Libraries:
  if you are packaging biboumi in a distribution with Systemd.
 
 
-==============
-  Configure
-==============
+Configure
+=========
 
 Configure the build system using cmake, there are many solutions to do that,
 the simplest is to just run
 
-% cmake .
+    cmake .
 
 in the current directory.
 
@@ -75,13 +72,13 @@ The default build type is "Debug", if you want to build a release version,
 set the CMAKE_BUILD_TYPE variable to "release", by running this command
 instead:
 
-% cmake . -DCMAKE_BUILD_TYPE=release -DCMAKE_INSTALL_PREFIX=/usr
+    cmake . -DCMAKE_BUILD_TYPE=release -DCMAKE_INSTALL_PREFIX=/usr
 
 You can also configure many parameters of the build (like customize CFLAGS,
 the install path, choose the compiler, or enabling some options like the
 POLLER to use), using the ncurses interface of ccmake:
 
-% ccmake .
+    ccmake .
 
 In ccmake, first use 'c' to configure the build system, edit the values you
 need and finaly use 'g' to generate the Makefiles to build the system and
@@ -111,53 +108,49 @@ The list of available options:
 
 Example:
 
-% cmake . -DCMAKE_BUILD_TYPE=release -DCMAKE_INSTALL_PREFIX \
+    cmake . -DCMAKE_BUILD_TYPE=release -DCMAKE_INSTALL_PREFIX \
           -DWITH_BOTAN=1 -DWITHOUT_SYSTEMD=1
 
 This command will configure the project to build a release, with TLS enabled
 (using Botan) but without using Systemd (even if available on the system).
 
 
-==============
-    Build
-==============
+Build
+=====
 
 - Once you’ve configured everything using cmake, build the project
 
-% make
+    make
 
 
-=============
-   Install
-=============
+Install
+=======
 
 - And then, optionaly, Install the software system-wide
 
-# make install
+    make install
 
 
-=============
-   Testing
-=============
+Testing
+=======
 
 You can run the test suite with
 
-% make check
+    make check
 
 This project uses the Catch unit test framework, it will be automatically
 fetched with cmake, by cloning the github repository.
 
 You can also check the overall code coverage of this test suite by running
 
-% make coverage
+    make coverage
 
 This requires gcov and lcov to be installed.
 
 
-=============
-     Run
-=============
+Run
+===
 
 Run the software using the `biboumi` binary.  Read the documentation (the
-man page biboumi(1) or the “biboumi.1.md” file) for more information on how
+man page biboumi(1) or the `biboumi.1.md` file) for more information on how
 to use biboumi.

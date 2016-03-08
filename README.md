@@ -1,10 +1,5 @@
- _     _ _                           _
-| |__ (_) |__   ___  _   _ _ __ ___ (_)
-| '_ \| | '_ \ / _ \| | | | '_ ` _ \| |
-| |_) | | |_) | (_) | |_| | | | | | | |
-|_.__/|_|_.__/ \___/ \__,_|_| |_| |_|_|
-
-Homepage:       http://biboumi.louiz.org
+Biboumi
+=======
 
 Biboumi is an XMPP gateway that connects to IRC servers and translates
 between the two protocols. It can be used to access IRC channels using any
@@ -24,21 +19,25 @@ work around this issue: it just enforces the rules of the IRC server by
 telling the user that he/she must choose an ASCII-only nickname.  An
 important goal is to keep the software (and its code) light and simple.
 
-================
-    Install
-================
-Refer to the INSTALL file.
 
-================
-    Authors
-================
+Install
+=======
+Refer to the [INSTALL][] file.
+
+Usage
+=====
+
+Read [the documentation](doc/biboumi.1.md).
+
+Authors
+=======
 Florent Le Coz (louiz’) <louiz@louiz.org>
 
-=================
- Contact/Support
-=================
-XMPP ChatRoom:     biboumi@muc.poez.io
-Report a bug:        https://dev.louiz.org/projects/biboumi/issues/new
+
+Contact/Support
+===============
+* XMPP ChatRoom: biboumi@muc.poez.io
+* Report a bug:  https://dev.louiz.org/projects/biboumi/issues/new
 
 To contribute, the preferred way is to commit your changes on some
 publicly-available git repository (your own, or github
@@ -50,11 +49,13 @@ github or a merge request on gitlab.
 Optionally you can come discuss your changes on the XMPP chat room,
 beforehand.
 
-=================
-    Licence
-=================
+
+Licence
+=======
 Biboumi is Free Software.
 (learn more: http://www.gnu.org/philosophy/free-sw.html)
 
 Biboumi is released under the zlib license.
 Please read the COPYING file for details.
+
+[INSTALL]: INSTALL
