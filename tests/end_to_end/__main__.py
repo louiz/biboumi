@@ -7,9 +7,10 @@ import signal
 import atexit
 import sys
 from functools import partial
+from slixmpp.xmlstream.matcher.base import MatcherBase
 
 
-class MatchAll(slixmpp.xmlstream.matcher.base.MatcherBase):
+class MatchAll(MatcherBase):
     """match everything"""
 
     def match(self, xml):
@@ -80,10 +81,12 @@ class XMPPComponent(slixmpp.BaseXMPP):
         self.accepting_server = yield from self.loop.create_server(lambda: self,
                                                                    "127.0.0.1", "8811", reuse_address=True)
 
+
 def check_xpath(xpath, stanza):
     matched = slixmpp.xmlstream.matcher.xpath.MatchXPath(xpath).match(stanza)
     if not matched:
         raise StanzaError("Received stanza “%s” did not match expected xpath “%s”" % (stanza, self.expected_xpath))
+
 
 class Scenario:
     """Defines a list of actions that are executed in sequence, until one of
@@ -107,7 +110,9 @@ class BiboumiRunner:
         self.name = name
         self.fd = open("biboumi_%s_output.txt" % (name,), "w")
         if with_valgrind:
-            self.create = asyncio.create_subprocess_exec("valgrind", "--leak-check=full", "--show-leak-kinds=all", "--errors-for-leak-kinds=all", "--error-exitcode=16", "./biboumi", "test.conf", stdin=None, stdout=self.fd,
+            self.create = asyncio.create_subprocess_exec("valgrind", "--leak-check=full", "--show-leak-kinds=all",
+                                                         "--errors-for-leak-kinds=all", "--error-exitcode=16",
+                                                         "./biboumi", "test.conf", stdin=None, stdout=self.fd,
                                                          stderr=self.fd, loop=None, limit=None)
         else:
             self.create = asyncio.create_subprocess_exec("./biboumi", "test.conf", stdin=None, stdout=self.fd,
@@ -190,6 +195,7 @@ class BiboumiTest:
 
         return not failed
 
+
 confs = {'basic':
 """hostname=biboumi.localhost
 password=coucou
@@ -212,7 +218,8 @@ if __name__ == '__main__':
                  [
                      partial(expect_stanza, "{jabber:component:accept}handshake"),
                      partial(send_stanza, "<handshake xmlns='jabber:component:accept'/>"),
-                     partial(send_stanza, "<presence from='me@example.com/Nick' to='#foo%irc.localhost@biboumi.localhost' />"),
+                     partial(send_stanza,
+                             "<presence from='me@example.com/Nick' to='#foo%irc.localhost@biboumi.localhost' />"),
                      partial(expect_stanza, "{jabber:component:accept}message/body"),
                  ]),
     )
