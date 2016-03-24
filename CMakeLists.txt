@@ -179,7 +179,7 @@ endif()
 
 include(ExternalProject)
 ExternalProject_Add(catch
-  GIT_REPOSITORY "https://github.com/philsquared/Catch.git"
+  GIT_REPOSITORY "https://lab.louiz.org/louiz/Catch.git"
   PREFIX "external"
   UPDATE_COMMAND ""
   CONFIGURE_COMMAND ""
