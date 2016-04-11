@@ -81,8 +81,18 @@ void BasicCredentialsManager::load_certs()
           log_debug("Using ca bundle: " << path);
           while (!bundle.end_of_data() && bundle.check_available(27))
             {
-              const Botan::X509_Certificate cert(bundle);
-              BasicCredentialsManager::certificate_store.add_certificate(cert);
+              // TODO: remove this work-around for Botan 1.11.29
+              // https://github.com/randombit/botan/issues/438#issuecomment-192866796
+              // Note that every certificate that fails to be transcoded into latin-1
+              // will be ignored. As a result, some TLS connection may be refused
+              // because the certificate is signed by an issuer that was ignored.
+              try {
+                  const Botan::X509_Certificate cert(bundle);
+                  BasicCredentialsManager::certificate_store.add_certificate(cert);
+                } catch (const Botan::Decoding_Error& error)
+                {
+                  continue;
+                }
             }
           // Only use the first file that can successfully be read.
           goto success;
