@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
 
+import collections
 import slixmpp
 import asyncio
 import logging
 import signal
 import atexit
+import lxml.etree
 import sys
+import io
 from functools import partial
 from slixmpp.xmlstream.matcher.base import MatcherBase
 
@@ -81,11 +84,16 @@ class XMPPComponent(slixmpp.BaseXMPP):
         self.accepting_server = yield from self.loop.create_server(lambda: self,
                                                                    "127.0.0.1", "8811", reuse_address=True)
 
+    def check_stanza_against_all_expected_xpaths(self):
+        pass
 
-def check_xpath(xpath, stanza):
-    matched = slixmpp.xmlstream.matcher.xpath.MatchXPath(xpath).match(stanza)
-    if not matched:
-        raise StanzaError("Received stanza “%s” did not match expected xpath “%s”" % (stanza, self.expected_xpath))
+def check_xpath(xpaths, stanza):
+    for xpath in xpaths:
+        tree = lxml.etree.parse(io.StringIO(str(stanza)))
+        matched = tree.xpath(xpath, namespaces={'re': 'http://exslt.org/regular-expressions',
+                                                'muc_user': 'http://jabber.org/protocol/muc#user'})
+        if not matched:
+            raise StanzaError("Received stanza “%s” did not match expected xpath “%s”" % (stanza, xpath))
 
 
 class Scenario:
@@ -102,23 +110,17 @@ class Scenario:
         [(action, answer), (action, answer)]
         """
         self.name = name
-        self.steps = steps
+        self.steps = []
+        for elem in steps:
+            if isinstance(elem, collections.Iterable):
+                for step in elem:
+                    self.steps.append(step)
+            else:
+                self.steps.append(elem)
 
-
-class BiboumiRunner:
-    def __init__(self, name, with_valgrind):
-        self.name = name
-        self.fd = open("biboumi_%s_output.txt" % (name,), "w")
-        if with_valgrind:
-            self.create = asyncio.create_subprocess_exec("valgrind", "--leak-check=full", "--show-leak-kinds=all",
-                                                         "--errors-for-leak-kinds=all", "--error-exitcode=16",
-                                                         "./biboumi", "test.conf", stdin=None, stdout=self.fd,
-                                                         stderr=self.fd, loop=None, limit=None)
-        else:
-            self.create = asyncio.create_subprocess_exec("./biboumi", "test.conf", stdin=None, stdout=self.fd,
-                                                         stderr=self.fd, loop=None, limit=None)
+class ProcessRunner:
+    def __init__(self):
         self.process = None
-
         self.signal_sent = False
 
     @asyncio.coroutine
@@ -136,15 +138,42 @@ class BiboumiRunner:
             if self.process:
                 self.process.send_signal(signal.SIGINT)
 
+    def __del__(self):
+        self.stop()
+
+class BiboumiRunner(ProcessRunner):
+    def __init__(self, name, with_valgrind):
+        super().__init__()
+        self.name = name
+        self.fd = open("biboumi_%s_output.txt" % (name,), "w")
+        if with_valgrind:
+            self.create = asyncio.create_subprocess_exec("valgrind", "--leak-check=full", "--show-leak-kinds=all",
+                                                         "--errors-for-leak-kinds=all", "--error-exitcode=16",
+                                                         "./biboumi", "test.conf", stdin=None, stdout=self.fd,
+                                                         stderr=self.fd, loop=None, limit=None)
+        else:
+            self.create = asyncio.create_subprocess_exec("./biboumi", "test.conf", stdin=None, stdout=self.fd,
+                                                         stderr=self.fd, loop=None, limit=None)
+
+class IrcServerRunner(ProcessRunner):
+    def __init__(self):
+        super().__init__()
+        self.create = asyncio.create_subprocess_exec("mammond", "--debug", "--nofork",
+                                                     "--config", "../tests/end_to_end/mammond.conf",
+                                                     stderr=asyncio.subprocess.PIPE)
 
 def send_stanza(stanza, xmpp, biboumi):
-    xmpp.send_raw(stanza)
+    xmpp.send_raw(stanza.format_map(common_replacements))
     asyncio.get_event_loop().call_soon(xmpp.run_scenario)
 
 
-def expect_stanza(xpath, xmpp, biboumi):
-    xmpp.stanza_checker = partial(check_xpath, xpath)
-
+def expect_stanza(xpaths, xmpp, biboumi):
+    if isinstance(xpaths, str):
+        xmpp.stanza_checker = partial(check_xpath, [xpaths.format_map(common_replacements)])
+    elif isinstance(xpaths, tuple):
+        xmpp.stanza_checker = partial(check_xpath, [xpath.format_map(common_replacements) for xpath in xpaths])
+    else:
+        print("Warning, from argument type passed to expect_stanza: %s" % (type(xpaths)))
 
 class BiboumiTest:
     """
@@ -202,6 +231,59 @@ password=coucou
 db_name=biboumi.sqlite
 port=8811"""}
 
+common_replacements = {
+    'irc_server_one': 'irc.localhost@biboumi.localhost',
+    'irc_host_one': 'irc.localhost',
+    'resource_one': 'resource1',
+    'nick_one': 'Nick',
+    'jid_one': 'first@example.com',
+    'jid_two': 'second@example.com',
+    'nick_two': 'Bobby',
+}
+
+
+def handshake_sequence():
+    return (partial(expect_stanza, "//handshake"),
+                      partial(send_stanza, "<handshake xmlns='jabber:component:accept'/>"))
+
+
+def connection_sequence(irc_host, jid):
+    jid = jid.format_map(common_replacements)
+    xpath    = "/message[@to='" + jid + "'][@from='irc.localhost@biboumi.localhost']/body[text()='%s']"
+    xpath_re = "/message[@to='" + jid + "'][@from='irc.localhost@biboumi.localhost']/body[re:test(text(), '%s')]"
+    return (
+    partial(expect_stanza,
+          xpath % ('Connecting to %s:6697 (encrypted)' % irc_host)),
+    partial(expect_stanza,
+          xpath % ('Connection failed: Connection refused')),
+    partial(expect_stanza,
+          xpath % ('Connecting to %s:6670 (encrypted)' % irc_host)),
+    partial(expect_stanza,
+          xpath % ('Connection failed: Connection refused')),
+    partial(expect_stanza,
+          xpath % ('Connecting to %s:6667 (not encrypted)' % irc_host)),
+    partial(expect_stanza,
+          xpath % ('Connected to IRC server.')),
+    partial(expect_stanza,
+          xpath % ('%s: *** Looking up your hostname...' % irc_host)),
+    partial(expect_stanza,
+          xpath % ('%s: *** Checking Ident' % irc_host)),
+    # These three messages can be received in any order
+    partial(expect_stanza,
+          xpath_re % (r'^%s: (\*\*\* Found your hostname: .*|NAK multi-prefix |\*\*\* No Ident response)$' % irc_host)),
+    partial(expect_stanza,
+          xpath_re % (r'^%s: (\*\*\* Found your hostname: .*|NAK multi-prefix |\*\*\* No Ident response)$' % irc_host)),
+    partial(expect_stanza,
+          xpath_re % (r'^%s: (\*\*\* Found your hostname: .*|NAK multi-prefix |\*\*\* No Ident response)$' % irc_host)),
+    partial(expect_stanza,
+          xpath_re % (r'^%s: Your host is .*$' % irc_host)),
+    partial(expect_stanza,
+          xpath_re % (r'^%s: This server was started at .*$' % irc_host)),
+    partial(expect_stanza,
+          xpath % ("- Default MOTD\n")),
+    )
+
+
 if __name__ == '__main__':
 
     atexit.register(asyncio.get_event_loop().close)
@@ -211,21 +293,57 @@ if __name__ == '__main__':
     scenarios = (
         Scenario("basic_handshake_success",
                  [
-                     partial(expect_stanza, "{jabber:component:accept}handshake"),
-                     partial(send_stanza, "<handshake xmlns='jabber:component:accept'/>"),
+                     handshake_sequence()
                  ]),
-        Scenario("channel_join",
+        Scenario("irc_server_connection",
                  [
-                     partial(expect_stanza, "{jabber:component:accept}handshake"),
-                     partial(send_stanza, "<handshake xmlns='jabber:component:accept'/>"),
+                     handshake_sequence(),
                      partial(send_stanza,
-                             "<presence from='me@example.com/Nick' to='#foo%irc.localhost@biboumi.localhost' />"),
-                     partial(expect_stanza, "{jabber:component:accept}message/body"),
+                             "<presence from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}/{nick_one}' />"),
+                     connection_sequence("irc.localhost", '{jid_one}/{resource_one}'),
+                 ]),
+        Scenario("simple_channel_join",
+                 [
+                     handshake_sequence(),
+                     partial(send_stanza,
+                             "<presence from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}/{nick_one}' />"),
+                     connection_sequence("irc.localhost", '{jid_one}/{resource_one}'),
+                     partial(expect_stanza,
+                             ("/presence[@to='{jid_one}/{resource_one}'][@from='#foo%{irc_server_one}/{nick_one}']/muc_user:x/muc_user:item[@affiliation='none'][@jid='~nick@localhost.localdomain'][@role='participant']",
+                             "/presence/muc_user:x/muc_user:status[@code='110']")
+                             ),
+                     partial(expect_stanza, "/message[@from='#foo%{irc_server_one}'][@type='groupchat']/subject[not(text())]"),
+                 ]),
+        Scenario("channel_join_with_two_users",
+                 [
+                     handshake_sequence(),
+                     # First user joins
+                     partial(send_stanza,
+                             "<presence from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}/{nick_one}' />"),
+                     connection_sequence("irc.localhost", '{jid_one}/{resource_one}'),
+                     partial(expect_stanza,
+                             ("/presence[@to='{jid_one}/{resource_one}'][@from='#foo%{irc_server_one}/{nick_one}']/muc_user:x/muc_user:item[@affiliation='none'][@jid='~nick@localhost.localdomain'][@role='participant']",
+                             "/presence/muc_user:x/muc_user:status[@code='110']")
+                             ),
+                     partial(expect_stanza, "/message[@from='#foo%{irc_server_one}'][@type='groupchat']/subject[not(text())]"),
+
+                     # Second user joins
+                     partial(send_stanza,
+                             "<presence from='{jid_two}/{resource_one}' to='#foo%{irc_server_one}/{nick_two}' />"),
+                     # connection_sequence("irc.localhost", '{jid_two}/{resource_one}'),
                  ]),
     )
 
     failures = 0
 
+    irc = IrcServerRunner()
+    print("Starting mammond server…")
+    asyncio.get_event_loop().run_until_complete(irc.start())
+    while True:
+        res = asyncio.get_event_loop().run_until_complete(irc.process.stderr.readline())
+        if b"init finished..." in res:
+            break
+    print("mammond server started.")
     print("Running %s checks for biboumi." % (len(scenarios)))
 
     for scenario in scenarios:
@@ -234,6 +352,10 @@ if __name__ == '__main__':
             print("You can check the files slixmpp_%s_output.txt and biboumi_%s_output.txt to help you debug." %
                   (scenario.name, scenario.name))
             failures += 1
+
+    print("Waiting for mammond to exit…")
+    irc.stop()
+    code = asyncio.get_event_loop().run_until_complete(irc.wait())
 
     if failures:
         print("%d test%s failed, please fix %s." % (failures, 's' if failures > 1 else '',
