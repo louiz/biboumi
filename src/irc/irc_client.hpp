@@ -144,6 +144,10 @@ public:
    */
   void on_isupport_message(const IrcMessage& message);
   /**
+   * Does nothing yet. Isn’t that duplicating features from 005?
+   */
+  void on_server_myinfo(const IrcMessage& message);
+  /**
    * Just empty the motd we kept as a string
    */
   void empty_motd(const IrcMessage& message);
@@ -194,6 +198,10 @@ public:
    * Save the topic in the IrcChannel
    */
   void on_topic_received(const IrcMessage& message);
+  /**
+   * Empty the topic
+   */
+  void on_empty_topic(const IrcMessage& message);
   /**
    * The channel has been completely joined (self presence, topic, all names
    * received etc), send the self presence and topic to the XMPP user.

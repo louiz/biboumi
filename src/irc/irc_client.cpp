@@ -34,6 +34,7 @@ static const std::unordered_map<std::string,
   {"NOTICE", {&IrcClient::on_notice, {2, 0}}},
   {"002", {&IrcClient::forward_server_message, {2, 0}}},
   {"003", {&IrcClient::forward_server_message, {2, 0}}},
+  {"004", {&IrcClient::on_server_myinfo, {4, 0}}},
   {"005", {&IrcClient::on_isupport_message, {0, 0}}},
   {"RPL_LISTSTART", {&IrcClient::on_rpl_liststart, {0, 0}}},
   {"321", {&IrcClient::on_rpl_liststart, {0, 0}}},
@@ -41,6 +42,8 @@ static const std::unordered_map<std::string,
   {"322", {&IrcClient::on_rpl_list, {0, 0}}},
   {"RPL_LISTEND", {&IrcClient::on_rpl_listend, {0, 0}}},
   {"323", {&IrcClient::on_rpl_listend, {0, 0}}},
+  {"RPL_NOTOPIC", {&IrcClient::on_empty_topic, {0, 0}}},
+  {"331", {&IrcClient::on_empty_topic, {0, 0}}},
   {"RPL_MOTDSTART", {&IrcClient::empty_motd, {0, 0}}},
   {"375", {&IrcClient::empty_motd, {0, 0}}},
   {"RPL_MOTD", {&IrcClient::on_motd_line, {2, 0}}},
@@ -594,6 +597,10 @@ void IrcClient::on_isupport_message(const IrcMessage& message)
   }
 }
 
+void IrcClient::on_server_myinfo(const IrcMessage&)
+{
+}
+
 void IrcClient::send_gateway_message(const std::string& message, const std::string& from)
 {
   this->bridge.send_xmpp_message(this->hostname, from, message);
@@ -688,6 +695,15 @@ void IrcClient::on_rpl_listend(const IrcMessage&)
 void IrcClient::empty_motd(const IrcMessage&)
 {
   this->motd.erase();
+}
+
+void IrcClient::on_empty_topic(const IrcMessage& message)
+{
+  const std::string chan_name = utils::tolower(message.arguments[message.arguments.size() - 1]);
+  log_debug("empty topic for " << chan_name);
+  IrcChannel* channel = this->get_channel(chan_name);
+  if (channel)
+    channel->topic.clear();
 }
 
 void IrcClient::on_motd_line(const IrcMessage& message)
