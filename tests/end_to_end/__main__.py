@@ -87,6 +87,7 @@ class XMPPComponent(slixmpp.BaseXMPP):
     def check_stanza_against_all_expected_xpaths(self):
         pass
 
+
 def check_xpath(xpaths, stanza):
     for xpath in xpaths:
         tree = lxml.etree.parse(io.StringIO(str(stanza)))
@@ -117,6 +118,7 @@ class Scenario:
                     self.steps.append(step)
             else:
                 self.steps.append(elem)
+
 
 class ProcessRunner:
     def __init__(self):
@@ -155,12 +157,13 @@ class BiboumiRunner(ProcessRunner):
             self.create = asyncio.create_subprocess_exec("./biboumi", "test.conf", stdin=None, stdout=self.fd,
                                                          stderr=self.fd, loop=None, limit=None)
 
+
 class IrcServerRunner(ProcessRunner):
     def __init__(self):
         super().__init__()
-        self.create = asyncio.create_subprocess_exec("mammond", "--debug", "--nofork",
-                                                     "--config", "../tests/end_to_end/mammond.conf",
+        self.create = asyncio.create_subprocess_exec("/home/louiz/sources/charybdis/ircd/charybdis", "-foreground",
                                                      stderr=asyncio.subprocess.PIPE)
+
 
 def send_stanza(stanza, xmpp, biboumi):
     xmpp.send_raw(stanza.format_map(common_replacements))
@@ -174,6 +177,7 @@ def expect_stanza(xpaths, xmpp, biboumi):
         xmpp.stanza_checker = partial(check_xpath, [xpath.format_map(common_replacements) for xpath in xpaths])
     else:
         print("Warning, from argument type passed to expect_stanza: %s" % (type(xpaths)))
+
 
 class BiboumiTest:
     """
@@ -330,20 +334,69 @@ if __name__ == '__main__':
                      # Second user joins
                      partial(send_stanza,
                              "<presence from='{jid_two}/{resource_one}' to='#foo%{irc_server_one}/{nick_two}' />"),
+                     connection_sequence("irc.localhost", '{jid_two}/{resource_one}'),
+                     # Our presence, sent to the other user
+                     partial(expect_stanza,
+                             ("/presence[@to='{jid_one}/{resource_one}'][@from='#foo%{irc_server_one}/{nick_two}']/muc_user:x/muc_user:item[@affiliation='none'][@jid='~bobby@localhost'][@role='participant']",)),
+                     # The other user presence
+                     partial(expect_stanza,
+                             ("/presence[@to='{jid_second}/{resource_one}'][@from='#foo%{irc_server_one}/{nick_one}']/muc_user:x/muc_user:item[@affiliation='none'][@jid='~nick@localhost'][@role='participant']")
+                             ),
+                     # Our own presence
+                     partial(expect_stanza,
+                             ("/presence[@to='{jid_two}/{resource_one}'][@from='#foo%{irc_server_one}/{nick_two}']/muc_user:x/muc_user:item[@affiliation='none'][@jid='~bobby@localhost'][@role='participant']",
+                              "/presence/muc_user:x/muc_user:status[@code='110']")
+                             ),
+                     partial(expect_stanza, "/message[@from='#foo%{irc_server_one}'][@type='groupchat']/subject[not(text())]"),
+                 ]),
+        Scenario("channel_custom_topic",
+                 [
+                     handshake_sequence(),
+                     # First user joins
+                     partial(send_stanza,
+                             "<presence from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}/{nick_one}' />"),
+                     connection_sequence("irc.localhost", '{jid_one}/{resource_one}'),
+                     partial(expect_stanza,
+                             ("/presence[@to='{jid_one}/{resource_one}'][@from='#foo%{irc_server_one}/{nick_one}']/muc_user:x/muc_user:item[@affiliation='none'][@jid='~nick@localhost'][@role='participant']",
+                              "/presence/muc_user:x/muc_user:status[@code='110']")
+                             ),
+                     partial(expect_stanza, "/message[@from='#foo%{irc_server_one}'][@type='groupchat']/subject[not(text())]"),
+
+                     # First user sets the topic
+                     partial(send_stanza,
+                             "<message from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}/{nick_one}' type='groupchat'><subject>TOPIC\nTEST</subject></message>"),
+                     partial(expect_stanza, "/message[@from='#foo%{irc_server_one}/{nick_one}'][@type='groupchat'][@to='{jid_one}/{resource_one}']/subject[text()='TOPIC\nTEST']"),
+
+                     # # Second user joins
+                     # partial(send_stanza,
+                     #         "<presence from='{jid_two}/{resource_one}' to='#foo%{irc_server_one}/{nick_two}' />"),
                      # connection_sequence("irc.localhost", '{jid_two}/{resource_one}'),
+                     # # Our presence, sent to the other user
+                     # partial(expect_stanza,
+                     #         ("/presence[@to='{jid_one}/{resource_one}'][@from='#foo%{irc_server_one}/{nick_two}']/muc_user:x/muc_user:item[@affiliation='none'][@jid='~bobby@localhost'][@role='participant']",)),
+                     # # The other user presence
+                     # partial(expect_stanza,
+                     #         ("/presence[@to='{jid_second}/{resource_one}'][@from='#foo%{irc_server_one}/{nick_one}']/muc_user:x/muc_user:item[@affiliation='none'][@jid='~nick@localhost'][@role='participant']")
+                     #         ),
+                     # # Our own presence
+                     # partial(expect_stanza,
+                     #         ("/presence[@to='{jid_two}/{resource_one}'][@from='#foo%{irc_server_one}/{nick_two}']/muc_user:x/muc_user:item[@affiliation='none'][@jid='~bobby@localhost'][@role='participant']",
+                     #          "/presence/muc_user:x/muc_user:status[@code='110']")
+                     #         ),
+                     # partial(expect_stanza, "/message[@from='#foo%{irc_server_one}'][@type='groupchat']/subject[not(text())]"),
                  ]),
     )
 
     failures = 0
 
     irc = IrcServerRunner()
-    print("Starting mammond server…")
+    print("Starting irc server…")
     asyncio.get_event_loop().run_until_complete(irc.start())
     while True:
         res = asyncio.get_event_loop().run_until_complete(irc.process.stderr.readline())
-        if b"init finished..." in res:
+        if b"now running in foreground mode" in res:
             break
-    print("mammond server started.")
+    print("irc server started.")
     print("Running %s checks for biboumi." % (len(scenarios)))
 
     for scenario in scenarios:
@@ -353,7 +406,7 @@ if __name__ == '__main__':
                   (scenario.name, scenario.name))
             failures += 1
 
-    print("Waiting for mammond to exit…")
+    print("Waiting for irc server to exit…")
     irc.stop()
     code = asyncio.get_event_loop().run_until_complete(irc.wait())
 
