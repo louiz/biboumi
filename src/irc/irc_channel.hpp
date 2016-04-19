@@ -18,6 +18,7 @@ public:
 
   bool joined;
   std::string topic;
+  std::string topic_author;
   void set_self(const std::string& name);
   IrcUser* get_self() const;
   IrcUser* add_user(const std::string& name,

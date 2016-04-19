@@ -122,7 +122,7 @@ public:
   /**
    * Send the topic of the MUC to the user
    */
-  void send_topic(const std::string& hostname, const std::string& chan_name, const std::string& topic);
+  void send_topic(const std::string& hostname, const std::string& chan_name, const std::string& topic, const std::string& who);
   /**
    * Send a MUC message from some participant
    */

@@ -55,6 +55,8 @@ static const std::unordered_map<std::string,
   {"353", {&IrcClient::set_and_forward_user_list, {4, 0}}},
   {"332", {&IrcClient::on_topic_received, {2, 0}}},
   {"TOPIC", {&IrcClient::on_topic_received, {2, 0}}},
+  {"333", {&IrcClient::on_topic_who_time_received, {4, 0}}},
+  {"RPL_TOPICWHOTIME", {&IrcClient::on_topic_who_time_received, {4, 0}}},
   {"366", {&IrcClient::on_channel_completely_joined, {2, 0}}},
   {"432", {&IrcClient::on_erroneous_nickname, {2, 0}}},
   {"433", {&IrcClient::on_nickname_conflict, {2, 0}}},
@@ -723,10 +725,20 @@ void IrcClient::send_motd(const IrcMessage&)
 void IrcClient::on_topic_received(const IrcMessage& message)
 {
   const std::string chan_name = utils::tolower(message.arguments[message.arguments.size() - 2]);
+  IrcUser author(message.prefix);
   IrcChannel* channel = this->get_channel(chan_name);
   channel->topic = message.arguments[message.arguments.size() - 1];
+  channel->topic_author = author.nick;
   if (channel->joined)
-    this->bridge.send_topic(this->hostname, chan_name, channel->topic);
+    this->bridge.send_topic(this->hostname, chan_name, channel->topic, channel->topic_author);
+}
+
+void IrcClient::on_topic_who_time_received(const IrcMessage& message)
+{
+  IrcUser author(message.arguments[2]);
+  const std::string chan_name = utils::tolower(message.arguments[1]);
+  IrcChannel* channel = this->get_channel(chan_name);
+  channel->topic_author = author.nick;
 }
 
 void IrcClient::on_channel_completely_joined(const IrcMessage& message)
@@ -737,7 +749,7 @@ void IrcClient::on_channel_completely_joined(const IrcMessage& message)
   this->bridge.send_user_join(this->hostname, chan_name, channel->get_self(),
                                channel->get_self()->get_most_significant_mode(this->sorted_user_modes),
                                true);
-  this->bridge.send_topic(this->hostname, chan_name, channel->topic);
+  this->bridge.send_topic(this->hostname, chan_name, channel->topic, channel->topic_author);
 }
 
 void IrcClient::on_erroneous_nickname(const IrcMessage& message)

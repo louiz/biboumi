@@ -388,11 +388,14 @@ void XmppComponent::send_invalid_user_error(const std::string& user_name, const 
   this->send_stanza(message);
 }
 
-void XmppComponent::send_topic(const std::string& from, Xmpp::body&& topic, const std::string& to)
+void XmppComponent::send_topic(const std::string& from, Xmpp::body&& topic, const std::string& to, const std::string& who)
 {
   XmlNode message("message");
   message["to"] = to;
-  message["from"] = from + "@" + this->served_hostname;
+  if (who.empty())
+    message["from"] = from + "@" + this->served_hostname;
+  else
+    message["from"] = from + "@" + this->served_hostname + "/" + who;
   message["type"] = "groupchat";
   XmlNode subject("subject");
   subject.set_inner(std::get<0>(topic));

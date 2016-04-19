@@ -634,10 +634,11 @@ void Bridge::send_user_join(const std::string& hostname,
                              affiliation, role, this->user_jid, self);
 }
 
-void Bridge::send_topic(const std::string& hostname, const std::string& chan_name, const std::string& topic)
+void Bridge::send_topic(const std::string& hostname, const std::string& chan_name, const std::string& topic, const std::string& who)
 {
   const auto encoding = in_encoding_for(*this, {chan_name + '%' + hostname});
-  this->xmpp.send_topic(chan_name + utils::empty_if_fixed_server("%" + hostname), this->make_xmpp_body(topic, encoding), this->user_jid);
+  this->xmpp.send_topic(chan_name + utils::empty_if_fixed_server(
+      "%" + hostname), this->make_xmpp_body(topic, encoding), this->user_jid, who);
 }
 
 std::string Bridge::get_own_nick(const Iid& iid)

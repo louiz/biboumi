@@ -199,6 +199,10 @@ public:
    */
   void on_topic_received(const IrcMessage& message);
   /**
+   * Save the topic author in the IrcChannel
+   */
+  void on_topic_who_time_received(const IrcMessage& message);
+  /**
    * Empty the topic
    */
   void on_empty_topic(const IrcMessage& message);

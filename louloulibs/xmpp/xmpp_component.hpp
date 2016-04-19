@@ -124,7 +124,7 @@ public:
   /**
    * Send the MUC topic to the user
    */
-  void send_topic(const std::string& from, Xmpp::body&& xmpp_topic, const std::string& to);
+  void send_topic(const std::string& from, Xmpp::body&& xmpp_topic, const std::string& to, const std::string& who);
   /**
    * Send a (non-private) message to the MUC
    */
