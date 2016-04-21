@@ -9,6 +9,7 @@ import atexit
 import lxml.etree
 import sys
 import io
+import os
 from functools import partial
 from slixmpp.xmlstream.matcher.base import MatcherBase
 
@@ -184,7 +185,7 @@ class BiboumiRunner(ProcessRunner):
 class IrcServerRunner(ProcessRunner):
     def __init__(self):
         super().__init__()
-        self.create = asyncio.create_subprocess_exec("charybdis", "-foreground", "-configfile", "../tests/end_to_end/ircd.conf",
+        self.create = asyncio.create_subprocess_exec("charybdis", "-foreground", "-configfile", os.getcwd() + "/../tests/end_to_end/ircd.conf",
                                                      stderr=asyncio.subprocess.PIPE)
 
 
