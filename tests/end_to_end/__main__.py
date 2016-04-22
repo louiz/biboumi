@@ -128,13 +128,14 @@ class Scenario:
     etc
     """
 
-    def __init__(self, name, steps):
+    def __init__(self, name, steps, conf="basic"):
         """
         Steps is a list of 2-tuple:
         [(action, answer), (action, answer)]
         """
         self.name = name
         self.steps = []
+        self.conf = conf
         for elem in steps:
             if isinstance(elem, collections.Iterable):
                 for step in elem:
@@ -226,7 +227,7 @@ class BiboumiTest:
                             filename=output_filename)
 
         with open("test.conf", "w") as fd:
-            fd.write(confs['basic'])
+            fd.write(confs[scenario.conf])
 
         # Start the XMPP component and biboumi
         biboumi = BiboumiRunner(scenario.name, with_valgrind)
@@ -254,7 +255,8 @@ class BiboumiTest:
         return not failed
 
 
-confs = {'basic':
+confs = {
+'basic':
 """hostname=biboumi.localhost
 password=coucou
 db_name=biboumi.sqlite
