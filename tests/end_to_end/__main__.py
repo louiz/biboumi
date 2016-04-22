@@ -433,14 +433,15 @@ if __name__ == '__main__':
 
     failures = 0
 
+    irc_output = open("irc_output.txt", "w")
     irc = IrcServerRunner()
     print("Starting irc server…")
     asyncio.get_event_loop().run_until_complete(irc.start())
     while True:
         res = asyncio.get_event_loop().run_until_complete(irc.process.stderr.readline())
-        print(res)
+        irc_output.write(res.decode())
         if not res:
-            print("IRC server failed to start, exiting")
+            print("IRC server failed to start, see irc_output.txt for more details. Exiting…")
             sys.exit(1)
         if b"now running in foreground mode" in res:
             break
