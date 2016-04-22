@@ -483,7 +483,7 @@ if __name__ == '__main__':
 
     print("Waiting for irc server to exit…")
     irc.stop()
-    code = asyncio.get_event_loop().run_until_complete(irc.wait())
+    asyncio.get_event_loop().run_until_complete(irc.wait())
 
     if failures:
         print("%d test%s failed, please fix %s." % (failures, 's' if failures > 1 else '',
