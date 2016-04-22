@@ -287,56 +287,68 @@ def handshake_sequence():
             partial(send_stanza, "<handshake xmlns='jabber:component:accept'/>"))
 
 
-def connection_sequence(irc_host, jid):
+def connection_begin_sequence(irc_host, jid):
     jid = jid.format_map(common_replacements)
     xpath    = "/message[@to='" + jid + "'][@from='irc.localhost@biboumi.localhost']/body[text()='%s']"
     xpath_re = "/message[@to='" + jid + "'][@from='irc.localhost@biboumi.localhost']/body[re:test(text(), '%s')]"
     return (
     partial(expect_stanza,
-          xpath % ('Connecting to %s:6697 (encrypted)' % irc_host)),
+            xpath % ('Connecting to %s:6697 (encrypted)' % irc_host)),
     partial(expect_stanza,
             xpath % 'Connection failed: Connection refused'),
     partial(expect_stanza,
-          xpath % ('Connecting to %s:6670 (encrypted)' % irc_host)),
+            xpath % ('Connecting to %s:6670 (encrypted)' % irc_host)),
     partial(expect_stanza,
             xpath % 'Connection failed: Connection refused'),
     partial(expect_stanza,
-          xpath % ('Connecting to %s:6667 (not encrypted)' % irc_host)),
+            xpath % ('Connecting to %s:6667 (not encrypted)' % irc_host)),
     partial(expect_stanza,
             xpath % 'Connected to IRC server.'),
     # These two messages can be receive in any order
     partial(expect_stanza,
-          xpath_re % (r'^%s: \*\*\* (Checking Ident|Looking up your hostname...)$' % irc_host)),
+            xpath_re % (r'^%s: \*\*\* (Checking Ident|Looking up your hostname...)$' % irc_host)),
     partial(expect_stanza,
-          xpath_re % (r'^%s: \*\*\* (Checking Ident|Looking up your hostname...)$' % irc_host)),
+            xpath_re % (r'^%s: \*\*\* (Checking Ident|Looking up your hostname...)$' % irc_host)),
     # These three messages can be received in any order
     partial(expect_stanza,
-          xpath_re % (r'^%s: (\*\*\* Found your hostname: .*|ACK multi-prefix|\*\*\* No Ident response)$' % irc_host)),
+            xpath_re % (r'^%s: (\*\*\* Found your hostname: .*|ACK multi-prefix|\*\*\* No Ident response)$' % irc_host)),
     partial(expect_stanza,
-          xpath_re % (r'^%s: (\*\*\* Found your hostname: .*|ACK multi-prefix|\*\*\* No Ident response)$' % irc_host)),
+            xpath_re % (r'^%s: (\*\*\* Found your hostname: .*|ACK multi-prefix|\*\*\* No Ident response)$' % irc_host)),
     partial(expect_stanza,
-          xpath_re % (r'^%s: (\*\*\* Found your hostname: .*|ACK multi-prefix|\*\*\* No Ident response)$' % irc_host)),
+            xpath_re % (r'^%s: (\*\*\* Found your hostname: .*|ACK multi-prefix|\*\*\* No Ident response)$' % irc_host)),
+    )
+
+
+def connection_end_sequence(irc_host, jid):
+    jid = jid.format_map(common_replacements)
+    xpath    = "/message[@to='" + jid + "'][@from='irc.localhost@biboumi.localhost']/body[text()='%s']"
+    xpath_re = "/message[@to='" + jid + "'][@from='irc.localhost@biboumi.localhost']/body[re:test(text(), '%s')]"
+    return (
     partial(expect_stanza,
-          xpath_re % (r'^%s: Your host is .*$' % irc_host)),
+            xpath_re % (r'^%s: Your host is .*$' % irc_host)),
     partial(expect_stanza,
-          xpath_re % (r'^%s: This server was created .*$' % irc_host)),
+            xpath_re % (r'^%s: This server was created .*$' % irc_host)),
     partial(expect_stanza,
-          xpath_re % (r'^%s: There are \d+ users and \d+ invisible on \d+ servers$' % irc_host)),
+            xpath_re % (r'^%s: There are \d+ users and \d+ invisible on \d+ servers$' % irc_host)),
     partial(expect_stanza,
-          xpath_re % (r'^%s: \d+ channels formed$' % irc_host), optional=True),
+            xpath_re % (r'^%s: \d+ channels formed$' % irc_host), optional=True),
     partial(expect_stanza,
-          xpath_re % (r'^%s: I have \d+ clients and \d+ servers$' % irc_host)),
+            xpath_re % (r'^%s: I have \d+ clients and \d+ servers$' % irc_host)),
     partial(expect_stanza,
-          xpath_re % (r'^%s: \d+ \d+ Current local users \d+, max \d+$' % irc_host)),
+            xpath_re % (r'^%s: \d+ \d+ Current local users \d+, max \d+$' % irc_host)),
     partial(expect_stanza,
-          xpath_re % (r'^%s: \d+ \d+ Current global users \d+, max \d+$' % irc_host)),
+            xpath_re % (r'^%s: \d+ \d+ Current global users \d+, max \d+$' % irc_host)),
     partial(expect_stanza,
-          xpath_re % (r'^%s: Highest connection count: \d+ \(\d+ clients\) \(\d+ connections received\)$' % irc_host)),
+            xpath_re % (r'^%s: Highest connection count: \d+ \(\d+ clients\) \(\d+ connections received\)$' % irc_host)),
     partial(expect_stanza,
             xpath % "- This is charybdis MOTD you might replace it, but if not your friends will\n- laugh at you.\n"),
     partial(expect_stanza,
             xpath_re % r'^User mode for \w+ is \[\+i\]$'),
     )
+
+
+def connection_sequence(irc_host, jid):
+    return connection_begin_sequence(irc_host, jid) + connection_end_sequence(irc_host, jid)
 
 
 if __name__ == '__main__':
