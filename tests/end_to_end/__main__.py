@@ -260,11 +260,20 @@ confs = {
 """hostname=biboumi.localhost
 password=coucou
 db_name=biboumi.sqlite
-port=8811"""}
+port=8811""",
+
+'fixed_server':
+"""hostname=biboumi.localhost
+password=coucou
+db_name=biboumi.sqlite
+port=8811
+fixed_irc_server=irc.localhost
+"""}
 
 common_replacements = {
     'irc_server_one': 'irc.localhost@biboumi.localhost',
     'irc_host_one': 'irc.localhost',
+    'biboumi_host': 'biboumi.localhost',
     'resource_one': 'resource1',
     'nick_one': 'Nick',
     'jid_one': 'first@example.com',
@@ -431,6 +440,21 @@ if __name__ == '__main__':
                              ),
                      partial(expect_stanza, "/message[@from='#foo%{irc_server_one}/{nick_one}'][@type='groupchat']/subject[text()='TOPIC TEST']"),
                  ]),
+        Scenario("channel_basic_join_on_fixed_irc_server",
+                 [
+                     handshake_sequence(),
+                     partial(send_stanza,
+                     "<presence from='{jid_one}/{resource_one}' to='#zgeg@{biboumi_host}/{nick_one}' />"),
+                     connection_sequence("irc.localhost", '{jid_one}/{resource_one}'),
+                     partial(expect_stanza,
+                     "/message/body[text()='Mode #zgeg [+nt] by {irc_host_one}']"),
+                     partial(expect_stanza,
+                     ("/presence[@to='{jid_one}/{resource_one}'][@from='#zgeg@{biboumi_host}/{nick_one}']/muc_user:x/muc_user:item[@affiliation='admin'][@role='moderator']",
+                     "/presence/muc_user:x/muc_user:status[@code='110']")
+                     ),
+                     partial(expect_stanza, "/message[@from='#zgeg@{biboumi_host}'][@type='groupchat']/subject[not(text())]"),
+                 ], conf='fixed_server'
+                 ),
     )
 
     failures = 0
