@@ -265,7 +265,10 @@ else()
 endif()
 configure_file(unit/biboumi.service.cmake biboumi.service)
 
+# The date MUST be in english format
+set(ENV{LANG} "en_US.utf-8")
 execute_process(COMMAND "date" "+%a %b %d %Y" OUTPUT_VARIABLE RPM_DATE
                 OUTPUT_STRIP_TRAILING_WHITESPACE)
+unset(ENV{LANG})
 
 configure_file(packaging/biboumi.spec.cmake biboumi.spec)
