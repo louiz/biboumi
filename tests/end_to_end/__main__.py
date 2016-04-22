@@ -396,7 +396,6 @@ if __name__ == '__main__':
                               "/presence/muc_user:x/muc_user:status[@code='110']")
                              ),
                      partial(expect_stanza, "/message[@from='%{irc_server_one}'][@type='groupchat']/subject[re:test(text(), '^This is a virtual channel.*$')]"),
-                     # partial(expect_stanza, "/message[@from='#foo%{irc_server_one}'][@type='groupchat']/subject[not(text())]"),
                      connection_end_sequence("irc.localhost", '{jid_one}/{resource_one}'),
                  ]),
         Scenario("channel_join_with_two_users",
