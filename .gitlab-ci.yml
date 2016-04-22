@@ -20,6 +20,7 @@ build:
     - make biboumi -j$(nproc)
     - make coverage -j$(nproc)
     - make check -j$(nproc)
+    - make e2e -j$(nproc)
     - make rpm -j$(nproc)
   artifacts:
     paths:
