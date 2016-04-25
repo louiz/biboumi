@@ -240,6 +240,8 @@ class BiboumiTest:
         xmpp.process()
 
         code = asyncio.get_event_loop().run_until_complete(biboumi.wait())
+        xmpp.biboumi = None
+        scenario.steps.clear()
         failed = False
         if not xmpp.failed:
             if code != self.expected_code:
@@ -393,8 +395,6 @@ if __name__ == '__main__':
                      partial(send_stanza,
                              "<presence from='{jid_one}/{resource_one}' to='%{irc_server_one}/{nick_one}' />"),
                      connection_begin_sequence("irc.localhost", '{jid_one}/{resource_one}'),
-                     # partial(expect_stanza,
-                     #         "/message/body[text()='Mode #foo [+nt] by {irc_host_one}']"),
                      partial(expect_stanza,
                              ("/presence[@to='{jid_one}/{resource_one}'][@from='%{irc_server_one}/{nick_one}']/muc_user:x/muc_user:item[@affiliation='none'][@role='participant']",
                               "/presence/muc_user:x/muc_user:status[@code='110']")
