@@ -108,7 +108,8 @@ def check_xpath(xpaths, stanza):
     for xpath in xpaths:
         tree = lxml.etree.parse(io.StringIO(str(stanza)))
         matched = tree.xpath(xpath, namespaces={'re': 'http://exslt.org/regular-expressions',
-                                                'muc_user': 'http://jabber.org/protocol/muc#user'})
+                                                'muc_user': 'http://jabber.org/protocol/muc#user',
+                                                'disco_items': 'http://jabber.org/protocol/disco#items'})
         if not matched:
             raise StanzaError("Received stanza “%s” did not match expected xpath “%s”" % (stanza, xpath))
 
@@ -260,7 +261,8 @@ confs = {
 """hostname=biboumi.localhost
 password=coucou
 db_name=biboumi.sqlite
-port=8811""",
+port=8811
+admin=admin@example.com""",
 
 'fixed_server':
 """hostname=biboumi.localhost
@@ -268,6 +270,7 @@ password=coucou
 db_name=biboumi.sqlite
 port=8811
 fixed_irc_server=irc.localhost
+admin=admin@example.com
 """}
 
 common_replacements = {
@@ -278,6 +281,7 @@ common_replacements = {
     'nick_one': 'Nick',
     'jid_one': 'first@example.com',
     'jid_two': 'second@example.com',
+    'jid_admin': 'admin@example.com',
     'nick_two': 'Bobby',
 }
 
@@ -482,6 +486,34 @@ if __name__ == '__main__':
                      partial(expect_stanza, "/message[@from='#zgeg@{biboumi_host}'][@type='groupchat']/subject[not(text())]"),
                  ], conf='fixed_server'
                  ),
+        Scenario("list_adhoc",
+                 [
+                     handshake_sequence(),
+                     partial(send_stanza, "<iq type='get' id='idwhatever' from='{jid_one}/{resource_one}' to='{biboumi_host}'><query xmlns='http://jabber.org/protocol/disco#items' node='http://jabber.org/protocol/commands' /></iq>"),
+                     partial(expect_stanza, ("/iq[@type='result']/disco_items:query[@node='http://jabber.org/protocol/commands']",
+                                             "/iq/disco_items:query/disco_items:item[3]")),
+                 ]),
+        Scenario("list_admin_adhoc",
+                 [
+                     handshake_sequence(),
+                     partial(send_stanza, "<iq type='get' id='idwhatever' from='{jid_admin}/{resource_one}' to='{biboumi_host}'><query xmlns='http://jabber.org/protocol/disco#items' node='http://jabber.org/protocol/commands' /></iq>"),
+                     partial(expect_stanza, ("/iq[@type='result']/disco_items:query[@node='http://jabber.org/protocol/commands']",
+                                             "/iq/disco_items:query/disco_items:item[5]")),
+                 ]),
+        Scenario("list_adhoc_fixed_server",
+                 [
+                     handshake_sequence(),
+                     partial(send_stanza, "<iq type='get' id='idwhatever' from='{jid_one}/{resource_one}' to='{biboumi_host}'><query xmlns='http://jabber.org/protocol/disco#items' node='http://jabber.org/protocol/commands' /></iq>"),
+                     partial(expect_stanza, ("/iq[@type='result']/disco_items:query[@node='http://jabber.org/protocol/commands']",
+                                             "/iq/disco_items:query/disco_items:item[3]")),
+                 ], conf='fixed_server'),
+        Scenario("list_admin_adhoc_fixed_server",
+                 [
+                     handshake_sequence(),
+                     partial(send_stanza, "<iq type='get' id='idwhatever' from='{jid_admin}/{resource_one}' to='{biboumi_host}'><query xmlns='http://jabber.org/protocol/disco#items' node='http://jabber.org/protocol/commands' /></iq>"),
+                     partial(expect_stanza, ("/iq[@type='result']/disco_items:query[@node='http://jabber.org/protocol/commands']",
+                                             "/iq/disco_items:query/disco_items:item[5]")),
+                 ], conf='fixed_server'),
     )
 
     failures = 0
