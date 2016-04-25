@@ -118,16 +118,19 @@ void ConfigureIrcServerStep1(XmppComponent&, AdhocSession& session, XmlNode& com
 {
   const Jid owner(session.get_owner_jid());
   const Jid target(session.get_target_jid());
+  std::string server_domain;
+  if ((server_domain = Config::get("fixed_irc_server", "")).empty())
+    server_domain = target.local;
   auto options = Database::get_irc_server_options(owner.local + "@" + owner.domain,
-                                                  target.local);
+                                                  server_domain);
 
   XmlNode x("jabber:x:data:x");
   x["type"] = "form";
   XmlNode title("title");
-  title.set_inner("Configure the IRC server "s + target.local);
+  title.set_inner("Configure the IRC server "s + server_domain);
   x.add_child(std::move(title));
   XmlNode instructions("instructions");
-  instructions.set_inner("Edit the form, to configure the settings of the IRC server "s + target.local);
+  instructions.set_inner("Edit the form, to configure the settings of the IRC server "s + server_domain);
   x.add_child(std::move(instructions));
 
   XmlNode required("required");
@@ -285,8 +288,11 @@ void ConfigureIrcServerStep2(XmppComponent&, AdhocSession& session, XmlNode& com
     {
       const Jid owner(session.get_owner_jid());
       const Jid target(session.get_target_jid());
+      std::string server_domain;
+      if ((server_domain = Config::get("fixed_irc_server", "")).empty())
+        server_domain = target.local;
       auto options = Database::get_irc_server_options(owner.local + "@" + owner.domain,
-                                                      target.local);
+                                                      server_domain);
       for (const XmlNode* field: x->get_children("field", "jabber:x:data"))
         {
           const XmlNode* value = field->get_child("value", "jabber:x:data");

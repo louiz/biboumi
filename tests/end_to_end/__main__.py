@@ -514,6 +514,31 @@ if __name__ == '__main__':
                      partial(expect_stanza, ("/iq[@type='result']/disco_items:query[@node='http://jabber.org/protocol/commands']",
                                              "/iq/disco_items:query/disco_items:item[5]")),
                  ], conf='fixed_server'),
+
+
+        Scenario("list_adhoc_irc",
+                 [
+                     handshake_sequence(),
+                     partial(send_stanza, "<iq type='get' id='idwhatever' from='{jid_one}/{resource_one}' to='{irc_host_one}@{biboumi_host}'><query xmlns='http://jabber.org/protocol/disco#items' node='http://jabber.org/protocol/commands' /></iq>"),
+                     partial(expect_stanza, ("/iq[@type='result']/disco_items:query[@node='http://jabber.org/protocol/commands']",
+                                             "/iq/disco_items:query/disco_items:item[1]")),
+                 ]),
+        Scenario("list_adhoc_irc_fixed_server",
+                 [
+                     handshake_sequence(),
+                     partial(send_stanza, "<iq type='get' id='idwhatever' from='{jid_one}/{resource_one}' to='{biboumi_host}'><query xmlns='http://jabber.org/protocol/disco#items' node='http://jabber.org/protocol/commands' /></iq>"),
+                     partial(expect_stanza, ("/iq[@type='result']/disco_items:query[@node='http://jabber.org/protocol/commands']",
+                                             "/iq/disco_items:query/disco_items:item[4]")),
+                 ], conf='fixed_server'),
+        Scenario("list_admin_adhoc_irc_fixed_server",
+                 [
+                     handshake_sequence(),
+                     partial(send_stanza, "<iq type='get' id='idwhatever' from='{jid_admin}/{resource_one}' to='{biboumi_host}'><query xmlns='http://jabber.org/protocol/disco#items' node='http://jabber.org/protocol/commands' /></iq>"),
+                     partial(expect_stanza, ("/iq[@type='result']/disco_items:query[@node='http://jabber.org/protocol/commands']",
+                                             "/iq/disco_items:query/disco_items:item[6]")),
+                 ], conf='fixed_server'),
+
+
     )
 
     failures = 0

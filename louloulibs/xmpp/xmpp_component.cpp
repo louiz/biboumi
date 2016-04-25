@@ -591,7 +591,9 @@ void XmppComponent::send_version(const std::string& id, const std::string& jid_t
   this->send_stanza(iq);
 }
 
-void XmppComponent::send_adhoc_commands_list(const std::string& id, const std::string& requester_jid, const std::string& from_jid, const bool with_admin_only, const AdhocCommandsHandler& adhoc_handler)
+void XmppComponent::send_adhoc_commands_list(const std::string& id, const std::string& requester_jid,
+                                             const std::string& from_jid,
+                                             const bool with_admin_only, const AdhocCommandsHandler& adhoc_handler)
 {
   Stanza iq("iq");
   iq["type"] = "result";

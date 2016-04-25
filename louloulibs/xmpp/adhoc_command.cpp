@@ -11,10 +11,6 @@ AdhocCommand::AdhocCommand(std::vector<AdhocStep>&& callbacks, const std::string
 {
 }
 
-AdhocCommand::~AdhocCommand()
-{
-}
-
 bool AdhocCommand::is_admin_only() const
 {
   return this->admin_only;

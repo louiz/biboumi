@@ -61,9 +61,18 @@ BiboumiComponent::BiboumiComponent(std::shared_ptr<Poller> poller, const std::st
     {"reload", AdhocCommand({&Reload}, "Reload biboumi’s configuration", true)}
   };
 
+#ifdef USE_DATABASE
+  AdhocCommand configure_server_command({&ConfigureIrcServerStep1, &ConfigureIrcServerStep2}, "Configure a few settings for that IRC server", false);
+  if (!Config::get("fixed_irc_server", "").empty())
+  {
+    this->adhoc_commands_handler.get_commands().emplace(std::make_pair("configure",
+            configure_server_command));
+  }
+#endif
+
   this->irc_server_adhoc_commands_handler.get_commands() = {
 #ifdef USE_DATABASE
-    {"configure", AdhocCommand({&ConfigureIrcServerStep1, &ConfigureIrcServerStep2}, "Configure a few settings for that IRC server", false)},
+    {"configure", configure_server_command},
 #endif
   };
   this->irc_channel_adhoc_commands_handler.get_commands() = {
