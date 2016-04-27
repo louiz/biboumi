@@ -262,14 +262,14 @@ confs = {
 'basic':
 """hostname=biboumi.localhost
 password=coucou
-db_name=biboumi.sqlite
+db_name=e2e_test.sqlite
 port=8811
 admin=admin@example.com""",
 
 'fixed_server':
 """hostname=biboumi.localhost
 password=coucou
-db_name=biboumi.sqlite
+db_name=e2e_test.sqlite
 port=8811
 fixed_irc_server=irc.localhost
 admin=admin@example.com
@@ -537,8 +537,6 @@ if __name__ == '__main__':
                      partial(expect_stanza, ("/iq[@type='result']/disco_items:query[@node='http://jabber.org/protocol/commands']",
                                              "/iq/disco_items:query/disco_items:item[6]")),
                  ], conf='fixed_server'),
-
-
     )
 
     failures = 0
