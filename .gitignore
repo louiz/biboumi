@@ -29,5 +29,12 @@
 *.gcov
 *.gcda
 
+# Python files
+*.pyc
+*.pyo
+
 # Build directories
 build/
+
+# Clion directory
+.idea/
