@@ -20,12 +20,10 @@ build:
     - make biboumi -j$(nproc)
     - make coverage -j$(nproc)
     - make check -j$(nproc)
-    - make e2e -j$(nproc)
+    - mkdir tests_outputs && pushd tests_outputs && make e2e -j$(nproc) -C .. && popd
     - make rpm -j$(nproc)
   artifacts:
     paths:
-      - build/
-
-
-
-
+      - build/coverage/
+      - build/rpmbuild/
+      - build/tests_outputs/
