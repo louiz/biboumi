@@ -38,6 +38,10 @@ class Poller
 public:
   explicit Poller();
   ~Poller();
+  Poller(const Poller&) = delete;
+  Poller(Poller&&) = delete;
+  Poller& operator=(const Poller&) = delete;
+  Poller& operator=(Poller&&) = delete;
   /**
    * Add a SocketHandler to be monitored by this Poller. All receive events
    * are always automatically watched.
@@ -85,11 +89,6 @@ private:
 #elif POLLER == EPOLL
   int epfd;
 #endif
-
-  Poller(const Poller&) = delete;
-  Poller(Poller&&) = delete;
-  Poller& operator=(const Poller&) = delete;
-  Poller& operator=(Poller&&) = delete;
 };
 
 #endif // POLLER_INCLUDED

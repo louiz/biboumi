@@ -15,18 +15,19 @@ public:
   explicit IrcUser(const std::string& name,
                    const std::map<char, char>& prefix_to_mode);
   explicit IrcUser(const std::string& name);
-  void add_mode(const char mode);
-  void remove_mode(const char mode);
-  char get_most_significant_mode(const std::vector<char>& sorted_user_modes) const;
-  std::string nick;
-  std::string host;
-  std::set<char> modes;
 
-private:
   IrcUser(const IrcUser&) = delete;
   IrcUser(IrcUser&&) = delete;
   IrcUser& operator=(const IrcUser&) = delete;
   IrcUser& operator=(IrcUser&&) = delete;
+
+  void add_mode(const char mode);
+  void remove_mode(const char mode);
+  char get_most_significant_mode(const std::vector<char>& sorted_user_modes) const;
+
+  std::string nick;
+  std::string host;
+  std::set<char> modes;
 };
 
 #endif // IRC_USER_INCLUDED

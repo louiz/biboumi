@@ -13,7 +13,9 @@
 DNSHandler DNSHandler::instance;
 
 using namespace std::string_literals;
-DNSHandler::DNSHandler()
+DNSHandler::DNSHandler():
+  socket_handlers{},
+  channel{nullptr}
 {
   int ares_error;
   if ((ares_error = ::ares_library_init(ARES_LIB_INIT_ALL)) != 0)

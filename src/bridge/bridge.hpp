@@ -34,7 +34,12 @@ class Bridge
 {
 public:
   explicit Bridge(const std::string& user_jid, BiboumiComponent& xmpp, std::shared_ptr<Poller> poller);
-  ~Bridge();
+  ~Bridge() = default;
+
+  Bridge(const Bridge&) = delete;
+  Bridge(Bridge&& other) = delete;
+  Bridge& operator=(const Bridge&) = delete;
+  Bridge& operator=(Bridge&&) = delete;
   /**
    * QUIT all connected IRC servers.
    */
@@ -239,11 +244,6 @@ private:
    * response iq.
    */
   std::list<irc_responder_callback_t> waiting_irc;
-
-  Bridge(const Bridge&) = delete;
-  Bridge(Bridge&& other) = delete;
-  Bridge& operator=(const Bridge&) = delete;
-  Bridge& operator=(Bridge&&) = delete;
 };
 
 struct IRCNotConnected: public std::exception

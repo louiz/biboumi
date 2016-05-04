@@ -45,10 +45,6 @@ Bridge::Bridge(const std::string& user_jid, BiboumiComponent& xmpp, std::shared_
 {
 }
 
-Bridge::~Bridge()
-{
-}
-
 /**
  * Return the role and affiliation, corresponding to the given irc mode */
 static std::tuple<std::string, std::string> get_role_affiliation_from_irc_mode(const char mode)

@@ -31,6 +31,12 @@ public:
                      const std::string& realname, const std::string& user_hostname,
                      Bridge& bridge);
   ~IrcClient();
+
+  IrcClient(const IrcClient&) = delete;
+  IrcClient(IrcClient&&) = delete;
+  IrcClient& operator=(const IrcClient&) = delete;
+  IrcClient& operator=(IrcClient&&) = delete;
+
   /**
    * Connect to the IRC server
    */
@@ -360,11 +366,6 @@ private:
    * the WebIRC protocole.
    */
   Resolver dns_resolver;
-
-  IrcClient(const IrcClient&) = delete;
-  IrcClient(IrcClient&&) = delete;
-  IrcClient& operator=(const IrcClient&) = delete;
-  IrcClient& operator=(IrcClient&&) = delete;
 };
 
 #endif // IRC_CLIENT_INCLUDED

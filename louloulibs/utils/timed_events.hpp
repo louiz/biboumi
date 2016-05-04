@@ -31,7 +31,12 @@ public:
                       std::function<void()> callback, const std::string& name="");
 
   explicit TimedEvent(TimedEvent&&);
-  ~TimedEvent();
+  ~TimedEvent() = default;
+
+  TimedEvent(const TimedEvent&) = delete;
+  TimedEvent& operator=(const TimedEvent&) = delete;
+  TimedEvent& operator=(TimedEvent&&) = delete;
+
   /**
    * Whether or not this event happens after the other one.
    */
@@ -70,10 +75,6 @@ private:
    * unique.
    */
   const std::string name;
-
-  TimedEvent(const TimedEvent&) = delete;
-  TimedEvent& operator=(const TimedEvent&) = delete;
-  TimedEvent& operator=(TimedEvent&&) = delete;
 };
 
 /**
@@ -84,7 +85,13 @@ private:
 class TimedEventsManager
 {
 public:
-  ~TimedEventsManager();
+  ~TimedEventsManager() = default;
+
+  TimedEventsManager(const TimedEventsManager&) = delete;
+  TimedEventsManager(TimedEventsManager&&) = delete;
+  TimedEventsManager& operator=(const TimedEventsManager&) = delete;
+  TimedEventsManager& operator=(TimedEventsManager&&) = delete;
+
   /**
    * Return the unique instance of this class
    */
@@ -121,12 +128,8 @@ public:
   std::size_t size() const;
 
 private:
-  explicit TimedEventsManager();
   std::list<TimedEvent> events;
-  TimedEventsManager(const TimedEventsManager&) = delete;
-  TimedEventsManager(TimedEventsManager&&) = delete;
-  TimedEventsManager& operator=(const TimedEventsManager&) = delete;
-  TimedEventsManager& operator=(TimedEventsManager&&) = delete;
+  explicit TimedEventsManager() = default;
 };
 
 #endif // TIMED_EVENTS_HPP

@@ -118,7 +118,7 @@ void XmppParser::end_element(const XML_Char*)
           this->stanza_event(*this->current_node);
           // Note: deleting all the children of our parent deletes ourself,
           // so current_node is an invalid pointer after this line
-          this->current_node->get_parent()->delete_all_children();
+          parent->delete_all_children();
         }
       this->current_node = parent;
     }
@@ -139,7 +139,7 @@ void XmppParser::stanza_event(const Stanza& stanza) const
       try {
         callback(stanza);
       } catch (const std::exception& e) {
-        log_debug("Unhandled exception: " << e.what());
+        log_error("Unhandled exception: " << e.what());
       }
     }
 }

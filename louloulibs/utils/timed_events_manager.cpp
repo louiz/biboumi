@@ -6,14 +6,6 @@ TimedEventsManager& TimedEventsManager::instance()
   return inst;
 }
 
-TimedEventsManager::TimedEventsManager()
-{
-}
-
-TimedEventsManager::~TimedEventsManager()
-{
-}
-
 void TimedEventsManager::add_event(TimedEvent&& event)
 {
   for (auto it = this->events.begin(); it != this->events.end(); ++it)

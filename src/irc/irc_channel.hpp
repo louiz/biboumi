@@ -16,6 +16,11 @@ class IrcChannel
 public:
   explicit IrcChannel();
 
+  IrcChannel(const IrcChannel&) = delete;
+  IrcChannel(IrcChannel&&) = delete;
+  IrcChannel& operator=(const IrcChannel&) = delete;
+  IrcChannel& operator=(IrcChannel&&) = delete;
+
   bool joined;
   std::string topic;
   std::string topic_author;
@@ -30,12 +35,6 @@ public:
 protected:
   std::unique_ptr<IrcUser> self;
   std::vector<std::unique_ptr<IrcUser>> users;
-
-private:
-  IrcChannel(const IrcChannel&) = delete;
-  IrcChannel(IrcChannel&&) = delete;
-  IrcChannel& operator=(const IrcChannel&) = delete;
-  IrcChannel& operator=(IrcChannel&&) = delete;
 };
 
 /**
@@ -50,6 +49,10 @@ class DummyIrcChannel: public IrcChannel
 {
 public:
   explicit DummyIrcChannel();
+  DummyIrcChannel(const DummyIrcChannel&) = delete;
+  DummyIrcChannel(DummyIrcChannel&&) = delete;
+  DummyIrcChannel& operator=(const DummyIrcChannel&) = delete;
+  DummyIrcChannel& operator=(DummyIrcChannel&&) = delete;
 
   /**
    * This flag is at true whenever the user wants to join this channel, but
@@ -60,11 +63,6 @@ public:
    * the channel, we don’t use that flag, we just join it immediately.
    */
   bool joining;
-private:
-  DummyIrcChannel(const DummyIrcChannel&) = delete;
-  DummyIrcChannel(DummyIrcChannel&&) = delete;
-  DummyIrcChannel& operator=(const DummyIrcChannel&) = delete;
-  DummyIrcChannel& operator=(DummyIrcChannel&&) = delete;
 };
 
 #endif // IRC_CHANNEL_INCLUDED

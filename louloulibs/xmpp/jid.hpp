@@ -11,6 +11,11 @@ class Jid
 public:
   explicit Jid(const std::string& jid);
 
+  Jid(const Jid&) = delete;
+  Jid(Jid&&) = delete;
+  Jid& operator=(const Jid&) = delete;
+  Jid& operator=(Jid&&) = delete;
+
   std::string domain;
   std::string local;
   std::string resource;
@@ -23,12 +28,6 @@ public:
   {
     return this->local + "@" + this->domain + "/" + this->resource;
   }
-
-private:
-  Jid(const Jid&) = delete;
-  Jid(Jid&&) = delete;
-  Jid& operator=(const Jid&) = delete;
-  Jid& operator=(Jid&&) = delete;
 };
 
 /**

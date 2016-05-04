@@ -32,12 +32,12 @@ class XmppParser
 public:
   explicit XmppParser();
   ~XmppParser();
+  XmppParser(const XmppParser&) = delete;
+  XmppParser& operator=(const XmppParser&) = delete;
+  XmppParser(XmppParser&&) = delete;
+  XmppParser& operator=(XmppParser&&) = delete;
 
 public:
-  /**
-   * Init the XML parser and install the callbacks
-   */
-  void init_xml_parser();
   /**
    * Feed the parser with some XML data
    */
@@ -99,6 +99,11 @@ public:
 
 private:
   /**
+   * Init the XML parser and install the callbacks
+   */
+  void init_xml_parser();
+
+  /**
    * Expat structure.
    */
   XML_Parser parser;
@@ -123,9 +128,6 @@ private:
   std::vector<std::function<void(const Stanza&)>> stanza_callbacks;
   std::vector<std::function<void(const XmlNode&)>> stream_open_callbacks;
   std::vector<std::function<void(const XmlNode&)>> stream_close_callbacks;
-
-  XmppParser(const XmppParser&) = delete;
-  XmppParser& operator=(const XmppParser&) = delete;
 };
 
 #endif // XMPP_PARSER_INCLUDED

@@ -25,7 +25,6 @@ class XmlNode
 public:
   explicit XmlNode(const std::string& name, XmlNode* parent);
   explicit XmlNode(const std::string& name);
-  XmlNode(XmlNode&& node) = default;
   /**
    * The copy constructor does not copy the parent attribute. The children
    * nodes are all copied recursively.
@@ -41,6 +40,10 @@ public:
     for (const auto& child: node.children)
       this->add_child(std::make_unique<XmlNode>(*child));
   }
+
+  XmlNode(XmlNode&& node) = default;
+  XmlNode& operator=(const XmlNode&) = delete;
+  XmlNode& operator=(XmlNode&&) = delete;
 
   ~XmlNode() = default;
 
@@ -129,9 +132,6 @@ private:
   std::vector<std::unique_ptr<XmlNode>> children;
   std::string inner;
   std::string tail;
-
-  XmlNode& operator=(const XmlNode&) = delete;
-  XmlNode& operator=(XmlNode&&) = delete;
 };
 
 std::ostream& operator<<(std::ostream& os, const XmlNode& node);

@@ -37,6 +37,10 @@ public:
 
   Resolver();
   ~Resolver() = default;
+  Resolver(const Resolver&) = delete;
+  Resolver(Resolver&&) = delete;
+  Resolver& operator=(const Resolver&) = delete;
+  Resolver& operator=(Resolver&&) = delete;
 
   bool is_resolving() const
   {
@@ -117,11 +121,6 @@ private:
 
   ErrorCallbackType error_cb;
   SuccessCallbackType success_cb;
-
-  Resolver(const Resolver&) = delete;
-  Resolver(Resolver&&) = delete;
-  Resolver& operator=(const Resolver&) = delete;
-  Resolver& operator=(Resolver&&) = delete;
 };
 
 std::string addr_to_string(const struct addrinfo* rp);

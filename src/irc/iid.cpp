@@ -51,14 +51,6 @@ void Iid::init_with_fixed_server(const std::string& iid, const std::string& host
     }
 }
 
-Iid::Iid(const Iid& other):
-  is_channel(other.is_channel),
-  is_user(other.is_user),
-  local(other.local),
-  server(other.server)
-{
-}
-
 Iid::Iid():
   is_channel(false),
   is_user(false)

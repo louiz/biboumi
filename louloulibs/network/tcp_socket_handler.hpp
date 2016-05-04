@@ -28,9 +28,13 @@ class TCPSocketHandler: public SocketHandler
 {
 protected:
   ~TCPSocketHandler();
-
 public:
   explicit TCPSocketHandler(std::shared_ptr<Poller> poller);
+  TCPSocketHandler(const TCPSocketHandler&) = delete;
+  TCPSocketHandler(TCPSocketHandler&&) = delete;
+  TCPSocketHandler& operator=(const TCPSocketHandler&) = delete;
+  TCPSocketHandler& operator=(TCPSocketHandler&&) = delete;
+
   /**
    * Connect to the remote server, and call on_connected() if this
    * succeeds. If tls is true, we set use_tls to true and will also call
@@ -231,11 +235,6 @@ protected:
   std::string bind_addr;
 
 private:
-  TCPSocketHandler(const TCPSocketHandler&) = delete;
-  TCPSocketHandler(TCPSocketHandler&&) = delete;
-  TCPSocketHandler& operator=(const TCPSocketHandler&) = delete;
-  TCPSocketHandler& operator=(TCPSocketHandler&&) = delete;
-
   /**
    * Display the resolved IP, just for information purpose.
    */

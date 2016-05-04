@@ -13,10 +13,6 @@ DNSSocketHandler::DNSSocketHandler(std::shared_ptr<Poller> poller,
 {
 }
 
-DNSSocketHandler::~DNSSocketHandler()
-{
-}
-
 void DNSSocketHandler::connect()
 {
 }

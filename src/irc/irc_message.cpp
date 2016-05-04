@@ -47,10 +47,6 @@ IrcMessage::IrcMessage(std::string&& command,
 {
 }
 
-IrcMessage::~IrcMessage()
-{
-}
-
 std::ostream& operator<<(std::ostream& os, const IrcMessage& message)
 {
   os << "IrcMessage";

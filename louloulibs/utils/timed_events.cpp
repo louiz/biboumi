@@ -29,10 +29,6 @@ TimedEvent::TimedEvent(TimedEvent&& other):
 {
 }
 
-TimedEvent::~TimedEvent()
-{
-}
-
 bool TimedEvent::is_after(const TimedEvent& other) const
 {
   return this->is_after(other.time_point);

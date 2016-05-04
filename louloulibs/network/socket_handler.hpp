@@ -16,6 +16,11 @@ public:
     socket(socket)
   {}
   virtual ~SocketHandler() {}
+  SocketHandler(const SocketHandler&) = delete;
+  SocketHandler(SocketHandler&&) = delete;
+  SocketHandler& operator=(const SocketHandler&) = delete;
+  SocketHandler& operator=(SocketHandler&&) = delete;
+
   virtual void on_recv() = 0;
   virtual void on_send() = 0;
   virtual void connect() = 0;
@@ -34,12 +39,6 @@ protected:
    * The handled socket.
    */
   socket_t socket;
-
-private:
-  SocketHandler(const SocketHandler&) = delete;
-  SocketHandler(SocketHandler&&) = delete;
-  SocketHandler& operator=(const SocketHandler&) = delete;
-  SocketHandler& operator=(SocketHandler&&) = delete;
 };
 
 #endif // SOCKET_HANDLER_HPP

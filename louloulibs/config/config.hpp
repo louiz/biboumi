@@ -28,8 +28,13 @@ typedef std::function<void()> t_config_changed_callback;
 class Config
 {
 public:
-  Config(){};
-  ~Config(){};
+  Config() = default;
+  ~Config() = default;
+  Config(const Config&) = delete;
+  Config& operator=(const Config&) = delete;
+  Config(Config&&) = delete;
+  Config& operator=(Config&&) = delete;
+
   /**
    * returns a value from the config. If it doesn’t exist, use
    * the second argument as the default.
@@ -88,10 +93,6 @@ private:
   std::map<std::string, std::string> values;
   std::vector<t_config_changed_callback> callbacks;
 
-  Config(const Config&) = delete;
-  Config& operator=(const Config&) = delete;
-  Config(Config&&) = delete;
-  Config& operator=(Config&&) = delete;
 };
 
 #endif // CONFIG_INCLUDED

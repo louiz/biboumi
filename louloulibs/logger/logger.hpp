@@ -67,10 +67,12 @@ public:
   Logger(const int log_level, const std::string& log_file);
   Logger(const int log_level);
 
-private:
-  Logger(const Logger&);
-  Logger& operator=(const Logger&);
+  Logger(const Logger&) = delete;
+  Logger& operator=(const Logger&) = delete;
+  Logger(Logger&&) = delete;
+  Logger& operator=(Logger&&) = delete;
 
+private:
   const int log_level;
   std::ofstream ofstream;
   nullstream null_stream;

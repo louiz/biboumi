@@ -40,6 +40,12 @@ public:
   {
     this->add_callback(std::move(func));
   }
+
+  ScopeGuard(const ScopeGuard&) = delete;
+  ScopeGuard& operator=(ScopeGuard&&) = delete;
+  ScopeGuard(ScopeGuard&&) = delete;
+  ScopeGuard& operator=(const ScopeGuard&) = delete;
+
   /**
    * default constructor, the scope guard is enabled but empty, use
    * add_callback()
@@ -78,10 +84,6 @@ private:
   bool enabled;
   std::vector<std::function<void()>> callbacks;
 
-  ScopeGuard(const ScopeGuard&) = delete;
-  ScopeGuard& operator=(ScopeGuard&&) = delete;
-  ScopeGuard(ScopeGuard&&) = delete;
-  ScopeGuard& operator=(const ScopeGuard&) = delete;
 };
 
 }

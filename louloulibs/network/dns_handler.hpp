@@ -24,6 +24,11 @@ class DNSHandler
 public:
   DNSHandler();
   ~DNSHandler() = default;
+  DNSHandler(const DNSHandler&) = delete;
+  DNSHandler(DNSHandler&&) = delete;
+  DNSHandler& operator=(const DNSHandler&) = delete;
+  DNSHandler& operator=(DNSHandler&&) = delete;
+
   void gethostbyname(const std::string& name, ares_host_callback callback,
                      void* socket_handler, int family);
   /**
@@ -48,11 +53,6 @@ private:
    */
   std::vector<std::unique_ptr<DNSSocketHandler>> socket_handlers;
   ares_channel channel;
-
-  DNSHandler(const DNSHandler&) = delete;
-  DNSHandler(DNSHandler&&) = delete;
-  DNSHandler& operator=(const DNSHandler&) = delete;
-  DNSHandler& operator=(DNSHandler&&) = delete;
 };
 
 #endif /* CARES_FOUND */

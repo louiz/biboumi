@@ -43,8 +43,12 @@ class Iid
 {
 public:
   Iid(const std::string& iid);
-  explicit Iid(const Iid&);
-  explicit Iid();
+  Iid();
+  Iid(const Iid&) = default;
+
+  Iid(Iid&&) = delete;
+  Iid& operator=(const Iid&) = delete;
+  Iid& operator=(Iid&&) = delete;
 
   void set_local(const std::string& loc);
   void set_server(const std::string& serv);
@@ -63,10 +67,6 @@ private:
 
   std::string local;
   std::string server;
-
-  Iid(Iid&&) = delete;
-  Iid& operator=(const Iid&) = delete;
-  Iid& operator=(Iid&&) = delete;
 };
 
 namespace std {

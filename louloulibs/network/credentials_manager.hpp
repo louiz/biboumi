@@ -14,6 +14,12 @@ class BasicCredentialsManager: public Botan::Credentials_Manager
 {
 public:
   BasicCredentialsManager(const TCPSocketHandler* const socket_handler);
+
+  BasicCredentialsManager(BasicCredentialsManager&&) = delete;
+  BasicCredentialsManager(const BasicCredentialsManager&) = delete;
+  BasicCredentialsManager& operator=(const BasicCredentialsManager&) = delete;
+  BasicCredentialsManager& operator=(BasicCredentialsManager&&) = delete;
+
   void verify_certificate_chain(const std::string& type,
                                 const std::string& purported_hostname,
                                 const std::vector<Botan::X509_Certificate>&) override final;

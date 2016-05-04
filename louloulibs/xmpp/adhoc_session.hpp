@@ -25,6 +25,12 @@ public:
   explicit AdhocSession(const AdhocCommand& command, const std::string& owner_jid,
                         const std::string& to_jid);
   ~AdhocSession() = default;
+
+  AdhocSession(const AdhocSession&) = delete;
+  AdhocSession(AdhocSession&&) = delete;
+  AdhocSession& operator=(const AdhocSession&) = delete;
+  AdhocSession& operator=(AdhocSession&&) = delete;
+
   /**
    * Return the function to be executed, found in our AdhocCommand, for the
    * current_step. And increment the current_step.
@@ -80,12 +86,6 @@ public:
    * any key in there.
    */
   std::map<std::string, std::string> vars;
-
-private:
-  AdhocSession(const AdhocSession&) = delete;
-  AdhocSession(AdhocSession&&) = delete;
-  AdhocSession& operator=(const AdhocSession&) = delete;
-  AdhocSession& operator=(AdhocSession&&) = delete;
 };
 
 #endif // ADHOC_SESSION_HPP

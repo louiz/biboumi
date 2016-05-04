@@ -16,6 +16,11 @@ public:
   Database() = default;
   ~Database() = default;
 
+  Database(const Database&) = delete;
+  Database(Database&&) = delete;
+  Database& operator=(const Database&) = delete;
+  Database& operator=(Database&&) = delete;
+
   static void set_verbose(const bool val);
 
   template<typename PersistentType>
@@ -42,11 +47,6 @@ private:
   static std::unique_ptr<db::BibouDB> db;
 
   static db::BibouDB& get_db();
-
-  Database(const Database&) = delete;
-  Database(Database&&) = delete;
-  Database& operator=(const Database&) = delete;
-  Database& operator=(Database&&) = delete;
 };
 #endif /* USE_DATABASE */
 

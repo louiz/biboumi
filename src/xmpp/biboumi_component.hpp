@@ -26,6 +26,11 @@ public:
   explicit BiboumiComponent(std::shared_ptr<Poller> poller, const std::string& hostname, const std::string& secret);
   ~BiboumiComponent() = default;
 
+  BiboumiComponent(const BiboumiComponent&) = delete;
+  BiboumiComponent(BiboumiComponent&&) = delete;
+  BiboumiComponent& operator=(const BiboumiComponent&) = delete;
+  BiboumiComponent& operator=(BiboumiComponent&&) = delete;
+
   /**
    * Returns the bridge for the given user. If it does not exist, return
    * nullptr.
@@ -99,11 +104,6 @@ private:
 
   AdhocCommandsHandler irc_server_adhoc_commands_handler;
   AdhocCommandsHandler irc_channel_adhoc_commands_handler;
-
-  BiboumiComponent(const BiboumiComponent&) = delete;
-  BiboumiComponent(BiboumiComponent&&) = delete;
-  BiboumiComponent& operator=(const BiboumiComponent&) = delete;
-  BiboumiComponent& operator=(BiboumiComponent&&) = delete;
 };
 
 #endif // BIBOUMI_COMPONENT_INCLUDED

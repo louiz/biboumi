@@ -21,6 +21,12 @@ public:
     commands{}
   { }
   ~AdhocCommandsHandler() = default;
+
+  AdhocCommandsHandler(const AdhocCommandsHandler&) = delete;
+  AdhocCommandsHandler(AdhocCommandsHandler&&) = delete;
+  AdhocCommandsHandler& operator=(const AdhocCommandsHandler&) = delete;
+  AdhocCommandsHandler& operator=(AdhocCommandsHandler&&) = delete;
+
   /**
    * Returns the list of available commands.
    */
@@ -63,11 +69,6 @@ private:
    * Of the form: {{session_id, owner_jid}, session}.
    */
   std::map<std::pair<const std::string, const std::string>, AdhocSession> sessions;
-
-  AdhocCommandsHandler(const AdhocCommandsHandler&) = delete;
-  AdhocCommandsHandler(AdhocCommandsHandler&&) = delete;
-  AdhocCommandsHandler& operator=(const AdhocCommandsHandler&) = delete;
-  AdhocCommandsHandler& operator=(AdhocCommandsHandler&&) = delete;
 };
 
 #endif // ADHOC_COMMANDS_HANDLER_HPP

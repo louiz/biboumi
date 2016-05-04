@@ -38,6 +38,11 @@ public:
   explicit XmppComponent(std::shared_ptr<Poller> poller, const std::string& hostname, const std::string& secret);
   virtual ~XmppComponent() = default;
 
+  XmppComponent(const XmppComponent&) = delete;
+  XmppComponent(XmppComponent&&) = delete;
+  XmppComponent& operator=(const XmppComponent&) = delete;
+  XmppComponent& operator=(XmppComponent&&) = delete;
+
   void on_connection_failed(const std::string& reason) override final;
   void on_connected() override final;
   void on_connection_close(const std::string& error) override final;
@@ -231,11 +236,6 @@ protected:
 
   std::unordered_map<std::string, std::function<void(const Stanza&)>> stanza_handlers;
   AdhocCommandsHandler adhoc_commands_handler;
-
-  XmppComponent(const XmppComponent&) = delete;
-  XmppComponent(XmppComponent&&) = delete;
-  XmppComponent& operator=(const XmppComponent&) = delete;
-  XmppComponent& operator=(XmppComponent&&) = delete;
 };
 
 #endif // XMPP_COMPONENT_INCLUDED

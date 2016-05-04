@@ -18,7 +18,12 @@ class DNSSocketHandler: public SocketHandler
 {
 public:
   explicit DNSSocketHandler(std::shared_ptr<Poller> poller, const socket_t socket);
-  ~DNSSocketHandler();
+  ~DNSSocketHandler() = default;
+  DNSSocketHandler(const DNSSocketHandler&) = delete;
+  DNSSocketHandler(DNSSocketHandler&&) = delete;
+  DNSSocketHandler& operator=(const DNSSocketHandler&) = delete;
+  DNSSocketHandler& operator=(DNSSocketHandler&&) = delete;
+
   /**
    * Just call dns_process_fd, c-ares will do its work of send()ing or
    * recv()ing the data it wants on that socket.
@@ -36,10 +41,6 @@ public:
   bool is_connected() const override final;
 
 private:
-  DNSSocketHandler(const DNSSocketHandler&) = delete;
-  DNSSocketHandler(DNSSocketHandler&&) = delete;
-  DNSSocketHandler& operator=(const DNSSocketHandler&) = delete;
-  DNSSocketHandler& operator=(DNSSocketHandler&&) = delete;
 };
 
 #endif // CARES_FOUND
