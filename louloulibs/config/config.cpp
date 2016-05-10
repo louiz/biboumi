@@ -117,6 +117,6 @@ void Config::save_to_file() const
       return ;
     }
   for (auto& it: this->values)
-    file << it.first << "=" << it.second << std::endl;
+    file << it.first << "=" << it.second << '\n';
   file.close();
 }
