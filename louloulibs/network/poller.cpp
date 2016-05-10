@@ -28,8 +28,10 @@ Poller::Poller()
 
 Poller::~Poller()
 {
+#if POLLER == EPOLL
   if (this->epfd > 0)
     ::close(this->epfd);
+#endif
 }
 
 void Poller::add_socket_handler(SocketHandler* socket_handler)
