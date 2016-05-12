@@ -7,15 +7,13 @@ before_script:
   - echo $LANG
   - g++ --version
   - clang++ --version
+  - mkdir build
+  - cd build
 
-build:
+build:fedora:
   stage: build
+  image: biboumi-test-fedora:latest
   script:
-    - whoami
-    - echo $LANG
-    - echo $PATH
-    - mkdir build
-    - cd build
     - cmake .. -DCMAKE_CXX_COMPILER=g++ -DCMAKE_BUILD_TYPE=Debug -DWITH_BOTAN=1 -DWITH_CARES=1 -DWITH_SYSTEMD=1 -DWITH_LIBIDN=1 -DWITH_LITESQL=1
     - make biboumi -j$(nproc)
     - make coverage -j$(nproc)
@@ -26,4 +24,18 @@ build:
     paths:
       - build/coverage/
       - build/rpmbuild/
+      - build/tests_outputs/
+
+build:debian:
+  stage: build
+  image: biboumi-test-debian:latest
+  script:
+    - cmake .. -DCMAKE_CXX_COMPILER=g++ -DCMAKE_BUILD_TYPE=Debug -DWITH_BOTAN=1 -DWITH_CARES=1 -DWITH_SYSTEMD=1 -DWITH_LIBIDN=1 -DWITH_LITESQL=1
+    - make biboumi -j$(nproc)
+    - make coverage -j$(nproc)
+    - make check -j$(nproc)
+    - mkdir tests_outputs && pushd tests_outputs && make e2e -j$(nproc) -C .. && popd
+  artifacts:
+    paths:
+      - build/coverage/
       - build/tests_outputs/
