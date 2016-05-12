@@ -27,10 +27,10 @@ using namespace std::chrono_literals;
  * Define a map of functions to be called for each IRC command we can
  * handle.
  */
-typedef void (IrcClient::*irc_callback_t)(const IrcMessage&);
+using IrcCallback = void (IrcClient::*)(const IrcMessage&);
 
 static const std::unordered_map<std::string,
-                                std::pair<irc_callback_t, std::pair<std::size_t, std::size_t>>> irc_callbacks = {
+                                std::pair<IrcCallback, std::pair<std::size_t, std::size_t>>> irc_callbacks = {
   {"NOTICE", {&IrcClient::on_notice, {2, 0}}},
   {"002", {&IrcClient::forward_server_message, {2, 0}}},
   {"003", {&IrcClient::forward_server_message, {2, 0}}},

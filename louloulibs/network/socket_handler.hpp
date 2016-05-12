@@ -6,7 +6,7 @@
 
 class Poller;
 
-typedef int socket_t;
+using socket_t = int;
 
 class SocketHandler
 {
