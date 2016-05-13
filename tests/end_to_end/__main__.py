@@ -67,6 +67,8 @@ class XMPPComponent(slixmpp.BaseXMPP):
         self.failed = False
         self.accepting_server = None
 
+        self.saved_values = {}
+
     def error(self, message):
         print("[31;1mFailure[0m: %s" % (message,))
         self.scenario.steps = []
@@ -104,19 +106,27 @@ class XMPPComponent(slixmpp.BaseXMPP):
         pass
 
 
-def check_xpath(xpaths, stanza):
-    for xpath in xpaths:
-        tree = lxml.etree.parse(io.StringIO(str(stanza)))
-        matched = tree.xpath(xpath, namespaces={'re': 'http://exslt.org/regular-expressions',
-                                                'muc_user': 'http://jabber.org/protocol/muc#user',
-                                                'disco_items': 'http://jabber.org/protocol/disco#items'})
+def match(stanza, xpath):
+    tree = lxml.etree.parse(io.StringIO(str(stanza)))
+    matched = tree.xpath(xpath, namespaces={'re': 'http://exslt.org/regular-expressions',
+                                            'muc_user': 'http://jabber.org/protocol/muc#user',
+                                            'disco_items': 'http://jabber.org/protocol/disco#items',
+                                            'dataform': 'jabber:x:data'})
+    return matched
+
+
+def check_xpath(xpaths, xmpp, after, stanza):
+    for i, xpath in enumerate(xpaths):
+        matched = match(stanza, xpath)
         if not matched:
             raise StanzaError("Received stanza “%s” did not match expected xpath “%s”" % (stanza, xpath))
+    if after:
+        after(stanza, xmpp)
 
 
-def check_xpath_optional(xpaths, stanza):
+def check_xpath_optional(xpaths, xmpp, after, stanza):
     try:
-        check_xpath(xpaths, stanza)
+        check_xpath(xpaths, xmpp, after, stanza)
     except StanzaError:
         raise SkipStepError()
 
@@ -149,6 +159,7 @@ class ProcessRunner:
     def __init__(self):
         self.process = None
         self.signal_sent = False
+        self.create = None
 
     @asyncio.coroutine
     def start(self):
@@ -192,16 +203,18 @@ class IrcServerRunner(ProcessRunner):
 
 
 def send_stanza(stanza, xmpp, biboumi):
-    xmpp.send_raw(stanza.format_map(common_replacements))
+    replacements = common_replacements
+    replacements.update(xmpp.saved_values)
+    xmpp.send_raw(stanza.format_map(replacements))
     asyncio.get_event_loop().call_soon(xmpp.run_scenario)
 
 
-def expect_stanza(xpaths, xmpp, biboumi, optional=False):
+def expect_stanza(xpaths, xmpp, biboumi, optional=False, after=None):
     check_func = check_xpath if not optional else check_xpath_optional
     if isinstance(xpaths, str):
-        xmpp.stanza_checker = partial(check_func, [xpaths.format_map(common_replacements)])
+        xmpp.stanza_checker = partial(check_func, [xpaths.format_map(common_replacements)], xmpp, after)
     elif isinstance(xpaths, tuple):
-        xmpp.stanza_checker = partial(check_func, [xpath.format_map(common_replacements) for xpath in xpaths])
+        xmpp.stanza_checker = partial(check_func, [xpath.format_map(common_replacements) for xpath in xpaths], xmpp, after)
     else:
         print("Warning, from argument type passed to expect_stanza: %s" % (type(xpaths)))
 
@@ -251,6 +264,8 @@ class BiboumiTest:
                 print("[32;1mSuccess![0m")
         else:
             failed = True
+
+        xmpp.saved_values.clear()
 
         if xmpp.server:
             xmpp.accepting_server.close()
@@ -355,6 +370,15 @@ def connection_end_sequence(irc_host, jid):
 
 def connection_sequence(irc_host, jid):
     return connection_begin_sequence(irc_host, jid) + connection_end_sequence(irc_host, jid)
+
+
+def extract_attribute(xpath, name, stanza):
+    matched = match(stanza, xpath)
+    return matched[0].get(name)
+
+
+def save_value(name, func, stanza, xmpp):
+    xmpp.saved_values[name] = func(stanza)
 
 
 if __name__ == '__main__':
