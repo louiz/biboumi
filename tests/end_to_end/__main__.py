@@ -111,6 +111,7 @@ def match(stanza, xpath):
     matched = tree.xpath(xpath, namespaces={'re': 'http://exslt.org/regular-expressions',
                                             'muc_user': 'http://jabber.org/protocol/muc#user',
                                             'disco_items': 'http://jabber.org/protocol/disco#items',
+                                            'commands': 'http://jabber.org/protocol/commands',
                                             'dataform': 'jabber:x:data'})
     return matched
 
@@ -561,6 +562,23 @@ if __name__ == '__main__':
                      partial(expect_stanza, ("/iq[@type='result']/disco_items:query[@node='http://jabber.org/protocol/commands']",
                                              "/iq/disco_items:query/disco_items:item[6]")),
                  ], conf='fixed_server'),
+
+        Scenario("execute_hello_adhoc_command",
+                 [
+                     handshake_sequence(),
+                     partial(send_stanza, "<iq type='set' id='hello-command1' from='{jid_one}/{resource_one}' to='{biboumi_host}'><command xmlns='http://jabber.org/protocol/commands' node='hello' action='execute' /></iq>"),
+                     partial(expect_stanza, ("/iq[@type='result']/commands:command[@node='hello'][@sessionid][@status='executing']",
+                                             "/iq/commands:command/dataform:x[@type='form']/dataform:title[text()='Configure your name.']",
+                                             "/iq/commands:command/dataform:x[@type='form']/dataform:instructions[text()='Please provide your name.']",
+                                             "/iq/commands:command/dataform:x[@type='form']/dataform:field[@type='text-single']/dataform:required",
+                                             "/iq/commands:command/commands:actions/commands:next",
+                                             ),
+                                             after = partial(save_value, "sessionid", partial(extract_attribute, "/iq[@type='result']/commands:command[@node='hello']", "sessionid"))
+
+                             ),
+                     partial(send_stanza, "<iq type='set' id='hello-command2' from='{jid_one}/{resource_one}' to='{biboumi_host}'><command xmlns='http://jabber.org/protocol/commands' node='hello' sessionid='{sessionid}' action='next'><x xmlns='jabber:x:data' type='submit'><field var='name'><value>COUCOU</value></field></x></command></iq>"),
+                     partial(expect_stanza, "/iq[@type='result']/commands:command[@node='hello'][@status='completed']/commands:note[@type='info'][text()='Hello COUCOU!']")
+                 ]),
     )
 
     failures = 0
