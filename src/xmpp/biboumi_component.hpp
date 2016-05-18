@@ -83,7 +83,7 @@ public:
 
 private:
   /**
-   * Return the bridge associated with the given full JID. Create a new one
+   * Return the bridge associated with the bare JID. Create a new one
    * if none already exist.
    */
   Bridge* get_user_bridge(const std::string& user_jid);

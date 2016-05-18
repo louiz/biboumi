@@ -507,22 +507,24 @@ void BiboumiComponent::handle_iq(const Stanza& stanza)
 
 Bridge* BiboumiComponent::get_user_bridge(const std::string& user_jid)
 {
+  auto bare_jid = Jid{user_jid}.bare();
   try
     {
-      return this->bridges.at(user_jid).get();
+      return this->bridges.at(bare_jid).get();
     }
   catch (const std::out_of_range& exception)
     {
-      this->bridges.emplace(user_jid, std::make_unique<Bridge>(user_jid, *this, this->poller));
-      return this->bridges.at(user_jid).get();
+      this->bridges.emplace(bare_jid, std::make_unique<Bridge>(bare_jid, *this, this->poller));
+      return this->bridges.at(bare_jid).get();
     }
 }
 
 Bridge* BiboumiComponent::find_user_bridge(const std::string& user_jid)
 {
+  auto bare_jid = Jid{user_jid}.bare();
   try
     {
-      return this->bridges.at(user_jid).get();
+      return this->bridges.at(bare_jid).get();
     }
   catch (const std::out_of_range& exception)
     {
