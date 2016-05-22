@@ -180,7 +180,7 @@ private:
   /**
    * Where data is added, when we want to send something to the client.
    */
-  std::list<std::string> out_buf;
+  std::vector<std::string> out_buf;
   /**
    * DNS resolver
    */

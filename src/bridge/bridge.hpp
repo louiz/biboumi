@@ -250,7 +250,7 @@ private:
    * request and we need a response from IRC to be able to provide the
    * response iq.
    */
-  std::list<irc_responder_callback_t> waiting_irc;
+  std::vector<irc_responder_callback_t> waiting_irc;
   /**
    * Keep track of which resource is in which channel.
    */

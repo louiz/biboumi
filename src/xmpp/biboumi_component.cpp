@@ -532,9 +532,9 @@ Bridge* BiboumiComponent::find_user_bridge(const std::string& full_jid)
     }
 }
 
-std::list<Bridge*> BiboumiComponent::get_bridges() const
+std::vector<Bridge*> BiboumiComponent::get_bridges() const
 {
-  std::list<Bridge*> res;
+  std::vector<Bridge*> res;
   for (auto it = this->bridges.begin(); it != this->bridges.end(); ++it)
     res.push_back(it->second.get());
   return res;

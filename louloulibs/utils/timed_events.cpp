@@ -20,15 +20,6 @@ TimedEvent::TimedEvent(std::chrono::milliseconds&& duration,
 {
 }
 
-TimedEvent::TimedEvent(TimedEvent&& other):
-  time_point(std::move(other.time_point)),
-  callback(std::move(other.callback)),
-  repeat(other.repeat),
-  repeat_delay(std::move(other.repeat_delay)),
-  name(std::move(other.name))
-{
-}
-
 bool TimedEvent::is_after(const TimedEvent& other) const
 {
   return this->is_after(other.time_point);
@@ -47,7 +38,7 @@ std::chrono::milliseconds TimedEvent::get_timeout() const
   return std::chrono::duration_cast<std::chrono::milliseconds>(this->time_point - now);
 }
 
-void TimedEvent::execute()
+void TimedEvent::execute() const
 {
   this->callback();
 }

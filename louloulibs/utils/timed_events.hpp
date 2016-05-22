@@ -4,7 +4,7 @@
 #include <functional>
 #include <string>
 #include <chrono>
-#include <list>
+#include <vector>
 
 using namespace std::literals::chrono_literals;
 
@@ -30,12 +30,12 @@ public:
   explicit TimedEvent(std::chrono::milliseconds&& duration,
                       std::function<void()> callback, const std::string& name="");
 
-  explicit TimedEvent(TimedEvent&&);
+  explicit TimedEvent(TimedEvent&&) = default;
+  TimedEvent& operator=(TimedEvent&&) = default;
   ~TimedEvent() = default;
 
   TimedEvent(const TimedEvent&) = delete;
   TimedEvent& operator=(const TimedEvent&) = delete;
-  TimedEvent& operator=(TimedEvent&&) = delete;
 
   /**
    * Whether or not this event happens after the other one.
@@ -48,7 +48,7 @@ public:
    * returned value is 0 instead. The value cannot then be negative.
    */
   std::chrono::milliseconds get_timeout() const;
-  void execute();
+  void execute() const;
   const std::string& get_name() const;
 
 private:
@@ -59,22 +59,22 @@ private:
   /**
    * The function to execute.
    */
-  const std::function<void()> callback;
+  std::function<void()> callback;
   /**
    * Whether or not this events repeats itself until it is destroyed.
    */
-  const bool repeat;
+  bool repeat;
   /**
    * This value is added to the time_point each time the event is executed,
    * if repeat is true. Otherwise it is ignored.
    */
-  const std::chrono::milliseconds repeat_delay;
+  std::chrono::milliseconds repeat_delay;
   /**
    * A name that is used to identify that event. If you want to find your
    * event (for example if you want to cancel it), the name should be
    * unique.
    */
-  const std::string name;
+  std::string name;
 };
 
 /**
@@ -128,7 +128,7 @@ public:
   std::size_t size() const;
 
 private:
-  std::list<TimedEvent> events;
+  std::vector<TimedEvent> events;
   explicit TimedEventsManager() = default;
 };
 

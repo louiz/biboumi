@@ -39,7 +39,7 @@ public:
   /**
    * Return a list of all the managed bridges.
    */
-  std::list<Bridge*> get_bridges() const;
+  std::vector<Bridge*> get_bridges() const;
 
   /**
    * Send a "close" message to all our connected peers.  That message
