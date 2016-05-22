@@ -35,7 +35,7 @@ public:
    * Returns the bridge for the given user. If it does not exist, return
    * nullptr.
    */
-  Bridge* find_user_bridge(const std::string& user_jid);
+  Bridge* find_user_bridge(const std::string& full_jid);
   /**
    * Return a list of all the managed bridges.
    */
@@ -97,7 +97,7 @@ private:
   std::map<std::string, iq_responder_callback_t> waiting_iq;
 
   /**
-   * One bridge for each user of the component. Indexed by the user's full
+   * One bridge for each user of the component. Indexed by the user's bare
    * jid
    */
   std::unordered_map<std::string, std::unique_ptr<Bridge>> bridges;

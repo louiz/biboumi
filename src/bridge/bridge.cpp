@@ -46,11 +46,12 @@ Bridge::Bridge(const std::string& user_jid, BiboumiComponent& xmpp, std::shared_
 }
 
 /**
- * Return the role and affiliation, corresponding to the given irc mode */
+ * Return the role and affiliation, corresponding to the given irc mode
+ */
 static std::tuple<std::string, std::string> get_role_affiliation_from_irc_mode(const char mode)
 {
-  if (mode == 'a' || mode == 'q')
-    return std::make_tuple("moderator", "owner");
+  if (mode == 'a' || mode == 'q'){
+    return std::make_tuple("moderator", "owner");}
   else if (mode == 'o')
     return std::make_tuple("moderator", "admin");
   else if (mode == 'h')
@@ -719,4 +720,33 @@ void Bridge::trigger_on_irc_message(const std::string& irc_hostname, const IrcMe
 std::unordered_map<std::string, std::shared_ptr<IrcClient>>& Bridge::get_irc_clients()
 {
   return this->irc_clients;
+}
+
+void Bridge::add_resource_to_chan(const std::string& channel, const std::string& resource)
+{
+  auto it = this->resources_in_chan.find(channel);
+  if (it == this->resources_in_chan.end())
+    this->resources_in_chan[channel] = {resource};
+  else
+    it->second.insert(resource);
+}
+
+void Bridge::remove_resource_from_chan(const std::string& channel, const std::string& resource)
+{
+  auto it = this->resources_in_chan.find(channel);
+  if (it != this->resources_in_chan.end())
+    {
+      it->second.erase(resource);
+      if (it->second.empty())
+        this->resources_in_chan.erase(it);
+    }
+}
+
+bool Bridge::is_resource_in_chan(const std::string& channel, const std::string& resource) const
+{
+  auto it = this->resources_in_chan.find(channel);
+  if (it != this->resources_in_chan.end())
+    if (it->second.count(resource) == 1)
+      return true;
+  return false;
 }

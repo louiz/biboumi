@@ -519,9 +519,9 @@ Bridge* BiboumiComponent::get_user_bridge(const std::string& user_jid)
     }
 }
 
-Bridge* BiboumiComponent::find_user_bridge(const std::string& user_jid)
+Bridge* BiboumiComponent::find_user_bridge(const std::string& full_jid)
 {
-  auto bare_jid = Jid{user_jid}.bare();
+  auto bare_jid = Jid{full_jid}.bare();
   try
     {
       return this->bridges.at(bare_jid).get();

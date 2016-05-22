@@ -194,6 +194,13 @@ public:
   void trigger_on_irc_message(const std::string& irc_hostname, const IrcMessage& message);
   std::unordered_map<std::string, std::shared_ptr<IrcClient>>& get_irc_clients();
 
+  /**
+   * Manage which resource is in which channel
+   */
+  void add_resource_to_chan(const std::string& channel, const std::string& resource);
+  void remove_resource_from_chan(const std::string& channel, const std::string& resource);
+  bool is_resource_in_chan(const std::string& channel, const std::string& resource) const;
+
 private:
   /**
    * Returns the client for the given hostname, create one (and use the
@@ -244,6 +251,10 @@ private:
    * response iq.
    */
   std::list<irc_responder_callback_t> waiting_irc;
+  /**
+   * Keep track of which resource is in which channel.
+   */
+  std::map<std::string, std::set<std::string>> resources_in_chan;
 };
 
 struct IRCNotConnected: public std::exception
