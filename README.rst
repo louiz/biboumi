@@ -21,21 +21,21 @@ important goal is to keep the software (and its code) light and simple.
 
 
 Install
-=======
-Refer to the [INSTALL][] file.
+-------
+Refer to the INSTALL_ file.
+
 
 Usage
-=====
-
-Read [the documentation](doc/biboumi.1.md).
+-----
+Read `the documentation`_.
 
 Authors
-=======
+-------
 Florent Le Coz (louiz’) <louiz@louiz.org>
 
 
 Contact/Support
-===============
+---------------
 * XMPP ChatRoom: biboumi@muc.poez.io
 * Report a bug:  https://dev.louiz.org/projects/biboumi/issues/new
 
@@ -51,11 +51,12 @@ beforehand.
 
 
 Licence
-=======
+-------
 Biboumi is Free Software.
 (learn more: http://www.gnu.org/philosophy/free-sw.html)
 
 Biboumi is released under the zlib license.
 Please read the COPYING file for details.
 
-[INSTALL]: INSTALL
+.. _INSTALL: INSTALL.rst
+.. _the documentation: doc/biboumi.1.rst
