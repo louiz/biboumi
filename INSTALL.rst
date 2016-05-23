@@ -18,7 +18,7 @@ Tools:
 
 - A C++14 compiler (clang >= 3.4 or gcc >= 4.9 for example)
 - CMake
-- ronn (optional) to build the man page
+- pandoc (optional) to build the man page
 
 Libraries:
 ~~~~~~~~~~

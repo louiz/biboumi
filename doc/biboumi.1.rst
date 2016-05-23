@@ -4,7 +4,6 @@ Biboumi(1) User Manual
 
 .. contents:: :depth: 2
 
-
 NAME
 ====
 

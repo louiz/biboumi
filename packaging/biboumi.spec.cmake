@@ -13,7 +13,7 @@ BuildRequires: libuuid-devel
 BuildRequires: systemd-devel
 BuildRequires: cmake
 BuildRequires: systemd
-BuildRequires: rubygem-ronn
+BuildRequires: pandoc
 
 %global _hardened_build 1
 
@@ -39,9 +39,6 @@ cmake . -DCMAKE_CXX_FLAGS="%{optflags}" \
       -DWITH_SYSTEMD=1 \
       -DWITH_LIBIDN=1
 
-# The documentation is in utf-8, ronn fails to build it if that locale is
-# not specified
-export LC_ALL=en_GB.utf-8
 make %{?_smp_mflags}
 
 
@@ -56,7 +53,7 @@ make check %{?_smp_mflags}
 %files
 %{_bindir}/%{name}
 %{_mandir}/man1/%{name}.1*
-%doc README.md COPYING doc/biboumi.1.md
+%doc README.rst COPYING doc/biboumi.1.rst
 %{_unitdir}/%{name}.service
 %config(noreplace) %{biboumi_confdir}/biboumi.cfg
 

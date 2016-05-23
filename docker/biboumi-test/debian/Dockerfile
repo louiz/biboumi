@@ -18,7 +18,7 @@ RUN apt install -y libexpat1-dev
 RUN apt install -y libidn11-dev
 RUN apt install -y uuid-dev
 RUN apt install -y libsystemd-dev
-RUN apt install -y ruby-ronn
+RUN apt install -y pandoc
 
 # Needed to run tests
 RUN apt install -y git

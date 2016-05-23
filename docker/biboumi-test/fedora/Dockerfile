@@ -18,7 +18,7 @@ RUN dnf install -y expat-devel
 RUN dnf install -y libidn-devel
 RUN dnf install -y uuid-devel
 RUN dnf install -y systemd-devel
-RUN dnf install -y rubygem-ronn
+RUN dnf install -y pandoc
 
 # Needed to run tests
 RUN dnf install -y git

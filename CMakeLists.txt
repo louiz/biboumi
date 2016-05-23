@@ -61,15 +61,17 @@ include_directories("${CMAKE_CURRENT_BINARY_DIR}/")
 #
 ## Documentation
 #
+execute_process(COMMAND "date" "+%Y-%m-%d" OUTPUT_VARIABLE DOC_DATE
+                OUTPUT_STRIP_TRAILING_WHITESPACE)
 set(MAN_PAGE ${CMAKE_CURRENT_BINARY_DIR}/doc/${PROJECT_NAME}.1)
-set(DOC_PAGE ${CMAKE_CURRENT_SOURCE_DIR}/doc/${PROJECT_NAME}.1.md)
-find_program(RONN_EXECUTABLE NAMES ronn
-  DOC "The ronn software, to build the man page from the markdown documentation")
-if(RONN_EXECUTABLE)
+set(DOC_PAGE ${CMAKE_CURRENT_SOURCE_DIR}/doc/${PROJECT_NAME}.1.rst)
+find_program(PANDOC_EXECUTABLE NAMES pandoc
+  DOC "The pandoc software, to build the man page from the rst documentation")
+if(PANDOC_EXECUTABLE)
   set(WITH_DOC true)
   file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/doc/)
   add_custom_command(OUTPUT ${MAN_PAGE}
-    COMMAND ${RONN_EXECUTABLE} --roff < ${DOC_PAGE} > ${MAN_PAGE}
+    COMMAND ${PANDOC_EXECUTABLE} -M date="${DOC_DATE}" -s -t man ${DOC_PAGE} -o ${MAN_PAGE}
     DEPENDS ${DOC_PAGE})
   add_custom_target(doc ALL DEPENDS ${MAN_PAGE})
 endif()
