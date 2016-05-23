@@ -23,7 +23,8 @@ build:fedora:
   artifacts:
     paths:
       - build/coverage/
-      - build/rpmbuild/
+      - build/rpmbuild/RPMS
+      - build/rpmbuild/SRPMS
       - build/tests_outputs/
 
 build:debian:
