@@ -701,7 +701,7 @@ void IrcClient::empty_motd(const IrcMessage&)
 
 void IrcClient::on_empty_topic(const IrcMessage& message)
 {
-  const std::string chan_name = utils::tolower(message.arguments[message.arguments.size() - 1]);
+  const std::string chan_name = utils::tolower(message.arguments[1]);
   log_debug("empty topic for " << chan_name);
   IrcChannel* channel = this->get_channel(chan_name);
   if (channel)

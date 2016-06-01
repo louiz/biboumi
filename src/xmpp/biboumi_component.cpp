@@ -105,26 +105,27 @@ void BiboumiComponent::clean()
 
 void BiboumiComponent::handle_presence(const Stanza& stanza)
 {
-  std::string from = stanza.get_tag("from");
+  std::string from_str = stanza.get_tag("from");
   std::string id = stanza.get_tag("id");
   std::string to_str = stanza.get_tag("to");
   std::string type = stanza.get_tag("type");
 
   // Check for mandatory tags
-  if (from.empty())
+  if (from_str.empty())
     {
       log_warning("Received an invalid presence stanza: tag 'from' is missing.");
       return;
     }
   if (to_str.empty())
     {
-      this->send_stanza_error("presence", from, this->served_hostname, id,
+      this->send_stanza_error("presence", from_str, this->served_hostname, id,
                               "modify", "bad-request", "Missing 'to' tag");
       return;
     }
 
-  Bridge* bridge = this->get_user_bridge(from);
+  Bridge* bridge = this->get_user_bridge(from_str);
   Jid to(to_str);
+  Jid from(from_str);
   Iid iid(to.local);
 
   // An error stanza is sent whenever we exit this function without
@@ -136,7 +137,7 @@ void BiboumiComponent::handle_presence(const Stanza& stanza)
   std::string error_type("cancel");
   std::string error_name("internal-server-error");
   utils::ScopeGuard stanza_error([&](){
-      this->send_stanza_error("presence", from, to_str, id,
+      this->send_stanza_error("presence", from_str, to_str, id,
                               error_type, error_name, "");
         });
 
@@ -151,8 +152,8 @@ void BiboumiComponent::handle_presence(const Stanza& stanza)
             bridge->send_irc_nick_change(iid, to.resource);
           const XmlNode* x = stanza.get_child("x", MUC_NS);
           const XmlNode* password = x ? x->get_child("password", MUC_NS): nullptr;
-          bridge->join_irc_channel(iid, to.resource,
-                                   password ? password->get_inner() : "");
+          bridge->join_irc_channel(iid, to.resource, password ? password->get_inner(): "",
+                                   from.resource);
         }
       else if (type == "unavailable")
         {
@@ -164,12 +165,12 @@ void BiboumiComponent::handle_presence(const Stanza& stanza)
     {
       // An user wants to join an invalid IRC channel, return a presence error to him
       if (type.empty())
-        this->send_invalid_room_error(to.local, to.resource, from);
+        this->send_invalid_room_error(to.local, to.resource, from_str);
     }
   }
   catch (const IRCNotConnected& ex)
     {
-      this->send_stanza_error("presence", from, to_str, id,
+      this->send_stanza_error("presence", from_str, to_str, id,
                               "cancel", "remote-server-not-found",
                               "Not connected to IRC server "s + ex.hostname,
                               true);

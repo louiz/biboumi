@@ -65,7 +65,7 @@ public:
    * Try to join an irc_channel, does nothing and return true if the channel
    * was already joined.
    */
-  bool join_irc_channel(const Iid& iid, const std::string& nickname, const std::string& password);
+  bool join_irc_channel(const Iid& iid, const std::string& nickname, const std::string& password, const std::string& resource);
 
   void send_channel_message(const Iid& iid, const std::string& body);
   void send_private_message(const Iid& iid, const std::string& body, const std::string& type="PRIVMSG");
@@ -195,11 +195,9 @@ public:
   std::unordered_map<std::string, std::shared_ptr<IrcClient>>& get_irc_clients();
 
   /**
-   * Manage which resource is in which channel
+   * Manage which resource is connected to which IRC server
    */
-  void add_resource_to_chan(const std::string& channel, const std::string& resource);
-  void remove_resource_from_chan(const std::string& channel, const std::string& resource);
-  bool is_resource_in_chan(const std::string& channel, const std::string& resource) const;
+
 
 private:
   /**
@@ -218,7 +216,7 @@ private:
    */
   IrcClient* find_irc_client(const std::string& hostname);
   /**
-   * The JID of the user associated with this bridge. Messages from/to this
+   * The bare JID of the user associated with this bridge. Messages from/to this
    * JID are only managed by this bridge.
    */
   const std::string user_jid;
@@ -251,10 +249,33 @@ private:
    * response iq.
    */
   std::vector<irc_responder_callback_t> waiting_irc;
+
   /**
-   * Keep track of which resource is in which channel.
+   * Resources to IRC channel/server mapping:
    */
-  std::map<std::string, std::set<std::string>> resources_in_chan;
+  using Resource = std::string;
+  using ChannelName = std::string;
+  using IrcHostname = std::string;
+  using ChannelKey = std::tuple<ChannelName, IrcHostname>;
+  std::map<ChannelKey, std::set<Resource>> resources_in_chan;
+  std::map<IrcHostname, std::set<Resource>> resources_in_server;
+  /**
+   * Manage which resource is in which channel
+   */
+  void add_resource_to_chan(const ChannelKey& channel_key, const std::string& resource);
+  void remove_resource_from_chan(const ChannelKey& channel_key, const std::string& resource);
+  bool is_resource_in_chan(const ChannelKey& channel_key, const std::string& resource) const;
+
+  void add_resource_to_server(const IrcHostname& irc_hostname, const std::string& resource);
+  void remove_resource_from_server(const IrcHostname& irc_hostname, const std::string& resource);
+  bool is_resource_in_server(const IrcHostname& irc_hostname, const std::string& resource) const;
+
+  /**
+   * Generate all the stanzas to be sent to this resource, simulating a join on this channel.
+   * This means sending the whole user list, the topic, etc
+   * TODO: send message history
+   */
+  void generate_channel_join_for_resource(const Iid& iid, const std::string& resource);
 };
 
 struct IRCNotConnected: public std::exception

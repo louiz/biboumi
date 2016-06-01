@@ -31,6 +31,8 @@ public:
   IrcUser* find_user(const std::string& name) const;
   void remove_user(const IrcUser* user);
   void remove_all_users();
+  const std::vector<std::unique_ptr<IrcUser>>& get_users() const
+  { return this->users; }
 
 protected:
   std::unique_ptr<IrcUser> self;
