@@ -47,7 +47,7 @@ std::string jidprep(const std::string& original)
   Jid jid(original);
 
   char local[max_jid_part_len] = {};
-  memcpy(local, jid.local.data(), jid.local.size());
+  memcpy(local, jid.local.data(), std::min(max_jid_part_len, jid.local.size()));
   Stringprep_rc rc = static_cast<Stringprep_rc>(::stringprep(local, max_jid_part_len,
                      static_cast<Stringprep_profile_flags>(0), stringprep_xmpp_nodeprep));
   if (rc != STRINGPREP_OK)
@@ -57,7 +57,7 @@ std::string jidprep(const std::string& original)
   }
 
   char domain[max_jid_part_len] = {};
-  memcpy(domain, jid.domain.data(), jid.domain.size());
+  memcpy(domain, jid.domain.data(), std::min(max_jid_part_len, jid.domain.size()));
   rc = static_cast<Stringprep_rc>(::stringprep(domain, max_jid_part_len,
        static_cast<Stringprep_profile_flags>(0), stringprep_nameprep));
   if (rc != STRINGPREP_OK)
@@ -81,7 +81,7 @@ std::string jidprep(const std::string& original)
 
   // Otherwise, also process the resource part
   char resource[max_jid_part_len] = {};
-  memcpy(resource, jid.resource.data(), jid.resource.size());
+  memcpy(resource, jid.resource.data(), std::min(max_jid_part_len, jid.resource.size()));
   rc = static_cast<Stringprep_rc>(::stringprep(resource, max_jid_part_len,
        static_cast<Stringprep_profile_flags>(0), stringprep_xmpp_resourceprep));
   if (rc != STRINGPREP_OK)
