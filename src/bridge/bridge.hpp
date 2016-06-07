@@ -70,7 +70,7 @@ public:
   void send_channel_message(const Iid& iid, const std::string& body);
   void send_private_message(const Iid& iid, const std::string& body, const std::string& type="PRIVMSG");
   void send_raw_message(const std::string& hostname, const std::string& body);
-  void leave_irc_channel(Iid&& iid, std::string&& status_message);
+  void leave_irc_channel(Iid&& iid, std::string&& status_message, const std::string& resource);
   void send_irc_nick_change(const Iid& iid, const std::string& new_nick);
   void send_irc_kick(const Iid& iid, const std::string& target, const std::string& reason,
                      const std::string& iq_id, const std::string& to_jid);
@@ -119,15 +119,18 @@ public:
   /**
    * Send the presence of a new user in the MUC.
    */
-  void send_user_join(const std::string& hostname,
-                      const std::string& chan_name,
-                      const IrcUser* user,
-                      const char user_mode,
+  void send_user_join(const std::string& hostname, const std::string& chan_name,
+                      const IrcUser* user, const char user_mode,
+                      const bool self, const std::string& resource);
+  void send_user_join(const std::string& hostname, const std::string& chan_name,
+                      const IrcUser* user, const char user_mode,
                       const bool self);
+
   /**
    * Send the topic of the MUC to the user
    */
   void send_topic(const std::string& hostname, const std::string& chan_name, const std::string& topic, const std::string& who);
+  void send_topic(const std::string& hostname, const std::string& chan_name, const std::string& topic, const std::string& who, const std::string& resource);
   /**
    * Send a MUC message from some participant
    */
@@ -139,7 +142,7 @@ public:
   /**
    * Send an unavailable presence from this participant
    */
-  void send_muc_leave(Iid&& iid, std::string&& nick, const std::string& message, const bool self);
+  void send_muc_leave(Iid&& iid, std::string&& nick, const std::string& message, const bool self, const std::string& resource="");
   /**
    * Send presences to indicate that an user old_nick (ourself if self ==
    * true) changed his nick to new_nick.  The user_mode is needed because
@@ -265,6 +268,7 @@ private:
   void add_resource_to_chan(const ChannelKey& channel_key, const std::string& resource);
   void remove_resource_from_chan(const ChannelKey& channel_key, const std::string& resource);
   bool is_resource_in_chan(const ChannelKey& channel_key, const std::string& resource) const;
+  std::size_t number_of_resources_in_chan(const ChannelKey& channel_key) const;
 
   void add_resource_to_server(const IrcHostname& irc_hostname, const std::string& resource);
   void remove_resource_from_server(const IrcHostname& irc_hostname, const std::string& resource);

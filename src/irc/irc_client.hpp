@@ -276,6 +276,8 @@ public:
 
   const Resolver& get_resolver() const { return this->dns_resolver; }
 
+  const std::vector<char>& get_sorted_user_modes() const { return sorted_user_modes; }
+
 private:
   /**
    * The hostname of the server we are connected to.

@@ -100,3 +100,8 @@ namespace std {
       }
   }
 }
+
+std::tuple<std::string, std::string> Iid::to_tuple() const
+{
+  return std::make_tuple(this->get_local(), this->get_server());
+}

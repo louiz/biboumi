@@ -158,7 +158,7 @@ void BiboumiComponent::handle_presence(const Stanza& stanza)
       else if (type == "unavailable")
         {
           const XmlNode* status = stanza.get_child("status", COMPONENT_NS);
-          bridge->leave_irc_channel(std::move(iid), status ? status->get_inner() : "");
+          bridge->leave_irc_channel(std::move(iid), status ? status->get_inner() : "", from.resource);
         }
     }
   else

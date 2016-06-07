@@ -1,4 +1,5 @@
 #include <irc/irc_channel.hpp>
+#include <algorithm>
 
 IrcChannel::IrcChannel():
   joined(false),
@@ -36,15 +37,11 @@ IrcUser* IrcChannel::find_user(const std::string& name) const
 
 void IrcChannel::remove_user(const IrcUser* user)
 {
-  for (auto it = this->users.begin(); it != this->users.end(); ++it)
-    {
-      IrcUser* u = it->get();
-      if (u->nick == user->nick)
-        {
-          this->users.erase(it);
-          break ;
-        }
-    }
+  this->users.erase(std::remove_if(this->users.begin(), this->users.end(),
+                    [user](const std::unique_ptr<IrcUser>& u)
+                    {
+                      return user->nick == u->nick;
+                    }), this->users.end());
 }
 
 void IrcChannel::remove_all_users()

@@ -60,6 +60,8 @@ public:
 
   std::string get_sep() const;
 
+  std::tuple<std::string, std::string> to_tuple() const;
+
 private:
 
   void init(const std::string& iid);
