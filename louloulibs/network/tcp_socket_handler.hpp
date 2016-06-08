@@ -13,10 +13,10 @@
 #include <netinet/in.h>
 #include <netdb.h>
 
+#include <vector>
 #include <memory>
 #include <string>
 #include <list>
-
 
 /**
  * An interface, with a series of callbacks that should be implemented in
