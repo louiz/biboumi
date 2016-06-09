@@ -610,7 +610,7 @@ if __name__ == '__main__':
                      handshake_sequence(),
                      # First user joins
                      partial(send_stanza,
-                 "<presence from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}/{nick_one}' />"),
+                     "<presence from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}/{nick_one}' />"),
                      connection_sequence("irc.localhost", '{jid_one}/{resource_one}'),
                      partial(expect_stanza,
                      "/message/body[text()='Mode #foo [+nt] by {irc_host_one}']"),
@@ -652,6 +652,27 @@ if __name__ == '__main__':
                      partial(send_stanza, "<message from='{jid_two}/{resource_one}' to='{lower_nick_one}!{irc_server_one}' type='chat'><body>yes</body></message>"),
                      # The response is received from the in-room JID
                      partial(expect_stanza, "/message[@from='#foo%{irc_server_one}/{nick_two}'][@to='{jid_one}/{resource_one}'][@type='chat']/body[text()='yes']"),
+
+                     ## Do the exact same thing, from a different chan,
+                     # to check if the response comes from the right JID
+
+                     # Join the virtual channel
+                     partial(send_stanza,
+                     "<presence from='{jid_one}/{resource_one}' to='%{irc_server_one}/{nick_one}' />"),
+                     partial(expect_stanza,
+                     "/presence/muc_user:x/muc_user:status[@code='110']"),
+                     partial(expect_stanza, "/message[@from='%{irc_server_one}'][@type='groupchat']/subject"),
+
+
+                     # Send a private message, to a in-room JID
+                     partial(send_stanza, "<message from='{jid_one}/{resource_one}' to='%{irc_server_one}/{nick_two}' type='chat'><body>re in private</body></message>"),
+                     # Message is received with a server-wide JID
+                     partial(expect_stanza, "/message[@from='{lower_nick_one}!{irc_server_one}'][@to='{jid_two}/{resource_one}'][@type='chat']/body[text()='re in private']"),
+
+                     # Respond to the message, to the server-wide JID
+                     partial(send_stanza, "<message from='{jid_two}/{resource_one}' to='{lower_nick_one}!{irc_server_one}' type='chat'><body>re</body></message>"),
+                     # The response is received from the in-room JID
+                     partial(expect_stanza, "/message[@from='%{irc_server_one}/{nick_two}'][@to='{jid_one}/{resource_one}'][@type='chat']/body[text()='re']"),
                  ]
                  )
     )
