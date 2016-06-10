@@ -344,7 +344,12 @@ void Bridge::leave_irc_channel(Iid&& iid, std::string&& status_message, const st
 
   const auto resources = this->number_of_resources_in_chan(key);
   if (resources == 1)
-    irc->send_part_command(iid.get_local(), status_message);
+    {
+      irc->send_part_command(iid.get_local(), status_message);
+      // Since there are no resources left in that channel, we don't
+      // want to receive private messages using this room's JID
+      this->remove_all_preferred_from_jid_of_room(iid.get_local());
+    }
   else
     {
       IrcChannel* chan = irc->get_channel(iid.get_local());
@@ -765,6 +770,18 @@ void Bridge::remove_preferred_from_jid(const std::string& nick)
   auto it = this->preferred_user_from.find(nick);
   if (it != this->preferred_user_from.end())
     this->preferred_user_from.erase(it);
+}
+
+void Bridge::remove_all_preferred_from_jid_of_room(const std::string& channel_name)
+{
+  for (auto it = this->preferred_user_from.begin(); it != this->preferred_user_from.end();)
+    {
+      Iid iid(Jid(it->second).local);
+      if (iid.get_local() == channel_name)
+        it = this->preferred_user_from.erase(it);
+      else
+        ++it;
+    }
 }
 
 void Bridge::add_waiting_irc(irc_responder_callback_t&& callback)

@@ -186,6 +186,11 @@ public:
    */
   void remove_preferred_from_jid(const std::string& nick);
   /**
+   * Given a channel_name, remove all preferred from_jid that come
+   * from this chan.
+   */
+  void remove_all_preferred_from_jid_of_room(const std::string& channel_name);
+  /**
    * Add a callback to the waiting list of irc callbacks.
    */
   void add_waiting_irc(irc_responder_callback_t&& callback);

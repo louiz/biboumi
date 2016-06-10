@@ -303,6 +303,7 @@ common_replacements = {
     'jid_admin': 'admin@example.com',
     'nick_two': 'Bobby',
     'lower_nick_one': 'nick',
+    'lower_nick_two': 'bobby',
 }
 
 
@@ -673,6 +674,17 @@ if __name__ == '__main__':
                      partial(send_stanza, "<message from='{jid_two}/{resource_one}' to='{lower_nick_one}!{irc_server_one}' type='chat'><body>re</body></message>"),
                      # The response is received from the in-room JID
                      partial(expect_stanza, "/message[@from='%{irc_server_one}/{nick_two}'][@to='{jid_one}/{resource_one}'][@type='chat']/body[text()='re']"),
+
+                     # Now we leave the room, to check if the subsequent private messages are still received properly
+                     partial(send_stanza,
+                     "<presence from='{jid_one}/{resource_one}' to='%{irc_server_one}/{nick_one}' type='unavailable' />"),
+                     partial(expect_stanza,
+                     "/presence[@type='unavailable']/muc_user:x/muc_user:status[@code='110']"),
+
+                     # The private messages from this nick should now come (again) from the server-wide JID
+                     partial(send_stanza, "<message from='{jid_two}/{resource_one}' to='{lower_nick_one}!{irc_server_one}' type='chat'><body>hihihoho</body></message>"),
+                     partial(expect_stanza,
+                     "/message[@from='{lower_nick_two}!{irc_server_one}'][@to='{jid_one}/{resource_one}']"),
                  ]
                  )
     )
