@@ -267,6 +267,12 @@ else()
   set(SYSTEMD_SERVICE_TYPE "simple")
   set(WATCHDOG_SEC "")
 endif()
+if(NOT DEFINED SERVICE_USER)
+  set(SERVICE_USER "nobody")
+endif()
+if(NOT DEFINED SERVICE_GROUP)
+  set(SERVICE_GROUP "nobody")
+endif()
 configure_file(unit/biboumi.service.cmake biboumi.service)
 
 # The date MUST be in english format

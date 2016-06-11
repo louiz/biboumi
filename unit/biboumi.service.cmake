@@ -9,8 +9,8 @@ ExecStart=${CMAKE_INSTALL_PREFIX}/bin/biboumi /etc/biboumi/biboumi.cfg
 ExecReload=/bin/kill -s USR1 $MAINPID
 WatchdogSec=${WATCHDOG_SEC}
 Restart=always
-User=nobody
-Group=nobody
+User=${SERVICE_USER}
+Group=${SERVICE_GROUP}
 
 [Install]
 WantedBy=multi-user.target
