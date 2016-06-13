@@ -64,8 +64,8 @@ void TCPSocketHandler::init_socket(const struct addrinfo* rp)
       struct addrinfo* result;
       int err = ::getaddrinfo(this->bind_addr.data(), nullptr, nullptr, &result);
       if (err != 0 || !result)
-        log_error("Failed to bind socket to " << this->bind_addr << ": "
-                  << gai_strerror(err));
+        log_error("Failed to bind socket to ", this->bind_addr, ": ",
+                  gai_strerror(err));
       else
         {
           utils::ScopeGuard sg([result](){ freeaddrinfo(result); });
@@ -79,15 +79,15 @@ void TCPSocketHandler::init_socket(const struct addrinfo* rp)
                 break;
             }
           if (!rp)
-            log_error("Failed to bind socket to " << this->bind_addr << ": "
-                      << strerror(bind_error));
+            log_error("Failed to bind socket to ", this->bind_addr, ": ",
+                      strerror(bind_error));
           else
-            log_info("Socket successfully bound to " << this->bind_addr);
+            log_info("Socket successfully bound to ", this->bind_addr);
         }
     }
   int optval = 1;
   if (::setsockopt(this->socket, SOL_SOCKET, SO_KEEPALIVE, &optval, sizeof(optval)) == -1)
-    log_warning("Failed to enable TCP keepalive on socket: " << strerror(errno));
+    log_warning("Failed to enable TCP keepalive on socket: ", strerror(errno));
   // Set the socket on non-blocking mode.  This is useful to receive a EAGAIN
   // error when connect() would block, to not block the whole process if a
   // remote is not responsive.
@@ -113,7 +113,7 @@ void TCPSocketHandler::connect(const std::string& address, const std::string& po
       // this is the first call of this function.
       if (!this->resolver.is_resolved())
         {
-          log_info("Trying to connect to " << address << ":" << port);
+          log_info("Trying to connect to ", address, ":", port);
           // Start the asynchronous process of resolving the hostname. Once
           // the addresses have been found and `resolved` has been set to true
           // (but connecting will still be false), TCPSocketHandler::connect()
@@ -161,7 +161,7 @@ void TCPSocketHandler::connect(const std::string& address, const std::string& po
             this->init_socket(rp);
           }
           catch (const std::runtime_error& error) {
-            log_error("Failed to init socket: " << error.what());
+            log_error("Failed to init socket: ", error.what());
             break;
           }
         }
@@ -204,7 +204,7 @@ void TCPSocketHandler::connect(const std::string& address, const std::string& po
                                                               "connection_timeout"s + std::to_string(this->socket)));
           return ;
         }
-      log_info("Connection failed:" << strerror(errno));
+      log_info("Connection failed:", strerror(errno));
     }
   log_error("All connection attempts failed.");
   this->close();
@@ -268,9 +268,9 @@ ssize_t TCPSocketHandler::do_recv(void* recv_buf, const size_t buf_size)
   else if (-1 == size)
     {
       if (this->connecting)
-        log_warning("Error connecting: " << strerror(errno));
+        log_warning("Error connecting: ", strerror(errno));
       else
-        log_warning("Error while reading from socket: " << strerror(errno));
+        log_warning("Error while reading from socket: ", strerror(errno));
       // Remember if we were connecting, or already connected when this
       // happened, because close() sets this->connecting to false
       const auto were_connecting = this->connecting;
@@ -300,7 +300,7 @@ void TCPSocketHandler::on_send()
   ssize_t res = ::sendmsg(this->socket, &msg, MSG_NOSIGNAL);
   if (res < 0)
     {
-      log_error("sendmsg failed: " << strerror(errno));
+      log_error("sendmsg failed: ", strerror(errno));
       this->on_connection_close(strerror(errno));
       this->close();
     }
@@ -351,9 +351,9 @@ void TCPSocketHandler::close()
 void TCPSocketHandler::display_resolved_ip(struct addrinfo* rp) const
 {
   if (rp->ai_family == AF_INET)
-    log_debug("Trying IPv4 address " << addr_to_string(rp));
+    log_debug("Trying IPv4 address ", addr_to_string(rp));
   else if (rp->ai_family == AF_INET6)
-    log_debug("Trying IPv6 address " << addr_to_string(rp));
+    log_debug("Trying IPv6 address ", addr_to_string(rp));
 }
 
 void TCPSocketHandler::send_data(std::string&& data)
@@ -478,18 +478,18 @@ void TCPSocketHandler::tls_output_fn(const Botan::byte* data, size_t size)
 
 void TCPSocketHandler::tls_alert_cb(Botan::TLS::Alert alert, const Botan::byte*, size_t)
 {
-  log_debug("tls_alert: " << alert.type_string());
+  log_debug("tls_alert: ", alert.type_string());
 }
 
 bool TCPSocketHandler::tls_handshake_cb(const Botan::TLS::Session& session)
 {
-  log_debug("Handshake with " << session.server_info().hostname() << " complete."
-            << " Version: " << session.version().to_string()
-            << " using " << session.ciphersuite().to_string());
+  log_debug("Handshake with ", session.server_info().hostname(), " complete.",
+            " Version: ", session.version().to_string(),
+            " using ", session.ciphersuite().to_string());
   if (!session.session_id().empty())
-    log_debug("Session ID " << Botan::hex_encode(session.session_id()));
+    log_debug("Session ID ", Botan::hex_encode(session.session_id()));
   if (!session.session_ticket().empty())
-    log_debug("Session ticket " << Botan::hex_encode(session.session_ticket()));
+    log_debug("Session ticket ", Botan::hex_encode(session.session_ticket()));
   return true;
 }
 

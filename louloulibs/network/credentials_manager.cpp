@@ -41,7 +41,7 @@ void BasicCredentialsManager::verify_certificate_chain(const std::string& type,
                                                        const std::string& purported_hostname,
                                                        const std::vector<Botan::X509_Certificate>& certs)
 {
-  log_debug("Checking remote certificate (" << type << ") for hostname " << purported_hostname);
+  log_debug("Checking remote certificate (", type, ") for hostname ", purported_hostname);
   try
     {
       Botan::Credentials_Manager::verify_certificate_chain(type, purported_hostname, certs);
@@ -49,7 +49,7 @@ void BasicCredentialsManager::verify_certificate_chain(const std::string& type,
     }
   catch (const std::exception& tls_exception)
     {
-      log_warning("TLS certificate check failed: " << tls_exception.what());
+      log_warning("TLS certificate check failed: ", tls_exception.what());
       if (!this->trusted_fingerprint.empty() && !certs.empty() &&
           this->trusted_fingerprint == certs[0].fingerprint() &&
           certs[0].matches_dns_name(purported_hostname))
@@ -78,7 +78,7 @@ void BasicCredentialsManager::load_certs()
       try
         {
           Botan::DataSource_Stream bundle(path);
-          log_debug("Using ca bundle: " << path);
+          log_debug("Using ca bundle: ", path);
           while (!bundle.end_of_data() && bundle.check_available(27))
             {
               // TODO: remove this work-around for Botan 1.11.29

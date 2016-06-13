@@ -72,14 +72,14 @@ bool XmppComponent::is_document_open() const
 void XmppComponent::send_stanza(const Stanza& stanza)
 {
   std::string str = stanza.to_string();
-  log_debug("XMPP SENDING: " << str);
+  log_debug("XMPP SENDING: ", str);
   this->send_data(std::move(str));
 }
 
 void XmppComponent::on_connection_failed(const std::string& reason)
 {
   this->first_connection_try = false;
-  log_error("Failed to connect to the XMPP server: " << reason);
+  log_error("Failed to connect to the XMPP server: ", reason);
 #ifdef SYSTEMD_FOUND
   sd_notifyf(0, "STATUS=Failed to connect to the XMPP server: %s", reason.data());
 #endif
@@ -91,7 +91,7 @@ void XmppComponent::on_connected()
   this->first_connection_try = true;
   auto data = "<stream:stream to='"s + this->served_hostname + \
     "' xmlns:stream='http://etherx.jabber.org/streams' xmlns='" COMPONENT_NS "'>";
-  log_debug("XMPP SENDING: " << data);
+  log_debug("XMPP SENDING: ", data);
   this->send_data(std::move(data));
   this->doc_open = true;
   // We may have some pending data to send: this happens when we try to send
@@ -104,7 +104,7 @@ void XmppComponent::on_connection_close(const std::string& error)
   if (error.empty())
     log_info("XMPP server closed connection");
   else
-    log_info("XMPP server closed connection: " << error);
+    log_info("XMPP server closed connection: ", error);
 }
 
 void XmppComponent::parse_in_buffer(const size_t size)
@@ -125,7 +125,7 @@ void XmppComponent::parse_in_buffer(const size_t size)
 
 void XmppComponent::on_remote_stream_open(const XmlNode& node)
 {
-  log_debug("XMPP RECEIVING: " << node.to_string());
+  log_debug("XMPP RECEIVING: ", node.to_string());
   this->stream_id = node.get_tag("id");
   if (this->stream_id.empty())
     {
@@ -147,13 +147,13 @@ void XmppComponent::on_remote_stream_open(const XmlNode& node)
   digest[HASH_LENGTH * 2] = '\0';
 
   auto data = "<handshake xmlns='" COMPONENT_NS "'>"s + digest + "</handshake>";
-  log_debug("XMPP SENDING: " << data);
+  log_debug("XMPP SENDING: ", data);
   this->send_data(std::move(data));
 }
 
 void XmppComponent::on_remote_stream_close(const XmlNode& node)
 {
-  log_debug("XMPP RECEIVING: " << node.to_string());
+  log_debug("XMPP RECEIVING: ", node.to_string());
   this->doc_open = false;
 }
 
@@ -164,7 +164,7 @@ void XmppComponent::reset()
 
 void XmppComponent::on_stanza(const Stanza& stanza)
 {
-  log_debug("XMPP RECEIVING: " << stanza.to_string());
+  log_debug("XMPP RECEIVING: ", stanza.to_string());
   std::function<void(const Stanza&)> handler;
   try
     {
@@ -172,7 +172,7 @@ void XmppComponent::on_stanza(const Stanza& stanza)
     }
   catch (const std::out_of_range& exception)
     {
-      log_warning("No handler for stanza of type " << stanza.get_name());
+      log_warning("No handler for stanza of type ", stanza.get_name());
       return;
     }
   handler(stanza);
@@ -257,7 +257,7 @@ void XmppComponent::handle_error(const Stanza& stanza)
   std::string error_message("Unspecified error");
   if (text)
     error_message = text->get_inner();
-  log_error("Stream error received from the XMPP server: " << error_message);
+  log_error("Stream error received from the XMPP server: ", error_message);
 #ifdef SYSTEMD_FOUND
   if (!this->ever_auth)
     sd_notifyf(0, "STATUS=Failed to authenticate to the XMPP server: %s", error_message.data());

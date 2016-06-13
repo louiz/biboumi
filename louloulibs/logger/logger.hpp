@@ -33,21 +33,6 @@
 # define __FILENAME__ __FILE__
 #endif
 
-#define WHERE\
-  __FILENAME__ << ":" << __LINE__
-
-#define log_debug(text)\
-  Logger::instance()->get_stream(debug_lvl) << SD_DEBUG << WHERE << ":\t" << text << std::endl
-
-#define log_info(text)\
-  Logger::instance()->get_stream(info_lvl) << SD_INFO << WHERE << ":\t" << text << std::endl
-
-#define log_warning(text)\
-  Logger::instance()->get_stream(warning_lvl) << SD_WARNING << WHERE << ":\t" << text << std::endl
-
-#define log_error(text)\
-  Logger::instance()->get_stream(error_lvl) << SD_ERR << WHERE << ":\t" << text << std::endl
-
 /**
  * Juste a structure representing a stream doing nothing with its input.
  */
@@ -78,5 +63,64 @@ private:
   nullstream null_stream;
   std::ostream stream;
 };
+
+#define WHERE __FILENAME__, ":", __LINE__, ":\t"
+
+namespace logging_details
+{
+  template <typename T>
+  void log(std::ostream& os, const T& arg)
+  {
+    os << arg << std::endl;
+  }
+
+  template <typename T, typename... U>
+  void log(std::ostream& os, const T& first, U&&... rest)
+  {
+    os << first;
+    log(os, std::forward<U>(rest)...);
+  }
+
+  template <typename... U>
+  void log_debug(U&&... args)
+  {
+    auto& os = Logger::instance()->get_stream(debug_lvl);
+    os << SD_DEBUG;
+    log(os, std::forward<U>(args)...);
+  }
+
+  template <typename... U>
+  void log_info(U&&... args)
+  {
+    auto& os = Logger::instance()->get_stream(info_lvl);
+    os << SD_INFO;
+    log(os, std::forward<U>(args)...);
+  }
+
+  template <typename... U>
+  void log_warning(U&&... args)
+  {
+    auto& os = Logger::instance()->get_stream(warning_lvl);
+    os << SD_WARNING;
+    log(os, std::forward<U>(args)...);
+  }
+
+  template <typename... U>
+  void log_error(U&&... args)
+  {
+    auto& os = Logger::instance()->get_stream(error_lvl);
+    os << SD_ERR;
+    log(os, std::forward<U>(args)...);
+  }
+}
+
+#define log_info(...) logging_details::log_info(WHERE, __VA_ARGS__)
+
+#define log_warning(...) logging_details::log_warning(WHERE, __VA_ARGS__)
+
+#define log_error(...) logging_details::log_error(WHERE, __VA_ARGS__)
+
+#define log_debug(...) logging_details::log_debug(WHERE, __VA_ARGS__)
+
 
 #endif // LOGGER_INCLUDED

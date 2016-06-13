@@ -333,7 +333,7 @@ void IrcClient::parse_in_buffer(const size_t)
         break ;
       IrcMessage message(this->in_buf.substr(0, pos));
       this->in_buf = this->in_buf.substr(pos + 2, std::string::npos);
-      log_debug("IRC RECEIVING: (" << this->get_hostname() << ") " << message);
+      log_debug("IRC RECEIVING: (", this->get_hostname(), ") ", message);
 
       // Call the standard callback (if any), associated with the command
       // name that we just received.
@@ -346,21 +346,21 @@ void IrcClient::parse_in_buffer(const size_t)
           // second is the max
           if (message.arguments.size() < limits.first ||
               (limits.second > 0 && message.arguments.size() > limits.second))
-            log_warning("Invalid number of arguments for IRC command “" << message.command <<
-                        "”: " << message.arguments.size());
+            log_warning("Invalid number of arguments for IRC command “", message.command,
+                        "”: ", message.arguments.size());
           else
             {
               const auto& cb = it->second.first;
               try {
                 (this->*(cb))(message);
               } catch (const std::exception& e) {
-                log_error("Unhandled exception: " << e.what());
+                log_error("Unhandled exception: ", e.what());
               }
             }
         }
       else
         {
-          log_info("No handler for command " << message.command <<
+          log_info("No handler for command ", message.command,
                    ", forwarding the arguments to the user");
           this->on_unknown_message(message);
         }
@@ -371,7 +371,7 @@ void IrcClient::parse_in_buffer(const size_t)
 
 void IrcClient::send_message(IrcMessage&& message)
 {
-  log_debug("IRC SENDING: (" << this->get_hostname() << ") " << message);
+  log_debug("IRC SENDING: (", this->get_hostname(), ") ", message);
   std::string res;
   if (!message.prefix.empty())
     res += ":" + std::move(message.prefix) + " ";
@@ -392,7 +392,7 @@ void IrcClient::send_message(IrcMessage&& message)
 
 void IrcClient::send_raw(const std::string& txt)
 {
-  log_debug("IRC SENDING (raw): (" << this->get_hostname() << ") " << txt);
+  log_debug("IRC SENDING (raw): (", this->get_hostname(), ") ", txt);
   this->send_data(txt + "\r\n");
 }
 
@@ -452,7 +452,7 @@ bool IrcClient::send_channel_message(const std::string& chan_name, const std::st
   IrcChannel* channel = this->get_channel(chan_name);
   if (channel->joined == false)
     {
-      log_warning("Cannot send message to channel " << chan_name << ", it is not joined");
+      log_warning("Cannot send message to channel ", chan_name, ", it is not joined");
       return false;
     }
   // Cut the message body into 400-bytes parts (because the whole command
@@ -698,7 +698,7 @@ void IrcClient::empty_motd(const IrcMessage&)
 void IrcClient::on_empty_topic(const IrcMessage& message)
 {
   const std::string chan_name = utils::tolower(message.arguments[1]);
-  log_debug("empty topic for " << chan_name);
+  log_debug("empty topic for ", chan_name);
   IrcChannel* channel = this->get_channel(chan_name);
   if (channel)
     channel->topic.clear();
@@ -1026,8 +1026,8 @@ void IrcClient::on_channel_mode(const IrcMessage& message)
               IrcUser* user = channel->find_user(target);
               if (!user)
                 {
-                  log_warning("Trying to set mode for non-existing user '" << target
-                              << "' in channel" << iid.get_local());
+                  log_warning("Trying to set mode for non-existing user '", target
+                             , "' in channel", iid.get_local());
                   return;
                 }
               if (add)

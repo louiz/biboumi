@@ -119,5 +119,5 @@ void AdhocCommandsHandler::remove_session(const std::string& session_id, const s
       this->sessions.erase(session_it);
       return ;
     }
-  log_error("Tried to remove ad-hoc session for [" << session_id << ", " << initiator_jid << "] but none found");
+  log_error("Tried to remove ad-hoc session for [", session_id, ", ", initiator_jid, "] but none found");
 }
