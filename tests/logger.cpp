@@ -31,9 +31,9 @@ TEST_CASE("Basic logging")
       WHEN("we log some errors")
         {
           IoTester<std::ostream> out(std::cout);
-          log_error("error");
+          log_error("err", 12, "or");
           THEN("error logs are written")
-            CHECK(out.str() == error_header + "tests/logger.cpp:" + std::to_string(__LINE__ - 2) + ":\terror\n");
+            CHECK(out.str() == error_header + "tests/logger.cpp:" + std::to_string(__LINE__ - 2) + ":\terr12or\n");
         }
     }
   GIVEN("A logger with log_level 3")
@@ -42,16 +42,16 @@ TEST_CASE("Basic logging")
       WHEN("we log some debug text")
         {
           IoTester<std::ostream> out(std::cout);
-          log_debug("debug");
+          log_debug(123, "debug");
           THEN("nothing is written")
             CHECK(out.str().empty());
         }
       WHEN("we log some errors")
         {
           IoTester<std::ostream> out(std::cout);
-          log_error("error");
+          log_error(123, " errors");
           THEN("error logs are still written")
-            CHECK(out.str() == error_header + "tests/logger.cpp:" + std::to_string(__LINE__ - 2) + ":\terror\n");
+            CHECK(out.str() == error_header + "tests/logger.cpp:" + std::to_string(__LINE__ - 2) + ":\t123 errors\n");
         }
     }
 }
