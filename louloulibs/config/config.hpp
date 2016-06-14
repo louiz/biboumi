@@ -60,38 +60,34 @@ public:
    * Destroy the instance, forcing it to be recreated (with potentially
    * different parameters) the next time it’s needed.
    */
-  static void close();
+  static void clear();
+  /**
+   * Read the configuration file at the given path.
+   */
+  static bool read_conf(const std::string& name="");
+  /**
+   * Get the filename
+   */
+  static const std::string& get_filename()
+  { return Config::filename; }
+
+private:
   /**
    * Set the value of the filename to use, before calling any method.
    */
   static std::string filename;
   /**
-   * Set to true if you want an exception to be raised if the file does not
-   * exist when reading it.
-   */
-  static bool file_must_exist;
-
-private:
-  /**
-   * Get the singleton instance
-   */
-  static std::unique_ptr<Config>& instance();
-  /**
-   * Read the configuration file at the given path.
-   */
-  bool read_conf();
-  /**
    * Write all the config values into the configuration file
    */
-  void save_to_file() const;
+  static void save_to_file();
   /**
    * Call all the callbacks previously registered using connect().
    * This is used to notify any class that a configuration change occured.
    */
-  void trigger_configuration_change();
+  static void trigger_configuration_change();
 
-  std::map<std::string, std::string> values;
-  std::vector<t_config_changed_callback> callbacks;
+  static std::map<std::string, std::string> values;
+  static std::vector<t_config_changed_callback> callbacks;
 
 };
 

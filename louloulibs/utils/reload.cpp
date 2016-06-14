@@ -3,9 +3,7 @@
 
 void reload_process()
 {
-  // Closing the config will just force it to be reopened the next time
-  // a configuration option is needed
-  Config::close();
+  Config::read_conf();
   // Destroy the logger instance, to be recreated the next time a log
   // line needs to be written
   Logger::instance().reset();

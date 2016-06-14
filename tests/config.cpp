@@ -4,18 +4,18 @@
 
 TEST_CASE("Config basic")
 {
-  Config::filename = "test.cfg";
-  Config::file_must_exist = false;
+  // Write a value in the config file
+  Config::read_conf("test.cfg");
   Config::set("coucou", "bonjour", true);
-  Config::close();
+  Config::clear();
 
   bool error = false;
   try
     {
-      Config::file_must_exist = true;
+      CHECK(Config::read_conf());
       CHECK(Config::get("coucou", "") == "bonjour");
       CHECK(Config::get("does not exist", "default") == "default");
-      Config::close();
+      Config::clear();
     }
   catch (const std::ios::failure& e)
     {

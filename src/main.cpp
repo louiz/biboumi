@@ -47,7 +47,7 @@ static void sigint_handler(int sig, siginfo_t*, void*)
 {
   // We reset the SIGTERM or SIGINT (the one that didn't trigger this
   // handler) signal handler to its default value.  This avoid calling this
-  // handler twice, if the process receive both signals in a quick
+  // handler twice, if the process receives both signals in a quick
   // succession.
   int sig_to_reset = (sig == SIGINT? SIGTERM: SIGINT);
   sigset_t mask;
@@ -70,24 +70,16 @@ static void sigusr_handler(int, siginfo_t*, void*)
 
 int main(int ac, char** av)
 {
-  if (ac > 1)
-    Config::filename = av[1];
-  else
-    Config::filename = xdg_config_path("biboumi.cfg");
+  const std::string conf_filename = ac > 1 ? av[1] : xdg_config_path("biboumi.cfg");
+  std::cerr << "Using configuration file: " << conf_filename << std::endl;
 
-  Config::file_must_exist = true;
-  std::cerr << "Using configuration file: " << Config::filename << std::endl;
-
-  std::string password;
-  try { // The file must exist
-    password = Config::get("password", "");
-  }
-  catch (const std::ios::failure& e) {
+  if (!Config::read_conf(conf_filename))
     return config_help("");
-  }
-  const std::string hostname = Config::get("hostname", "");
+
+  const std::string password = Config::get("password", "");
   if (password.empty())
     return config_help("password");
+  const std::string hostname = Config::get("hostname", "");
   if (hostname.empty())
     return config_help("hostname");
 

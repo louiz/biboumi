@@ -6,22 +6,21 @@
 #include <stdlib.h>
 
 std::string Config::filename{};
-bool Config::file_must_exist = false;
+std::map<std::string, std::string> Config::values{};
+std::vector<t_config_changed_callback> Config::callbacks{};
 
 std::string Config::get(const std::string& option, const std::string& def)
 {
-  Config* self = Config::instance().get();
-  auto it = self->values.find(option);
+  auto it = Config::values.find(option);
 
-  if (it == self->values.end())
+  if (it == Config::values.end())
     return def;
   return it->second;
 }
 
 int Config::get_int(const std::string& option, const int& def)
 {
-  Config* self = Config::instance().get();
-  std::string res = self->get(option, "");
+  std::string res = Config::get(option, "");
   if (!res.empty())
     return atoi(res.c_str());
   else
@@ -30,64 +29,47 @@ int Config::get_int(const std::string& option, const int& def)
 
 void Config::set(const std::string& option, const std::string& value, bool save)
 {
-  Config* self = Config::instance().get();
-  self->values[option] = value;
+  Config::values[option] = value;
   if (save)
     {
-      self->save_to_file();
-      self->trigger_configuration_change();
+      Config::save_to_file();
+      Config::trigger_configuration_change();
     }
 }
 
 void Config::connect(t_config_changed_callback callback)
 {
-  Config* self = Config::instance().get();
-  self->callbacks.push_back(callback);
+    Config::callbacks.push_back(callback);
 }
 
-void Config::close()
+void Config::clear()
 {
-  Config* self = Config::instance().get();
-  self->values.clear();
-  Config::instance().reset();
+  Config::values.clear();
 }
 
 /**
  * Private methods
  */
-
 void Config::trigger_configuration_change()
 {
   std::vector<t_config_changed_callback>::iterator it;
-  for (it = this->callbacks.begin(); it < this->callbacks.end(); ++it)
+  for (it = Config::callbacks.begin(); it < Config::callbacks.end(); ++it)
       (*it)();
 }
 
-std::unique_ptr<Config>& Config::instance()
+bool Config::read_conf(const std::string& name)
 {
-  static std::unique_ptr<Config> instance;
+  if (!name.empty())
+    Config::filename = name;
 
-  if (!instance)
-    {
-      instance = std::make_unique<Config>();
-      instance->read_conf();
-    }
-  return instance;
-}
-
-bool Config::read_conf()
-{
-  std::ifstream file;
-  file.open(filename.data());
+  std::ifstream file(Config::filename.data());
   if (!file.is_open())
     {
-      if (Config::file_must_exist)
-        {
-          perror(("Error while opening file " + filename + " for reading.").c_str());
-          file.exceptions(std::ifstream::failbit);
-        }
+      perror(("Error while opening file " + filename + " for reading.").c_str());
       return false;
     }
+
+  Config::clear();
 
   std::string line;
   size_t pos;
@@ -103,20 +85,18 @@ bool Config::read_conf()
         continue ;
       option = line.substr(0, pos);
       value = line.substr(pos+1);
-      this->values[option] = value;
+      Config::values[option] = value;
     }
-  return true;
 }
 
-void Config::save_to_file() const
+void Config::save_to_file()
 {
-  std::ofstream file(this->filename.data());
+  std::ofstream file(Config::filename.data());
   if (file.fail())
     {
       std::cerr << "Could not save config file." << std::endl;
       return ;
     }
-  for (auto& it: this->values)
+  for (const auto& it: Config::values)
     file << it.first << "=" << it.second << '\n';
-  file.close();
 }
