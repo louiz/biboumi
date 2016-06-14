@@ -353,7 +353,7 @@ This means that biboumi has to convert everything coming from IRC into UTF-8
 without knowing the encoding of the received messages.  To do so, it checks
 if each message is UTF-8 valid, if not it tries to convert from
 ``iso_8859-1`` (because this appears to be the most common case, at least
-on the channels I visit) to ``UTF-``.  If that conversion fails at some
+on the channels I visit) to ``UTF-8``.  If that conversion fails at some
 point, a placeholder character ``'�'`` is inserted to indicate this
 decoding error.
 
