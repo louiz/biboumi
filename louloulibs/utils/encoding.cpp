@@ -23,6 +23,17 @@ namespace utils
   /**
    * Based on http://en.wikipedia.org/wiki/UTF-8#Description
    */
+  std::size_t get_next_codepoint_size(const unsigned char c)
+  {
+    if ((c & 0b11111000) == 0b11110000)          // 4 bytes:  11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
+      return 4;
+    else if ((c & 0b11110000) == 0b11100000)     // 3 bytes:  1110xxx 10xxxxxx 10xxxxxx
+      return 3;
+    else if ((c & 0b11100000) == 0b11000000)     // 2 bytes:  110xxxxx 10xxxxxx
+      return 2;
+    return 1;                                    // 1 byte:  0xxxxxxx
+  }
+
   bool is_valid_utf8(const char* s)
   {
     if (!s)
@@ -32,38 +43,31 @@ namespace utils
 
     while (*str)
       {
-        // 4 bytes:  11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
-        if ((str[0] & 0b11111000) == 0b11110000)
+        const auto codepoint_size = get_next_codepoint_size(str[0]);
+        if (codepoint_size == 4)
           {
             if (!str[1] || !str[2] || !str[3]
                 || ((str[1] & 0b11000000) != 0b10000000)
                 || ((str[2] & 0b11000000) != 0b10000000)
                 || ((str[3] & 0b11000000) != 0b10000000))
               return false;
-            str += 4;
           }
-        // 3 bytes:  1110xxx 10xxxxxx 10xxxxxx
-        else if ((str[0] & 0b11110000) == 0b11100000)
+        else if (codepoint_size == 3)
           {
             if (!str[1] || !str[2]
                 || ((str[1] & 0b11000000) != 0b10000000)
                 || ((str[2] & 0b11000000) != 0b10000000))
               return false;
-            str += 3;
           }
-        // 2 bytes:  110xxxxx 10xxxxxx
-        else if (((str[0]) & 0b11100000) == 0b11000000)
+        else if (codepoint_size == 2)
           {
             if (!str[1] ||
                 ((str[1] & 0b11000000) != 0b10000000))
               return false;
-            str += 2;
           }
-        // 1 byte:  0xxxxxxx
         else if ((str[0] & 0b10000000) != 0)
           return false;
-        else
-          str++;
+        str += codepoint_size;
       }
     return true;
   }

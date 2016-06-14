@@ -6,6 +6,11 @@
 namespace utils
 {
   /**
+   * Return the size, in bytes, of the next UTF-8 codepoint, based on
+   * the given char.
+   */
+  std::size_t get_next_codepoint_size(const unsigned char c);
+  /**
    * Returns true if the given null-terminated string is valid utf-8.
    *
    * Based on http://en.wikipedia.org/wiki/UTF-8#Description
