@@ -87,6 +87,7 @@ bool Config::read_conf(const std::string& name)
       value = line.substr(pos+1);
       Config::values[option] = value;
     }
+  return true;
 }
 
 void Config::save_to_file()
