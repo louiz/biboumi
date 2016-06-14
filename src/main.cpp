@@ -45,18 +45,6 @@ int config_help(const std::string& missing_option)
 
 static void sigint_handler(int sig, siginfo_t*, void*)
 {
-  // We reset the SIGTERM or SIGINT (the one that didn't trigger this
-  // handler) signal handler to its default value.  This avoid calling this
-  // handler twice, if the process receives both signals in a quick
-  // succession.
-  int sig_to_reset = (sig == SIGINT? SIGTERM: SIGINT);
-  sigset_t mask;
-  sigemptyset(&mask);
-  struct sigaction sigreset = {};
-  sigreset.sa_handler = SIG_DFL;
-  sigreset.sa_mask = mask;
-  sigaction(sig_to_reset, &sigreset, nullptr);
-
   // In 2 seconds, repeat the same signal, to force the exit
   TimedEventsManager::instance().add_event(TimedEvent(std::chrono::steady_clock::now() + 2s,
                                     [sig]() { raise(sig); }));
@@ -96,10 +84,10 @@ int main(int ac, char** av)
 
   // Install the signals used to exit the process cleanly, or reload the
   // config
-  sigemptyset(&mask);
   struct sigaction on_sigint;
   on_sigint.sa_sigaction = &sigint_handler;
-  on_sigint.sa_mask = mask;
+  // All signals must be blocked while a signal handler is running
+  sigfillset(&on_sigint.sa_mask);
   // we want to catch that signal only once.
   // Sending SIGINT again will "force" an exit
   on_sigint.sa_flags = SA_RESETHAND;
@@ -109,7 +97,7 @@ int main(int ac, char** av)
   // Install a signal to reload the config on SIGUSR1/2
   struct sigaction on_sigusr;
   on_sigusr.sa_sigaction = &sigusr_handler;
-  on_sigusr.sa_mask = mask;
+  sigfillset(&on_sigusr.sa_mask);
   on_sigusr.sa_flags = 0;
   sigaction(SIGUSR1, &on_sigusr, nullptr);
   sigaction(SIGUSR2, &on_sigusr, nullptr);
