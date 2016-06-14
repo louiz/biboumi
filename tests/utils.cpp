@@ -88,3 +88,9 @@ TEST_CASE("empty if fixed irc server")
     }
 
 }
+
+TEST_CASE("string cut")
+{
+  CHECK(cut("coucou", 2).size() == 3);
+  CHECK(cut("bonjour les copains", 6).size() == 4);
+}

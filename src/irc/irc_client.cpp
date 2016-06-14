@@ -9,6 +9,7 @@
 #include <config/config.hpp>
 #include <utils/tolower.hpp>
 #include <utils/split.hpp>
+#include <utils/string.hpp>
 
 #include <sstream>
 #include <iostream>
@@ -455,15 +456,13 @@ bool IrcClient::send_channel_message(const std::string& chan_name, const std::st
       log_warning("Cannot send message to channel ", chan_name, ", it is not joined");
       return false;
     }
-  // Cut the message body into 400-bytes parts (because the whole command
-  // must fit into 512 bytes, that's an easy way to make sure the chan name
-  // + body fits. I’m lazy.)
-  std::string::size_type pos = 0;
-  while (pos < body.size())
-    {
-      this->send_message(IrcMessage("PRIVMSG", {chan_name, body.substr(pos, 400)}));
-      pos += 400;
-    }
+  // Cut the message body into 512-bytes parts, because the whole command
+  // must fit into 512 bytes.
+  // Count the ':' at the start of the text, and two spaces
+  const auto line_size = 512 - ::strlen("PRIVMSG") - chan_name.length() - 3;
+  const auto lines = cut(body, line_size);
+  for (const auto& line: lines)
+    this->send_message(IrcMessage("PRIVMSG", {chan_name, line}));
   return true;
 }
 
