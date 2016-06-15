@@ -93,4 +93,10 @@ TEST_CASE("string cut")
 {
   CHECK(cut("coucou", 2).size() == 3);
   CHECK(cut("bonjour les copains", 6).size() == 4);
+  CHECK(cut("««««", 2).size() == 4);
+  CHECK(cut("a««««", 2).size() == 5);
+  const auto res = cut("rhello, ♥", 10);
+  CHECK(res.size() == 2);
+  CHECK(res[0] == "rhello, ");
+  CHECK(res[1] == "♥");
 }

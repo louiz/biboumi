@@ -388,6 +388,8 @@ void IrcClient::send_message(IrcMessage&& message)
       res += " " + arg;
     }
   res += "\r\n";
+  log_debug("Effective size: ", res.size());
+  log_debug(res);
   this->send_data(std::move(res));
 }
 
@@ -458,8 +460,7 @@ bool IrcClient::send_channel_message(const std::string& chan_name, const std::st
     }
   // Cut the message body into 512-bytes parts, because the whole command
   // must fit into 512 bytes.
-  // Count the ':' at the start of the text, and two spaces
-  const auto line_size = 512 - ::strlen("PRIVMSG") - chan_name.length() - 3;
+  const auto line_size = 500 - ::strlen("PRIVMSG ") - chan_name.length() - ::strlen(" :\r\n");
   const auto lines = cut(body, line_size);
   for (const auto& line: lines)
     this->send_message(IrcMessage("PRIVMSG", {chan_name, line}));
