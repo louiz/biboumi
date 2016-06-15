@@ -59,6 +59,7 @@ static const std::unordered_map<std::string,
   {"333", {&IrcClient::on_topic_who_time_received, {4, 0}}},
   {"RPL_TOPICWHOTIME", {&IrcClient::on_topic_who_time_received, {4, 0}}},
   {"366", {&IrcClient::on_channel_completely_joined, {2, 0}}},
+  {"396", {&IrcClient::on_own_host_received, {2, 0}}},
   {"432", {&IrcClient::on_erroneous_nickname, {2, 0}}},
   {"433", {&IrcClient::on_nickname_conflict, {2, 0}}},
   {"438", {&IrcClient::on_nickname_change_too_fast, {2, 0}}},
@@ -744,6 +745,18 @@ void IrcClient::on_channel_completely_joined(const IrcMessage& message)
   channel->joined = true;
   this->bridge.send_user_join(this->hostname, chan_name, channel->get_self(), channel->get_self()->get_most_significant_mode(this->sorted_user_modes), true);
   this->bridge.send_topic(this->hostname, chan_name, channel->topic, channel->topic_author);
+}
+
+void IrcClient::on_own_host_received(const IrcMessage& message)
+{
+  this->own_host = message.arguments[1];
+  const std::string from = message.prefix;
+  if (message.arguments.size() >= 3)
+    this->bridge.send_xmpp_message(this->hostname, from,
+                                   this->own_host + " " + message.arguments[2]);
+  else
+    this->bridge.send_xmpp_message(this->hostname, from, this->own_host +
+                                                         " is now your displayed host");
 }
 
 void IrcClient::on_erroneous_nickname(const IrcMessage& message)

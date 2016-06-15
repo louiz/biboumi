@@ -218,6 +218,10 @@ public:
    */
   void on_channel_completely_joined(const IrcMessage& message);
   /**
+   * Save our own host, as reported by the server
+   */
+  void on_own_host_received(const IrcMessage& message);
+  /**
    * We tried to set an invalid nickname
    */
   void on_erroneous_nickname(const IrcMessage& message);
@@ -283,6 +287,12 @@ private:
    * The hostname of the server we are connected to.
    */
   const std::string hostname;
+  /**
+   * Our own host, as reported by the IRC server.
+   * By default (and if it is not overridden by the server), it is a
+   * meaningless string, with the maximum allowed size
+   */
+  std::string own_host{63, '*'};
   /**
    * The hostname of the user.  This is used in the USER and the WEBIRC
    * commands, but only the one in WEBIRC will be used by the IRC server.
