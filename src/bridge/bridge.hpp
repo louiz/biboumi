@@ -54,7 +54,7 @@ public:
   const std::string& get_jid() const;
   std::string get_bare_jid() const;
 
-  static Xmpp::body make_xmpp_body(const std::string& str, const std::string& encodin = "ISO-8859-1");
+  static Xmpp::body make_xmpp_body(const std::string& str, const std::string& encoding = "ISO-8859-1");
   /***
    **
    ** From XMPP to IRC.
