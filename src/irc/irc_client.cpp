@@ -389,8 +389,6 @@ void IrcClient::send_message(IrcMessage&& message)
       res += " " + arg;
     }
   res += "\r\n";
-  log_debug("Effective size: ", res.size());
-  log_debug(res);
   this->send_data(std::move(res));
 }
 
@@ -459,9 +457,15 @@ bool IrcClient::send_channel_message(const std::string& chan_name, const std::st
       log_warning("Cannot send message to channel ", chan_name, ", it is not joined");
       return false;
     }
-  // Cut the message body into 512-bytes parts, because the whole command
-  // must fit into 512 bytes.
-  const auto line_size = 500 - ::strlen("PRIVMSG ") - chan_name.length() - ::strlen(" :\r\n");
+  // The max size is 512, taking into account the whole message, not just
+  // the text we send.
+  // This includes our own nick, username and host (because this will be
+  // added by the server into our message), in addition to the basic
+  // components of the message we send (command name, chan name, \r\n et)
+  //  : + NICK + ! + USER + @ + HOST + <space> + PRIVMSG + <space> + CHAN + <space> + : + \r\n
+  const auto line_size = 512 -
+                         this->current_nick.size() - this->username.size() - this->own_host.size() -
+                         ::strlen(":!@ PRIVMSG ") - chan_name.length() - ::strlen(" :\r\n");
   const auto lines = cut(body, line_size);
   for (const auto& line: lines)
     this->send_message(IrcMessage("PRIVMSG", {chan_name, line}));
