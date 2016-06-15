@@ -14,6 +14,7 @@
 #include <sstream>
 #include <iostream>
 #include <stdexcept>
+#include <cstring>
 
 #include <chrono>
 #include <string>
