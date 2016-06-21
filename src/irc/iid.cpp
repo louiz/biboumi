@@ -3,6 +3,8 @@
 
 #include <irc/iid.hpp>
 
+#include <utils/encoding.hpp>
+
 Iid::Iid(const std::string& iid):
   is_channel(false),
   is_user(false)
@@ -59,7 +61,9 @@ Iid::Iid():
 
 void Iid::set_local(const std::string& loc)
 {
-  this->local = utils::tolower(loc);
+  std::string local(utils::tolower(loc));
+  xep0106::decode(local);
+  this->local = local;
 }
 
 void Iid::set_server(const std::string& serv)
@@ -70,6 +74,13 @@ void Iid::set_server(const std::string& serv)
 const std::string& Iid::get_local() const
 {
   return this->local;
+}
+
+const std::string Iid::get_encoded_local() const
+{
+  std::string local(this->local);
+  xep0106::encode(local);
+  return local;
 }
 
 const std::string& Iid::get_server() const
@@ -90,13 +101,13 @@ namespace std {
   const std::string to_string(const Iid& iid)
   {
     if (Config::get("fixed_irc_server", "").empty())
-      return iid.get_local() + iid.get_sep() + iid.get_server();
+      return iid.get_encoded_local() + iid.get_sep() + iid.get_server();
     else
       {
         if (iid.get_sep() == "!")
-          return iid.get_local() + iid.get_sep();
+          return iid.get_encoded_local() + iid.get_sep();
         else
-          return iid.get_local();
+          return iid.get_encoded_local();
       }
   }
 }
