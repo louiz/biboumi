@@ -16,17 +16,6 @@ using namespace std::string_literals;
 static const char* action_prefix = "\01ACTION ";
 
 
-static std::string out_encoding_for(const Bridge& bridge, const Iid& iid)
-{
-#ifdef USE_DATABASE
-  const auto jid = bridge.get_bare_jid();
-  auto options = Database::get_irc_channel_options_with_server_default(jid, iid.get_server(), iid.get_local());
-  return options.encodingOut.value();
-#else
-  return {"ISO-8859-1"};
-#endif
-}
-
 static std::string in_encoding_for(const Bridge& bridge, const Iid& iid)
 {
 #ifdef USE_DATABASE
