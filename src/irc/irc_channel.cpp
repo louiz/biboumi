@@ -37,11 +37,14 @@ IrcUser* IrcChannel::find_user(const std::string& name) const
 
 void IrcChannel::remove_user(const IrcUser* user)
 {
-  this->users.erase(std::remove_if(this->users.begin(), this->users.end(),
-                    [user](const std::unique_ptr<IrcUser>& u)
-                    {
-                      return user->nick == u->nick;
-                    }), this->users.end());
+  const auto nick = user->nick;
+  const auto it = std::find_if(this->users.begin(), this->users.end(),
+                               [nick](const std::unique_ptr<IrcUser>& u)
+                               {
+                                 return nick == u->nick;
+                               });
+  if (it != this->users.end())
+    this->users.erase(it);
 }
 
 void IrcChannel::remove_all_users()
