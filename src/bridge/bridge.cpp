@@ -685,7 +685,10 @@ void Bridge::send_user_join(const std::string& hostname, const std::string& chan
   std::string role;
   std::tie(role, affiliation) = get_role_affiliation_from_irc_mode(user_mode);
 
-  this->xmpp.send_user_join(chan_name + utils::empty_if_fixed_server("%" + hostname), user->nick, user->host,
+  std::string encoded_chan_name(chan_name);
+  xep0106::encode(encoded_chan_name);
+
+  this->xmpp.send_user_join(encoded_chan_name + utils::empty_if_fixed_server("%" + hostname), user->nick, user->host,
                             affiliation, role, this->user_jid + "/" + resource, self);
 }
 
@@ -701,8 +704,10 @@ void Bridge::send_topic(const std::string& hostname, const std::string& chan_nam
                         const std::string& topic, const std::string& who,
                         const std::string& resource)
 {
-  const auto encoding = in_encoding_for(*this, {chan_name + '%' + hostname});
-  this->xmpp.send_topic(chan_name + utils::empty_if_fixed_server(
+  std::string encoded_chan_name(chan_name);
+  xep0106::encode(encoded_chan_name);
+  const auto encoding = in_encoding_for(*this, {encoded_chan_name + '%' + hostname});
+  this->xmpp.send_topic(encoded_chan_name + utils::empty_if_fixed_server(
       "%" + hostname), this->make_xmpp_body(topic, encoding), this->user_jid + "/" + resource, who);
 
 }
@@ -884,13 +889,13 @@ void Bridge::generate_channel_join_for_resource(const Iid& iid, const std::strin
       if (user->nick != self->nick)
         {
           log_debug(user->nick);
-          this->send_user_join(iid.get_server(), iid.get_local(),
+          this->send_user_join(iid.get_server(), iid.get_encoded_local(),
                                user.get(), user->get_most_significant_mode(irc->get_sorted_user_modes()),
                                false, resource);
         }
     }
-  this->send_user_join(iid.get_server(), iid.get_local(),
+  this->send_user_join(iid.get_server(), iid.get_encoded_local(),
                        self, self->get_most_significant_mode(irc->get_sorted_user_modes()),
                        true, resource);
-  this->send_topic(iid.get_server(), iid.get_local(), channel->topic, channel->topic_author, resource);
+  this->send_topic(iid.get_server(), iid.get_encoded_local(), channel->topic, channel->topic_author, resource);
 }

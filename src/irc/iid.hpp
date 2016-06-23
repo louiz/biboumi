@@ -53,6 +53,7 @@ public:
   void set_local(const std::string& loc);
   void set_server(const std::string& serv);
   const std::string& get_local() const;
+  const std::string get_encoded_local() const;
   const std::string& get_server() const;
 
   bool is_channel;
