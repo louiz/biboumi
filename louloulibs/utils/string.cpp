@@ -16,7 +16,7 @@ std::vector<std::string> cut(const std::string& val, const std::size_t size)
       // UTF-8 codepoints.
       std::size_t s = 0;
       auto codepoint_size = utils::get_next_codepoint_size(val[pos + s]);
-      while (s + codepoint_size <= size)
+      while (s + codepoint_size <= size && pos + s < val.size())
         {
           s += codepoint_size;
           codepoint_size = utils::get_next_codepoint_size(val[pos + s]);
