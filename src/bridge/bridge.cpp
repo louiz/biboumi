@@ -483,8 +483,7 @@ void Bridge::send_irc_user_ping_request(const std::string& irc_hostname, const s
           const std::string id = body.substr(6, body.size() - 7);
           if (id != iq_id)
             return false;
-          Jid jid(from_jid);
-          this->xmpp.send_iq_result(iq_id, to_jid, jid.local);
+          this->xmpp.send_iq_result_full_jid(iq_id, to_jid, from_jid);
           return true;
         }
       if (message.command == "401" && message.arguments[1] == nick)

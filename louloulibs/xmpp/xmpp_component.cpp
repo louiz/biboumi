@@ -631,6 +631,16 @@ void XmppComponent::send_iq_version_request(const std::string& from,
   this->send_stanza(iq);
 }
 
+void XmppComponent::send_iq_result_full_jid(const std::string& id, const std::string& to_jid, const std::string& from_full_jid)
+{
+  Stanza iq("iq");
+  iq["from"] = from_full_jid;
+  iq["to"] = to_jid;
+  iq["id"] = id;
+  iq["type"] = "result";
+  this->send_stanza(iq);
+}
+
 void XmppComponent::send_iq_result(const std::string& id, const std::string& to_jid, const std::string& from_local_part)
 {
   Stanza iq("iq");

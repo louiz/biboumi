@@ -200,6 +200,8 @@ public:
    * Send an empty iq of type result
    */
   void send_iq_result(const std::string& id, const std::string& to_jid, const std::string& from);
+  void send_iq_result_full_jid(const std::string& id, const std::string& to_jid,
+                               const std::string& from_full_jid);
 
   void handle_handshake(const Stanza& stanza);
   void handle_error(const Stanza& stanza);

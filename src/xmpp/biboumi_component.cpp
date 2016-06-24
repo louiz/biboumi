@@ -580,8 +580,8 @@ void BiboumiComponent::send_iq_version_request(const std::string& from,
 }
 
 void BiboumiComponent::send_ping_request(const std::string& from,
-                                      const std::string& jid_to,
-                                      const std::string& id)
+                                         const std::string& jid_to,
+                                         const std::string& id)
 {
   Stanza iq("iq");
   iq["type"] = "get";
