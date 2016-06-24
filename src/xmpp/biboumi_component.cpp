@@ -285,8 +285,10 @@ void BiboumiComponent::handle_iq(const Stanza& stanza)
   std::string to_str = stanza.get_tag("to");
   std::string type = stanza.get_tag("type");
 
-  if (from.empty())
+  if (from.empty()) {
+    log_warning("Received an iq without a 'from'. Ignoring.");
     return;
+  }
   if (id.empty() || to_str.empty() || type.empty())
     {
       this->send_stanza_error("iq", from, this->served_hostname, id,
