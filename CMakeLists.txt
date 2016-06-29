@@ -205,6 +205,8 @@ add_custom_target(check COMMAND "test_suite"
   DEPENDS test_suite biboumi)
 add_custom_target(e2e COMMAND "python3" "${CMAKE_CURRENT_SOURCE_DIR}/tests/end_to_end/"
   DEPENDS biboumi)
+add_custom_target(e2e_valgrind COMMAND "E2E_BIBOUMI_VALGRIND=1" "python3" "${CMAKE_CURRENT_SOURCE_DIR}/tests/end_to_end/"
+  DEPENDS biboumi)
 
 
 #

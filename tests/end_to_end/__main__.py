@@ -782,7 +782,7 @@ if __name__ == '__main__':
 
     for scenario in scenarios:
         test = BiboumiTest(scenario)
-        if not test.run(False):
+        if not test.run(os.getenv("E2E_BIBOUMI_VALGRIND") is not None):
             print("You can check the files slixmpp_%s_output.txt and biboumi_%s_output.txt to help you debug." %
                   (scenario.name, scenario.name))
             failures += 1
