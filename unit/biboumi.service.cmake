@@ -1,6 +1,6 @@
 [Unit]
 Description=Biboumi, XMPP to IRC gateway
-Documentation=man:biboumi(1) http://biboumi.louiz.org
+Documentation=man:biboumi(1) https://biboumi.louiz.org
 After=network.target
 
 [Service]
