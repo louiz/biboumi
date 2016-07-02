@@ -187,7 +187,7 @@ class BiboumiRunner(ProcessRunner):
         self.name = name
         self.fd = open("biboumi_%s_output.txt" % (name,), "w")
         if with_valgrind:
-            self.create = asyncio.create_subprocess_exec("valgrind", "--leak-check=full", "--show-leak-kinds=all",
+            self.create = asyncio.create_subprocess_exec("valgrind", "--suppressions=" + (os.environ.get("E2E_BIBOUMI_SUPP_DIR") or "") + "biboumi.supp", "--leak-check=full", "--show-leak-kinds=all",
                                                          "--errors-for-leak-kinds=all", "--error-exitcode=16",
                                                          "./biboumi", "test.conf", stdin=None, stdout=self.fd,
                                                          stderr=self.fd, loop=None, limit=None)
