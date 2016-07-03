@@ -739,7 +739,9 @@ void Bridge::send_affiliation_role_change(const Iid& iid, const std::string& tar
 
 void Bridge::send_iq_version_request(const std::string& nick, const std::string& hostname)
 {
-  this->xmpp.send_iq_version_request(nick + "!" + utils::empty_if_fixed_server(hostname), this->user_jid);
+  const auto resources = this->resources_in_server[hostname];
+  if (resources.begin() != resources.end())
+    this->xmpp.send_iq_version_request(nick + "!" + utils::empty_if_fixed_server(hostname), this->user_jid + "/" + *resources.begin());
 }
 
 void Bridge::send_xmpp_ping_request(const std::string& nick, const std::string& hostname,
