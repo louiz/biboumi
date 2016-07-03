@@ -229,7 +229,7 @@ class BiboumiTest:
 
     def __init__(self, scenario, expected_code=0):
         self.scenario = scenario
-        self.expected_code = 0
+        self.expected_code = expected_code
 
     def run(self, with_valgrind=True):
         print("Running scenario: [33;1m%s[0m%s" % (self.scenario.name, " (with valgrind)" if with_valgrind else ''))
@@ -355,6 +355,8 @@ def connection_end_sequence(irc_host, jid):
             xpath_re % (r'^%s: This server was created .*$' % irc_host)),
     partial(expect_stanza,
             xpath_re % (r'^%s: There are \d+ users and \d+ invisible on \d+ servers$' % irc_host)),
+    partial(expect_stanza,
+            xpath_re % (r'^%s: \d+ unknown connection\(s\)$' % irc_host), optional=True),
     partial(expect_stanza,
             xpath_re % (r'^%s: \d+ channels formed$' % irc_host), optional=True),
     partial(expect_stanza,
@@ -582,7 +584,7 @@ if __name__ == '__main__':
                      partial(send_stanza, "<iq type='set' id='hello-command2' from='{jid_one}/{resource_one}' to='{biboumi_host}'><command xmlns='http://jabber.org/protocol/commands' node='hello' sessionid='{sessionid}' action='next'><x xmlns='jabber:x:data' type='submit'><field var='name'><value>COUCOU</value></field></x></command></iq>"),
                      partial(expect_stanza, "/iq[@type='result']/commands:command[@node='hello'][@status='completed']/commands:note[@type='info'][text()='Hello COUCOU!']")
                  ]),
-        Scenario("simple_multisessionnick",
+        Scenario("multisessionnick",
                  [
                      handshake_sequence(),
                      partial(send_stanza,
@@ -605,6 +607,46 @@ if __name__ == '__main__':
                               "/presence/muc_user:x/muc_user:status[@code='110']")
                              ),
                      partial(expect_stanza, "/message[@from='#foo%{irc_server_one}'][@type='groupchat'][@to='{jid_one}/{resource_two}']/subject[not(text())]"),
+
+                     # A different user joins the same room
+                     partial(send_stanza,
+                             "<presence from='{jid_two}/{resource_one}' to='#foo%{irc_server_one}/{nick_two}' />"),
+                     connection_sequence("irc.localhost", '{jid_two}/{resource_one}'),
+
+                     partial(expect_stanza,
+                     ("/presence[@to='{jid_one}/{resource_one}'][@from='#foo%{irc_server_one}/{nick_two}']",)),
+                     partial(expect_stanza,
+                     ("/presence[@to='{jid_one}/{resource_two}'][@from='#foo%{irc_server_one}/{nick_two}']",)),
+
+                     partial(expect_stanza,
+                     "/presence[@to='{jid_second}/{resource_one}'][@from='#foo%{irc_server_one}/{nick_one}']"),
+                     partial(expect_stanza,
+                     ("/presence[@to='{jid_two}/{resource_one}'][@from='#foo%{irc_server_one}/{nick_two}']",
+                     "/presence/muc_user:x/muc_user:status[@code='110']")
+                     ),
+                     partial(expect_stanza, "/message[@from='#foo%{irc_server_one}'][@type='groupchat']/subject[not(text())]"),
+
+                     # That second user sends a private message to the first one
+                     partial(send_stanza, "<message from='{jid_two}/{resource_one}' to='#foo%{irc_server_one}/{nick_one}' type='chat'><body>RELLO</body></message>"),
+                     # Message is received with a server-wide JID, by the two resources behind nick_one
+                     partial(expect_stanza, "/message[@from='{lower_nick_two}!{irc_server_one}'][@to='{jid_one}/{resource_one}'][@type='chat']/body[text()='RELLO']"),
+                     partial(expect_stanza, "/message[@from='{lower_nick_two}!{irc_server_one}'][@to='{jid_one}/{resource_two}'][@type='chat']/body[text()='RELLO']"),
+
+                     # One resource leaves the server entirely.
+                     partial(send_stanza, "<presence type='unavailable' from='{jid_one}/{resource_two}' to='#foo%{irc_server_one}/{nick_one}' />"),
+                     # The leave is forwarded only to us
+                     partial(expect_stanza,
+                             ("/presence[@type='unavailable']/muc_user:x/muc_user:status[@code='110']",
+                             "/presence/status[text()='Biboumi note: 1 resources are still in this channel.']")
+                             ),
+                     # The second user sends two new private messages to the first user
+                     partial(send_stanza, "<message from='{jid_two}/{resource_one}' to='#foo%{irc_server_one}/{nick_one}' type='chat'><body>first</body></message>"),
+                     partial(send_stanza, "<message from='{jid_two}/{resource_one}' to='#foo%{irc_server_one}/{nick_one}' type='chat'><body>second</body></message>"),
+                     # The first user receives the two messages, on the connected resource, once each
+                     partial(expect_stanza, "/message[@from='{lower_nick_two}!{irc_server_one}'][@to='{jid_one}/{resource_one}'][@type='chat']/body[text()='first']"),
+                     partial(expect_stanza, "/message[@from='{lower_nick_two}!{irc_server_one}'][@to='{jid_one}/{resource_one}'][@type='chat']/body[text()='second']"),
+
+
                  ]),
         Scenario("channel_messages",
                  [

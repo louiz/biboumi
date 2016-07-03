@@ -349,9 +349,11 @@ void Bridge::leave_irc_channel(Iid&& iid, std::string&& status_message, const st
           this->send_muc_leave(std::move(iid), std::move(nick),
                                "Biboumi note: "s + std::to_string(resources - 1) + " resources are still in this channel.",
           true, resource);
+          if (this->number_of_channels_the_resource_is_in(iid.get_server(), resource) == 0)
+            this->remove_resource_from_server(iid.get_server(), resource);
         }
     }
-  }
+}
 
 void Bridge::send_irc_nick_change(const Iid& iid, const std::string& new_nick)
 {
@@ -866,6 +868,17 @@ std::size_t Bridge::number_of_resources_in_chan(const Bridge::ChannelKey& channe
   if (it == this->resources_in_chan.end())
     return 0;
   return it->second.size();
+}
+
+std::size_t Bridge::number_of_channels_the_resource_is_in(const std::string& irc_hostname, const std::string& resource) const
+{
+  std::size_t res = 0;
+  for (auto pair: this->resources_in_chan)
+    {
+      if (std::get<0>(pair.first) == irc_hostname && pair.second.count(resource) != 0)
+        res++;
+    }
+  return res;
 }
 
 void Bridge::generate_channel_join_for_resource(const Iid& iid, const std::string& resource)
