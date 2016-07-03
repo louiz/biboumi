@@ -30,7 +30,7 @@ RUN dnf install -y rpmdevtools
 
 # Install botan
 RUN git clone https://github.com/randombit/botan.git
-RUN cd botan && git checkout 1.11.28 && ./configure.py --prefix=/usr && make -j8 && make install
+RUN cd botan && ./configure.py --prefix=/usr && make -j8 && make install
 RUN rm -rf /botan
 
 # Install litesql
