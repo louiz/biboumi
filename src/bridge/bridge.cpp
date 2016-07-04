@@ -368,11 +368,11 @@ void Bridge::send_irc_channel_list_request(const Iid& iid, const std::string& iq
 
   irc->send_list_command();
 
-  irc_responder_callback_t cb = [this, iid, iq_id, to_jid](const std::string& irc_hostname,
-                                                           const IrcMessage& message) -> bool
-    {
-      static std::vector<ListElement> list;
+  std::vector<ListElement> list;
 
+  irc_responder_callback_t cb = [this, iid, iq_id, to_jid, list=std::move(list)](const std::string& irc_hostname,
+                                                           const IrcMessage& message) mutable -> bool
+    {
       if (irc_hostname != iid.get_server())
         return false;
       if (message.command == "263" || message.command == "RPL_TRYAGAIN" ||
