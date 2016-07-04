@@ -1,5 +1,5 @@
-#ifndef BIBOUMI_ADHOC_COMMANDS_HPP_INCLUDED
-#define BIBOUMI_ADHOC_COMMANDS_HPP_INCLUDED
+#pragma once
+
 
 #include <xmpp/adhoc_command.hpp>
 #include <xmpp/adhoc_session.hpp>
@@ -20,4 +20,4 @@ void DisconnectUserFromServerStep1(XmppComponent&, AdhocSession& session, XmlNod
 void DisconnectUserFromServerStep2(XmppComponent&, AdhocSession& session, XmlNode& command_node);
 void DisconnectUserFromServerStep3(XmppComponent&, AdhocSession& session, XmlNode& command_node);
 
-#endif /* BIBOUMI_ADHOC_COMMANDS_HPP_INCLUDED */
+

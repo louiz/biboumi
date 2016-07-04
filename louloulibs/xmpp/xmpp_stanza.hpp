@@ -1,5 +1,5 @@
-#ifndef XMPP_STANZA_INCLUDED
-# define XMPP_STANZA_INCLUDED
+#pragma once
+
 
 #include <map>
 #include <string>
@@ -143,4 +143,4 @@ std::ostream& operator<<(std::ostream& os, const XmlNode& node);
  */
 using Stanza = XmlNode;
 
-#endif // XMPP_STANZA_INCLUDED
+

@@ -1,5 +1,4 @@
-#ifndef SOCKET_HANDLER_HPP
-# define SOCKET_HANDLER_HPP
+#pragma once
 
 #include <louloulibs.h>
 #include <memory>
@@ -41,4 +40,3 @@ protected:
   socket_t socket;
 };
 
-#endif // SOCKET_HANDLER_HPP

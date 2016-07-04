@@ -1,5 +1,5 @@
-#ifndef LOGGER_INCLUDED
-# define LOGGER_INCLUDED
+#pragma once
+
 
 /**
  * Singleton used in logger macros to write into files or stdout, with
@@ -123,4 +123,4 @@ namespace logging_details
 #define log_debug(...) logging_details::log_debug(WHERE, __VA_ARGS__)
 
 
-#endif // LOGGER_INCLUDED
+

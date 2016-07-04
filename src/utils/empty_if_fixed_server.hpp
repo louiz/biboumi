@@ -1,5 +1,5 @@
-#ifndef EMPTY_IF_FIXED_SERVER_HPP_INCLUDED
-#define EMPTY_IF_FIXED_SERVER_HPP_INCLUDED
+#pragma once
+
 
 #include <string>
 
@@ -23,4 +23,4 @@ namespace utils
 
 }
 
-#endif /* EMPTY_IF_FIXED_SERVER_HPP_INCLUDED */
+

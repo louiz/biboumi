@@ -1,5 +1,4 @@
-#ifndef BIBOUMI_IO_TESTER_HPP
-#define BIBOUMI_IO_TESTER_HPP
+#pragma once
 
 #include <ostream>
 #include <sstream>
@@ -44,4 +43,3 @@ private:
   std::streambuf* const old_buf;
 };
 
-#endif //BIBOUMI_IO_TESTER_HPP

@@ -1,5 +1,5 @@
-#ifndef IRC_CLIENT_INCLUDED
-# define IRC_CLIENT_INCLUDED
+#pragma once
+
 
 #include <irc/irc_message.hpp>
 #include <irc/irc_channel.hpp>
@@ -380,4 +380,4 @@ private:
   Resolver dns_resolver;
 };
 
-#endif // IRC_CLIENT_INCLUDED
+

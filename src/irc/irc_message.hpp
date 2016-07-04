@@ -1,5 +1,5 @@
-#ifndef IRC_MESSAGE_INCLUDED
-# define IRC_MESSAGE_INCLUDED
+#pragma once
+
 
 #include <vector>
 #include <string>
@@ -25,4 +25,4 @@ public:
 
 std::ostream& operator<<(std::ostream& os, const IrcMessage& message);
 
-#endif // IRC_MESSAGE_INCLUDED
+

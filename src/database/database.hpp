@@ -1,5 +1,5 @@
-#ifndef DATABASE_HPP_INCLUDED
-#define DATABASE_HPP_INCLUDED
+#pragma once
+
 
 #include <biboumi.h>
 #ifdef USE_DATABASE
@@ -50,4 +50,4 @@ private:
 };
 #endif /* USE_DATABASE */
 
-#endif /* DATABASE_HPP_INCLUDED */
+

@@ -1,5 +1,5 @@
-#ifndef SOCKET_HANDLER_INCLUDED
-# define SOCKET_HANDLER_INCLUDED
+#pragma once
+
 
 #include "louloulibs.h"
 
@@ -270,5 +270,5 @@ private:
 #endif // BOTAN_FOUND
 };
 
-#endif // SOCKET_HANDLER_INCLUDED
+
 

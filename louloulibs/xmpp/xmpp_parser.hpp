@@ -1,5 +1,5 @@
-#ifndef XMPP_PARSER_INCLUDED
-# define XMPP_PARSER_INCLUDED
+#pragma once
+
 
 #include <xmpp/xmpp_stanza.hpp>
 
@@ -130,4 +130,4 @@ private:
   std::vector<std::function<void(const XmlNode&)>> stream_close_callbacks;
 };
 
-#endif // XMPP_PARSER_INCLUDED
+

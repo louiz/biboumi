@@ -1,5 +1,4 @@
-#ifndef SCOPEGUARD_HPP
-#define SCOPEGUARD_HPP
+#pragma once
 
 #include <functional>
 #include <vector>
@@ -88,4 +87,3 @@ private:
 
 }
 
-#endif

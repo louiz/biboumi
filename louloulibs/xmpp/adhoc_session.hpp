@@ -1,5 +1,4 @@
-#ifndef ADHOC_SESSION_HPP
-# define ADHOC_SESSION_HPP
+#pragma once
 
 #include <xmpp/xmpp_stanza.hpp>
 
@@ -87,5 +86,3 @@ public:
    */
   std::map<std::string, std::string> vars;
 };
-
-#endif // ADHOC_SESSION_HPP

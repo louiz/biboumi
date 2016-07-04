@@ -1,5 +1,5 @@
-#ifndef JID_INCLUDED
-# define JID_INCLUDED
+#pragma once
+
 
 #include <string>
 
@@ -41,4 +41,4 @@ public:
  */
 std::string jidprep(const std::string& original);
 
-#endif // JID_INCLUDED
+

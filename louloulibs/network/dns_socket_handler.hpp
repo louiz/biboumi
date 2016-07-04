@@ -1,5 +1,4 @@
-#ifndef DNS_SOCKET_HANDLER_HPP
-# define DNS_SOCKET_HANDLER_HPP
+#pragma once
 
 #include <louloulibs.h>
 #ifdef CARES_FOUND
@@ -44,4 +43,3 @@ private:
 };
 
 #endif // CARES_FOUND
-#endif // DNS_SOCKET_HANDLER_HPP

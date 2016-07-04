@@ -1,5 +1,4 @@
-#ifndef ADHOC_COMMAND_HPP
-# define ADHOC_COMMAND_HPP
+#pragma once
 
 /**
  * Describe an ad-hoc command.
@@ -43,5 +42,3 @@ void PingStep1(XmppComponent&, AdhocSession& session, XmlNode& command_node);
 void HelloStep1(XmppComponent&, AdhocSession& session, XmlNode& command_node);
 void HelloStep2(XmppComponent&, AdhocSession& session, XmlNode& command_node);
 void Reload(XmppComponent&, AdhocSession& session, XmlNode& command_node);
-
-#endif // ADHOC_COMMAND_HPP

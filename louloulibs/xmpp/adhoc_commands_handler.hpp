@@ -1,5 +1,4 @@
-#ifndef ADHOC_COMMANDS_HANDLER_HPP
-# define ADHOC_COMMANDS_HANDLER_HPP
+#pragma once
 
 /**
  * Manage a list of available AdhocCommands and the list of ongoing
@@ -70,5 +69,3 @@ private:
    */
   std::map<std::pair<const std::string, const std::string>, AdhocSession> sessions;
 };
-
-#endif // ADHOC_COMMANDS_HANDLER_HPP

@@ -1,5 +1,5 @@
-#ifndef XDG_HPP_INCLUDED
-#define XDG_HPP_INCLUDED
+#pragma once
+
 
 #include <string>
 
@@ -11,4 +11,4 @@
 std::string xdg_config_path(const std::string& filename);
 std::string xdg_data_path(const std::string& filename);
 
-#endif /* XDG_HPP_INCLUDED */
+

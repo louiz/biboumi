@@ -1,5 +1,4 @@
-#ifndef TIMED_EVENTS_HPP
-# define TIMED_EVENTS_HPP
+#pragma once
 
 #include <functional>
 #include <string>
@@ -131,5 +130,3 @@ private:
   std::vector<TimedEvent> events;
   explicit TimedEventsManager() = default;
 };
-
-#endif // TIMED_EVENTS_HPP

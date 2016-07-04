@@ -1,5 +1,5 @@
-#ifndef IRC_USER_INCLUDED
-# define IRC_USER_INCLUDED
+#pragma once
+
 
 #include <vector>
 #include <string>
@@ -30,4 +30,4 @@ public:
   std::set<char> modes;
 };
 
-#endif // IRC_USER_INCLUDED
+

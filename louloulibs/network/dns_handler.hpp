@@ -1,5 +1,4 @@
-#ifndef DNS_HANDLER_HPP_INCLUDED
-#define DNS_HANDLER_HPP_INCLUDED
+#pragma once
 
 #include <louloulibs.h>
 #ifdef CARES_FOUND
@@ -56,4 +55,3 @@ private:
 };
 
 #endif /* CARES_FOUND */
-#endif /* DNS_HANDLER_HPP_INCLUDED */

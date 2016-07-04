@@ -1,5 +1,5 @@
-#ifndef BRIDGE_INCLUDED
-# define BRIDGE_INCLUDED
+#pragma once
+
 
 #include <irc/irc_message.hpp>
 #include <irc/irc_client.hpp>
@@ -290,4 +290,4 @@ struct IRCNotConnected: public std::exception
   const std::string hostname;
 };
 
-#endif // BRIDGE_INCLUDED
+

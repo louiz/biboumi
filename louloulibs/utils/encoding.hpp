@@ -1,5 +1,5 @@
-#ifndef ENCODING_INCLUDED
-# define ENCODING_INCLUDED
+#pragma once
+
 
 #include <string>
 
@@ -40,4 +40,4 @@ namespace xep0106
   void encode(std::string&);
 }
 
-#endif // ENCODING_INCLUDED
+

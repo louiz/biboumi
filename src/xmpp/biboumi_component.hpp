@@ -1,5 +1,5 @@
-#ifndef BIBOUMI_COMPONENT_INCLUDED
-# define BIBOUMI_COMPONENT_INCLUDED
+#pragma once
+
 
 #include <xmpp/xmpp_component.hpp>
 
@@ -106,4 +106,4 @@ private:
   AdhocCommandsHandler irc_channel_adhoc_commands_handler;
 };
 
-#endif // BIBOUMI_COMPONENT_INCLUDED
+

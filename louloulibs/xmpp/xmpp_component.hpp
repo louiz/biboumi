@@ -1,5 +1,5 @@
-#ifndef XMPP_COMPONENT_INCLUDED
-# define XMPP_COMPONENT_INCLUDED
+#pragma once
+
 
 #include <xmpp/adhoc_commands_handler.hpp>
 #include <network/tcp_socket_handler.hpp>
@@ -240,4 +240,4 @@ protected:
   AdhocCommandsHandler adhoc_commands_handler;
 };
 
-#endif // XMPP_COMPONENT_INCLUDED
+

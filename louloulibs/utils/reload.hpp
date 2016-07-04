@@ -1,5 +1,5 @@
-#ifndef RELOAD_HPP_INCLUDED
-#define RELOAD_HPP_INCLUDED
+#pragma once
+
 
 /**
  * Reload the server's configuration, and close the logger (so that it
@@ -7,4 +7,4 @@
  */
 void reload_process();
 
-#endif /* RELOAD_HPP_INCLUDED */
+

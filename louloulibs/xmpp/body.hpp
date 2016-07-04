@@ -1,5 +1,5 @@
-#ifndef XMPP_BODY_HPP_INCLUDED
-#define XMPP_BODY_HPP_INCLUDED
+#pragma once
+
 
 namespace Xmpp
 {
@@ -9,4 +9,4 @@ namespace Xmpp
   using body = std::tuple<const std::string, std::unique_ptr<XmlNode>>;
 }
 
-#endif /* XMPP_BODY_HPP_INCLUDED */
+

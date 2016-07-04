@@ -1,5 +1,4 @@
-#ifndef BIBOUMI_CREDENTIALS_MANAGER_HPP
-#define BIBOUMI_CREDENTIALS_MANAGER_HPP
+#pragma once
 
 #include "louloulibs.h"
 
@@ -37,4 +36,4 @@ private:
 };
 
 #endif //BOTAN_FOUND
-#endif //BIBOUMI_CREDENTIALS_MANAGER_HPP
+

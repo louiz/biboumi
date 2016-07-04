@@ -1,5 +1,5 @@
-#ifndef ROSTER_HPP_INCLUDED
-#define ROSTER_HPP_INCLUDED
+#pragma once
+
 
 #include <algorithm>
 #include <string>
@@ -68,4 +68,4 @@ private:
   Roster& operator=(Roster&&) = delete;
 };
 
-#endif /* ROSTER_HPP_INCLUDED */
+

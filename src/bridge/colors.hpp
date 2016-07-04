@@ -1,5 +1,5 @@
-#ifndef COLORS_INCLUDED
-# define COLORS_INCLUDED
+#pragma once
+
 
 /**
  * A module handling the conversion between IRC colors and XHTML-IM, and
@@ -53,4 +53,4 @@ static const char irc_format_char[] = {
  */
 Xmpp::body irc_format_to_xhtmlim(const std::string& str);
 
-#endif // COLORS_INCLUDED
+

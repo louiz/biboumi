@@ -1,5 +1,5 @@
-#ifndef IID_INCLUDED
-# define IID_INCLUDED
+#pragma once
+
 
 #include <string>
 
@@ -76,4 +76,4 @@ namespace std {
   const std::string to_string(const Iid& iid);
 }
 
-#endif // IID_INCLUDED
+

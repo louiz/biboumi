@@ -1,5 +1,5 @@
-#ifndef IRC_CHANNEL_INCLUDED
-# define IRC_CHANNEL_INCLUDED
+#pragma once
+
 
 #include <irc/irc_user.hpp>
 #include <memory>
@@ -67,4 +67,4 @@ public:
   bool joining;
 };
 
-#endif // IRC_CHANNEL_INCLUDED
+

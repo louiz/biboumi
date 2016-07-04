@@ -1,5 +1,5 @@
-#ifndef LIST_ELEMENT_HPP_INCLUDED
-#define LIST_ELEMENT_HPP_INCLUDED
+#pragma once
+
 
 #include <string>
 
@@ -16,4 +16,4 @@ struct ListElement
   std::string topic;
 };
 
-#endif /* LIST_ELEMENT_HPP_INCLUDED */
+

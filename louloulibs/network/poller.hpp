@@ -1,5 +1,5 @@
-#ifndef POLLER_INCLUDED
-# define POLLER_INCLUDED
+#pragma once
+
 
 #include <network/socket_handler.hpp>
 
@@ -91,4 +91,4 @@ private:
 #endif
 };
 
-#endif // POLLER_INCLUDED
+

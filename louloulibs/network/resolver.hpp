@@ -1,5 +1,5 @@
-#ifndef RESOLVER_HPP_INCLUDED
-#define RESOLVER_HPP_INCLUDED
+#pragma once
+
 
 #include "louloulibs.h"
 
@@ -125,4 +125,4 @@ private:
 
 std::string addr_to_string(const struct addrinfo* rp);
 
-#endif /* RESOLVER_HPP_INCLUDED */
+

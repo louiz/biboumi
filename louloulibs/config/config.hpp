@@ -13,8 +13,8 @@
  * save the config into the file.
  */
 
-#ifndef CONFIG_INCLUDED
-# define CONFIG_INCLUDED
+#pragma once
+
 
 #include <functional>
 #include <fstream>
@@ -91,4 +91,4 @@ private:
 
 };
 
-#endif // CONFIG_INCLUDED
+
