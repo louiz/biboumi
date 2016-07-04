@@ -202,11 +202,6 @@ public:
   void trigger_on_irc_message(const std::string& irc_hostname, const IrcMessage& message);
   std::unordered_map<std::string, std::shared_ptr<IrcClient>>& get_irc_clients();
 
-  /**
-   * Manage which resource is connected to which IRC server
-   */
-
-
 private:
   /**
    * Returns the client for the given hostname, create one (and use the
