@@ -17,11 +17,11 @@ class DNSSocketHandler: public SocketHandler
 {
 public:
   explicit DNSSocketHandler(std::shared_ptr<Poller> poller, const socket_t socket);
-  ~DNSSocketHandler() = default;
+  ~DNSSocketHandler();
+  DNSSocketHandler(DNSSocketHandler&&) = default;
+  DNSSocketHandler& operator=(DNSSocketHandler&&) = default;
   DNSSocketHandler(const DNSSocketHandler&) = delete;
-  DNSSocketHandler(DNSSocketHandler&&) = delete;
   DNSSocketHandler& operator=(const DNSSocketHandler&) = delete;
-  DNSSocketHandler& operator=(DNSSocketHandler&&) = delete;
 
   /**
    * Just call dns_process_fd, c-ares will do its work of send()ing or
