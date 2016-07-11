@@ -121,6 +121,13 @@ if(CARES_FOUND)
 endif()
 
 #
+## utils
+#
+file(GLOB source_utils
+    src/utils/*.[hc]pp)
+target_sources(utils PUBLIC ${source_utils})
+
+#
 ## irclib
 #
 file(GLOB source_irc
