@@ -26,7 +26,7 @@ public:
   template<typename PersistentType>
   static size_t count()
   {
-    return litesql::select<PersistentType>(Database::get_db()).count();
+    return litesql::select<PersistentType>(*Database::db).count();
   }
   /**
    * Return the object from the db. Create it beforehand (with all default
@@ -42,11 +42,11 @@ public:
                                                                            const std::string& channel);
 
   static void close();
+  static void open(const std::string& filename, const std::string& db_type="sqlite3");
+
 
 private:
   static std::unique_ptr<db::BibouDB> db;
-
-  static db::BibouDB& get_db();
 };
 #endif /* USE_DATABASE */
 

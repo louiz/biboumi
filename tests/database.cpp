@@ -7,7 +7,7 @@
 TEST_CASE("Database")
 {
 #ifdef USE_DATABASE
-  Config::set("db_name", ":memory:");
+  Database::open(":memory:");
   Database::set_verbose(false);
 
   SECTION("Basic retrieve and update")

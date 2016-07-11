@@ -3,22 +3,15 @@
 #include <network/poller.hpp>
 #include <config/config.hpp>
 #include <logger/logger.hpp>
-#include <utils/reload.hpp>
 #include <utils/xdg.hpp>
-
-#include <iostream>
-#include <memory>
-#include <atomic>
-
-#include <signal.h>
+#include <utils/reload.hpp>
 
 #ifdef CARES_FOUND
 # include <network/dns_handler.hpp>
 #endif
 
-#ifdef SYSTEMD_FOUND
-# include <systemd/sd-daemon.h>
-#endif
+#include <atomic>
+#include <signal.h>
 
 // A flag set by the SIGINT signal handler.
 static volatile std::atomic<bool> stop(false);
@@ -70,6 +63,12 @@ int main(int ac, char** av)
   const std::string hostname = Config::get("hostname", "");
   if (hostname.empty())
     return config_help("hostname");
+
+  try {
+      open_database();
+    } catch (...) {
+      return 1;
+    }
 
   // Block the signals we want to manage. They will be unblocked only during
   // the epoll_pwait or ppoll calls. This avoids some race conditions,

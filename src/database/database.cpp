@@ -2,8 +2,6 @@
 #ifdef USE_DATABASE
 
 #include <database/database.hpp>
-#include <config/config.hpp>
-#include <utils/xdg.hpp>
 #include <logger/logger.hpp>
 #include <string>
 
@@ -11,37 +9,36 @@ using namespace std::string_literals;
 
 std::unique_ptr<db::BibouDB> Database::db;
 
-db::BibouDB& Database::get_db()
+void Database::open(const std::string& filename, const std::string& db_type)
 {
-  if (!Database::db)
+  try
     {
-      const std::string db_filename = Config::get("db_name",
-                                                  xdg_data_path("biboumi.sqlite"));
-      Database::db = std::make_unique<db::BibouDB>("sqlite3",
-                                                   "database="s + db_filename);
+      auto new_db = std::make_unique<db::BibouDB>(db_type,
+                                             "database="s + filename);
+      if (new_db->needsUpgrade())
+        new_db->upgrade();
+      Database::db.reset(new_db.release());
+    } catch (const litesql::DatabaseError& e) {
+      log_error("Failed to open database ", filename, ". ", e.what());
+      throw;
     }
-
-  if (Database::db->needsUpgrade())
-    Database::db->upgrade();
-
-  return *Database::db.get();
 }
 
 void Database::set_verbose(const bool val)
 {
-  Database::get_db().verbose = val;
+  Database::db->verbose = val;
 }
 
 db::IrcServerOptions Database::get_irc_server_options(const std::string& owner,
                                                       const std::string& server)
 {
   try {
-    auto options = litesql::select<db::IrcServerOptions>(Database::get_db(),
+    auto options = litesql::select<db::IrcServerOptions>(*Database::db,
                              db::IrcServerOptions::Owner == owner &&
                              db::IrcServerOptions::Server == server).one();
     return options;
   } catch (const litesql::NotFound& e) {
-    db::IrcServerOptions options(Database::get_db());
+    db::IrcServerOptions options(*Database::db);
     options.owner = owner;
     options.server = server;
     // options.update();
@@ -54,13 +51,13 @@ db::IrcChannelOptions Database::get_irc_channel_options(const std::string& owner
                                                         const std::string& channel)
 {
   try {
-    auto options = litesql::select<db::IrcChannelOptions>(Database::get_db(),
+    auto options = litesql::select<db::IrcChannelOptions>(*Database::db,
                                                          db::IrcChannelOptions::Owner == owner &&
                                                          db::IrcChannelOptions::Server == server &&
                                                          db::IrcChannelOptions::Channel == channel).one();
     return options;
   } catch (const litesql::NotFound& e) {
-    db::IrcChannelOptions options(Database::get_db());
+    db::IrcChannelOptions options(*Database::db);
     options.owner = owner;
     options.server = server;
     options.channel = channel;
