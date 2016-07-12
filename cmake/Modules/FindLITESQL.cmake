@@ -36,6 +36,7 @@ foreach(DB_TYPE sqlite postgresql mysql ocilib)
   if(LITESQL_${DB_TYPE_UPPER}_LIB_PATH)
     list(APPEND LITESQL_LIBRARIES ${LITESQL_${DB_TYPE_UPPER}_LIB_PATH})
   endif()
+  mark_as_advanced(LITESQL_${DB_TYPE_UPPER}_LIB_PATH)
 endforeach()
 
 find_program(LITESQLGEN_EXECUTABLE NAMES litesql-gen
@@ -53,7 +54,7 @@ if(LITESQL_FOUND)
   set(LITESQL_LIBRARY ${LITESQL_LIBRARIES})
 endif()
 
-mark_as_advanced(LITESQL_INCLUDE_DIRS LITESQL_LIBRARIES)
+mark_as_advanced(LITESQL_INCLUDE_DIRS LITESQL_LIBRARIES LITESQLGEN_EXECUTABLE)
 
 
 # LITESQL_GENERATE_CPP function
