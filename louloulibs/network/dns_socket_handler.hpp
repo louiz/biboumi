@@ -17,7 +17,7 @@ class DNSSocketHandler: public SocketHandler
 {
 public:
   explicit DNSSocketHandler(std::shared_ptr<Poller> poller, const socket_t socket);
-  ~DNSSocketHandler();
+  ~DNSSocketHandler() = default;
   DNSSocketHandler(DNSSocketHandler&&) = default;
   DNSSocketHandler& operator=(DNSSocketHandler&&) = default;
   DNSSocketHandler(const DNSSocketHandler&) = delete;
