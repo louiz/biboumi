@@ -125,7 +125,7 @@ endif()
 #
 file(GLOB source_utils
     src/utils/*.[hc]pp)
-target_sources(utils PUBLIC ${source_utils})
+set_property(TARGET utils APPEND PROPERTY SOURCES ${source_utils})
 
 #
 ## irclib
