@@ -123,9 +123,14 @@ endif()
 #
 ## utils
 #
-file(GLOB source_utils
+file(GLOB source_src_utils
     src/utils/*.[hc]pp)
-set_property(TARGET utils APPEND PROPERTY SOURCES ${source_utils})
+# Todo, switch to target_sources(utils) when we go cmake >=3.1 only
+add_library(src_utils STATIC ${source_src_utils})
+target_link_libraries(src_utils logger config)
+if(USE_DATABASE)
+  target_link_libraries(src_utils database)
+endif()
 
 #
 ## irclib
@@ -141,7 +146,7 @@ target_link_libraries(irc network utils logger)
 file(GLOB source_xmpp
   src/xmpp/*.[hc]pp)
 add_library(xmpp STATIC ${source_xmpp})
-target_link_libraries(xmpp xmpplib bridge network utils logger)
+target_link_libraries(xmpp xmpplib bridge network utils src_utils logger)
 
 if(USE_DATABASE)
   target_link_libraries(xmpp database)
@@ -165,6 +170,7 @@ target_link_libraries(${PROJECT_NAME}
   irc
   bridge
   utils
+  src_utils
   config)
 if(SYSTEMD_FOUND)
   target_link_libraries(xmpp ${SYSTEMD_LIBRARIES})
