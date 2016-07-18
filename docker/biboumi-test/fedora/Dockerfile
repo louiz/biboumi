@@ -57,7 +57,7 @@ RUN cd /charybdis && ./autogen.sh && ./configure --prefix=/home/tester/ircd --bi
 RUN chown -R tester:tester /home/tester/ircd
 RUN rm -rf /charybdis
 
-RUN su - tester -c "echo export LANG=fr_FR.utf-8 >> /home/tester/.bashrc"
+RUN su - tester -c "echo export LANG=en_GB.utf-8 >> /home/tester/.bashrc"
 
 WORKDIR /home/tester
 USER tester
