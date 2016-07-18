@@ -26,6 +26,7 @@ build:fedora:
       - build/rpmbuild/RPMS
       - build/rpmbuild/SRPMS
       - build/tests_outputs/
+    when: always
 
 build:debian:
   stage: build
@@ -40,3 +41,4 @@ build:debian:
     paths:
       - build/coverage/
       - build/tests_outputs/
+    when: always
