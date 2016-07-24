@@ -28,11 +28,9 @@ static bool exiting = false;
 int config_help(const std::string& missing_option)
 {
   if (!missing_option.empty())
-    std::cerr << "Error: empty value for option " << missing_option << "." << std::endl;
-  std::cerr <<
-    "Please provide a configuration file filled like this:\n\n"
-    "hostname=irc.example.com\npassword=S3CR3T"
-            << std::endl;
+    log_error("Error: empty value for option ", missing_option, ".");
+  log_error("Please provide a configuration file filled like this:\n\n"
+            "hostname=irc.example.com\npassword=S3CR3T");
   return 1;
 }
 
@@ -52,7 +50,7 @@ static void sigusr_handler(int, siginfo_t*, void*)
 int main(int ac, char** av)
 {
   const std::string conf_filename = ac > 1 ? av[1] : xdg_config_path("biboumi.cfg");
-  std::cerr << "Using configuration file: " << conf_filename << std::endl;
+  log_info("Using configuration file: ", conf_filename);
 
   if (!Config::read_conf(conf_filename))
     return config_help("");

@@ -1,9 +1,10 @@
 #include <config/config.hpp>
+#include <logger/logger.hpp>
 
-#include <iostream>
+#include <cstring>
 #include <sstream>
 
-#include <stdlib.h>
+#include <cstdlib>
 
 std::string Config::filename{};
 std::map<std::string, std::string> Config::values{};
@@ -22,7 +23,7 @@ int Config::get_int(const std::string& option, const int& def)
 {
   std::string res = Config::get(option, "");
   if (!res.empty())
-    return atoi(res.c_str());
+    return std::atoi(res.c_str());
   else
     return def;
 }
@@ -65,7 +66,7 @@ bool Config::read_conf(const std::string& name)
   std::ifstream file(Config::filename.data());
   if (!file.is_open())
     {
-      perror(("Error while opening file " + filename + " for reading.").c_str());
+      log_error("Error while opening file ", filename, " for reading: ", strerror(errno));
       return false;
     }
 
@@ -95,7 +96,7 @@ void Config::save_to_file()
   std::ofstream file(Config::filename.data());
   if (file.fail())
     {
-      std::cerr << "Could not save config file." << std::endl;
+      log_error("Could not save config file.");
       return ;
     }
   for (const auto& it: Config::values)
