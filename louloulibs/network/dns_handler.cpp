@@ -68,7 +68,7 @@ void DNSHandler::watch_dns_sockets(std::shared_ptr<Poller>& poller)
       std::remove_if(this->socket_handlers.begin(), this->socket_handlers.end(),
                      [&readers](const auto& dns_socket)
                      {
-                       return !FD_ISSET(dns_socket.get_socket(), &readers);
+                       return !FD_ISSET(dns_socket->get_socket(), &readers);
                      }),
       this->socket_handlers.end());
 
@@ -81,8 +81,8 @@ void DNSHandler::watch_dns_sockets(std::shared_ptr<Poller>& poller)
                              this->socket_handlers.end(),
                              [i](const auto& socket_handler)
                              {
-                                 return i == socket_handler.get_socket();
-                             });
+        return i == socket_handler->get_socket();
+      });
       if (!read && !write)      // No need to read or write to it
         { // If found, erase it and stop watching it because it is not
           // needed anymore
@@ -95,12 +95,12 @@ void DNSHandler::watch_dns_sockets(std::shared_ptr<Poller>& poller)
           if (it == this->socket_handlers.end())
             {
               this->socket_handlers.emplace(this->socket_handlers.begin(),
-                                            poller, i);
+                                            std::make_unique<DNSSocketHandler>(poller, i));
               it = this->socket_handlers.begin();
             }
-          poller->add_socket_handler(&*it);
+          poller->add_socket_handler(it->get());
           if (write)
-            poller->watch_send_events(&*it);
+            poller->watch_send_events(it->get());
         }
     }
   // Cancel previous timer, if any.
@@ -116,7 +116,7 @@ void DNSHandler::watch_dns_sockets(std::shared_ptr<Poller>& poller)
                                                           [this]()
              {
                for (auto& dns_socket_handler: this->socket_handlers)
-                 dns_socket_handler.on_recv();
+                 dns_socket_handler->on_recv();
              },
                                                           "DNS timeout"));
     }

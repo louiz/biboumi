@@ -15,10 +15,10 @@ public:
     socket(socket)
   {}
   virtual ~SocketHandler() {}
-  SocketHandler& operator=(SocketHandler&&) = default;
-  SocketHandler(SocketHandler&&) = default;
-  SocketHandler& operator=(const SocketHandler&) = delete;
   SocketHandler(const SocketHandler&) = delete;
+  SocketHandler(SocketHandler&&) = delete;
+  SocketHandler& operator=(const SocketHandler&) = delete;
+  SocketHandler& operator=(SocketHandler&&) = delete;
 
   virtual void on_recv() = 0;
   virtual void on_send() = 0;

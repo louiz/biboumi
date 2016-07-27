@@ -50,7 +50,7 @@ private:
    * call to ares_fds.  DNSSocketHandlers are added to it or removed from it
    * in the watch_dns_sockets() method
    */
-  std::vector<DNSSocketHandler> socket_handlers;
+  std::vector<std::unique_ptr<DNSSocketHandler>> socket_handlers;
   ares_channel channel;
 };
 
