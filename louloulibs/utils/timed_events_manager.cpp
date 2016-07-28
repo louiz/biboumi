@@ -23,7 +23,7 @@ std::chrono::milliseconds TimedEventsManager::get_timeout() const
 {
   if (this->events.empty())
     return utils::no_timeout;
-  return this->events.front().get_timeout() + std::chrono::milliseconds(1);
+  return this->events.front().get_timeout();
 }
 
 std::size_t TimedEventsManager::execute_expired_events()
