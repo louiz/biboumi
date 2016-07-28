@@ -1,3 +1,34 @@
+Version 3.0
+===========
+ - Support multiple-nick sessions: a user can join an IRC channel behind
+   one single nick, using multiple different clients, at the same time (as
+   long as each client is using the same bare JID).
+ - Database support for persistant per-user per-server configuration. Add
+   `LiteSQL <https://dev.louiz.org/projects/litesql>` as an optional
+   dependency.
+ - Add ad-hoc commands that lets each user configure various things
+ - Support an after-connect command that will be sent to the server
+   just after the user gets connected to it.
+ - Support the sending of a PASS command.
+ - Lets the users configure their username and realname, if the
+   realname_customization is set to true.
+ - The remote TLS certificates are checked against the system’s trusted
+   CAs, unless the user used the configuration option that ignores these
+   checks.
+ - Lets the user set a sha-1 hash to identify a server certificate that
+   should always be trusted.
+ - Add an outgoing_bind option.
+ - Add an ad-hoc command to forcefully disconnect a user from one or
+   more servers.
+ - Let the user configure the incoming encoding of an IRC server (the
+   default behaviour remains unchanged: check if it’s valid utf-8 and if
+   not, decode as latin-1).
+ - Support `multi-prefix <http://ircv3.net/specs/extensions/multi-prefix-3.1.html>`.
+ - And of course, many bufixes.
+ - Run unit tests and a test suite, build the RPM and check many things
+   automatically using gitlab-ci.
+
+
 Version 2.0 - 2015-05-29
 ========================
 
