@@ -27,7 +27,7 @@ bool TimedEvent::is_after(const TimedEvent& other) const
 
 bool TimedEvent::is_after(const std::chrono::steady_clock::time_point& time_point) const
 {
-  return this->time_point >= time_point;
+  return this->time_point > time_point;
 }
 
 std::chrono::milliseconds TimedEvent::get_timeout() const
