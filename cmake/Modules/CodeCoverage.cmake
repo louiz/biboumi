@@ -85,14 +85,17 @@ IF(NOT GCOV_PATH)
   set(ERROR_MSG "gcov not found")
   return()
 ENDIF()
+MARK_AS_ADVANCED(GCOV_PATH)
 IF(NOT LCOV_PATH)
   set(ERROR_MSG "lcov not found")
   return()
 ENDIF()
+MARK_AS_ADVANCED(LCOV_PATH)
 IF(NOT GENHTML_PATH)
   set(ERROR_MSG "genhtml not found")
   return()
 ENDIF()
+MARK_AS_ADVANCED(GENHTML_PATH)
 IF(NOT CMAKE_COMPILER_IS_GNUCXX)
   set(ERROR_MSG "Compiler is not gcc")
   return()
@@ -188,6 +191,7 @@ FUNCTION(SETUP_TARGET_FOR_COVERAGE_COBERTURA _targetname _testrunner _outputname
 	IF(NOT GCOVR_PATH)
 		MESSAGE(FATAL_ERROR "gcovr not found! Aborting...")
 	ENDIF() # NOT GCOVR_PATH
+        MARK_AS_ADVANCED(GCOVR_PATH)
 
 	ADD_CUSTOM_TARGET(${_targetname}
 
