@@ -40,6 +40,7 @@ public:
    * and library.
    */
   void destroy();
+  void remove_all_sockets_from_poller();
   ares_channel& get_channel();
 
   static DNSHandler instance;

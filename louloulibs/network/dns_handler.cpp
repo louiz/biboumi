@@ -37,6 +37,7 @@ ares_channel& DNSHandler::get_channel()
 
 void DNSHandler::destroy()
 {
+  this->remove_all_sockets_from_poller();
   this->socket_handlers.clear();
   ::ares_destroy(this->channel);
   ::ares_library_cleanup();
@@ -95,7 +96,7 @@ void DNSHandler::watch_dns_sockets(std::shared_ptr<Poller>& poller)
           if (it == this->socket_handlers.end())
             {
               this->socket_handlers.emplace(this->socket_handlers.begin(),
-                                            std::make_unique<DNSSocketHandler>(poller, i));
+                                            std::make_unique<DNSSocketHandler>(poller, *this, i));
               it = this->socket_handlers.begin();
             }
           poller->add_socket_handler(it->get());
@@ -120,6 +121,14 @@ void DNSHandler::watch_dns_sockets(std::shared_ptr<Poller>& poller)
              },
                                                           "DNS timeout"));
     }
+}
+
+void DNSHandler::remove_all_sockets_from_poller()
+{
+  for (const auto& socket_handler: this->socket_handlers)
+  {
+    socket_handler->remove_from_poller();
+  }
 }
 
 #endif /* CARES_FOUND */

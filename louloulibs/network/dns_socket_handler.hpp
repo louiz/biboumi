@@ -13,10 +13,12 @@
  * (Poller reported it to be writable or readeable)
  */
 
+class DNSHandler;
+
 class DNSSocketHandler: public SocketHandler
 {
 public:
-  explicit DNSSocketHandler(std::shared_ptr<Poller> poller, const socket_t socket);
+  explicit DNSSocketHandler(std::shared_ptr<Poller> poller, DNSHandler& handler, const socket_t socket);
   ~DNSSocketHandler() = default;
   DNSSocketHandler(const DNSSocketHandler&) = delete;
   DNSSocketHandler(DNSSocketHandler&&) = delete;
@@ -38,8 +40,10 @@ public:
    * Always true, see the comment for connect()
    */
   bool is_connected() const override final;
+  void remove_from_poller();
 
 private:
+  DNSHandler& handler;
 };
 
 #endif // CARES_FOUND
