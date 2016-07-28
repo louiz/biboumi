@@ -178,6 +178,14 @@ the same IRC connection is used.  If, however, an other user wants to join
 an IRC channel on that same IRC server, biboumi opens a new connection to
 that server.  Biboumi connects once to each IRC server, for each user on it.
 
+Additionally, if one user is using more than one clients (with the same bare
+JID), they can join the same IRC channel (on the same server) behind one
+single nickname.  Biboumi will forward all the messages (the channel ones and
+the private ones) and the presences to all the resources behind that nick.
+There is no need to have multiple nicknames and multiple connections to be
+able to take part in a conversation (or idle) in a channel from a mobile client
+while the desktop client is still connected, for example.
+
 To cleanly shutdown the component, send a SIGINT or SIGTERM signal to it.
 It will send messages to all connected IRC and XMPP servers to indicate a
 reason why the users are being disconnected.  Biboumi exits when the end of
