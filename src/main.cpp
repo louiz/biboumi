@@ -50,7 +50,7 @@ static void sigusr_handler(int, siginfo_t*, void*)
 int main(int ac, char** av)
 {
   const std::string conf_filename = ac > 1 ? av[1] : xdg_config_path("biboumi.cfg");
-  log_info("Using configuration file: ", conf_filename);
+  std::cout << "Using configuration file: " << conf_filename << std::endl;
 
   if (!Config::read_conf(conf_filename))
     return config_help("");
