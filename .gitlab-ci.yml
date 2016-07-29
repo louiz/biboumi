@@ -20,7 +20,7 @@ variables:
 .template:basic_build: &basic_build
   stage: build
   script:
-    - echo Running cmake with the following parameters -DCMAKE_CXX_COMPILER=${COMPILER} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ${BOTAN} ${CARES} ${SYSTEMD} ${LIBIDN} ${LITESQL}
+    - "echo Running cmake with the following parameters: -DCMAKE_CXX_COMPILER=${COMPILER} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ${BOTAN} ${CARES} ${SYSTEMD} ${LIBIDN} ${LITESQL}"
     - cmake .. -DCMAKE_CXX_COMPILER=${COMPILER} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ${BOTAN} ${CARES} ${SYSTEMD} ${LIBIDN} ${LITESQL}
     - make biboumi -j$(nproc)
     - make check -j$(nproc)
