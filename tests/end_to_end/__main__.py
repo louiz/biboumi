@@ -220,6 +220,11 @@ def expect_stanza(xpaths, xmpp, biboumi, optional=False, after=None):
         print("Warning, from argument type passed to expect_stanza: %s" % (type(xpaths)))
 
 
+def log_message(message, xmpp, biboumi):
+    print("[33;1m%s[0m" % (message,))
+    asyncio.get_event_loop().call_soon(xmpp.run_scenario)
+
+
 class BiboumiTest:
     """
     Spawns a biboumi process and a fake XMPP Component that will run a
@@ -252,7 +257,6 @@ class BiboumiTest:
         asyncio.get_event_loop().call_soon(xmpp.run_scenario)
 
         xmpp.process()
-
         code = asyncio.get_event_loop().run_until_complete(biboumi.wait())
         xmpp.biboumi = None
         scenario.steps.clear()
@@ -436,6 +440,8 @@ if __name__ == '__main__':
                  [
                      handshake_sequence(),
                      # First user joins
+                     partial(log_message,
+                             "First user joins"),
                      partial(send_stanza,
                              "<presence from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}/{nick_one}' />"),
                      connection_sequence("irc.localhost", '{jid_one}/{resource_one}'),
@@ -448,16 +454,24 @@ if __name__ == '__main__':
                      partial(expect_stanza, "/message[@from='#foo%{irc_server_one}'][@type='groupchat']/subject[not(text())]"),
 
                      # Second user joins
+                     partial(log_message,
+                             "Second user joins"),
                      partial(send_stanza,
                              "<presence from='{jid_two}/{resource_one}' to='#foo%{irc_server_one}/{nick_two}' />"),
                      connection_sequence("irc.localhost", '{jid_two}/{resource_one}'),
                      # Our presence, sent to the other user
+                     partial(log_message,
+                             "Our presence sent to the other user"),
                      partial(expect_stanza,
                              ("/presence[@to='{jid_one}/{resource_one}'][@from='#foo%{irc_server_one}/{nick_two}']/muc_user:x/muc_user:item[@affiliation='none'][@jid='~bobby@localhost'][@role='participant']",)),
                      # The other user presence
+                     partial(log_message,
+                             "The other user presence"),
                      partial(expect_stanza,
                              "/presence[@to='{jid_second}/{resource_one}'][@from='#foo%{irc_server_one}/{nick_one}']/muc_user:x/muc_user:item[@affiliation='none'][@jid='~nick@localhost'][@role='participant']"),
                      # Our own presence
+                     partial(log_message,
+                             "Our own presence"),
                      partial(expect_stanza,
                              ("/presence[@to='{jid_two}/{resource_one}'][@from='#foo%{irc_server_one}/{nick_two}']/muc_user:x/muc_user:item[@affiliation='none'][@jid='~bobby@localhost'][@role='participant']",
                               "/presence/muc_user:x/muc_user:status[@code='110']")
@@ -790,7 +804,6 @@ if __name__ == '__main__':
                              "<iq type='result' to='{lower_nick_one}!{irc_server_one}' id='gnip_dnoces' from='{to}'/>"),
                      partial(expect_stanza,
                              "/iq[@from='#foo%{irc_server_one}/{nick_one}'][@type='result'][@to='{jid_one}/{resource_one}'][@id='second_ping']"),
-
                      ## And re-do exactly the same thing, just change the resource initiating the self ping
                      partial(send_stanza,
                              "<iq type='get' from='{jid_one}/{resource_two}' id='third_ping' to='#foo%{irc_server_one}/{nick_one}'><ping xmlns='urn:xmpp:ping' /></iq>"),
@@ -803,6 +816,50 @@ if __name__ == '__main__':
                              "/iq[@from='#foo%{irc_server_one}/{nick_one}'][@type='result'][@to='{jid_one}/{resource_two}'][@id='third_ping']"),
 
                  ]),
+                Scenario("simple_kick",
+                [
+                     handshake_sequence(),
+                     # First user joins
+                     partial(send_stanza,
+                     "<presence from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}/{nick_one}' />"),
+                     connection_sequence("irc.localhost", '{jid_one}/{resource_one}'),
+                     partial(expect_stanza, "/message"),
+                     partial(expect_stanza, "/presence/muc_user:x/muc_user:status[@code='110']"),
+                     partial(expect_stanza, "/message[@type='groupchat']/subject"),
+
+                     # Second user joins
+                     partial(send_stanza,
+                     "<presence from='{jid_two}/{resource_one}' to='#foo%{irc_server_one}/{nick_two}' />"),
+                     connection_sequence("irc.localhost", '{jid_two}/{resource_one}'),
+                     partial(expect_stanza,
+                     "/presence/muc_user:x/muc_user:item[@affiliation='none'][@role='participant']",),
+
+                     partial(expect_stanza,
+                     "/presence/muc_user:x/muc_user:item[@affiliation='admin'][@role='moderator']"),
+                     partial(expect_stanza,
+                     "/presence/muc_user:x/muc_user:status[@code='110']"),
+                     partial(expect_stanza, "/message/subject"),
+
+                     # Moderator kicks participant
+                     partial(log_message, "Moderator kicks participant"),
+                     partial(send_stanza,
+                     "<iq id='kick1' to='#foo%{irc_server_one}' from='{jid_one}/{resource_one}' type='set'><query xmlns='http://jabber.org/protocol/muc#admin'><item nick='{nick_two}' role='none'><reason>reported</reason></item></query></iq>"),
+                     partial(log_message, "Presence is sent to everyone"),
+                     partial(expect_stanza,
+                             ("/presence[@type='unavailable'][@to='{jid_second}/{resource_one}']/muc_user:x/muc_user:item[@role='none']/muc_user:actor[@nick='{nick_one}']",
+                              "/presence/muc_user:x/muc_user:item/muc_user:reason[text()='reported']",
+                              "/presence/muc_user:x/muc_user:status[@code='307']",
+                              "/presence/muc_user:x/muc_user:status[@code='110']"
+                             )),
+                     partial(expect_stanza,
+                             ("/presence[@type='unavailable']/muc_user:x/muc_user:item[@role='none']/muc_user:actor[@nick='{nick_one}']",
+                              "/presence/muc_user:x/muc_user:item/muc_user:reason[text()='reported']",
+                              "/presence/muc_user:x/muc_user:status[@code='307']",
+                              ),
+                             ),
+                     partial(expect_stanza,
+                     "/iq[@id='kick1'][@type='result']"),
+                ]),
     )
 
     failures = 0
