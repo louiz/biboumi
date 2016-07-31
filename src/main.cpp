@@ -34,6 +34,12 @@ int config_help(const std::string& missing_option)
   return 1;
 }
 
+int display_help()
+{
+  std::cout << "Usage: biboumi [configuration_file]" << std::endl;
+  return 0;
+}
+
 static void sigint_handler(int sig, siginfo_t*, void*)
 {
   // In 2 seconds, repeat the same signal, to force the exit
@@ -49,6 +55,20 @@ static void sigusr_handler(int, siginfo_t*, void*)
 
 int main(int ac, char** av)
 {
+  if (ac > 1)
+    {
+      const std::string arg = av[1];
+      if (arg.size() >= 2 && arg[0] == '-' && arg[1] == '-')
+        {
+          if (arg == "--help")
+            return display_help();
+          else
+            {
+              std::cerr << "Unknow command line option: " << arg << std::endl;
+              return 1;
+            }
+        }
+    }
   const std::string conf_filename = ac > 1 ? av[1] : xdg_config_path("biboumi.cfg");
   std::cout << "Using configuration file: " << conf_filename << std::endl;
 
