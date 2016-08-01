@@ -28,7 +28,7 @@ static bool exiting = false;
 int config_help(const std::string& missing_option)
 {
   if (!missing_option.empty())
-    log_error("Error: empty value for option ", missing_option, ".");
+    log_error("Configuration error: empty value for option ", missing_option, ".");
   log_error("Please provide a configuration file filled like this:\n\n"
             "hostname=irc.example.com\npassword=S3CR3T");
   return 1;
