@@ -860,6 +860,66 @@ if __name__ == '__main__':
                      partial(expect_stanza,
                      "/iq[@id='kick1'][@type='result']"),
                 ]),
+                Scenario("multisession_kick",
+                 [
+                     handshake_sequence(),
+                     # First user joins
+                     partial(send_stanza,
+                             "<presence from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}/{nick_one}' />"),
+                     connection_sequence("irc.localhost", '{jid_one}/{resource_one}'),
+                     partial(expect_stanza, "/message"),
+                     partial(expect_stanza, "/presence/muc_user:x/muc_user:status[@code='110']"),
+                     partial(expect_stanza, "/message[@type='groupchat']/subject"),
+
+                     # Second user joins, from two resources
+                     partial(send_stanza,
+                             "<presence from='{jid_two}/{resource_one}' to='#foo%{irc_server_one}/{nick_two}' />"),
+                     connection_sequence("irc.localhost", '{jid_two}/{resource_one}'),
+                     partial(expect_stanza,
+                             "/presence/muc_user:x/muc_user:item[@affiliation='none'][@role='participant']",),
+
+                     partial(expect_stanza,
+                             "/presence/muc_user:x/muc_user:item[@affiliation='admin'][@role='moderator']"),
+                     partial(expect_stanza,
+                             "/presence/muc_user:x/muc_user:status[@code='110']"),
+                     partial(expect_stanza, "/message/subject"),
+
+                     partial(send_stanza,
+                             "<presence from='{jid_two}/{resource_two}' to='#foo%{irc_server_one}/{nick_two}' />"),
+                     partial(expect_stanza,
+                             "/presence[@to='{jid_two}/{resource_two}'][@from='#foo%{irc_server_one}/{nick_one}']"),
+                     partial(expect_stanza,
+                             ("/presence[@to='{jid_two}/{resource_two}'][@from='#foo%{irc_server_one}/{nick_two}']",
+                              "/presence/muc_user:x/muc_user:status[@code='110']")
+                             ),
+                     partial(expect_stanza, "/message[@from='#foo%{irc_server_one}'][@type='groupchat'][@to='{jid_two}/{resource_two}']/subject[not(text())]"),
+
+                     # Moderator kicks participant
+                     partial(log_message, "Moderator kicks participant"),
+                     partial(send_stanza,
+                             "<iq id='kick1' to='#foo%{irc_server_one}' from='{jid_one}/{resource_one}' type='set'><query xmlns='http://jabber.org/protocol/muc#admin'><item nick='{nick_two}' role='none'><reason>reported</reason></item></query></iq>"),
+                     partial(log_message, "Unavailable presence is sent to the two resources"),
+                     partial(expect_stanza,
+                             ("/presence[@type='unavailable'][@to='{jid_second}/{resource_one}']/muc_user:x/muc_user:item[@role='none']/muc_user:actor[@nick='{nick_one}']",
+                              "/presence/muc_user:x/muc_user:item/muc_user:reason[text()='reported']",
+                              "/presence/muc_user:x/muc_user:status[@code='307']",
+                              "/presence/muc_user:x/muc_user:status[@code='110']"
+                              )),
+                     partial(expect_stanza,
+                             ("/presence[@type='unavailable'][@to='{jid_second}/{resource_two}']/muc_user:x/muc_user:item[@role='none']/muc_user:actor[@nick='{nick_one}']",
+                              "/presence/muc_user:x/muc_user:item/muc_user:reason[text()='reported']",
+                              "/presence/muc_user:x/muc_user:status[@code='307']",
+                              "/presence/muc_user:x/muc_user:status[@code='110']"
+                              )),
+                     partial(expect_stanza,
+                             ("/presence[@type='unavailable']/muc_user:x/muc_user:item[@role='none']/muc_user:actor[@nick='{nick_one}']",
+                              "/presence/muc_user:x/muc_user:item/muc_user:reason[text()='reported']",
+                              "/presence/muc_user:x/muc_user:status[@code='307']",
+                              ),
+                             ),
+                     partial(expect_stanza,
+                             "/iq[@id='kick1'][@type='result']"),
+                 ]),
     )
 
     failures = 0
