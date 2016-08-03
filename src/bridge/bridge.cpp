@@ -741,7 +741,7 @@ void Bridge::send_iq_version_request(const std::string& nick, const std::string&
 {
   const auto resources = this->resources_in_server[hostname];
   if (resources.begin() != resources.end())
-    this->xmpp.send_iq_version_request(nick + "!" + utils::empty_if_fixed_server(hostname), this->user_jid + "/" + *resources.begin());
+    this->xmpp.send_iq_version_request(utils::tolower(nick) + "!" + utils::empty_if_fixed_server(hostname), this->user_jid + "/" + *resources.begin());
 }
 
 void Bridge::send_xmpp_ping_request(const std::string& nick, const std::string& hostname,
@@ -753,7 +753,7 @@ void Bridge::send_xmpp_ping_request(const std::string& nick, const std::string& 
   // Forward to the first resource (arbitrary, based on the “order” of the std::set) only
   const auto resources = this->resources_in_server[hostname];
   if (resources.begin() != resources.end())
-    this->xmpp.send_ping_request(nick + "!" + utils::empty_if_fixed_server(hostname), this->user_jid + "/" + *resources.begin(), utils::revstr(id));
+    this->xmpp.send_ping_request(utils::tolower(nick) + "!" + utils::empty_if_fixed_server(hostname), this->user_jid + "/" + *resources.begin(), utils::revstr(id));
 }
 
 void Bridge::set_preferred_from_jid(const std::string& nick, const std::string& full_jid)
