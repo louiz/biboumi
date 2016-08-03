@@ -112,7 +112,8 @@ def match(stanza, xpath):
                                             'muc_user': 'http://jabber.org/protocol/muc#user',
                                             'disco_items': 'http://jabber.org/protocol/disco#items',
                                             'commands': 'http://jabber.org/protocol/commands',
-                                            'dataform': 'jabber:x:data'})
+                                            'dataform': 'jabber:x:data',
+                                            'version': 'jabber:iq:version'})
     return matched
 
 
@@ -122,7 +123,11 @@ def check_xpath(xpaths, xmpp, after, stanza):
         if not matched:
             raise StanzaError("Received stanza “%s” did not match expected xpath “%s”" % (stanza, xpath))
     if after:
-        after(stanza, xmpp)
+        if isinstance(after, collections.Iterable):
+            for af in after:
+                af(stanza, xmpp)
+        else:
+            after(stanza, xmpp)
 
 
 def check_xpath_optional(xpaths, xmpp, after, stanza):
@@ -919,6 +924,70 @@ if __name__ == '__main__':
                              ),
                      partial(expect_stanza,
                              "/iq[@id='kick1'][@type='result']"),
+                 ]),
+                Scenario("self_version",
+                 [
+                     handshake_sequence(),
+                     partial(send_stanza,
+                             "<presence from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}/{nick_one}' />"),
+                     connection_sequence("irc.localhost", '{jid_one}/{resource_one}'),
+                     partial(expect_stanza,
+                             "/message/body[text()='Mode #foo [+nt] by {irc_host_one}']"),
+                     partial(expect_stanza,
+                             ("/presence[@to='{jid_one}/{resource_one}'][@from='#foo%{irc_server_one}/{nick_one}']/muc_user:x/muc_user:item[@affiliation='admin'][@role='moderator']",
+                              "/presence/muc_user:x/muc_user:status[@code='110']")
+                             ),
+                     partial(expect_stanza, "/message[@from='#foo%{irc_server_one}'][@type='groupchat']/subject[not(text())]"),
+
+                     # Send a version request to ourself
+                     partial(send_stanza,
+                             "<iq type='get' from='{jid_one}/{resource_one}' id='first_version' to='#foo%{irc_server_one}/{nick_one}'><query xmlns='jabber:iq:version' /></iq>"),
+                     # We receive our own request,
+                     partial(expect_stanza,
+                             "/iq[@from='{lower_nick_one}!{irc_server_one}'][@type='get'][@to='{jid_one}/{resource_one}']",
+                             after = partial(save_value, "id", partial(extract_attribute, "/iq", 'id'))),
+                     # Respond to the request
+                     partial(send_stanza,
+                             "<iq type='result' to='{lower_nick_one}!{irc_server_one}' id='{id}' from='{jid_one}/{resource_one}'><query xmlns='jabber:iq:version'><name>e2e test</name><version>1.0</version><os>Fedora</os></query></iq>"),
+                     partial(expect_stanza,
+                             "/iq[@from='#foo%{irc_server_one}/{nick_one}'][@type='result'][@to='{jid_one}/{resource_one}'][@id='first_version']/version:query/version:name[text()='e2e test (through the biboumi gateway) 1.0 Fedora']"),
+
+                     # Now join the same room, from the same bare JID, behind the same nick
+                     partial(send_stanza,
+                             "<presence from='{jid_one}/{resource_two}' to='#foo%{irc_server_one}/{nick_one}' />"),
+                     partial(expect_stanza,
+                             ("/presence[@to='{jid_one}/{resource_two}'][@from='#foo%{irc_server_one}/{nick_one}']/muc_user:x/muc_user:item[@affiliation='admin'][@role='moderator']",
+                              "/presence/muc_user:x/muc_user:status[@code='110']")
+                             ),
+                     partial(expect_stanza, "/message[@from='#foo%{irc_server_one}'][@type='groupchat'][@to='{jid_one}/{resource_two}']/subject[not(text())]"),
+
+                     # And re-send a self ping
+                     partial(send_stanza,
+                             "<iq type='get' from='{jid_one}/{resource_two}' id='second_version' to='#foo%{irc_server_one}/{nick_one}'><query xmlns='jabber:iq:version' /></iq>"),
+                     # We receive our own request. Note that we don't know the to value, it could be one of our two resources.
+                     partial(expect_stanza,
+                             "/iq[@from='{lower_nick_one}!{irc_server_one}'][@type='get'][@to]",
+                             after = (partial(save_value, "to", partial(extract_attribute, "/iq", "to")),
+                                      partial(save_value, "id", partial(extract_attribute, "/iq", "id")))),
+                     # Respond to the request, using the extracted 'to' value as our 'from'
+                     partial(send_stanza,
+                             "<iq type='result' to='{lower_nick_one}!{irc_server_one}' id='{id}' from='{to}'><query xmlns='jabber:iq:version'><name>e2e test</name><version>1.0</version><os>Fedora</os></query></iq>"),
+                     partial(expect_stanza,
+                             "/iq[@from='#foo%{irc_server_one}/{nick_one}'][@type='result'][@to='{jid_one}/{resource_two}'][@id='second_version']"),
+
+                     # And do exactly the same thing, but initiated by the other resource
+                     partial(send_stanza,
+                             "<iq type='get' from='{jid_one}/{resource_one}' id='second_version' to='#foo%{irc_server_one}/{nick_one}'><query xmlns='jabber:iq:version' /></iq>"),
+                     # We receive our own request. Note that we don't know the to value, it could be one of our two resources.
+                     partial(expect_stanza,
+                             "/iq[@from='{lower_nick_one}!{irc_server_one}'][@type='get'][@to]",
+                             after = (partial(save_value, "to", partial(extract_attribute, "/iq", "to")),
+                                      partial(save_value, "id", partial(extract_attribute, "/iq", "id")))),
+                     # Respond to the request, using the extracted 'to' value as our 'from'
+                     partial(send_stanza,
+                             "<iq type='result' to='{lower_nick_one}!{irc_server_one}' id='{id}' from='{to}'><query xmlns='jabber:iq:version'><name>e2e test</name><version>1.0</version><os>Fedora</os></query></iq>"),
+                     partial(expect_stanza,
+                             "/iq[@from='#foo%{irc_server_one}/{nick_one}'][@type='result'][@to='{jid_one}/{resource_one}'][@id='second_version']"),
                  ]),
     )
 
