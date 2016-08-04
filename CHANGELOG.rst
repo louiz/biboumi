@@ -1,5 +1,5 @@
-Version 3.0
-===========
+Version 3.0 - 2016-08-03
+========================
 
  - Support multiple-nick sessions: a user can join an IRC channel behind
    one single nick, using multiple different clients, at the same time (as
