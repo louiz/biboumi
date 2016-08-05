@@ -37,14 +37,12 @@ Florent Le Coz (louiz’) <louiz@louiz.org>
 Contact/Support
 ---------------
 * XMPP ChatRoom: biboumi@muc.poez.io
-* Report a bug:  https://dev.louiz.org/projects/biboumi/issues/new
+* Report a bug:  https://lab.louiz.org/louiz/biboumi/issues/new
 
 To contribute, the preferred way is to commit your changes on some
-publicly-available git repository (your own, or github
-(https://github.com/louiz/biboumi), or a fork on https://lab.louiz.org) and
-to notify the developers with a ticket on the bug tracker
-(https://dev.louiz.org/projects/biboumi/issues/new), a pull request on
-github or a merge request on gitlab.
+publicly-available git repository (a fork on gitlab or github or on your own
+repository) and to notify the developers with a ticket on the bug tracker,
+or a merge request on gitlab or a pull request on github.
 
 Optionally you can come discuss your changes on the XMPP chat room,
 beforehand.
