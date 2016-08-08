@@ -126,7 +126,7 @@ void BiboumiComponent::handle_presence(const Stanza& stanza)
   Bridge* bridge = this->get_user_bridge(from_str);
   Jid to(to_str);
   Jid from(from_str);
-  Iid iid(to.local);
+  Iid iid(to.local, bridge);
 
   // An error stanza is sent whenever we exit this function without
   // disabling this scopeguard.  If error_type and error_name are not
@@ -142,7 +142,7 @@ void BiboumiComponent::handle_presence(const Stanza& stanza)
         });
 
   try {
-  if (iid.is_channel && !iid.get_server().empty())
+  if (iid.type == Iid::Type::Channel && !iid.get_server().empty())
     { // presence toward a MUC that corresponds to an irc channel, or a
       // dummy channel if iid.chan is empty
       if (type.empty())
@@ -191,7 +191,7 @@ void BiboumiComponent::handle_message(const Stanza& stanza)
     type = "normal";
   Bridge* bridge = this->get_user_bridge(from);
   Jid to(to_str);
-  Iid iid(to.local);
+  Iid iid(to.local, bridge);
 
   std::string error_type("cancel");
   std::string error_name("internal-server-error");
@@ -202,7 +202,7 @@ void BiboumiComponent::handle_message(const Stanza& stanza)
   const XmlNode* body = stanza.get_child("body", COMPONENT_NS);
 
   try {                         // catch IRCNotConnected exceptions
-  if (type == "groupchat" && iid.is_channel)
+  if (type == "groupchat" && iid.type == Iid::Type::Channel)
     {
       if (body && !body->get_inner().empty())
         {
@@ -234,27 +234,27 @@ void BiboumiComponent::handle_message(const Stanza& stanza)
       if (body && !body->get_inner().empty())
         {
           // a message for nick!server
-          if (iid.is_user && !iid.get_local().empty())
+          if (iid.type == Iid::Type::User && !iid.get_local().empty())
             {
               bridge->send_private_message(iid, body->get_inner());
               bridge->remove_preferred_from_jid(iid.get_local());
             }
-          else if (!iid.is_user && !to.resource.empty())
+          else if (iid.type != Iid::Type::User && !to.resource.empty())
             { // a message for chan%server@biboumi/Nick or
               // server@biboumi/Nick
               // Convert that into a message to nick!server
-              Iid user_iid(utils::tolower(to.resource) + "!" + iid.get_server());
+              Iid user_iid(utils::tolower(to.resource), iid.get_server(), Iid::Type::User);
               bridge->send_private_message(user_iid, body->get_inner());
               bridge->set_preferred_from_jid(user_iid.get_local(), to_str);
             }
-          else if (!iid.is_user && !iid.is_channel)
+          else if (iid.type == Iid::Type::Server)
             { // Message sent to the server JID
               // Convert the message body into a raw IRC message
               bridge->send_raw_message(iid.get_server(), body->get_inner());
             }
         }
     }
-  else if (iid.is_user)
+  else if (iid.type == Iid::Type::User)
     this->send_invalid_user_error(to.local, from);
   } catch (const IRCNotConnected& ex)
     {
@@ -321,7 +321,7 @@ void BiboumiComponent::handle_iq(const Stanza& stanza)
               std::string affiliation = child->get_tag("affiliation");
               if (!nick.empty())
                 {
-                  Iid iid(to.local);
+                  Iid iid(to.local, {});
                   if (role == "none")
                     {               // This is a kick
                       std::string reason;
@@ -345,15 +345,17 @@ void BiboumiComponent::handle_iq(const Stanza& stanza)
 
           // Depending on the 'to' jid in the request, we use one adhoc
           // command handler or an other
-          Iid iid(to.local);
+          Iid iid(to.local, {});
           AdhocCommandsHandler* adhoc_handler;
-          if (!to.local.empty() && !iid.is_user && !iid.is_channel)
-            adhoc_handler = &this->irc_server_adhoc_commands_handler;
-          else if (!to.local.empty() && iid.is_channel)
-            adhoc_handler = &this->irc_channel_adhoc_commands_handler;
-          else
+          if (to.local.empty())
             adhoc_handler = &this->adhoc_commands_handler;
-
+          else
+          {
+            if (iid.type == Iid::Type::Server)
+              adhoc_handler = &this->irc_server_adhoc_commands_handler;
+            else
+              adhoc_handler = &this->irc_channel_adhoc_commands_handler;
+          }
           // Execute the command, if any, and get a result XmlNode that we
           // insert in our response
           XmlNode inner_node = adhoc_handler->handle_request(from, to_str, *query);
@@ -384,13 +386,12 @@ void BiboumiComponent::handle_iq(const Stanza& stanza)
         }
       else if ((query = stanza.get_child("query", VERSION_NS)))
         {
-          Iid iid(to.local);
-          if (iid.is_user ||
-              (iid.is_channel && !to.resource.empty()))
+          Iid iid(to.local, bridge);
+          if (iid.type != Iid::Type::Server && !to.resource.empty())
             {
               // Get the IRC user version
               std::string target;
-              if (iid.is_user)
+              if (iid.type == Iid::Type::User)
                 target = iid.get_local();
               else
                 target = to.resource;
@@ -406,7 +407,7 @@ void BiboumiComponent::handle_iq(const Stanza& stanza)
         }
       else if ((query = stanza.get_child("query", DISCO_ITEMS_NS)))
         {
-          Iid iid(to.local);
+          Iid iid(to.local, bridge);
           const std::string node = query->get_tag("node");
           if (node == ADHOC_NS)
             {
@@ -419,7 +420,7 @@ void BiboumiComponent::handle_iq(const Stanza& stanza)
                                                  this->adhoc_commands_handler);
                   stanza_error.disable();
                 }
-              else if (!iid.is_user && !iid.is_channel)
+              else if (iid.type == Iid::Type::Server)
                 {               // Get the server's adhoc commands
                   this->send_adhoc_commands_list(id, from, to_str,
                                                  (Config::get("admin", "") ==
@@ -427,7 +428,7 @@ void BiboumiComponent::handle_iq(const Stanza& stanza)
                                                  this->irc_server_adhoc_commands_handler);
                   stanza_error.disable();
                 }
-              else if (!iid.is_user && iid.is_channel)
+              else if (iid.type == Iid::Type::Channel)
                 {               // Get the channel's adhoc commands
                   this->send_adhoc_commands_list(id, from, to_str,
                                                  (Config::get("admin", "") ==
@@ -436,7 +437,7 @@ void BiboumiComponent::handle_iq(const Stanza& stanza)
                   stanza_error.disable();
                 }
             }
-          else if (node.empty() && !iid.is_user && !iid.is_channel)
+          else if (node.empty() && iid.type == Iid::Type::Server)
             { // Disco on an IRC server: get the list of channels
               bridge->send_irc_channel_list_request(iid, id, from);
               stanza_error.disable();
@@ -444,13 +445,13 @@ void BiboumiComponent::handle_iq(const Stanza& stanza)
         }
       else if ((query = stanza.get_child("ping", PING_NS)))
         {
-          Iid iid(to.local);
-          if (iid.is_user)
+          Iid iid(to.local, bridge);
+          if (iid.type == Iid::Type::User)
             { // Ping any user (no check on the nick done ourself)
               bridge->send_irc_user_ping_request(iid.get_server(),
                                                  iid.get_local(), id, from, to_str);
             }
-          else if (iid.is_channel && !to.resource.empty())
+          else if (iid.type == Iid::Type::Channel && !to.resource.empty())
             { // Ping a room participant (we check if the nick is in the room)
               bridge->send_irc_participant_ping_request(iid,
                                                         to.resource, id, from, to_str);
@@ -481,7 +482,7 @@ void BiboumiComponent::handle_iq(const Stanza& stanza)
             version = version_node->get_inner();
           if (os_node)
             os = os_node->get_inner();
-          const Iid iid(to.local);
+          const Iid iid(to.local, bridge);
           bridge->send_xmpp_version_to_irc(iid, name, version, os);
         }
       else
@@ -604,7 +605,7 @@ void BiboumiComponent::send_ping_request(const std::string& from,
                     "the response mismatches the 'from' of the request");
         }
       else
-        bridge->send_irc_ping_result(from, id);
+        bridge->send_irc_ping_result({from, bridge}, id);
     };
   this->waiting_iq[id] = result_cb;
 }

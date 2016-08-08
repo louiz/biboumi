@@ -280,8 +280,9 @@ public:
 
   const Resolver& get_resolver() const { return this->dns_resolver; }
 
-  const std::vector<char>& get_sorted_user_modes() const { return sorted_user_modes; }
+  const std::vector<char>& get_sorted_user_modes() const { return this->sorted_user_modes; }
 
+  std::set<char> get_chantypes() const { return this->chantypes; }
 private:
   /**
    * The hostname of the server we are connected to.

@@ -201,6 +201,7 @@ public:
    */
   void trigger_on_irc_message(const std::string& irc_hostname, const IrcMessage& message);
   std::unordered_map<std::string, std::shared_ptr<IrcClient>>& get_irc_clients();
+  std::set<char> get_chantypes(const std::string& hostname) const;
 
 private:
   /**
@@ -217,7 +218,7 @@ private:
   /**
    * Idem, but returns nullptr if the server does not exist.
    */
-  IrcClient* find_irc_client(const std::string& hostname);
+  IrcClient* find_irc_client(const std::string& hostname) const;
   /**
    * The bare JID of the user associated with this bridge. Messages from/to this
    * JID are only managed by this bridge.

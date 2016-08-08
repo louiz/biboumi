@@ -648,8 +648,8 @@ if __name__ == '__main__':
                      # That second user sends a private message to the first one
                      partial(send_stanza, "<message from='{jid_two}/{resource_one}' to='#foo%{irc_server_one}/{nick_one}' type='chat'><body>RELLO</body></message>"),
                      # Message is received with a server-wide JID, by the two resources behind nick_one
-                     partial(expect_stanza, "/message[@from='{lower_nick_two}!{irc_server_one}'][@to='{jid_one}/{resource_one}'][@type='chat']/body[text()='RELLO']"),
-                     partial(expect_stanza, "/message[@from='{lower_nick_two}!{irc_server_one}'][@to='{jid_one}/{resource_two}'][@type='chat']/body[text()='RELLO']"),
+                     partial(expect_stanza, "/message[@from='{lower_nick_two}%{irc_server_one}'][@to='{jid_one}/{resource_one}'][@type='chat']/body[text()='RELLO']"),
+                     partial(expect_stanza, "/message[@from='{lower_nick_two}%{irc_server_one}'][@to='{jid_one}/{resource_two}'][@type='chat']/body[text()='RELLO']"),
 
                      # One resource leaves the server entirely.
                      partial(send_stanza, "<presence type='unavailable' from='{jid_one}/{resource_two}' to='#foo%{irc_server_one}/{nick_one}' />"),
@@ -662,8 +662,8 @@ if __name__ == '__main__':
                      partial(send_stanza, "<message from='{jid_two}/{resource_one}' to='#foo%{irc_server_one}/{nick_one}' type='chat'><body>first</body></message>"),
                      partial(send_stanza, "<message from='{jid_two}/{resource_one}' to='#foo%{irc_server_one}/{nick_one}' type='chat'><body>second</body></message>"),
                      # The first user receives the two messages, on the connected resource, once each
-                     partial(expect_stanza, "/message[@from='{lower_nick_two}!{irc_server_one}'][@to='{jid_one}/{resource_one}'][@type='chat']/body[text()='first']"),
-                     partial(expect_stanza, "/message[@from='{lower_nick_two}!{irc_server_one}'][@to='{jid_one}/{resource_one}'][@type='chat']/body[text()='second']"),
+                     partial(expect_stanza, "/message[@from='{lower_nick_two}%{irc_server_one}'][@to='{jid_one}/{resource_one}'][@type='chat']/body[text()='first']"),
+                     partial(expect_stanza, "/message[@from='{lower_nick_two}%{irc_server_one}'][@to='{jid_one}/{resource_one}'][@type='chat']/body[text()='second']"),
 
 
                  ]),
@@ -708,10 +708,10 @@ if __name__ == '__main__':
                      # Send a private message, to a in-room JID
                      partial(send_stanza, "<message from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}/{nick_two}' type='chat'><body>coucou in private</body></message>"),
                      # Message is received with a server-wide JID
-                     partial(expect_stanza, "/message[@from='{lower_nick_one}!{irc_server_one}'][@to='{jid_two}/{resource_one}'][@type='chat']/body[text()='coucou in private']"),
+                     partial(expect_stanza, "/message[@from='{lower_nick_one}%{irc_server_one}'][@to='{jid_two}/{resource_one}'][@type='chat']/body[text()='coucou in private']"),
 
                      # Respond to the message, to the server-wide JID
-                     partial(send_stanza, "<message from='{jid_two}/{resource_one}' to='{lower_nick_one}!{irc_server_one}' type='chat'><body>yes</body></message>"),
+                     partial(send_stanza, "<message from='{jid_two}/{resource_one}' to='{lower_nick_one}%{irc_server_one}' type='chat'><body>yes</body></message>"),
                      # The response is received from the in-room JID
                      partial(expect_stanza, "/message[@from='#foo%{irc_server_one}/{nick_two}'][@to='{jid_one}/{resource_one}'][@type='chat']/body[text()='yes']"),
 
@@ -729,10 +729,10 @@ if __name__ == '__main__':
                      # Send a private message, to a in-room JID
                      partial(send_stanza, "<message from='{jid_one}/{resource_one}' to='%{irc_server_one}/{nick_two}' type='chat'><body>re in private</body></message>"),
                      # Message is received with a server-wide JID
-                     partial(expect_stanza, "/message[@from='{lower_nick_one}!{irc_server_one}'][@to='{jid_two}/{resource_one}'][@type='chat']/body[text()='re in private']"),
+                     partial(expect_stanza, "/message[@from='{lower_nick_one}%{irc_server_one}'][@to='{jid_two}/{resource_one}'][@type='chat']/body[text()='re in private']"),
 
                      # Respond to the message, to the server-wide JID
-                     partial(send_stanza, "<message from='{jid_two}/{resource_one}' to='{lower_nick_one}!{irc_server_one}' type='chat'><body>re</body></message>"),
+                     partial(send_stanza, "<message from='{jid_two}/{resource_one}' to='{lower_nick_one}%{irc_server_one}' type='chat'><body>re</body></message>"),
                      # The response is received from the in-room JID
                      partial(expect_stanza, "/message[@from='%{irc_server_one}/{nick_two}'][@to='{jid_one}/{resource_one}'][@type='chat']/body[text()='re']"),
 
@@ -743,9 +743,9 @@ if __name__ == '__main__':
                      "/presence[@type='unavailable']/muc_user:x/muc_user:status[@code='110']"),
 
                      # The private messages from this nick should now come (again) from the server-wide JID
-                     partial(send_stanza, "<message from='{jid_two}/{resource_one}' to='{lower_nick_one}!{irc_server_one}' type='chat'><body>hihihoho</body></message>"),
+                     partial(send_stanza, "<message from='{jid_two}/{resource_one}' to='{lower_nick_one}%{irc_server_one}' type='chat'><body>hihihoho</body></message>"),
                      partial(expect_stanza,
-                     "/message[@from='{lower_nick_two}!{irc_server_one}'][@to='{jid_one}/{resource_one}']"),
+                     "/message[@from='{lower_nick_two}%{irc_server_one}'][@to='{jid_one}/{resource_one}']"),
                  ]
                  ),
                 Scenario("encoded_channel_join",
@@ -781,10 +781,10 @@ if __name__ == '__main__':
                              "<iq type='get' from='{jid_one}/{resource_one}' id='first_ping' to='#foo%{irc_server_one}/{nick_one}'><ping xmlns='urn:xmpp:ping' /></iq>"),
                      # We receive our own ping request,
                      partial(expect_stanza,
-                             "/iq[@from='{lower_nick_one}!{irc_server_one}'][@type='get'][@to='{jid_one}/{resource_one}'][@id='gnip_tsrif']"),
+                             "/iq[@from='{lower_nick_one}%{irc_server_one}'][@type='get'][@to='{jid_one}/{resource_one}'][@id='gnip_tsrif']"),
                      # Respond to the request
                      partial(send_stanza,
-                             "<iq type='result' to='{lower_nick_one}!{irc_server_one}' id='gnip_tsrif' from='{jid_one}/{resource_one}'/>"),
+                             "<iq type='result' to='{lower_nick_one}%{irc_server_one}' id='gnip_tsrif' from='{jid_one}/{resource_one}'/>"),
                      partial(expect_stanza,
                              "/iq[@from='#foo%{irc_server_one}/{nick_one}'][@type='result'][@to='{jid_one}/{resource_one}'][@id='first_ping']"),
 
@@ -802,21 +802,21 @@ if __name__ == '__main__':
                              "<iq type='get' from='{jid_one}/{resource_one}' id='second_ping' to='#foo%{irc_server_one}/{nick_one}'><ping xmlns='urn:xmpp:ping' /></iq>"),
                      # We receive our own ping request. Note that we don't know the to value, it could be one of our two resources.
                      partial(expect_stanza,
-                             "/iq[@from='{lower_nick_one}!{irc_server_one}'][@type='get'][@to][@id='gnip_dnoces']",
+                             "/iq[@from='{lower_nick_one}%{irc_server_one}'][@type='get'][@to][@id='gnip_dnoces']",
                              after = partial(save_value, "to", partial(extract_attribute, "/iq", "to"))),
                      # Respond to the request, using the extracted 'to' value as our 'from'
                      partial(send_stanza,
-                             "<iq type='result' to='{lower_nick_one}!{irc_server_one}' id='gnip_dnoces' from='{to}'/>"),
+                             "<iq type='result' to='{lower_nick_one}%{irc_server_one}' id='gnip_dnoces' from='{to}'/>"),
                      partial(expect_stanza,
                              "/iq[@from='#foo%{irc_server_one}/{nick_one}'][@type='result'][@to='{jid_one}/{resource_one}'][@id='second_ping']"),
                      ## And re-do exactly the same thing, just change the resource initiating the self ping
                      partial(send_stanza,
                              "<iq type='get' from='{jid_one}/{resource_two}' id='third_ping' to='#foo%{irc_server_one}/{nick_one}'><ping xmlns='urn:xmpp:ping' /></iq>"),
                      partial(expect_stanza,
-                             "/iq[@from='{lower_nick_one}!{irc_server_one}'][@type='get'][@to][@id='gnip_driht']",
+                             "/iq[@from='{lower_nick_one}%{irc_server_one}'][@type='get'][@to][@id='gnip_driht']",
                              after = partial(save_value, "to", partial(extract_attribute, "/iq", "to"))),
                      partial(send_stanza,
-                             "<iq type='result' to='{lower_nick_one}!{irc_server_one}' id='gnip_driht' from='{to}'/>"),
+                             "<iq type='result' to='{lower_nick_one}%{irc_server_one}' id='gnip_driht' from='{to}'/>"),
                      partial(expect_stanza,
                              "/iq[@from='#foo%{irc_server_one}/{nick_one}'][@type='result'][@to='{jid_one}/{resource_two}'][@id='third_ping']"),
 
@@ -944,11 +944,11 @@ if __name__ == '__main__':
                              "<iq type='get' from='{jid_one}/{resource_one}' id='first_version' to='#foo%{irc_server_one}/{nick_one}'><query xmlns='jabber:iq:version' /></iq>"),
                      # We receive our own request,
                      partial(expect_stanza,
-                             "/iq[@from='{lower_nick_one}!{irc_server_one}'][@type='get'][@to='{jid_one}/{resource_one}']",
+                             "/iq[@from='{lower_nick_one}%{irc_server_one}'][@type='get'][@to='{jid_one}/{resource_one}']",
                              after = partial(save_value, "id", partial(extract_attribute, "/iq", 'id'))),
                      # Respond to the request
                      partial(send_stanza,
-                             "<iq type='result' to='{lower_nick_one}!{irc_server_one}' id='{id}' from='{jid_one}/{resource_one}'><query xmlns='jabber:iq:version'><name>e2e test</name><version>1.0</version><os>Fedora</os></query></iq>"),
+                             "<iq type='result' to='{lower_nick_one}%{irc_server_one}' id='{id}' from='{jid_one}/{resource_one}'><query xmlns='jabber:iq:version'><name>e2e test</name><version>1.0</version><os>Fedora</os></query></iq>"),
                      partial(expect_stanza,
                              "/iq[@from='#foo%{irc_server_one}/{nick_one}'][@type='result'][@to='{jid_one}/{resource_one}'][@id='first_version']/version:query/version:name[text()='e2e test (through the biboumi gateway) 1.0 Fedora']"),
 
@@ -966,12 +966,12 @@ if __name__ == '__main__':
                              "<iq type='get' from='{jid_one}/{resource_two}' id='second_version' to='#foo%{irc_server_one}/{nick_one}'><query xmlns='jabber:iq:version' /></iq>"),
                      # We receive our own request. Note that we don't know the to value, it could be one of our two resources.
                      partial(expect_stanza,
-                             "/iq[@from='{lower_nick_one}!{irc_server_one}'][@type='get'][@to]",
+                             "/iq[@from='{lower_nick_one}%{irc_server_one}'][@type='get'][@to]",
                              after = (partial(save_value, "to", partial(extract_attribute, "/iq", "to")),
                                       partial(save_value, "id", partial(extract_attribute, "/iq", "id")))),
                      # Respond to the request, using the extracted 'to' value as our 'from'
                      partial(send_stanza,
-                             "<iq type='result' to='{lower_nick_one}!{irc_server_one}' id='{id}' from='{to}'><query xmlns='jabber:iq:version'><name>e2e test</name><version>1.0</version><os>Fedora</os></query></iq>"),
+                             "<iq type='result' to='{lower_nick_one}%{irc_server_one}' id='{id}' from='{to}'><query xmlns='jabber:iq:version'><name>e2e test</name><version>1.0</version><os>Fedora</os></query></iq>"),
                      partial(expect_stanza,
                              "/iq[@from='#foo%{irc_server_one}/{nick_one}'][@type='result'][@to='{jid_one}/{resource_two}'][@id='second_version']"),
 
@@ -980,12 +980,12 @@ if __name__ == '__main__':
                              "<iq type='get' from='{jid_one}/{resource_one}' id='second_version' to='#foo%{irc_server_one}/{nick_one}'><query xmlns='jabber:iq:version' /></iq>"),
                      # We receive our own request. Note that we don't know the to value, it could be one of our two resources.
                      partial(expect_stanza,
-                             "/iq[@from='{lower_nick_one}!{irc_server_one}'][@type='get'][@to]",
+                             "/iq[@from='{lower_nick_one}%{irc_server_one}'][@type='get'][@to]",
                              after = (partial(save_value, "to", partial(extract_attribute, "/iq", "to")),
                                       partial(save_value, "id", partial(extract_attribute, "/iq", "id")))),
                      # Respond to the request, using the extracted 'to' value as our 'from'
                      partial(send_stanza,
-                             "<iq type='result' to='{lower_nick_one}!{irc_server_one}' id='{id}' from='{to}'><query xmlns='jabber:iq:version'><name>e2e test</name><version>1.0</version><os>Fedora</os></query></iq>"),
+                             "<iq type='result' to='{lower_nick_one}%{irc_server_one}' id='{id}' from='{to}'><query xmlns='jabber:iq:version'><name>e2e test</name><version>1.0</version><os>Fedora</os></query></iq>"),
                      partial(expect_stanza,
                              "/iq[@from='#foo%{irc_server_one}/{nick_one}'][@type='result'][@to='{jid_one}/{resource_one}'][@id='second_version']"),
                  ]),

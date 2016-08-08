@@ -381,7 +381,7 @@ void ConfigureIrcChannelStep1(XmppComponent&, AdhocSession& session, XmlNode& co
 {
   const Jid owner(session.get_owner_jid());
   const Jid target(session.get_target_jid());
-  const Iid iid(target.local);
+  const Iid iid(target.local, {});
   auto options = Database::get_irc_channel_options_with_server_default(owner.local + "@" + owner.domain,
                                                                        iid.get_server(), iid.get_local());
 
@@ -434,7 +434,7 @@ void ConfigureIrcChannelStep2(XmppComponent&, AdhocSession& session, XmlNode& co
     {
       const Jid owner(session.get_owner_jid());
       const Jid target(session.get_target_jid());
-      const Iid iid(target.local);
+      const Iid iid(target.local, {});
       auto options = Database::get_irc_channel_options(owner.local + "@" + owner.domain,
                                                        iid.get_server(), iid.get_local());
       for (const XmlNode* field: x->get_children("field", "jabber:x:data"))

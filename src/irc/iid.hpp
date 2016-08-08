@@ -2,48 +2,64 @@
 
 
 #include <string>
+#include <set>
+
+class Bridge;
 
 /**
  * A name representing an IRC channel on an IRC server, or an IRC user on an
  * IRC server, or just an IRC server.
  *
- * The separator for an user is '!', for a channel it's '%'. If no separator
- * is present, it's just an irc server.
+ * The separator is '%' between the local part (nickname or channel) and the
+ * server part. If no separator is present, it's just an irc server.
+ * If it is present, the first character of the local part determines if it’s
+ * a channel or a user: ff the local part is empty or if its first character
+ * is part of the chantypes characters, then it’s a channel, otherwise it’s
+ * a user.
+ *
  * It’s possible to have an empty-string server, but it makes no sense in
- * the biboumi context.
+ * biboumi’s context.
+ *
+ * Assuming the chantypes are '#' and '&':
  *
  * #test%irc.example.org has :
  * - local: "#test" (the # is part of the name, it could very well be absent, or & (for example) instead)
  * - server: "irc.example.org"
- * - is_channel: true
- * - is_user: false
+ * - type: channel
  *
  * %irc.example.org:
  * - local: ""
  * - server: "irc.example.org"
- * - is_channel: true
- * - is_user: false
- * Note: this is the special empty-string channel, used internal in biboumi
+ * - type: channel
+ * Note: this is the special empty-string channel, used internally in biboumi
  * but has no meaning on IRC.
  *
- * foo!irc.example.org
+ * foo%irc.example.org
  * - local: "foo"
  * - server: "irc.example.org"
- * - is_channel: false
- * - is_user: true
- * Note: the empty-string user (!irc.example.org) has no special meaning in biboumi
+ * - type: user
+ * Note: the empty-string user (!irc.example.org) makes no sense for biboumi
  *
  * irc.example.org:
  * - local: ""
  * - server: "irc.example.org"
- * - is_channel: false
- * - is_user: false
+ * - type: server
  */
 class Iid
 {
 public:
-  Iid(const std::string& iid);
-  Iid();
+  enum class Type
+  {
+      Channel,
+      User,
+      Server,
+  };
+  static constexpr auto separator = "%";
+  Iid(const std::string& iid, const std::set<char>& chantypes);
+  Iid(const std::string& iid, const std::initializer_list<char>& chantypes);
+  Iid(const std::string& iid, const Bridge* bridge);
+  Iid(const std::string local, const std::string server, Type type);
+  Iid() = default;
   Iid(const Iid&) = default;
 
   Iid(Iid&&) = delete;
@@ -52,21 +68,19 @@ public:
 
   void set_local(const std::string& loc);
   void set_server(const std::string& serv);
+
   const std::string& get_local() const;
   const std::string get_encoded_local() const;
   const std::string& get_server() const;
 
-  bool is_channel;
-  bool is_user;
-
-  std::string get_sep() const;
-
   std::tuple<std::string, std::string> to_tuple() const;
+
+  Type type { Type::Server };
 
 private:
 
   void init(const std::string& iid);
-  void init_with_fixed_server(const std::string& iid, const std::string& hostname);
+  void set_type(const std::set<char>& chantypes);
 
   std::string local;
   std::string server;
