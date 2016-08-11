@@ -86,16 +86,13 @@ irc.example.org), then biboumi will enforce the connexion to that IRC
 server only.  This means that a JID like "#chan@biboumi.example.com" must
 be used instead of "#chan%irc.example.org@biboumi.example.com".  In that
 mode, the virtual channel (see `Connect to an IRC server`_) is not
-available and you still need to use the ! separator to send message to an
-IRC user (for example "foo!@biboumi.example.com" to send a message to
-foo), although the in-room JID still work as expected
-("#channel@biboumi.example.com/Nick").  On the other hand, the '%' lose
-any meaning.  It can appear in the JID but will not be interpreted as a
-separator (thus the JID "#channel%hello@biboumi.example.com" points to the
-channel named "#channel%hello" on the configured IRC server) This option
-can for example be used by an administrator that just wants to let their
-users join their own IRC server using an XMPP client, while forbidding
-access to any other IRC server.
+available. The '%' character loses any meaning in the JIDs.  It can appear
+in the JID but will not be interpreted as a separator (thus the JID
+"#channel%hello@biboumi.example.com" points to the channel named
+"#channel%hello" on the configured IRC server) This option can for example
+be used by an administrator that just wants to let their users join their own
+IRC server using an XMPP client, while forbidding access to any other IRC
+server.
 
 realname_customization
 ----------------------
@@ -201,26 +198,21 @@ the domain served by biboumi (the part after the ``@``, biboumi.example.com in
 the examples), and the local part (the part before the ``@``) depends on the
 concerned entity.
 
-IRC channels have a local part formed like this:
-``channel_name`` % ``irc_server``.
+IRC channels and IRC users have a local part formed like this:
+``name`` % ``irc_server``.
 
-If the IRC channel you want to adress starts with the ``'#'`` character (or an
-other character, announced by the IRC server, like ``'&'``, ``'+'`` or ``'!'``),
-then you must include it in the JID.  Some other gateway implementations, as
-well as some IRC clients, do not require them to be started by one of these
-characters, adding an implicit ``'#'`` in that case.  Biboumi does not do that
-because this gets confusing when trying to understand the difference between
-the channels *#foo*, and *##foo*. Note that biboumi does not use the
-presence of these special characters to identify an IRC channel, only the
-presence of the separator `%` is used for that.
+``name`` can be a channel name or an user nickname. The distinction between
+the two is based on the first character: by default, if the name starts with
+``'#'`` or ``'&'`` (but this can be overridden by the server, using the
+ISUPPORT extension) then it’s a channel name, otherwise this is a nickname.
 
-The channel name can also be empty (for example ``%irc.example.com``), in that
-case this represents the virtual channel provided by biboumi.  See *Connect
-to an IRC server* for more details.
+As a special case, the channel name can also be empty (for example
+``%irc.example.com``), in that case this represents the virtual channel
+provided by biboumi.  See *Connect to an IRC server* for more details.
 
 There is two ways to address an IRC user, using a local part like this:
-``nickname`` ! ``irc_server``
-or by using the in-room address of the participant, like this:
+``nickname`` % ``irc_server`` or by using the in-room address of the
+participant, like this:
 ``channel_name`` % ``irc_server`` @ ``biboumi.example.com`` / ``Nickname``
 
 The second JID is available only to be compatible with XMPP clients when the
@@ -232,11 +224,11 @@ IRC nicknames are case-insensitive, this means that the nicknames toto,
 Toto, tOtO and TOTO all represent the same IRC user.  This means you can
 talk to the user toto, and this will work.
 
-Also note that some IRC nicknames may contain characters that are not
-allowed in the local part of a JID (for example '@').  If you need to send a
-message to a nick containing such a character, you have to use a jid like
+Also note that some IRC nicknames or channels may contain characters that are
+not allowed in the local part of a JID (for example '@').  If you need to send a
+message to a nick containing such a character, you can use a jid like
 ``%irc.example.com@biboumi.example.com/AnnoyingNickn@me``, because the JID
-``AnnoyingNickn@me!irc.example.com@biboumi.example.com`` would not work.
+``AnnoyingNickn@me%irc.example.com@biboumi.example.com`` would not work.
 
 Examples:
 
@@ -244,7 +236,7 @@ Examples:
   irc.example.com IRC server, and this is served by the biboumi instance on
   biboumi.example.com
 
-* ``toto!irc.example.com@biboumi.example.com`` is the IRC user named toto, or
+* ``toto%irc.example.com@biboumi.example.com`` is the IRC user named toto, or
   TotO, etc.
 
 * ``irc.example.com@biboumi.example.com`` is the IRC server irc.example.com.
@@ -254,9 +246,6 @@ Examples:
 
 Note: Some JIDs are valid but make no sense in the context of
 biboumi:
-
-* ``!irc.example.com@biboumi.example.com`` is the empty-string nick on the
-  irc.example.com server. It makes no sense to try to send messages to it.
 
 * ``#test%@biboumi.example.com``, or any other JID that does not contain an
   IRC server is invalid. Any message to that kind of JID will trigger an
@@ -286,7 +275,7 @@ channel ``#foo`` on the server ``irc.example.com``, but you need to authenticate
 to a bot of the server before you’re allowed to join it, you can first join
 the room ``%irc.example.com@biboumi.example.com`` (this will effectively
 connect you to the IRC server without joining any room), then send your
-authentication message to the user ``bot!irc.example.com@biboumi.example.com``
+authentication message to the user ``bot%irc.example.com@biboumi.example.com``
 and finally join the room ``#foo%irc.example.com@biboumi.example.com``.
 
 Channel messages
@@ -333,7 +322,7 @@ Private messages are handled differently on IRC and on XMPP.  On IRC, you
 talk directly to one server-user: toto on the channel #foo is the same user
 as toto on the channel #bar (as long as these two channels are on the same
 IRC server).  By default you will receive private messages from the “global”
-user (aka nickname!irc.example.com@biboumi.example.com), unless you
+user (aka nickname%irc.example.com@biboumi.example.com), unless you
 previously sent a message to an in-room participant (something like
 \#test%irc.example.com@biboumi.example.com/nickname), in which case future
 messages from that same user will be received from that same “in-room” JID.

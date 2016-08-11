@@ -1,6 +1,13 @@
 Version 4.0
 ===========
 
+ - The separator between the IRC nickname and the IRC server is now '%'
+   instead of '!'. This makes things simpler (only one separator to
+   remember). The distinction between a JID refering to a channel and a JID
+   refering to a nickname is based on the first character (# or & by
+   default, but this can be customized by the server with the ISUPPORT
+   extension)
+
 Version 3.0 - 2016-08-03
 ========================
 
