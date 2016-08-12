@@ -3,7 +3,9 @@
 
 #include <database/database.hpp>
 #include <logger/logger.hpp>
+#include <irc/iid.hpp>
 #include <string>
+#include <uuid.h>
 
 using namespace std::string_literals;
 
@@ -79,9 +81,38 @@ db::IrcChannelOptions Database::get_irc_channel_options_with_server_default(cons
   return coptions;
 }
 
+void Database::store_muc_message(const std::string& owner, const Iid& iid,
+                                 Database::time_point date,
+                                 const std::string& body,
+                                 const std::string& nick)
+{
+  db::MucLogLine line(*Database::db);
+
+  line.uuid = Database::gen_uuid();
+  line.owner = owner;
+  line.ircChanName = iid.get_local();
+  line.ircServerName = iid.get_server();
+  line.date = date.time_since_epoch().count();
+  line.body = body;
+  line.nick = nick;
+
+  line.update();
+}
+
 void Database::close()
 {
   Database::db.reset(nullptr);
 }
+
+
+std::string Database::gen_uuid()
+{
+  char uuid_str[37];
+  uuid_t uuid;
+  uuid_generate(uuid);
+  uuid_unparse(uuid, uuid_str);
+  return uuid_str;
+}
+
 
 #endif

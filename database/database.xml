@@ -39,8 +39,17 @@
         </index>
     </object>
 
-    <object name="LogLine">
-        <field name="date" type="date" />
-        <field name="body" type="string" length="4096"/>
+    <object name="MucLogLine">
+        <field name="uuid" type="string" length="36" />
+        <!-- The bare JID of the user for which we stored the line. It's
+        the JID associated with the Bridge -->
+        <field name="owner" type="string" length="4096" />
+        <!-- The room IID -->
+        <field name="ircChanName" type="string" length="4096" />
+        <field name="ircServerName" type="string" length="4096" />
+
+        <field name="date" type="datetime" />
+        <field name="body" type="string" length="65536"/>
+        <field name="nick" type="string" length="4096" />
     </object>
 </database>

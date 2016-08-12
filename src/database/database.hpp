@@ -9,10 +9,14 @@
 #include <memory>
 
 #include <litesql.hpp>
+#include <chrono>
+
+class Iid;
 
 class Database
 {
 public:
+  using time_point = std::chrono::system_clock::time_point;
   Database() = default;
   ~Database() = default;
 
@@ -41,11 +45,15 @@ public:
                                                                            const std::string& server,
                                                                            const std::string& channel);
 
+  static void store_muc_message(const std::string& owner, const Iid& iid,
+                                time_point date, const std::string& body, const std::string& nick);
+
   static void close();
   static void open(const std::string& filename, const std::string& db_type="sqlite3");
 
 
 private:
+  static std::string gen_uuid();
   static std::unique_ptr<db::BibouDB> db;
 };
 #endif /* USE_DATABASE */
