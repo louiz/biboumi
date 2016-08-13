@@ -230,7 +230,7 @@ message to a nick containing such a character, you can use a jid like
 ``%irc.example.com@biboumi.example.com/AnnoyingNickn@me``, because the JID
 ``AnnoyingNickn@me%irc.example.com@biboumi.example.com`` would not work.
 And if you need to address a channel that contains such invalid characters, you
-have to use `jid-escaping <http://www.xmpp.org/extensions/xep-0106.html#escaping>`,
+have to use `jid-escaping <http://www.xmpp.org/extensions/xep-0106.html#escaping>`_,
 and replace each of these characters with their escaped version, for example to
 join the channel ``#b@byfoot``, you need to use the following JID:
 ``#b\40byfoot%irc.example.com@biboumi.example.com``.
