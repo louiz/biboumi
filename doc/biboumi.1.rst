@@ -339,6 +339,21 @@ Notices
 Notices are received exactly like private messages.  It is not possible to
 send a notice.
 
+Invitations
+-----------
+
+Biboumi forwards the mediated invitations to the target nick.  If the user
+wishes to invite the user “FooBar” into a room, they can invite one of the
+following “JIDs” (one of them is not a JID, actually):
+
+- foobar%anything@anything
+- anything@anything/FooBar
+- FooBar
+
+Note that the “anything” part are simply ignored because they have no
+meaning for the IRC server: we already know which IRC server is targeted
+using the JID of the target channel.
+
 Kicks and bans
 --------------
 

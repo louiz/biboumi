@@ -129,6 +129,7 @@ public:
    * Send the LIST irc command
    */
   void send_list_command();
+  void send_invitation(const std::string& chan_name, const std::string& nick);
   void send_topic_command(const std::string& chan_name, const std::string& topic);
   /**
    * Send the QUIT irc command
@@ -234,6 +235,10 @@ public:
    * Idem, but for when the user changes their nickname too quickly
    */
   void on_nickname_change_too_fast(const IrcMessage& message);
+  /**
+   * An error when we try to invite a user already in the channel
+   */
+  void on_useronchannel(const IrcMessage& message);
   /**
    * Handles most errors from the server by just forwarding the message to the user.
    */

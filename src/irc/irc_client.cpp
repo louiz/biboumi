@@ -64,6 +64,8 @@ static const std::unordered_map<std::string,
   {"432", {&IrcClient::on_erroneous_nickname, {2, 0}}},
   {"433", {&IrcClient::on_nickname_conflict, {2, 0}}},
   {"438", {&IrcClient::on_nickname_change_too_fast, {2, 0}}},
+  {"443", {&IrcClient::on_useronchannel, {3, 0}}},
+  {"ERR_USERONCHANNEL", {&IrcClient::on_useronchannel, {3, 0}}},
   {"001", {&IrcClient::on_welcome_message, {1, 0}}},
   {"PART", {&IrcClient::on_part, {1, 0}}},
   {"ERROR", {&IrcClient::on_error, {1, 0}}},
@@ -95,7 +97,6 @@ static const std::unordered_map<std::string,
   {"436", {&IrcClient::on_generic_error, {2, 0}}},
   {"441", {&IrcClient::on_generic_error, {2, 0}}},
   {"442", {&IrcClient::on_generic_error, {2, 0}}},
-  {"443", {&IrcClient::on_generic_error, {2, 0}}},
   {"444", {&IrcClient::on_generic_error, {2, 0}}},
   {"446", {&IrcClient::on_generic_error, {2, 0}}},
   {"451", {&IrcClient::on_generic_error, {2, 0}}},
@@ -427,6 +428,11 @@ void IrcClient::send_kick_command(const std::string& chan_name, const std::strin
 void IrcClient::send_list_command()
 {
   this->send_message(IrcMessage("LIST", {}));
+}
+
+void IrcClient::send_invitation(const std::string& chan_name, const std::string& nick)
+{
+  this->send_message(IrcMessage("INVITE", {nick, chan_name}));
 }
 
 void IrcClient::send_topic_command(const std::string& chan_name, const std::string& topic)
@@ -803,12 +809,17 @@ void IrcClient::on_nickname_change_too_fast(const IrcMessage& message)
                                       "", txt);
   }
 }
-
 void IrcClient::on_generic_error(const IrcMessage& message)
 {
   const std::string error_msg = message.arguments.size() >= 3 ?
     message.arguments[2]: "Unspecified error";
   this->send_gateway_message(message.arguments[1] + ": " + error_msg, message.prefix);
+}
+
+void IrcClient::on_useronchannel(const IrcMessage& message)
+{
+  this->send_gateway_message(message.arguments[1] + " " + message.arguments[3] + " "
+                             + message.arguments[2]);
 }
 
 void IrcClient::on_welcome_message(const IrcMessage& message)

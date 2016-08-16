@@ -543,6 +543,22 @@ void Bridge::on_gateway_ping(const std::string& irc_hostname, const std::string&
                                   "", true);
 }
 
+void Bridge::send_irc_invitation(const Iid& iid, const std::string to)
+{
+  IrcClient* irc = this->get_irc_client(iid.get_server());
+  Jid to_jid(to);
+  std::string target_nick;
+  // Many ways to address a nick:
+  // A jid (ANY jid…) with a resource
+  if (!to_jid.resource.empty())
+    target_nick = to_jid.resource;
+  else if (!to_jid.local.empty()) // A jid with a iid with a local part
+    target_nick = Iid(to_jid.local, {}).get_local();
+  else
+    target_nick = to; // Not a jid, just the nick
+  irc->send_invitation(iid.get_local(), target_nick);
+}
+
 void Bridge::send_irc_version_request(const std::string& irc_hostname, const std::string& target,
                                       const std::string& iq_id, const std::string& to_jid,
                                       const std::string& from_jid)

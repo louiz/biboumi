@@ -254,6 +254,19 @@ void BiboumiComponent::handle_message(const Stanza& stanza)
             }
         }
     }
+  else if (type == "normal" && iid.type == Iid::Type::Channel)
+    {
+      if (const XmlNode* x = stanza.get_child("x", MUC_USER_NS))
+        if (const XmlNode* invite = x->get_child("invite", MUC_USER_NS))
+          {
+            const auto invite_to = invite->get_tag("to");
+            if (!invite_to.empty())
+              {
+                bridge->send_irc_invitation(iid, invite_to);
+              }
+          }
+
+    }
   else if (iid.type == Iid::Type::User)
     this->send_invalid_user_error(to.local, from);
   } catch (const IRCNotConnected& ex)
