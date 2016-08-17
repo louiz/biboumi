@@ -249,6 +249,7 @@ public:
   void on_welcome_message(const IrcMessage& message);
   void on_part(const IrcMessage& message);
   void on_error(const IrcMessage& message);
+  void on_invite(const IrcMessage& message);
   void on_nick(const IrcMessage& message);
   void on_kick(const IrcMessage& message);
   void on_mode(const IrcMessage& message);

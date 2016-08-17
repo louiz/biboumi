@@ -645,3 +645,19 @@ void BiboumiComponent::send_iq_room_list_result(const std::string& id,
   iq.add_child(std::move(query));
   this->send_stanza(iq);
 }
+
+void BiboumiComponent::send_invitation(const std::string& room_target,
+                                       const std::string& jid_to,
+                                       const std::string& author_nick)
+{
+  Stanza message("message");
+  message["from"] = room_target + "@" + this->served_hostname;
+  message["to"] = jid_to;
+  XmlNode x("x");
+  x["xmlns"] = MUC_USER_NS;
+  XmlNode invite("invite");
+  invite["from"] = room_target + "@" + this->served_hostname + "/" + author_nick;
+  x.add_child(std::move(invite));
+  message.add_child(std::move(x));
+  this->send_stanza(message);
+}

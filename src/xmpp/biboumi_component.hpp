@@ -74,6 +74,7 @@ public:
   void send_iq_room_list_result(const std::string& id, const std::string& to_jid,
                                 const std::string& from,
                                 const std::vector<ListElement>& rooms_list);
+  void send_invitation(const std::string& room_target, const std::string& jid_to, const std::string& author_nick);
   /**
    * Handle the various stanza types
    */

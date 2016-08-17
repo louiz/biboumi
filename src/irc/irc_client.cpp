@@ -75,6 +75,7 @@ static const std::unordered_map<std::string,
   {"PING", {&IrcClient::send_pong_command, {1, 0}}},
   {"PONG", {&IrcClient::on_pong, {0, 0}}},
   {"KICK", {&IrcClient::on_kick, {3, 0}}},
+  {"INVITE", {&IrcClient::on_invite, {2, 0}}},
 
   {"401", {&IrcClient::on_generic_error, {2, 0}}},
   {"402", {&IrcClient::on_generic_error, {2, 0}}},
@@ -969,6 +970,17 @@ void IrcClient::on_kick(const IrcMessage& message)
   iid.set_server(this->hostname);
   iid.type = Iid::Type::Channel;
   this->bridge.kick_muc_user(std::move(iid), target, reason, author.nick);
+}
+
+void IrcClient::on_invite(const IrcMessage& message)
+{
+  const std::string& author = message.arguments[0];
+  Iid iid;
+  iid.set_local(message.arguments[1]);
+  iid.set_server(this->hostname);
+  iid.type = Iid::Type::Channel;
+
+  this->bridge.send_xmpp_invitation(iid, author);
 }
 
 void IrcClient::on_mode(const IrcMessage& message)

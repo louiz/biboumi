@@ -175,6 +175,8 @@ public:
    */
   void send_xmpp_ping_request(const std::string& nick, const std::string& hostname,
                               const std::string& id);
+  void send_xmpp_invitation(const Iid& iid, const std::string& author);
+
   /**
    * Misc
    */

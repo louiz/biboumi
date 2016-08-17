@@ -798,6 +798,12 @@ void Bridge::send_xmpp_ping_request(const std::string& nick, const std::string& 
     this->xmpp.send_ping_request(utils::tolower(nick) + "%" + utils::empty_if_fixed_server(hostname), this->user_jid + "/" + *resources.begin(), utils::revstr(id));
 }
 
+void Bridge::send_xmpp_invitation(const Iid& iid, const std::string& author)
+{
+  for (const auto& resource: this->resources_in_server[iid.get_server()])
+    this->xmpp.send_invitation(std::to_string(iid), this->user_jid + "/" + resource, author);
+}
+
 void Bridge::set_preferred_from_jid(const std::string& nick, const std::string& full_jid)
 {
   auto it = this->preferred_user_from.find(nick);
