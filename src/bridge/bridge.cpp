@@ -60,6 +60,20 @@ void Bridge::shutdown(const std::string& exit_message)
   }
 }
 
+void Bridge::remove_resource(const std::string& resource,
+                             const std::string& part_message)
+{
+  const auto resources_in_chan_copy = this->resources_in_chan;
+  for (const auto& chan_pair: resources_in_chan_copy)
+  {
+    const ChannelKey& channel_key = chan_pair.first;
+    const std::set<Resource>& resources = chan_pair.second;
+    if (resources.count(resource))
+      this->leave_irc_channel({std::get<0>(channel_key), std::get<1>(channel_key), {}},
+                              part_message, resource);
+  }
+}
+
 void Bridge::clean()
 {
   auto it = this->irc_clients.begin();
@@ -330,7 +344,7 @@ void Bridge::send_raw_message(const std::string& hostname, const std::string& bo
   irc->send_raw(body);
 }
 
-void Bridge::leave_irc_channel(Iid&& iid, std::string&& status_message, const std::string& resource)
+void Bridge::leave_irc_channel(Iid&& iid, const std::string& status_message, const std::string& resource)
 {
   IrcClient* irc = this->get_irc_client(iid.get_server());
   const auto key = iid.to_tuple();

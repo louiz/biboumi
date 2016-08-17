@@ -1006,6 +1006,39 @@ if __name__ == '__main__':
                             "<message from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}'><x xmlns='http://jabber.org/protocol/muc#user'><invite to='{nick_one}'/></x></message>"),
                     partial(expect_stanza,
                             "/message/body[text()='{nick_one} is already on channel #foo']")
+                ]),
+                Scenario("client_error",
+                [
+                    handshake_sequence(),
+                    # First resource
+                    partial(send_stanza,
+                            "<presence from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}/{nick_one}' />"),
+                    connection_sequence("irc.localhost", '{jid_one}/{resource_one}'),
+                    partial(expect_stanza,
+                            "/message/body[text()='Mode #foo [+nt] by {irc_host_one}']"),
+                    partial(expect_stanza,
+                            ("/presence[@to='{jid_one}/{resource_one}'][@from='#foo%{irc_server_one}/{nick_one}']/muc_user:x/muc_user:item[@affiliation='admin'][@role='moderator']",
+                             "/presence/muc_user:x/muc_user:status[@code='110']")
+                            ),
+                    partial(expect_stanza, "/message[@from='#foo%{irc_server_one}'][@type='groupchat']/subject[not(text())]"),
+
+                    # Second resource, same channel
+                    partial(send_stanza,
+                            "<presence from='{jid_one}/{resource_two}' to='#foo%{irc_server_one}/{nick_one}' />"),
+                    partial(expect_stanza,
+                            ("/presence[@to='{jid_one}/{resource_two}'][@from='#foo%{irc_server_one}/{nick_one}']/muc_user:x/muc_user:item[@affiliation='admin'][@role='moderator']",
+                             "/presence/muc_user:x/muc_user:status[@code='110']")
+                            ),
+                    partial(expect_stanza, "/message[@from='#foo%{irc_server_one}'][@type='groupchat'][@to='{jid_one}/{resource_two}']/subject[not(text())]"),
+
+                    # Now the first resource has an error
+                    partial(send_stanza,
+                            "<message from='{jid_one}/{resource_one}' to='#foo%%{irc_server_one}/{nick_one}' type='error'><error type='cancel'><recipient-unavailable xmlns='urn:ietf:params:xml:ns:xmpp-stanzas'/></error></message>"),
+                    # Receive a leave only to the leaving resource
+                    partial(expect_stanza,
+                            ("/presence[@type='unavailable'][@from='#foo%{irc_server_one}/{nick_one}'][@to='{jid_one}/{resource_one}']/muc_user:x/muc_user:status[@code='110']",
+                             "/presence/status[text()='Biboumi note: 1 resources are still in this channel.']")
+                            ),
                 ])
     )
 

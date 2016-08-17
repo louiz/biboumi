@@ -180,23 +180,24 @@ void BiboumiComponent::handle_presence(const Stanza& stanza)
 
 void BiboumiComponent::handle_message(const Stanza& stanza)
 {
-  std::string from = stanza.get_tag("from");
+  std::string from_str = stanza.get_tag("from");
   std::string id = stanza.get_tag("id");
   std::string to_str = stanza.get_tag("to");
   std::string type = stanza.get_tag("type");
 
-  if (from.empty())
+  if (from_str.empty())
     return;
   if (type.empty())
     type = "normal";
-  Bridge* bridge = this->get_user_bridge(from);
+  Bridge* bridge = this->get_user_bridge(from_str);
+  Jid from(from_str);
   Jid to(to_str);
   Iid iid(to.local, bridge);
 
   std::string error_type("cancel");
   std::string error_name("internal-server-error");
   utils::ScopeGuard stanza_error([&](){
-      this->send_stanza_error("message", from, to_str, id,
+      this->send_stanza_error("message", from_str, to_str, id,
                               error_type, error_name, "");
     });
   const XmlNode* body = stanza.get_child("body", COMPONENT_NS);
@@ -216,7 +217,7 @@ void BiboumiComponent::handle_message(const Stanza& stanza)
     {
       const XmlNode* error = stanza.get_child("error", COMPONENT_NS);
       // Only a set of errors are considered “fatal”. If we encounter one of
-      // them, we purge (we disconnect the user from all the IRC servers).
+      // them, we purge (we disconnect that resource from all the IRC servers)
       // We consider this to be true, unless the error condition is
       // specified and is not in the kickable_errors set
       bool kickable_error = true;
@@ -227,7 +228,7 @@ void BiboumiComponent::handle_message(const Stanza& stanza)
             kickable_error = false;
         }
       if (kickable_error)
-        bridge->shutdown("Error from remote client");
+        bridge->remove_resource(from.resource, "Error from remote client");
     }
   else if (type == "chat")
     {
@@ -268,10 +269,10 @@ void BiboumiComponent::handle_message(const Stanza& stanza)
 
     }
   else if (iid.type == Iid::Type::User)
-    this->send_invalid_user_error(to.local, from);
+    this->send_invalid_user_error(to.local, from_str);
   } catch (const IRCNotConnected& ex)
     {
-      this->send_stanza_error("message", from, to_str, id,
+      this->send_stanza_error("message", from_str, to_str, id,
                               "cancel", "remote-server-not-found",
                               "Not connected to IRC server "s + ex.hostname,
                               true);
