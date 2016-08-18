@@ -974,13 +974,13 @@ void IrcClient::on_kick(const IrcMessage& message)
 
 void IrcClient::on_invite(const IrcMessage& message)
 {
-  const std::string& author = message.arguments[0];
+  IrcUser author(message.prefix);
   Iid iid;
   iid.set_local(message.arguments[1]);
   iid.set_server(this->hostname);
   iid.type = Iid::Type::Channel;
 
-  this->bridge.send_xmpp_invitation(iid, author);
+  this->bridge.send_xmpp_invitation(iid, author.nick);
 }
 
 void IrcClient::on_mode(const IrcMessage& message)
