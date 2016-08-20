@@ -246,7 +246,7 @@ install(FILES   conf/biboumi.cfg                            DESTINATION /etc/bib
 ## Dist target
 ## Generate a release tarball from the git sources
 #
-add_custom_target(dist
+add_custom_command(OUTPUT ${ARCHIVE_NAME}.tar.xz
   COMMAND git archive --prefix=${ARCHIVE_NAME}/ --format=tar HEAD
           > ${CMAKE_CURRENT_BINARY_DIR}/${ARCHIVE_NAME}.tar
   # Append this specific file that is not part of the git repo
@@ -258,13 +258,15 @@ add_custom_target(dist
   COMMAND ${CMAKE_COMMAND} -E cmake_echo_color --cyan "${ARCHIVE_NAME}.tar.xz created."
   WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
   )
-add_dependencies(dist catch)
+add_custom_target(dist
+  DEPENDS ${ARCHIVE_NAME}.tar.xz
+  DEPENDS catch)
 
 add_custom_target(rpm
+  DEPENDS dist
   COMMAND mkdir -p rpmbuild/{BUILD,RPMS,SOURCES,SPECS,SRPMS}
   COMMAND rpmbuild --define "_topdir `pwd`/rpmbuild/" --define "_sourcedir `pwd`" -ba biboumi.spec
   )
-add_dependencies(rpm dist)
 
 if(BOTAN_FOUND)
   set(STR_WITH_BOTAN "Botan: yes")
