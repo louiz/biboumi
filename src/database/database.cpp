@@ -4,8 +4,8 @@
 #include <database/database.hpp>
 #include <logger/logger.hpp>
 #include <irc/iid.hpp>
-#include <string>
 #include <uuid.h>
+#include <utils/get_first_non_empty.hpp>
 
 using namespace std::string_literals;
 
@@ -73,10 +73,11 @@ db::IrcChannelOptions Database::get_irc_channel_options_with_server_default(cons
 {
   auto coptions = Database::get_irc_channel_options(owner, server, channel);
   auto soptions = Database::get_irc_server_options(owner, server);
-  if (coptions.encodingIn.value().empty())
-    coptions.encodingIn = soptions.encodingIn;
-  if (coptions.encodingOut.value().empty())
-    coptions.encodingOut = soptions.encodingOut;
+
+  coptions.encodingIn = get_first_non_empty(coptions.encodingIn.value(),
+                                            soptions.encodingIn.value());
+  coptions.encodingOut = get_first_non_empty(coptions.encodingOut.value(),
+                                             soptions.encodingOut.value());
 
   return coptions;
 }

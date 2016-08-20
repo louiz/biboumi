@@ -6,6 +6,9 @@
 #include <utils/split.hpp>
 #include <utils/xdg.hpp>
 #include <utils/empty_if_fixed_server.hpp>
+#include <utils/get_first_non_empty.hpp>
+
+using namespace std::string_literals;
 
 TEST_CASE("String split")
 {
@@ -99,4 +102,12 @@ TEST_CASE("string cut")
   CHECK(res.size() == 2);
   CHECK(res[0] == "rhello, ");
   CHECK(res[1] == "♥");
+}
+
+TEST_CASE("first non-empty string")
+{
+  CHECK(get_first_non_empty(""s, ""s, "hello"s, "world"s) == "hello"s);
+  CHECK(get_first_non_empty(""s, ""s, ""s, ""s) == ""s);
+  CHECK(get_first_non_empty("first"s) == "first"s);
+  CHECK(get_first_non_empty(0, 1, 2, 3) == 1);
 }
