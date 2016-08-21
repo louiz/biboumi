@@ -31,6 +31,19 @@ void Database::set_verbose(const bool val)
   Database::db->verbose = val;
 }
 
+db::GlobalOptions Database::get_global_options(const std::string& owner)
+{
+  try {
+    auto options = litesql::select<db::GlobalOptions>(*Database::db,
+                                                      db::GlobalOptions::Owner == owner).one();
+    return options;
+  } catch (const litesql::NotFound& e) {
+    db::GlobalOptions options(*Database::db);
+    options.owner = owner;
+    return options;
+  }
+}
+
 db::IrcServerOptions Database::get_irc_server_options(const std::string& owner,
                                                       const std::string& server)
 {
@@ -78,6 +91,29 @@ db::IrcChannelOptions Database::get_irc_channel_options_with_server_default(cons
                                             soptions.encodingIn.value());
   coptions.encodingOut = get_first_non_empty(coptions.encodingOut.value(),
                                              soptions.encodingOut.value());
+
+  coptions.maxHistoryLength = get_first_non_empty(coptions.maxHistoryLength.value(),
+                                                  soptions.maxHistoryLength.value());
+
+  return coptions;
+}
+
+db::IrcChannelOptions Database::get_irc_channel_options_with_server_and_global_default(const std::string& owner,
+                                                                                       const std::string& server,
+                                                                                       const std::string& channel)
+{
+  auto coptions = Database::get_irc_channel_options(owner, server, channel);
+  auto soptions = Database::get_irc_server_options(owner, server);
+  auto goptions = Database::get_global_options(owner);
+
+  coptions.encodingIn = get_first_non_empty(coptions.encodingIn.value(),
+                                            soptions.encodingIn.value());
+  coptions.encodingOut = get_first_non_empty(coptions.encodingOut.value(),
+                                             soptions.encodingOut.value());
+
+  coptions.maxHistoryLength = get_first_non_empty(coptions.maxHistoryLength.value(),
+                                                  soptions.maxHistoryLength.value(),
+                                                  goptions.maxHistoryLength.value());
 
   return coptions;
 }

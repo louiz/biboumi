@@ -11,10 +11,6 @@
 #include <database/database.hpp>
 #endif
 
-#include <louloulibs.h>
-
-#include <algorithm>
-
 using namespace std::string_literals;
 
 void DisconnectUserStep1(XmppComponent& xmpp_component, AdhocSession&, XmlNode& command_node)
@@ -114,6 +110,72 @@ void DisconnectUserStep2(XmppComponent& xmpp_component, AdhocSession& session, X
 }
 
 #ifdef USE_DATABASE
+
+void ConfigureGlobalStep1(XmppComponent&, AdhocSession& session, XmlNode& command_node)
+{
+  const Jid owner(session.get_owner_jid());
+  const Jid target(session.get_target_jid());
+
+  auto options = Database::get_global_options(owner.bare());
+
+  XmlNode x("jabber:x:data:x");
+  x["type"] = "form";
+  XmlNode title("title");
+  title.set_inner("Configure some global default settings.");
+  x.add_child(std::move(title));
+  XmlNode instructions("instructions");
+  instructions.set_inner("Edit the form, to configure your global settings for the component.");
+  x.add_child(std::move(instructions));
+
+  XmlNode required("required");
+
+  XmlNode max_histo_length("field");
+  max_histo_length["var"] = "max_history_length";
+  max_histo_length["type"] = "text-single";
+  max_histo_length["label"] = "Max history length";
+  max_histo_length["desc"] = "The maximum number of lines in the history that the server sends when joining a channel";
+
+  XmlNode max_histo_length_value("value");
+  max_histo_length_value.set_inner(std::to_string(options.maxHistoryLength.value()));
+  max_histo_length.add_child(std::move(max_histo_length_value));
+  x.add_child(std::move(max_histo_length));
+
+  command_node.add_child(std::move(x));
+}
+
+void ConfigureGlobalStep2(XmppComponent&, AdhocSession& session, XmlNode& command_node)
+{
+  const XmlNode* x = command_node.get_child("x", "jabber:x:data");
+  if (x)
+    {
+      const Jid owner(session.get_owner_jid());
+      auto options = Database::get_global_options(owner.bare());
+      for (const XmlNode* field: x->get_children("field", "jabber:x:data"))
+        {
+          const XmlNode* value = field->get_child("value", "jabber:x:data");
+
+          if (field->get_tag("var") == "max_history_length" &&
+              value && !value->get_inner().empty())
+            options.maxHistoryLength = value->get_inner();
+        }
+
+      options.update();
+
+      command_node.delete_all_children();
+      XmlNode note("note");
+      note["type"] = "info";
+      note.set_inner("Configuration successfully applied.");
+      command_node.add_child(std::move(note));
+      return;
+    }
+  XmlNode error(ADHOC_NS":error");
+  error["type"] = "modify";
+  XmlNode condition(STANZA_NS":bad-request");
+  error.add_child(std::move(condition));
+  command_node.add_child(std::move(error));
+  session.terminate();
+}
+
 void ConfigureIrcServerStep1(XmppComponent&, AdhocSession& session, XmlNode& command_node)
 {
   const Jid owner(session.get_owner_jid());
@@ -315,7 +377,7 @@ void ConfigureIrcServerStep2(XmppComponent&, AdhocSession& session, XmlNode& com
             }
 
           else if (field->get_tag("var") == "verify_cert" && value
-              && !value->get_inner().empty())
+                   && !value->get_inner().empty())
             {
               auto val = to_bool(value->get_inner());
               options.verifyCert = val;
@@ -442,7 +504,7 @@ void ConfigureIrcChannelStep2(XmppComponent&, AdhocSession& session, XmlNode& co
           const XmlNode* value = field->get_child("value", "jabber:x:data");
 
           if (field->get_tag("var") == "encoding_out" &&
-                   value && !value->get_inner().empty())
+              value && !value->get_inner().empty())
             options.encodingOut = value->get_inner();
 
           else if (field->get_tag("var") == "encoding_in" &&

@@ -2,6 +2,12 @@
 <!DOCTYPE database SYSTEM "litesql.dtd">
 
 <database name="BibouDB" namespace="db">
+    <object name="GlobalOptions">
+        <field name="owner" type="string" length="3071"/>
+
+        <field name="maxHistoryLength" type="integer"/>
+    </object>
+
     <object name="IrcServerOptions">
         <field name="owner" type="string" length="3071"/>
         <field name="server" type="string" length="3071"/>
@@ -18,6 +24,8 @@
         <field name="encodingOut" type="string" default="ISO-8859-1"/>
         <field name="encodingIn"  type="string" default="ISO-8859-1"/>
 
+        <field name="maxHistoryLength" type="integer"/>
+
         <index unique="true">
             <indexfield name="owner"/>
             <indexfield name="server"/>
@@ -31,6 +39,8 @@
 
         <field name="encodingOut" type="string"/>
         <field name="encodingIn"  type="string"/>
+
+        <field name="maxHistoryLength" type="integer"/>
 
         <index unique="true">
             <indexfield name="owner"/>

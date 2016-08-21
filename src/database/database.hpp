@@ -36,6 +36,7 @@ public:
    * Return the object from the db. Create it beforehand (with all default
    * values) if it is not already present.
    */
+  static db::GlobalOptions get_global_options(const std::string& owner);
   static db::IrcServerOptions get_irc_server_options(const std::string& owner,
                                                      const std::string& server);
   static db::IrcChannelOptions get_irc_channel_options(const std::string& owner,
@@ -44,7 +45,9 @@ public:
   static db::IrcChannelOptions get_irc_channel_options_with_server_default(const std::string& owner,
                                                                            const std::string& server,
                                                                            const std::string& channel);
-
+  static db::IrcChannelOptions get_irc_channel_options_with_server_and_global_default(const std::string& owner,
+                                                                                      const std::string& server,
+                                                                                      const std::string& channel);
   static void store_muc_message(const std::string& owner, const Iid& iid,
                                 time_point date, const std::string& body, const std::string& nick);
 
