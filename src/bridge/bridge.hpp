@@ -138,6 +138,11 @@ public:
   void send_topic(const std::string& hostname, const std::string& chan_name, const std::string& topic, const std::string& who);
   void send_topic(const std::string& hostname, const std::string& chan_name, const std::string& topic, const std::string& who, const std::string& resource);
   /**
+   * Send the MUC history to the user
+   */
+  void send_room_history(const std::string& hostname, const std::string& chan_name);
+  void send_room_history(const std::string& hostname, const std::string& chan_name, const std::string& resource);
+  /**
    * Send a MUC message from some participant
    */
   void send_message(const Iid& iid, const std::string& nick, const std::string& body, const bool muc);

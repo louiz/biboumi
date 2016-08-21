@@ -135,6 +135,11 @@ public:
    */
   void send_muc_message(const std::string& muc_name, const std::string& nick, Xmpp::body&& body, const std::string& jid_to);
   /**
+   * Send a message, with a <delay/> element, part of a MUC history
+   */
+  void send_history_message(const std::string& muc_name, const std::string& nick, const std::string& body,
+                            const std::string& jid_to, const std::time_t timestamp);
+  /**
    * Send an unavailable presence for this nick
    */
   void send_muc_leave(const std::string& muc_name, std::string&& nick, Xmpp::body&& message, const std::string& jid_to, const bool self);

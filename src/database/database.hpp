@@ -48,6 +48,8 @@ public:
   static db::IrcChannelOptions get_irc_channel_options_with_server_and_global_default(const std::string& owner,
                                                                                       const std::string& server,
                                                                                       const std::string& channel);
+  static std::vector<db::MucLogLine> get_muc_logs(const std::string& owner, const std::string& chan_name, const std::string& server,
+                           const int limit);
   static void store_muc_message(const std::string& owner, const Iid& iid,
                                 time_point date, const std::string& body, const std::string& nick);
 

@@ -16,6 +16,9 @@
 
 #include <uuid.h>
 
+#include <cstdlib>
+#include <iomanip>
+
 #include <louloulibs.h>
 #ifdef SYSTEMD_FOUND
 # include <systemd/sd-daemon.h>
@@ -423,6 +426,31 @@ void XmppComponent::send_muc_message(const std::string& muc_name, const std::str
       html.add_child(std::move(std::get<1>(xmpp_body)));
       message.add_child(std::move(html));
     }
+  this->send_stanza(message);
+}
+
+void XmppComponent::send_history_message(const std::string& muc_name, const std::string& nick, const std::string& body_txt, const std::string& jid_to, std::time_t timestamp)
+{
+  Stanza message("message");
+  message["to"] = jid_to;
+  if (!nick.empty())
+    message["from"] = muc_name + "@" + this->served_hostname + "/" + nick;
+  else
+    message["from"] = muc_name + "@" + this->served_hostname;
+  message["type"] = "groupchat";
+
+  XmlNode body("body");
+  body.set_inner(body_txt);
+  message.add_child(std::move(body));
+
+  XmlNode delay("delay");
+  delay["xmlns"] = "urn:xmpp:delay";
+  delay["from"] = muc_name + "@" + this->served_hostname;
+  std::stringstream date_ss;
+  date_ss << std::put_time(std::gmtime(&timestamp), "%FT%Tz") << std::endl;
+  delay["stamp"] = date_ss.str();
+
+  message.add_child(std::move(delay));
   this->send_stanza(message);
 }
 

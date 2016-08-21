@@ -136,6 +136,15 @@ void Database::store_muc_message(const std::string& owner, const Iid& iid,
   line.update();
 }
 
+std::vector<db::MucLogLine> Database::get_muc_logs(const std::string& owner, const std::string& chan_name, const std::string& server, const int limit)
+{
+  auto res = litesql::select<db::MucLogLine>(*Database::db,
+                                                   db::MucLogLine::Owner == owner &&
+                                                   db::MucLogLine::IrcChanName == chan_name &&
+                                                   db::MucLogLine::IrcServerName == server).orderBy(db::MucLogLine::Date, false).limit(limit).all();
+  return {res.rbegin(), res.rend()};
+}
+
 void Database::close()
 {
   Database::db.reset(nullptr);
