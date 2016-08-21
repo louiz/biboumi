@@ -616,8 +616,9 @@ void Bridge::send_message(const Iid& iid, const std::string& nick, const std::st
     {
 #ifdef USE_DATABASE
       const auto xmpp_body = this->make_xmpp_body(body, encoding);
-      Database::store_muc_message(this->get_bare_jid(), iid, std::chrono::system_clock::now(),
-                                  std::get<0>(xmpp_body), nick);
+      if (!nick.empty())
+        Database::store_muc_message(this->get_bare_jid(), iid, std::chrono::system_clock::now(),
+                                    std::get<0>(xmpp_body), nick);
 #endif
       for (const auto& resource: this->resources_in_chan[iid.to_tuple()])
         {
