@@ -129,7 +129,7 @@ void Database::store_muc_message(const std::string& owner, const Iid& iid,
   line.owner = owner;
   line.ircChanName = iid.get_local();
   line.ircServerName = iid.get_server();
-  line.date = date.time_since_epoch().count();
+  line.date = date.time_since_epoch().count() / 1'000'000'000;
   line.body = body;
   line.nick = nick;
 
