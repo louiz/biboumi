@@ -9,6 +9,7 @@
 #include <unordered_map>
 #include <memory>
 #include <string>
+#include <ctime>
 #include <map>
 
 #define STREAM_NS        "http://etherx.jabber.org/streams"
