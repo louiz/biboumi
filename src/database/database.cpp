@@ -136,8 +136,10 @@ void Database::store_muc_message(const std::string& owner, const Iid& iid,
   line.update();
 }
 
-std::vector<db::MucLogLine> Database::get_muc_logs(const std::string& owner, const std::string& chan_name, const std::string& server, const int limit)
+std::vector<db::MucLogLine> Database::get_muc_logs(const std::string& owner, const std::string& chan_name, const std::string& server, int limit)
 {
+  if (limit < 0)
+    limit = 0;
   auto res = litesql::select<db::MucLogLine>(*Database::db,
                                                    db::MucLogLine::Owner == owner &&
                                                    db::MucLogLine::IrcChanName == chan_name &&
