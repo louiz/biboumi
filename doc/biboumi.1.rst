@@ -299,7 +299,8 @@ History
 
 Public channel messages are saved into the database, unless the
 `record_history` option is set to false for that user
-`Ad-hoc commands`).
+`Ad-hoc commands`). When a channel is joined, biboumi sends the
+`max_history_length` messages found in the database, as the MUC history.
 
 List channels
 -------------
