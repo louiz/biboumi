@@ -254,6 +254,8 @@ class BiboumiTest:
         with open("test.conf", "w") as fd:
             fd.write(confs[scenario.conf])
 
+        os.remove("e2e_test.sqlite")
+
         # Start the XMPP component and biboumi
         biboumi = BiboumiRunner(scenario.name, with_valgrind)
         xmpp = XMPPComponent(self.scenario, biboumi)
