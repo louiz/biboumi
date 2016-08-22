@@ -4,6 +4,7 @@
 #include <utils/string.hpp>
 #include <utils/split.hpp>
 #include <xmpp/jid.hpp>
+#include <algorithm>
 
 #include <biboumi.h>
 
