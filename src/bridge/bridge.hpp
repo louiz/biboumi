@@ -13,6 +13,8 @@
 #include <string>
 #include <memory>
 
+#include <biboumi.h>
+
 class BiboumiComponent;
 class Poller;
 
@@ -215,6 +217,9 @@ public:
   void trigger_on_irc_message(const std::string& irc_hostname, const IrcMessage& message);
   std::unordered_map<std::string, std::shared_ptr<IrcClient>>& get_irc_clients();
   std::set<char> get_chantypes(const std::string& hostname) const;
+#ifdef USE_DATABASE
+  void set_record_history(const bool val);
+#endif
 
 private:
   /**
@@ -295,6 +300,9 @@ private:
    * TODO: send message history
    */
   void generate_channel_join_for_resource(const Iid& iid, const std::string& resource);
+#ifdef USE_DATABASE
+  bool record_history { true };
+#endif
 };
 
 struct IRCNotConnected: public std::exception

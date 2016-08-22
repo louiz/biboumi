@@ -135,16 +135,32 @@ void ConfigureGlobalStep1(XmppComponent&, AdhocSession& session, XmlNode& comman
   max_histo_length["label"] = "Max history length";
   max_histo_length["desc"] = "The maximum number of lines in the history that the server sends when joining a channel";
 
-  XmlNode max_histo_length_value("value");
-  max_histo_length_value.set_inner(std::to_string(options.maxHistoryLength.value()));
-  max_histo_length.add_child(std::move(max_histo_length_value));
+  XmlNode value("value");
+  value.set_inner(std::to_string(options.maxHistoryLength.value()));
+  max_histo_length.add_child(std::move(value));
   x.add_child(std::move(max_histo_length));
+
+  XmlNode record_history("field");
+  record_history["var"] = "record_history";
+  record_history["type"] = "boolean";
+  record_history["label"] = "Record history";
+  record_history["desc"] = "Whether to save the messages into the database, or not";
+
+  value.set_name("value");
+  if (options.recordHistory.value())
+    value.set_inner("true");
+  else
+    value.set_inner("false");
+  record_history.add_child(std::move(value));
+  x.add_child(std::move(record_history));
 
   command_node.add_child(std::move(x));
 }
 
-void ConfigureGlobalStep2(XmppComponent&, AdhocSession& session, XmlNode& command_node)
+void ConfigureGlobalStep2(XmppComponent& xmpp_component, AdhocSession& session, XmlNode& command_node)
 {
+  BiboumiComponent& biboumi_component = static_cast<BiboumiComponent&>(xmpp_component);
+
   const XmlNode* x = command_node.get_child("x", "jabber:x:data");
   if (x)
     {
@@ -157,6 +173,14 @@ void ConfigureGlobalStep2(XmppComponent&, AdhocSession& session, XmlNode& comman
           if (field->get_tag("var") == "max_history_length" &&
               value && !value->get_inner().empty())
             options.maxHistoryLength = value->get_inner();
+          else if (field->get_tag("var") == "record_history" &&
+                   value && !value->get_inner().empty())
+            {
+              options.recordHistory = to_bool(value->get_inner());
+              Bridge* bridge = biboumi_component.find_user_bridge(owner.bare());
+              if (bridge)
+                bridge->set_record_history(options.recordHistory.value());
+            }
         }
 
       options.update();

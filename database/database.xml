@@ -6,6 +6,7 @@
         <field name="owner" type="string" length="3071"/>
 
         <field name="maxHistoryLength" type="integer" default="20"/>
+        <field name="recordHistory" type="boolean" default="true"/>
     </object>
 
     <object name="IrcServerOptions">
@@ -25,7 +26,6 @@
         <field name="encodingIn"  type="string" default="ISO-8859-1"/>
 
         <field name="maxHistoryLength" type="integer" default="20"/>
-
         <index unique="true">
             <indexfield name="owner"/>
             <indexfield name="server"/>

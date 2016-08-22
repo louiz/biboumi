@@ -294,6 +294,13 @@ messages to other users.  This means that the order of the messages
 displayed in your XMPP client may not be the same than the order on other
 IRC users’.
 
+History
+-------
+
+Public channel messages are saved into the database, unless the
+`record_history` option is set to false for that user
+`Ad-hoc commands`).
+
 List channels
 -------------
 

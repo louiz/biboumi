@@ -32,6 +32,10 @@ Bridge::Bridge(const std::string& user_jid, BiboumiComponent& xmpp, std::shared_
   xmpp(xmpp),
   poller(poller)
 {
+#ifdef USE_DATABASE
+  const auto options = Database::get_global_options(this->user_jid);
+  this->set_record_history(options.recordHistory.value());
+#endif
 }
 
 /**
@@ -241,8 +245,9 @@ void Bridge::send_channel_message(const Iid& iid, const std::string& body)
 
 #ifdef USE_DATABASE
       const auto xmpp_body = this->make_xmpp_body(line);
-      Database::store_muc_message(this->get_bare_jid(), iid, std::chrono::system_clock::now(),
-                                  std::get<0>(xmpp_body), irc->get_own_nick());
+      if (this->record_history)
+        Database::store_muc_message(this->get_bare_jid(), iid, std::chrono::system_clock::now(),
+                                    std::get<0>(xmpp_body), irc->get_own_nick());
 #endif
       for (const auto& resource: this->resources_in_chan[iid.to_tuple()])
         this->xmpp.send_muc_message(std::to_string(iid), irc->get_own_nick(),
@@ -616,7 +621,7 @@ void Bridge::send_message(const Iid& iid, const std::string& nick, const std::st
     {
 #ifdef USE_DATABASE
       const auto xmpp_body = this->make_xmpp_body(body, encoding);
-      if (!nick.empty())
+      if (!nick.empty() && this->record_history)
         Database::store_muc_message(this->get_bare_jid(), iid, std::chrono::system_clock::now(),
                                     std::get<0>(xmpp_body), nick);
 #endif
@@ -971,7 +976,6 @@ void Bridge::generate_channel_join_for_resource(const Iid& iid, const std::strin
     {
       if (user->nick != self->nick)
         {
-          log_debug(user->nick);
           this->send_user_join(iid.get_server(), iid.get_encoded_local(),
                                user.get(), user->get_most_significant_mode(irc->get_sorted_user_modes()),
                                false, resource);
@@ -982,3 +986,10 @@ void Bridge::generate_channel_join_for_resource(const Iid& iid, const std::strin
                        true, resource);
   this->send_topic(iid.get_server(), iid.get_encoded_local(), channel->topic, channel->topic_author, resource);
 }
+
+#ifdef USE_DATABASE
+void Bridge::set_record_history(const bool val)
+{
+  this->record_history = val;
+}
+#endif
