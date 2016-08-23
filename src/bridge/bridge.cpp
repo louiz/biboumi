@@ -984,6 +984,7 @@ void Bridge::generate_channel_join_for_resource(const Iid& iid, const std::strin
   this->send_user_join(iid.get_server(), iid.get_encoded_local(),
                        self, self->get_most_significant_mode(irc->get_sorted_user_modes()),
                        true, resource);
+  this->send_room_history(iid.get_server(), iid.get_local(), resource);
   this->send_topic(iid.get_server(), iid.get_encoded_local(), channel->topic, channel->topic_author, resource);
 }
 
