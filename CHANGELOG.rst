@@ -7,6 +7,10 @@ Version 4.0
    refering to a nickname is based on the first character (# or & by
    default, but this can be customized by the server with the ISUPPORT
    extension)
+ - Save all channel messages into the database, with an ad-hoc option to
+   disable this feature.
+ - When joining a room, biboumi sends an history of the most recents messages
+   found in the database.
 
 Version 3.0 - 2016-08-03
 ========================
