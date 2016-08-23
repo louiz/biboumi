@@ -254,7 +254,10 @@ class BiboumiTest:
         with open("test.conf", "w") as fd:
             fd.write(confs[scenario.conf])
 
-        os.remove("e2e_test.sqlite")
+        try:
+            os.remove("e2e_test.sqlite")
+        except FileNotFoundError:
+            pass
 
         # Start the XMPP component and biboumi
         biboumi = BiboumiRunner(scenario.name, with_valgrind)
