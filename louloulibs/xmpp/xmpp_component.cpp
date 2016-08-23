@@ -17,7 +17,6 @@
 #include <uuid.h>
 
 #include <cstdlib>
-#include <iomanip>
 
 #include <louloulibs.h>
 #ifdef SYSTEMD_FOUND
@@ -446,9 +445,10 @@ void XmppComponent::send_history_message(const std::string& muc_name, const std:
   XmlNode delay("delay");
   delay["xmlns"] = "urn:xmpp:delay";
   delay["from"] = muc_name + "@" + this->served_hostname;
-  std::stringstream date_ss;
-  date_ss << std::put_time(std::gmtime(&timestamp), "%FT%Tz") << std::endl;
-  delay["stamp"] = date_ss.str();
+  constexpr std::size_t stamp_size = 20;
+  char date_buf[stamp_size];
+  std::strftime(date_buf, stamp_size, "%FT%Tz", std::gmtime(&timestamp));
+  delay["stamp"] = date_buf;
 
   message.add_child(std::move(delay));
   this->send_stanza(message);
