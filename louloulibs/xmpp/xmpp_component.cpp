@@ -7,21 +7,9 @@
 #include <config/config.hpp>
 #include <xmpp/jid.hpp>
 #include <utils/sha1.hpp>
-
-#include <stdexcept>
-#include <iostream>
-#include <set>
-
-#include <stdio.h>
+#include <utils/time.hpp>
 
 #include <uuid.h>
-
-#include <cstdlib>
-
-#include <louloulibs.h>
-#ifdef SYSTEMD_FOUND
-# include <systemd/sd-daemon.h>
-#endif
 
 using namespace std::string_literals;
 
@@ -443,12 +431,9 @@ void XmppComponent::send_history_message(const std::string& muc_name, const std:
   message.add_child(std::move(body));
 
   XmlNode delay("delay");
-  delay["xmlns"] = "urn:xmpp:delay";
+  delay["xmlns"] = DELAY_NS;
   delay["from"] = muc_name + "@" + this->served_hostname;
-  constexpr std::size_t stamp_size = 20;
-  char date_buf[stamp_size];
-  std::strftime(date_buf, stamp_size, "%FT%TZ", std::gmtime(&timestamp));
-  delay["stamp"] = date_buf;
+  delay["stamp"] = utils::to_string(timestamp);
 
   message.add_child(std::move(delay));
   this->send_stanza(message);

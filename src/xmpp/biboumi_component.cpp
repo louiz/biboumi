@@ -8,8 +8,9 @@
 #include <xmpp/biboumi_adhoc_commands.hpp>
 #include <bridge/list_element.hpp>
 #include <config/config.hpp>
-#include <xmpp/jid.hpp>
 #include <utils/sha1.hpp>
+#include <utils/time.hpp>
+#include <xmpp/jid.hpp>
 
 #include <stdexcept>
 #include <iostream>
@@ -24,6 +25,8 @@
 #ifdef SYSTEMD_FOUND
 # include <systemd/sd-daemon.h>
 #endif
+
+#include <database/database.hpp>
 
 using namespace std::string_literals;
 
@@ -383,6 +386,13 @@ void BiboumiComponent::handle_iq(const Stanza& stanza)
           this->send_stanza(response);
           stanza_error.disable();
         }
+#ifdef USE_DATABASE
+      else if ((query = stanza.get_child("query", MAM_NS)))
+        {
+          if (this->handle_mam_request(stanza))
+            stanza_error.disable();
+        }
+#endif
     }
   else if (type == "get")
     {
@@ -524,6 +534,73 @@ void BiboumiComponent::handle_iq(const Stanza& stanza)
   error_type = "cancel";
   error_name = "feature-not-implemented";
 }
+
+#ifdef USE_DATABASE
+bool BiboumiComponent::handle_mam_request(const Stanza& stanza)
+{
+    std::string id = stanza.get_tag("id");
+    Jid from(stanza.get_tag("from"));
+    Jid to(stanza.get_tag("to"));
+
+    const XmlNode* query = stanza.get_child("query", MAM_NS);
+    std::string query_id;
+    if (query)
+      query_id = query->get_tag("queryid");
+
+    Iid iid(to.local, {'#', '&'});
+    if (iid.type == Iid::Type::Channel && to.resource.empty())
+      {
+          const auto lines = Database::get_muc_logs(from.bare(), iid.get_local(), iid.get_server(), -1);
+          for (const db::MucLogLine& line: lines)
+            {
+                const auto queryid = query->get_tag("queryid");
+                if (!line.nick.value().empty())
+                  this->send_archived_message(line, to.full(), from.full(), queryid);
+            }
+        this->send_iq_result_full_jid(id, from.full(), to.full());
+        return true;
+      }
+  return false;
+}
+
+void BiboumiComponent::send_archived_message(const db::MucLogLine& log_line, const std::string& from, const std::string& to,
+                                             const std::string& queryid)
+{
+    Stanza message("message");
+    message["from"] = from;
+    message["to"] = to;
+
+    XmlNode result("result");
+    result["xmlns"] = MAM_NS;
+    result["queryid"] = queryid;
+    result["id"] = log_line.uuid.value();
+
+    XmlNode forwarded("forwarded");
+    forwarded["xmlns"] = FORWARD_NS;
+
+    XmlNode delay("delay");
+    delay["xmlns"] = DELAY_NS;
+    delay["stamp"] = utils::to_string(log_line.date.value().timeStamp());
+
+    forwarded.add_child(std::move(delay));
+
+    XmlNode submessage("message");
+    submessage["xmlns"] = CLIENT_NS;
+    submessage["from"] = from + "/" + log_line.nick.value();
+    submessage["type"] = "groupchat";
+
+    XmlNode body("body");
+    body.set_inner(log_line.body.value());
+    submessage.add_child(std::move(body));
+
+    forwarded.add_child(std::move(submessage));
+    result.add_child(std::move(forwarded));
+    message.add_child(std::move(result));
+
+    this->send_stanza(message);
+}
+
+#endif
 
 Bridge* BiboumiComponent::get_user_bridge(const std::string& user_jid)
 {

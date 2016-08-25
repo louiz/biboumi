@@ -9,6 +9,10 @@
 #include <string>
 #include <map>
 
+namespace db
+{
+class MucLogLine;
+}
 struct ListElement;
 
 /**
@@ -81,6 +85,12 @@ public:
   void handle_presence(const Stanza& stanza);
   void handle_message(const Stanza& stanza);
   void handle_iq(const Stanza& stanza);
+
+#ifdef USE_DATABASE
+  bool handle_mam_request(const Stanza& stanza);
+  void send_archived_message(const db::MucLogLine& log_line, const std::string& from, const std::string& to,
+                             const std::string& queryid);
+#endif
 
 private:
   /**

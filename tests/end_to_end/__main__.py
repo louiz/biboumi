@@ -74,7 +74,7 @@ class XMPPComponent(slixmpp.BaseXMPP):
         self.scenario.steps = []
         self.failed = True
 
-    def on_end_session(self, event):
+    def on_end_session(self, _):
         self.loop.stop()
 
     def handle_incoming_stanza(self, stanza):
@@ -113,7 +113,11 @@ def match(stanza, xpath):
                                             'disco_items': 'http://jabber.org/protocol/disco#items',
                                             'commands': 'http://jabber.org/protocol/commands',
                                             'dataform': 'jabber:x:data',
-                                            'version': 'jabber:iq:version'})
+                                            'version': 'jabber:iq:version',
+                                            'mam': 'urn:xmpp:mam:1',
+                                            'delay': 'urn:xmpp:delay',
+                                            'forward': 'urn:xmpp:forward:0',
+                                            'client': 'jabber:client'})
     return matched
 
 
@@ -1044,7 +1048,47 @@ if __name__ == '__main__':
                             ("/presence[@type='unavailable'][@from='#foo%{irc_server_one}/{nick_one}'][@to='{jid_one}/{resource_one}']/muc_user:x/muc_user:status[@code='110']",
                              "/presence/status[text()='Biboumi note: 1 resources are still in this channel.']")
                             ),
-                ])
+                ]),
+                Scenario("simple_mam",
+                [
+                    handshake_sequence(),
+                    # First user joins
+                    partial(send_stanza,
+                            "<presence from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}/{nick_one}' />"),
+                    connection_sequence("irc.localhost", '{jid_one}/{resource_one}'),
+                    partial(expect_stanza,
+                            "/message/body[text()='Mode #foo [+nt] by {irc_host_one}']"),
+                    partial(expect_stanza,
+                            ("/presence[@to='{jid_one}/{resource_one}'][@from='#foo%{irc_server_one}/{nick_one}']/muc_user:x/muc_user:item[@affiliation='admin'][@jid='~nick@localhost'][@role='moderator']",
+                             "/presence/muc_user:x/muc_user:status[@code='110']")
+                            ),
+                    partial(expect_stanza, "/message[@from='#foo%{irc_server_one}'][@type='groupchat']/subject[not(text())]"),
+
+                    # Send two channel messages
+                    partial(send_stanza, "<message from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}' type='groupchat'><body>coucou</body></message>"),
+                    # Receive the message, forwarded to the two users
+                    partial(expect_stanza, "/message[@from='#foo%{irc_server_one}/{nick_one}'][@to='{jid_one}/{resource_one}'][@type='groupchat']/body[text()='coucou']"),
+
+                    partial(send_stanza, "<message from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}' type='groupchat'><body>coucou 2</body></message>"),
+                    # Receive the message, forwarded to the two users
+                    partial(expect_stanza, "/message[@from='#foo%{irc_server_one}/{nick_one}'][@to='{jid_one}/{resource_one}'][@type='groupchat']/body[text()='coucou 2']"),
+
+                    # Retrieve the complete archive
+                    partial(send_stanza, "<iq to='#foo%{irc_server_one}' from='{jid_one}/{resource_one}' type='set' id='id1'><query xmlns='urn:xmpp:mam:1' queryid='qid1' /></iq>"),
+
+                    partial(expect_stanza,
+                            ("/message/mam:result[@queryid='qid1']/forward:forwarded/delay:delay",
+                            "/message/mam:result[@queryid='qid1']/forward:forwarded/client:message[@from='#foo%{irc_server_one}/{nick_one}'][@type='groupchat']/client:body[text()='coucou']")
+                            ),
+                    partial(expect_stanza,
+                            ("/message/mam:result[@queryid='qid1']/forward:forwarded/delay:delay",
+                            "/message/mam:result[@queryid='qid1']/forward:forwarded/client:message[@from='#foo%{irc_server_one}/{nick_one}'][@type='groupchat']/client:body[text()='coucou 2']")
+                            ),
+
+                    partial(expect_stanza,
+                            "/iq[@type='result'][@id='id1'][@from='#foo%{irc_server_one}'][@to='{jid_one}/{resource_one}']")
+
+                ]),
     )
 
     failures = 0

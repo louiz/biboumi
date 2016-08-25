@@ -51,7 +51,7 @@ RUN useradd tester -m
 RUN apt install -y automake autoconf flex bison libltdl-dev openssl
 RUN apt install -y libtool
 RUN git clone https://github.com/charybdis-ircd/charybdis.git && cd charybdis
-RUN cd /charybdis && ./autogen.sh && ./configure --prefix=/home/tester/ircd --bindir=/usr/bin && make -j8 && make install
+RUN cd /charybdis && git checkout 4f2b9a4 && ./autogen.sh && ./configure --prefix=/home/tester/ircd --bindir=/usr/bin && make -j8 && make install
 RUN chown -R tester:tester /home/tester/ircd
 RUN rm -rf /charybdis
 

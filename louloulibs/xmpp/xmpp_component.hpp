@@ -26,6 +26,10 @@
 #define VERSION_NS       "jabber:iq:version"
 #define ADHOC_NS         "http://jabber.org/protocol/commands"
 #define PING_NS          "urn:xmpp:ping"
+#define DELAY_NS         "urn:xmpp:delay"
+#define MAM_NS           "urn:xmpp:mam:1"
+#define FORWARD_NS       "urn:xmpp:forward:0"
+#define CLIENT_NS        "jabber:client"
 
 /**
  * An XMPP component, communicating with an XMPP server using the protocole
