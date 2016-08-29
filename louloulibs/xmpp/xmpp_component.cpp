@@ -9,7 +9,20 @@
 #include <utils/sha1.hpp>
 #include <utils/time.hpp>
 
+#include <stdexcept>
+#include <iostream>
+#include <set>
+
+#include <stdio.h>
 #include <uuid.h>
+
+#include <cstdlib>
+#include <set>
+
+#include <louloulibs.h>
+#ifdef SYSTEMD_FOUND
+# include <systemd/sd-daemon.h>
+#endif
 
 using namespace std::string_literals;
 
