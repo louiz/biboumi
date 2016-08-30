@@ -121,3 +121,11 @@ TEST_CASE("time_to_string")
   CHECK(utils::to_string(stamp).size() == result.size());
   CHECK(utils::to_string(0) == "1970-01-01T00:00:00Z");
 }
+
+TEST_CASE("parse_datetime")
+{
+  const auto time = utils::parse_datetime("1970-01-01T00:00:00Z");
+  CHECK(time == 0);
+  CHECK(utils::parse_datetime("2016-08-29T14:29:28Z") == 1472480968);
+  CHECK(utils::parse_datetime("blah") == -1);
+}
