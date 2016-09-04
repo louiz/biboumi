@@ -1086,8 +1086,32 @@ if __name__ == '__main__':
                             ),
 
                     partial(expect_stanza,
-                            "/iq[@type='result'][@id='id1'][@from='#foo%{irc_server_one}'][@to='{jid_one}/{resource_one}']")
+                            "/iq[@type='result'][@id='id1'][@from='#foo%{irc_server_one}'][@to='{jid_one}/{resource_one}']"),
 
+                    # Retrieve an empty archive by specifying an early “end” date
+                    partial(send_stanza, """<iq to='#foo%{irc_server_one}' from='{jid_one}/{resource_one}' type='set' id='id2'>
+                    <query xmlns='urn:xmpp:mam:1' queryid='qid2'>
+                    <x xmlns='jabber:x:data' type='submit'>
+                    <field var='FORM_TYPE' type='hidden'> <value>urn:xmpp:mam:1</value></field>
+                    <field var='end'><value>2000-06-07T00:00:00Z</value></field>
+                    </x>
+                    </query></iq>"""),
+
+                    partial(expect_stanza,
+                            "/iq[@type='result'][@id='id2'][@from='#foo%{irc_server_one}'][@to='{jid_one}/{resource_one}']"),
+
+                    # Retrieve an empty archive by specifying a late “start” date
+                    # (note that this test will break in ~1000 years)
+                    partial(send_stanza, """<iq to='#foo%{irc_server_one}' from='{jid_one}/{resource_one}' type='set' id='id3'>
+                    <query xmlns='urn:xmpp:mam:1' queryid='qid3'>
+                    <x xmlns='jabber:x:data' type='submit'>
+                    <field var='FORM_TYPE' type='hidden'> <value>urn:xmpp:mam:1</value></field>
+                    <field var='start'><value>3016-06-07T00:00:00Z</value></field>
+                    </x>
+                    </query></iq>"""),
+
+                    partial(expect_stanza,
+                            "/iq[@type='result'][@id='id3'][@from='#foo%{irc_server_one}'][@to='{jid_one}/{resource_one}']"),
                 ]),
     )
 

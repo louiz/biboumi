@@ -6,6 +6,7 @@
 #include <irc/iid.hpp>
 #include <uuid.h>
 #include <utils/get_first_non_empty.hpp>
+#include <utils/time.hpp>
 
 using namespace std::string_literals;
 
@@ -136,14 +137,30 @@ void Database::store_muc_message(const std::string& owner, const Iid& iid,
   line.update();
 }
 
-std::vector<db::MucLogLine> Database::get_muc_logs(const std::string& owner, const std::string& chan_name, const std::string& server, int limit)
+std::vector<db::MucLogLine> Database::get_muc_logs(const std::string& owner, const std::string& chan_name, const std::string& server,
+                                                   int limit, const std::string& start, const std::string& end)
 {
-  if (limit == -1)
-    limit = 1024;
-  const auto& res = litesql::select<db::MucLogLine>(*Database::db,
-                                                   db::MucLogLine::Owner == owner &&
-                                                   db::MucLogLine::IrcChanName == chan_name &&
-                                                   db::MucLogLine::IrcServerName == server).orderBy(db::MucLogLine::Id, false).limit(limit).all();
+  auto request = litesql::select<db::MucLogLine>(*Database::db,
+                                              db::MucLogLine::Owner == owner &&
+                                              db::MucLogLine::IrcChanName == chan_name &&
+                                              db::MucLogLine::IrcServerName == server);
+  request.orderBy(db::MucLogLine::Id, false);
+
+  if (limit >= 0)
+    request.limit(limit);
+  if (!start.empty())
+    {
+      const auto start_time = utils::parse_datetime(start);
+      if (start_time != -1)
+        request.where(db::MucLogLine::Date >= start_time);
+    }
+  if (!end.empty())
+    {
+      const auto end_time = utils::parse_datetime(end);
+      if (end_time != -1)
+        request.where(db::MucLogLine::Date <= end_time);
+    }
+  const auto& res = request.all();
   return {res.crbegin(), res.crend()};
 }
 
@@ -151,7 +168,6 @@ void Database::close()
 {
   Database::db.reset(nullptr);
 }
-
 
 std::string Database::gen_uuid()
 {

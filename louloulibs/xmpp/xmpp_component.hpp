@@ -30,6 +30,7 @@
 #define MAM_NS           "urn:xmpp:mam:1"
 #define FORWARD_NS       "urn:xmpp:forward:0"
 #define CLIENT_NS        "jabber:client"
+#define DATAFORM_NS      "jabber:x:data"
 
 /**
  * An XMPP component, communicating with an XMPP server using the protocole

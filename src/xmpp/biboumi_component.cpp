@@ -550,13 +550,36 @@ bool BiboumiComponent::handle_mam_request(const Stanza& stanza)
     Iid iid(to.local, {'#', '&'});
     if (iid.type == Iid::Type::Channel && to.resource.empty())
       {
-          const auto lines = Database::get_muc_logs(from.bare(), iid.get_local(), iid.get_server(), -1);
-          for (const db::MucLogLine& line: lines)
-            {
-                const auto queryid = query->get_tag("queryid");
-                if (!line.nick.value().empty())
-                  this->send_archived_message(line, to.full(), from.full(), queryid);
-            }
+        std::string start;
+        std::string end;
+        const XmlNode* x = query->get_child("x", DATAFORM_NS);
+        if (x)
+          {
+            const XmlNode* value;
+            const auto fields = x->get_children("field", DATAFORM_NS);
+            for (const auto& field: fields)
+              {
+                if (field->get_tag("var") == "start")
+                  {
+                    value = field->get_child("value", DATAFORM_NS);
+                    if (value)
+                      start = value->get_inner();
+                  }
+                else if (field->get_tag("var") == "end")
+                  {
+                    value = field->get_child("value", DATAFORM_NS);
+                    if (value)
+                      end = value->get_inner();
+                  }
+              }
+          }
+        const auto lines = Database::get_muc_logs(from.bare(), iid.get_local(), iid.get_server(), -1, start, end);
+        for (const db::MucLogLine& line: lines)
+        {
+          const auto queryid = query->get_tag("queryid");
+          if (!line.nick.value().empty())
+            this->send_archived_message(line, to.full(), from.full(), queryid);
+        }
         this->send_iq_result_full_jid(id, from.full(), to.full());
         return true;
       }

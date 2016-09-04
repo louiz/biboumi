@@ -29,6 +29,7 @@ Usage
 -----
 Read `the documentation`_.
 
+
 Authors
 -------
 Florent Le Coz (louiz’) <louiz@louiz.org>
