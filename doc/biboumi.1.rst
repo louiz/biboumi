@@ -438,7 +438,7 @@ between IRC modes and XMPP features is as follow:
   Sets the participant’s role to ``moderator`` and its affiliation to  ``member``.
 
 ``+v``
-  Sets the participant’s role to `participant` and its affiliation to ``member``.
+  Sets the participant’s role to ``participant`` and its affiliation to ``member``.
 
 Similarly, when a biboumi user changes some participant's affiliation or role, biboumi translates that in an IRC mode change.
 
