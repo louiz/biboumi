@@ -297,10 +297,25 @@ IRC users’.
 History
 -------
 
-Public channel messages are saved into the database, unless the
-`record_history` option is set to false for that user
-`Ad-hoc commands`). When a channel is joined, biboumi sends the
-`max_history_length` messages found in the database, as the MUC history.
+Public channel messages are saved into archives, inside the database, unless
+the `record_history` option is set to false for that user `Ad-hoc commands`.
+Private messages (messages that are sent directly to a nickname, not a
+channel) are never stored in the database. When a channel is joined, biboumi
+sends the `max_history_length` messages found in the database as the MUC
+history.
+
+A channel history can be retrieved by using `Message archive management (MAM)
+<https://xmpp.org/extensions/xep-0313.htm>`_ on the channel JID.  The results
+can be filtered by start and end dates.
+
+For a given channel, each user has her or his own archive.  The content of
+the archives are never shared, and thus a user can not use someone else’s
+archive to get the messages that they didn’t receive when they were offline.
+Although this feature would be very convenient, this would introduce a very
+important privacy issue: for example if a biboumi gateway is used by two
+users, by querying the archive one user would be able to know whether or not
+the other user was in a room at a given time.
+
 
 List channels
 -------------
