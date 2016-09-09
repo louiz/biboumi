@@ -525,7 +525,7 @@ Thus, encryption is not used to connect to the local XMPP server because it
 is useless.
 
 If compiled with the Botan library, biboumi can use TLS when communicating
-with the IRC serveres.  It will first try ports 6697 and 6670 and use TLS if
+with the IRC servers.  It will first try ports 6697 and 6670 and use TLS if
 it succeeds, if connection fails on both these ports, the connection is
 established on port 6667 without any encryption.
 
