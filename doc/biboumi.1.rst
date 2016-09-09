@@ -19,7 +19,7 @@ XMPP client as if these channels were XMPP MUCs.
 Synopsis
 ========
 
-biboumi [*config_filename*\ ]
+biboumi [*config_filename*]
 
 Options
 =======
@@ -139,7 +139,7 @@ default is 0, but a more practical value for production use is 1.
 ca_file
 -------
 
-Specifies which file should be use as the list of trusted CA when
+Specifies which file should be used as the list of trusted CA when
 negociating a TLS session. By default this value is unset and biboumi
 tries a list of well-known paths.
 
