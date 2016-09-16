@@ -39,6 +39,8 @@ RUN rm -rf /litesql
 RUN ldconfig
 
 # Install slixmpp, for e2e tests
+RUN git clone https://github.com/saghul/aiodns.git
+RUN cd aiodns &&  python3 setup.py build && python3 setup.py install
 RUN apt install -y python3-pip
 RUN git clone git://git.louiz.org/slixmpp
 RUN pip3 install pyasn1
