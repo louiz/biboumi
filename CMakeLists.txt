@@ -247,7 +247,7 @@ install(FILES   conf/biboumi.cfg                            DESTINATION /etc/bib
 ## Generate a release tarball from the git sources
 #
 add_custom_command(OUTPUT ${ARCHIVE_NAME}.tar.xz
-  COMMAND git archive --prefix=${ARCHIVE_NAME}/ --format=tar HEAD
+  COMMAND git archive --prefix=${ARCHIVE_NAME}/ --format=tar HEAD^{tree}
           > ${CMAKE_CURRENT_BINARY_DIR}/${ARCHIVE_NAME}.tar
   # Append this specific file that is not part of the git repo
   COMMAND tar -rf ${CMAKE_CURRENT_BINARY_DIR}/${ARCHIVE_NAME}.tar -P ${SOURCE_DIR}/single_include/catch.hpp --xform 's|/.*/|${ARCHIVE_NAME}/tests/|g'
