@@ -15,7 +15,7 @@ std::string to_string(const std::time_t& timestamp)
 std::time_t parse_datetime(const std::string& stamp)
 {
   struct tm tm;
-  if (!::strptime(stamp.data(), "%FT%T%z", &tm))
+  if (!::strptime(stamp.data(), "%FT%T%Z", &tm))
     return -1;
   auto res = ::timegm(&tm);
   return res;
