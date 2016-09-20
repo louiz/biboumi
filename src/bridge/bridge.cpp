@@ -764,7 +764,7 @@ void Bridge::send_room_history(const std::string& hostname, const std::string& c
   for (const auto& line: lines)
     {
       const auto seconds = line.date.value().timeStamp();
-      this->xmpp.send_history_message(chan_name + "%" + hostname, line.nick.value(), line.body.value(),
+      this->xmpp.send_history_message(chan_name + utils::empty_if_fixed_server("%" + hostname), line.nick.value(), line.body.value(),
                                       this->user_jid + "/" + resource, seconds);
     }
 #endif

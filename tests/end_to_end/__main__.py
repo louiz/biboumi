@@ -1052,7 +1052,6 @@ if __name__ == '__main__':
                 Scenario("simple_mam",
                 [
                     handshake_sequence(),
-                    # First user joins
                     partial(send_stanza,
                             "<presence from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}/{nick_one}' />"),
                     connection_sequence("irc.localhost", '{jid_one}/{resource_one}'),
@@ -1066,11 +1065,9 @@ if __name__ == '__main__':
 
                     # Send two channel messages
                     partial(send_stanza, "<message from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}' type='groupchat'><body>coucou</body></message>"),
-                    # Receive the message, forwarded to the two users
                     partial(expect_stanza, "/message[@from='#foo%{irc_server_one}/{nick_one}'][@to='{jid_one}/{resource_one}'][@type='groupchat']/body[text()='coucou']"),
 
                     partial(send_stanza, "<message from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}' type='groupchat'><body>coucou 2</body></message>"),
-                    # Receive the message, forwarded to the two users
                     partial(expect_stanza, "/message[@from='#foo%{irc_server_one}/{nick_one}'][@to='{jid_one}/{resource_one}'][@type='groupchat']/body[text()='coucou 2']"),
 
                     # Retrieve the complete archive
@@ -1113,6 +1110,109 @@ if __name__ == '__main__':
                     partial(expect_stanza,
                             "/iq[@type='result'][@id='id3'][@from='#foo%{irc_server_one}'][@to='{jid_one}/{resource_one}']"),
                 ]),
+        Scenario("mam_on_fixed_server",
+                 [
+                     handshake_sequence(),
+
+                     partial(send_stanza,
+                             "<presence from='{jid_one}/{resource_one}' to='#foo@{biboumi_host}/{nick_one}' />"),
+                     connection_sequence("irc.localhost", '{jid_one}/{resource_one}'),
+                     partial(expect_stanza,
+                             "/message/body[text()='Mode #foo [+nt] by {irc_host_one}']"),
+                     partial(expect_stanza,
+                             ("/presence[@to='{jid_one}/{resource_one}'][@from='#foo@{biboumi_host}/{nick_one}']/muc_user:x/muc_user:item[@affiliation='admin'][@jid='~nick@localhost'][@role='moderator']",
+                              "/presence/muc_user:x/muc_user:status[@code='110']")
+                             ),
+                     partial(expect_stanza, "/message[@from='#foo@{biboumi_host}'][@type='groupchat']/subject[not(text())]"),
+
+                     partial(send_stanza, "<message from='{jid_one}/{resource_one}' to='#foo@{biboumi_host}' type='groupchat'><body>coucou</body></message>"),
+                     partial(expect_stanza, "/message[@from='#foo@{biboumi_host}/{nick_one}'][@to='{jid_one}/{resource_one}'][@type='groupchat']/body[text()='coucou']"),
+
+                     partial(send_stanza, "<message from='{jid_one}/{resource_one}' to='#foo@{biboumi_host}' type='groupchat'><body>coucou 2</body></message>"),
+                     partial(expect_stanza, "/message[@from='#foo@{biboumi_host}/{nick_one}'][@to='{jid_one}/{resource_one}'][@type='groupchat']/body[text()='coucou 2']"),
+
+                     # Retrieve the complete archive
+                     partial(send_stanza, "<iq to='#foo@{biboumi_host}' from='{jid_one}/{resource_one}' type='set' id='id1'><query xmlns='urn:xmpp:mam:1' queryid='qid1' /></iq>"),
+
+                     partial(expect_stanza,
+                             ("/message/mam:result[@queryid='qid1']/forward:forwarded/delay:delay",
+                              "/message/mam:result[@queryid='qid1']/forward:forwarded/client:message[@from='#foo@{biboumi_host}/{nick_one}'][@type='groupchat']/client:body[text()='coucou']")
+                             ),
+                     partial(expect_stanza,
+                             ("/message/mam:result[@queryid='qid1']/forward:forwarded/delay:delay",
+                              "/message/mam:result[@queryid='qid1']/forward:forwarded/client:message[@from='#foo@{biboumi_host}/{nick_one}'][@type='groupchat']/client:body[text()='coucou 2']")
+                             ),
+                 ], conf="fixed_server"),
+        Scenario("channel_history_on_fixed_server",
+                 [
+                     handshake_sequence(),
+                     # First user join
+                     partial(send_stanza,
+                             "<presence from='{jid_one}/{resource_one}' to='#foo@{biboumi_host}/{nick_one}' />"),
+                     connection_sequence("irc.localhost", '{jid_one}/{resource_one}'),
+                     partial(expect_stanza,
+                             "/message/body[text()='Mode #foo [+nt] by {irc_host_one}']"),
+                     partial(expect_stanza,
+                             ("/presence[@to='{jid_one}/{resource_one}'][@from='#foo@{biboumi_host}/{nick_one}']/muc_user:x/muc_user:item[@affiliation='admin'][@jid='~nick@localhost'][@role='moderator']",
+                              "/presence/muc_user:x/muc_user:status[@code='110']")
+                             ),
+                     partial(expect_stanza, "/message[@from='#foo@{biboumi_host}'][@type='groupchat']/subject[not(text())]"),
+
+                     # Send one channel message
+                     partial(send_stanza, "<message from='{jid_one}/{resource_one}' to='#foo@{biboumi_host}' type='groupchat'><body>coucou</body></message>"),
+                     partial(expect_stanza, "/message[@from='#foo@{biboumi_host}/{nick_one}'][@to='{jid_one}/{resource_one}'][@type='groupchat']/body[text()='coucou']"),
+
+                     # Second user joins
+                     partial(send_stanza,
+                             "<presence from='{jid_one}/{resource_two}' to='#foo@{biboumi_host}/{nick_one}' />"),
+                     # connection_sequence("irc.localhost", '{jid_one}/{resource_two}'),
+                     # partial(expect_stanza,
+                     #         "/message/body[text()='Mode #foo [+nt] by {irc_host_one}']"),
+                     partial(expect_stanza,
+                             ("/presence[@to='{jid_one}/{resource_two}'][@from='#foo@{biboumi_host}/{nick_one}']/muc_user:x/muc_user:item[@affiliation='admin'][@jid='~nick@localhost'][@role='moderator']",
+                              "/presence/muc_user:x/muc_user:status[@code='110']")
+                             ),
+                     # Receive the history message
+                     partial(expect_stanza, ("/message[@from='#foo@{biboumi_host}/{nick_one}']/body[text()='coucou']",
+                                             "/message/delay:delay[@from='#foo@{biboumi_host}']")),
+
+                     partial(expect_stanza, "/message[@from='#foo@{biboumi_host}'][@type='groupchat']/subject[not(text())]"),
+                 ], conf="fixed_server"),
+    Scenario("channel_history",
+             [
+                 handshake_sequence(),
+                 # First user join
+                 partial(send_stanza,
+                         "<presence from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}/{nick_one}' />"),
+                 connection_sequence("irc.localhost", '{jid_one}/{resource_one}'),
+                 partial(expect_stanza,
+                         "/message/body[text()='Mode #foo [+nt] by {irc_host_one}']"),
+                 partial(expect_stanza,
+                         ("/presence[@to='{jid_one}/{resource_one}'][@from='#foo%{irc_server_one}/{nick_one}']/muc_user:x/muc_user:item[@affiliation='admin'][@jid='~nick@localhost'][@role='moderator']",
+                          "/presence/muc_user:x/muc_user:status[@code='110']")
+                         ),
+                 partial(expect_stanza, "/message[@from='#foo%{irc_server_one}'][@type='groupchat']/subject[not(text())]"),
+
+                 # Send one channel message
+                 partial(send_stanza, "<message from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}' type='groupchat'><body>coucou</body></message>"),
+                 partial(expect_stanza, "/message[@from='#foo%{irc_server_one}/{nick_one}'][@to='{jid_one}/{resource_one}'][@type='groupchat']/body[text()='coucou']"),
+
+                 # Second user joins
+                 partial(send_stanza,
+                         "<presence from='{jid_one}/{resource_two}' to='#foo%{irc_server_one}/{nick_one}' />"),
+                 # connection_sequence("irc.localhost", '{jid_one}/{resource_two}'),
+                 # partial(expect_stanza,
+                 #         "/message/body[text()='Mode #foo [+nt] by {irc_host_one}']"),
+                 partial(expect_stanza,
+                         ("/presence[@to='{jid_one}/{resource_two}'][@from='#foo%{irc_server_one}/{nick_one}']/muc_user:x/muc_user:item[@affiliation='admin'][@jid='~nick@localhost'][@role='moderator']",
+                          "/presence/muc_user:x/muc_user:status[@code='110']")
+                         ),
+                 # Receive the history message
+                 partial(expect_stanza, ("/message[@from='#foo%{irc_server_one}/{nick_one}']/body[text()='coucou']",
+                                         "/message/delay:delay[@from='#foo%{irc_server_one}']")),
+
+                 partial(expect_stanza, "/message[@from='#foo%{irc_server_one}'][@type='groupchat']/subject[not(text())]"),
+             ])
     )
 
     failures = 0
