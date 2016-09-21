@@ -111,7 +111,7 @@ public:
   void on_gateway_ping(const std::string& irc_hostname, const std::string& iq_id, const std::string& to_jid,
                        const std::string& from_jid);
 
-  void send_irc_invitation(const Iid& iid, const std::string to);
+  void send_irc_invitation(const Iid& iid, const std::string& to);
 
   /***
    **

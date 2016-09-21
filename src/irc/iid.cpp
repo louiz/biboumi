@@ -5,7 +5,7 @@
 
 #include <utils/encoding.hpp>
 
-Iid::Iid(const std::string local, const std::string server, Iid::Type type):
+Iid::Iid(const std::string& local, const std::string& server, Iid::Type type):
         type(type),
         local(local),
         server(server)

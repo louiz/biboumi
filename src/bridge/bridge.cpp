@@ -563,7 +563,7 @@ void Bridge::on_gateway_ping(const std::string& irc_hostname, const std::string&
                                   "", true);
 }
 
-void Bridge::send_irc_invitation(const Iid& iid, const std::string to)
+void Bridge::send_irc_invitation(const Iid& iid, const std::string& to)
 {
   IrcClient* irc = this->get_irc_client(iid.get_server());
   Jid to_jid(to);
