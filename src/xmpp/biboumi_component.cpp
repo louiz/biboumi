@@ -168,7 +168,7 @@ void BiboumiComponent::handle_presence(const Stanza& stanza)
     }
   else
     {
-      // An user wants to join an invalid IRC channel, return a presence error to him
+      // A user wants to join an invalid IRC channel, return a presence error to him/her
       if (type.empty())
         this->send_invalid_room_error(to.local, to.resource, from_str);
     }

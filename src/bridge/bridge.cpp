@@ -498,7 +498,8 @@ void Bridge::send_irc_user_ping_request(const std::string& irc_hostname, const s
   Iid iid(nick, irc_hostname, Iid::Type::User);
   this->send_private_message(iid, "\01PING " + iq_id + "\01");
 
-  irc_responder_callback_t cb = [this, nick=utils::tolower(nick), iq_id, to_jid, irc_hostname, from_jid](const std::string& hostname, const IrcMessage& message) -> bool
+  irc_responder_callback_t cb = [this, nick=utils::tolower(nick), iq_id, to_jid, irc_hostname, from_jid]
+          (const std::string& hostname, const IrcMessage& message) -> bool
     {
       if (irc_hostname != hostname || message.arguments.size() < 2)
         return false;
@@ -586,7 +587,8 @@ void Bridge::send_irc_version_request(const std::string& irc_hostname, const std
   this->send_private_message(iid, "\01VERSION\01");
   // TODO, add a timer to remove that waiting iq if the server does not
   // respond with a matching command before n seconds
-  irc_responder_callback_t cb = [this, target, iq_id, to_jid, irc_hostname, from_jid](const std::string& hostname, const IrcMessage& message) -> bool
+  irc_responder_callback_t cb = [this, target, iq_id, to_jid, irc_hostname, from_jid]
+          (const std::string& hostname, const IrcMessage& message) -> bool
     {
       if (irc_hostname != hostname)
         return false;
@@ -659,15 +661,16 @@ void Bridge::send_presence_error(const Iid& iid, const std::string& nick,
   this->xmpp.send_presence_error(std::to_string(iid), nick, this->user_jid, type, condition, error_code, text);
 }
 
-void Bridge::send_muc_leave(Iid&& iid, std::string&& nick, const std::string& message, const bool self, const std::string& resource)
+void Bridge::send_muc_leave(Iid&& iid, std::string&& nick, const std::string& message, const bool self,
+                            const std::string& resource)
 {
   if (!resource.empty())
-    this->xmpp.send_muc_leave(std::to_string(iid), std::move(nick), this->make_xmpp_body(message), this->user_jid + "/" + resource,
-                              self);
+    this->xmpp.send_muc_leave(std::to_string(iid), std::move(nick), this->make_xmpp_body(message),
+                              this->user_jid + "/" + resource, self);
   else
     for (const auto& res: this->resources_in_chan[iid.to_tuple()])
-      this->xmpp.send_muc_leave(std::to_string(iid), std::move(nick), this->make_xmpp_body(message), this->user_jid + "/" + res,
-                                self);
+      this->xmpp.send_muc_leave(std::to_string(iid), std::move(nick), this->make_xmpp_body(message),
+                                this->user_jid + "/" + res, self);
   IrcClient* irc = this->find_irc_client(iid.get_server());
   if (irc && irc->number_of_joined_channels() == 0)
     irc->send_quit_command("");
@@ -730,7 +733,8 @@ void Bridge::send_user_join(const std::string& hostname, const std::string& chan
                             affiliation, role, this->user_jid + "/" + resource, self);
 }
 
-void Bridge::send_topic(const std::string& hostname, const std::string& chan_name, const std::string& topic, const std::string& who)
+void Bridge::send_topic(const std::string& hostname, const std::string& chan_name, const std::string& topic,
+                        const std::string& who)
 {
   for (const auto& resource: this->resources_in_chan[ChannelKey{chan_name, hostname}])
     {
@@ -764,7 +768,8 @@ void Bridge::send_room_history(const std::string& hostname, const std::string& c
   for (const auto& line: lines)
     {
       const auto seconds = line.date.value().timeStamp();
-      this->xmpp.send_history_message(chan_name + utils::empty_if_fixed_server("%" + hostname), line.nick.value(), line.body.value(),
+      this->xmpp.send_history_message(chan_name + utils::empty_if_fixed_server("%" + hostname), line.nick.value(),
+                                      line.body.value(),
                                       this->user_jid + "/" + resource, seconds);
     }
 #endif
@@ -775,7 +780,7 @@ std::string Bridge::get_own_nick(const Iid& iid)
   IrcClient* irc = this->find_irc_client(iid.get_server());
   if (irc)
     return irc->get_own_nick();
-  return "";
+  return {};
 }
 
 size_t Bridge::active_clients() const
@@ -791,8 +796,9 @@ void Bridge::kick_muc_user(Iid&& iid, const std::string& target, const std::stri
 
 void Bridge::send_nickname_conflict_error(const Iid& iid, const std::string& nickname)
 {
-  for (const auto& resource: this->resources_in_chan[iid.to_tuple()])
-    this->xmpp.send_presence_error(std::to_string(iid), nickname, this->user_jid + "/" + resource, "cancel", "conflict", "409", "");
+    for (const auto& resource: this->resources_in_chan[iid.to_tuple()])
+        this->xmpp.send_presence_error(std::to_string(iid), nickname, this->user_jid + "/" + resource,
+                                       "cancel", "conflict", "409", "");
 }
 
 void Bridge::send_affiliation_role_change(const Iid& iid, const std::string& target, const char mode)
@@ -802,14 +808,16 @@ void Bridge::send_affiliation_role_change(const Iid& iid, const std::string& tar
 
   std::tie(role, affiliation) = get_role_affiliation_from_irc_mode(mode);
   for (const auto& resource: this->resources_in_chan[iid.to_tuple()])
-    this->xmpp.send_affiliation_role_change(std::to_string(iid), target, affiliation, role, this->user_jid + "/" + resource);
+    this->xmpp.send_affiliation_role_change(std::to_string(iid), target, affiliation, role,
+                                            this->user_jid + "/" + resource);
 }
 
 void Bridge::send_iq_version_request(const std::string& nick, const std::string& hostname)
 {
   const auto resources = this->resources_in_server[hostname];
   if (resources.begin() != resources.end())
-    this->xmpp.send_iq_version_request(utils::tolower(nick) + "%" + utils::empty_if_fixed_server(hostname), this->user_jid + "/" + *resources.begin());
+    this->xmpp.send_iq_version_request(utils::tolower(nick) + "%" + utils::empty_if_fixed_server(hostname),
+                                       this->user_jid + "/" + *resources.begin());
 }
 
 void Bridge::send_xmpp_ping_request(const std::string& nick, const std::string& hostname,
@@ -821,7 +829,8 @@ void Bridge::send_xmpp_ping_request(const std::string& nick, const std::string& 
   // Forward to the first resource (arbitrary, based on the “order” of the std::set) only
   const auto resources = this->resources_in_server[hostname];
   if (resources.begin() != resources.end())
-    this->xmpp.send_ping_request(utils::tolower(nick) + "%" + utils::empty_if_fixed_server(hostname), this->user_jid + "/" + *resources.begin(), utils::revstr(id));
+    this->xmpp.send_ping_request(utils::tolower(nick) + "%" + utils::empty_if_fixed_server(hostname),
+                                 this->user_jid + "/" + *resources.begin(), utils::revstr(id));
 }
 
 void Bridge::send_xmpp_invitation(const Iid& iid, const std::string& author)
