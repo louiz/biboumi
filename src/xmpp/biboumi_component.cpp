@@ -399,14 +399,23 @@ void BiboumiComponent::handle_iq(const Stanza& stanza)
       const XmlNode* query;
       if ((query = stanza.get_child("query", DISCO_INFO_NS)))
         { // Disco info
+          Iid iid(to.local, {});
+          const std::string node = query->get_tag("node");
           if (to_str == this->served_hostname)
             {
-              const std::string node = query->get_tag("node");
               if (node.empty())
                 {
                   // On the gateway itself
                   this->send_self_disco_info(id, from);
                   stanza_error.disable();
+                }
+            }
+          else if (iid.type == Iid::Type::Server)
+            {
+                if (node.empty())
+                {
+                    this->send_irc_server_disco_info(id, from, to_str);
+                    stanza_error.disable();
                 }
             }
         }
@@ -675,6 +684,31 @@ void BiboumiComponent::send_self_disco_info(const std::string& id, const std::st
   identity["name"] = "Biboumi XMPP-IRC gateway";
   query.add_child(std::move(identity));
   for (const char* ns: {DISCO_INFO_NS, MUC_NS, ADHOC_NS, PING_NS, MAM_NS, VERSION_NS})
+    {
+      XmlNode feature("feature");
+      feature["var"] = ns;
+      query.add_child(std::move(feature));
+    }
+  iq.add_child(std::move(query));
+  this->send_stanza(iq);
+}
+
+void BiboumiComponent::send_irc_server_disco_info(const std::string& id, const std::string& jid_to, const std::string& jid_from)
+{
+  Jid from(jid_from);
+  Stanza iq("iq");
+  iq["type"] = "result";
+  iq["id"] = id;
+  iq["to"] = jid_to;
+  iq["from"] = jid_from;
+  XmlNode query("query");
+  query["xmlns"] = DISCO_INFO_NS;
+  XmlNode identity("identity");
+  identity["category"] = "conference";
+  identity["type"] = "irc";
+  identity["name"] = "IRC server "s + from.local + " over Biboumi";
+  query.add_child(std::move(identity));
+  for (const char* ns: {DISCO_INFO_NS, ADHOC_NS, PING_NS, VERSION_NS})
     {
       XmlNode feature("feature");
       feature["var"] = ns;

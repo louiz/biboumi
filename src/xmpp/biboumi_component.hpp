@@ -62,6 +62,10 @@ public:
    */
   void send_self_disco_info(const std::string& id, const std::string& jid_to);
   /**
+   * Send a result IQ with the disco informations regarding IRC server JIDs.
+   */
+  void send_irc_server_disco_info(const std::string& id, const std::string& jid_to, const std::string& jid_from);
+  /**
    * Send an iq version request
    */
   void send_iq_version_request(const std::string& from,
