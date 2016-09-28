@@ -1,6 +1,12 @@
 Biboumi
 =======
 
+.. image:: https://lab.louiz.org/louiz/biboumi/badges/master/build.svg
+   :target: https://lab.louiz.org/louiz/biboumi/commits/master
+   
+.. image:: https://lab.louiz.org/louiz/biboumi/badges/master/coverage.svg
+   :target: https://lab.louiz.org/louiz/biboumi/commits/master
+   
 Biboumi is an XMPP gateway that connects to IRC servers and translates
 between the two protocols. It can be used to access IRC channels using any
 XMPP client as if these channels were XMPP MUCs.
