@@ -85,10 +85,11 @@ build:rpm:
     - make biboumi -j$(nproc)
     - make check
     - make coverage
-    - mkdir tests_outputs && pushd tests_outputs && make e2e -j$(nproc) -C .. && popd
+    - mkdir tests_outputs && pushd tests_outputs && make coverage_e2e -j$(nproc) -C .. && popd
   artifacts:
     paths:
       - build/coverage/
+      - build/coverage_e2e/
       - build/tests_outputs/
     when: always
 

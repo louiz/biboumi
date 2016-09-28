@@ -232,6 +232,10 @@ if(CMAKE_BUILD_TYPE MATCHES Debug)
     test_suite
     coverage
     )
+  SETUP_TARGET_FOR_COVERAGE(coverage_e2e
+    make
+    coverage_e2e
+    e2e)
 endif()
 
 #
