@@ -56,35 +56,24 @@ BiboumiComponent::BiboumiComponent(std::shared_ptr<Poller> poller, const std::st
   this->stanza_handlers.emplace("iq",
                                 std::bind(&BiboumiComponent::handle_iq, this,std::placeholders::_1));
 
-  this->adhoc_commands_handler.get_commands() = {
-    {"ping", AdhocCommand({&PingStep1}, "Do a ping", false)},
-    {"hello", AdhocCommand({&HelloStep1, &HelloStep2}, "Receive a custom greeting", false)},
-    {"disconnect-user", AdhocCommand({&DisconnectUserStep1, &DisconnectUserStep2}, "Disconnect selected users from the gateway", true)},
-    {"disconnect-from-irc-servers", AdhocCommand({&DisconnectUserFromServerStep1, &DisconnectUserFromServerStep2, &DisconnectUserFromServerStep3}, "Disconnect from the selected IRC servers", false)},
-    {"reload", AdhocCommand({&Reload}, "Reload biboumi’s configuration", true)}
-  };
+  this->adhoc_commands_handler.add_command("ping", {{&PingStep1}, "Do a ping", false});
+  this->adhoc_commands_handler.add_command("hello", {{&HelloStep1, &HelloStep2}, "Receive a custom greeting", false});
+  this->adhoc_commands_handler.add_command("disconnect-user", {{&DisconnectUserStep1, &DisconnectUserStep2}, "Disconnect selected users from the gateway", true});
+  this->adhoc_commands_handler.add_command("hello", {{&HelloStep1, &HelloStep2}, "Receive a custom greeting", false});
+  this->adhoc_commands_handler.add_command("reload", {{&Reload}, "Reload biboumi’s configuration", true});
 
 #ifdef USE_DATABASE
   AdhocCommand configure_server_command({&ConfigureIrcServerStep1, &ConfigureIrcServerStep2}, "Configure a few settings for that IRC server", false);
   AdhocCommand configure_global_command({&ConfigureGlobalStep1, &ConfigureGlobalStep2}, "Configure a few settings", false);
-  if (!Config::get("fixed_irc_server", "").empty())
-    this->adhoc_commands_handler.get_commands().emplace(std::make_pair("configure",
-                                                                       configure_server_command));
-  else
-    this->adhoc_commands_handler.get_commands().emplace(std::make_pair("configure",
-                                                                       configure_global_command));
-#endif
 
-  this->irc_server_adhoc_commands_handler.get_commands() = {
-#ifdef USE_DATABASE
-    {"configure", configure_server_command},
+  if (!Config::get("fixed_irc_server", "").empty())
+    this->adhoc_commands_handler.add_command("configure", configure_server_command);
+  else
+    this->adhoc_commands_handler.add_command("configure", configure_global_command);
+
+  this->irc_server_adhoc_commands_handler.add_command("configure", configure_server_command);
+  this->irc_channel_adhoc_commands_handler.add_command("configure", {{&ConfigureIrcChannelStep1, &ConfigureIrcChannelStep2}, "Configure a few settings for that IRC channel", false});
 #endif
-  };
-  this->irc_channel_adhoc_commands_handler.get_commands() = {
-#ifdef USE_DATABASE
-    {"configure", AdhocCommand({&ConfigureIrcChannelStep1, &ConfigureIrcChannelStep2}, "Configure a few settings for that IRC channel", false)},
-#endif
-  };
 }
 
 void BiboumiComponent::shutdown()
