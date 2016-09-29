@@ -59,7 +59,7 @@ BiboumiComponent::BiboumiComponent(std::shared_ptr<Poller> poller, const std::st
   this->adhoc_commands_handler.add_command("ping", {{&PingStep1}, "Do a ping", false});
   this->adhoc_commands_handler.add_command("hello", {{&HelloStep1, &HelloStep2}, "Receive a custom greeting", false});
   this->adhoc_commands_handler.add_command("disconnect-user", {{&DisconnectUserStep1, &DisconnectUserStep2}, "Disconnect selected users from the gateway", true});
-  this->adhoc_commands_handler.add_command("hello", {{&HelloStep1, &HelloStep2}, "Receive a custom greeting", false});
+  this->adhoc_commands_handler.add_command("disconnect-from-irc-server", {{&DisconnectUserFromServerStep1, &DisconnectUserFromServerStep2, &DisconnectUserFromServerStep3}, "Disconnect from the selected IRC servers", false});
   this->adhoc_commands_handler.add_command("reload", {{&Reload}, "Reload biboumi’s configuration", true});
 
 #ifdef USE_DATABASE
