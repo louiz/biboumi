@@ -4,7 +4,7 @@
 #include <database/database.hpp>
 #include <logger/logger.hpp>
 #include <irc/iid.hpp>
-#include <uuid.h>
+#include <uuid/uuid.h>
 #include <utils/get_first_non_empty.hpp>
 #include <utils/time.hpp>
 

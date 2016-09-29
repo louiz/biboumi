@@ -20,7 +20,7 @@
 #include <louloulibs.h>
 #include <biboumi.h>
 
-#include <uuid.h>
+#include <uuid/uuid.h>
 
 #ifdef SYSTEMD_FOUND
 # include <systemd/sd-daemon.h>
