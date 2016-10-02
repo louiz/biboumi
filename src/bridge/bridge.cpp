@@ -10,6 +10,7 @@
 #include <xmpp/jid.hpp>
 #include <database/database.hpp>
 #include "result_set_management.hpp"
+#include <algorithm>
 
 using namespace std::string_literals;
 
