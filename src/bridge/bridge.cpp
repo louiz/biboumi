@@ -1,5 +1,4 @@
 #include <bridge/bridge.hpp>
-#include <bridge/list_element.hpp>
 #include <xmpp/biboumi_component.hpp>
 #include <network/poller.hpp>
 #include <utils/empty_if_fixed_server.hpp>
@@ -10,6 +9,7 @@
 #include <utils/split.hpp>
 #include <xmpp/jid.hpp>
 #include <database/database.hpp>
+#include "result_set_management.hpp"
 
 using namespace std::string_literals;
 
@@ -386,45 +386,164 @@ void Bridge::send_irc_nick_change(const Iid& iid, const std::string& new_nick)
   irc->send_nick_command(new_nick);
 }
 
-void Bridge::send_irc_channel_list_request(const Iid& iid, const std::string& iq_id,
-                                           const std::string& to_jid)
+void Bridge::send_irc_channel_list_request(const Iid& iid, const std::string& iq_id, const std::string& to_jid,
+                                           ResultSetInfo rs_info)
 {
-  IrcClient* irc = this->get_irc_client(iid.get_server());
+  auto& list = channel_list_cache[iid.get_server()];
 
-  irc->send_list_command();
-
-  std::vector<ListElement> list;
-
-  irc_responder_callback_t cb = [this, iid, iq_id, to_jid, list=std::move(list)](const std::string& irc_hostname,
-                                                           const IrcMessage& message) mutable -> bool
+  // We fetch the list from the IRC server only if we have a complete
+  // cached list that needs to be invalidated (that is, when the request
+  // doesn’t have a after or before, or when the list is empty).
+  // If the list is not complete, this means that a request is already
+  // ongoing, so we just need to add the callback.
+  // By default the list is complete and empty.
+  if (list.complete &&
+      (list.channels.empty() || (rs_info.after.empty() && rs_info.before.empty())))
     {
-      if (irc_hostname != iid.get_server())
-        return false;
-      if (message.command == "263" || message.command == "RPL_TRYAGAIN" ||
-          message.command == "ERR_TOOMANYMATCHES" || message.command == "ERR_NOSUCHSERVER")
-        {
-          std::string text;
-          if (message.arguments.size() >= 2)
-            text = message.arguments[1];
-          this->xmpp.send_stanza_error("iq", to_jid, std::to_string(iid), iq_id,
-                                        "wait", "service-unavailable", text, false);
-          return true;
-        }
-      else if (message.command == "322" || message.command == "RPL_LIST")
-        { // Add element to list
-          if (message.arguments.size() == 4)
-            list.emplace_back(message.arguments[1], message.arguments[2],
-                              message.arguments[3]);
+      IrcClient* irc = this->get_irc_client(iid.get_server());
+      irc->send_list_command();
+
+      // Add a callback that will populate our list
+      list.channels.clear();
+      list.complete = false;
+      irc_responder_callback_t cb = [this, iid](const std::string& irc_hostname,
+                                                const IrcMessage& message) -> bool
+      {
+        if (irc_hostname != iid.get_server())
           return false;
+
+        auto& list = channel_list_cache[iid.get_server()];
+
+        if (message.command == "263" || message.command == "RPL_TRYAGAIN" || message.command == "ERR_TOOMANYMATCHES"
+            || message.command == "ERR_NOSUCHSERVER")
+          {
+            list.complete = true;
+            return true;
+          }
+        else if (message.command == "322" || message.command == "RPL_LIST")
+          { // Add element to list
+            if (message.arguments.size() == 4)
+              {
+                list.channels.emplace_back(message.arguments[1] + utils::empty_if_fixed_server("%" + iid.get_server()),
+                                           message.arguments[2], message.arguments[3]);
+              }
+            return false;
+          }
+        else if (message.command == "323" || message.command == "RPL_LISTEND")
+          { // Send the iq response with the content of the list
+            list.complete = true;
+            return true;
+          }
+        return false;
+      };
+
+      this->add_waiting_irc(std::move(cb));
+    }
+
+  // If the list is complete, we immediately send the answer.
+  // Otherwise, we install a callback, that will populate our list and send
+  // the answer when we can.
+  if (list.complete)
+    {
+      this->send_matching_channel_list(list, rs_info, iq_id, to_jid, std::to_string(iid));
+    }
+  else
+    {
+      // Add a callback to answer the request as soon as we can
+      irc_responder_callback_t cb = [this, iid, iq_id, to_jid,
+                                     rs_info=std::move(rs_info)](const std::string& irc_hostname,
+                                                                 const IrcMessage& message) -> bool
+      {
+        if (irc_hostname != iid.get_server())
+          return false;
+
+        if (message.command == "263" || message.command == "RPL_TRYAGAIN" || message.command == "ERR_TOOMANYMATCHES"
+            || message.command == "ERR_NOSUCHSERVER")
+          {
+            std::string text;
+            if (message.arguments.size() >= 2)
+              text = message.arguments[1];
+            this->xmpp.send_stanza_error("iq", to_jid, std::to_string(iid), iq_id, "wait", "service-unavailable", text, false);
+            return true;
+          }
+        else if (message.command == "322" || message.command == "RPL_LIST")
+          {
+            auto& list = channel_list_cache[iid.get_server()];
+            const auto res = this->send_matching_channel_list(list, rs_info, iq_id, to_jid, std::to_string(iid));
+            log_debug("We added a new channel in our list, can we send the result? ", std::boolalpha, res);
+            return res;
+          }
+        else if (message.command == "323" || message.command == "RPL_LISTEND")
+          { // Send the iq response with the content of the list
+            auto& list = channel_list_cache[iid.get_server()];
+            this->send_matching_channel_list(list, rs_info, iq_id, to_jid, std::to_string(iid));
+            return true;
+          }
+        return false;
+      };
+
+      this->add_waiting_irc(std::move(cb));
+    }
+}
+
+bool Bridge::send_matching_channel_list(const ChannelList& channel_list, const ResultSetInfo& rs_info,
+                                        const std::string& id, const std::string& to_jid, const std::string& from)
+{
+  auto begin = channel_list.channels.begin();
+  auto end = channel_list.channels.begin();
+  if (channel_list.complete)
+    {
+      begin = std::find_if(channel_list.channels.begin(), channel_list.channels.end(), [this, &rs_info](const ListElement& element)
+      {
+        return rs_info.after == element.channel + "@" + this->xmpp.get_served_hostname();
+      });
+      if (begin == channel_list.channels.end())
+        begin = channel_list.channels.begin();
+      else
+        begin = std::next(begin);
+      end = std::find_if(channel_list.channels.begin(), channel_list.channels.end(), [this, &rs_info](const ListElement& element)
+      {
+        return rs_info.before == element.channel + "@" + this->xmpp.get_served_hostname();
+      });
+      if (rs_info.max >= 0)
+        {
+          if (std::distance(begin, end) >= rs_info.max)
+            end = begin + rs_info.max;
         }
-      else if (message.command == "323" || message.command == "RPL_LISTEND")
-        { // Send the iq response with the content of the list
-          this->xmpp.send_iq_room_list_result(iq_id, to_jid, std::to_string(iid), list);
-          return true;
+    }
+  else
+    {
+      if (rs_info.after.empty() && rs_info.before.empty() && rs_info.max < 0)
+        return false;
+      if (!rs_info.after.empty())
+        {
+          begin = std::find_if(channel_list.channels.begin(), channel_list.channels.end(), [this, &rs_info](const ListElement& element)
+          {
+            return rs_info.after == element.channel + "@" + this->xmpp.get_served_hostname();
+          });
+          if (begin == channel_list.channels.end())
+            return false;
+          begin = std::next(begin);
         }
-      return false;
-    };
-  this->add_waiting_irc(std::move(cb));
+        if (!rs_info.before.empty())
+        {
+          end = std::find_if(channel_list.channels.begin(), channel_list.channels.end(), [this, &rs_info](const ListElement& element)
+          {
+            return rs_info.before == element.channel + "@" + this->xmpp.get_served_hostname();
+          });
+          if (end == channel_list.channels.end())
+            return false;
+        }
+      if (rs_info.max >= 0)
+        {
+          if (std::distance(begin, end) < rs_info.max)
+            return false;
+          else
+            end = begin + rs_info.max;
+        }
+    }
+  this->xmpp.send_iq_room_list_result(id, to_jid, from, channel_list, begin, end, rs_info);
+  return true;
 }
 
 void Bridge::send_irc_kick(const Iid& iid, const std::string& target, const std::string& reason,

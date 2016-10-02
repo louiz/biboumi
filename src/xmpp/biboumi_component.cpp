@@ -15,7 +15,7 @@
 #include <stdexcept>
 #include <iostream>
 
-#include <stdio.h>
+#include <cstdlib>
 
 #include <louloulibs.h>
 #include <biboumi.h>
@@ -27,6 +27,7 @@
 #endif
 
 #include <database/database.hpp>
+#include <bridge/result_set_management.hpp>
 
 using namespace std::string_literals;
 
@@ -463,7 +464,22 @@ void BiboumiComponent::handle_iq(const Stanza& stanza)
             }
           else if (node.empty() && iid.type == Iid::Type::Server)
             { // Disco on an IRC server: get the list of channels
-              bridge->send_irc_channel_list_request(iid, id, from);
+              ResultSetInfo rs_info;
+              const XmlNode* set_node = query->get_child("set", RSM_NS);
+              if (set_node)
+                {
+                  const XmlNode* after = set_node->get_child("after", RSM_NS);
+                  if (after)
+                    rs_info.after = after->get_inner();
+                  const XmlNode* before = set_node->get_child("before", RSM_NS);
+                  if (before)
+                    rs_info.before = before->get_inner();
+                  const XmlNode* max = set_node->get_child("max", RSM_NS);
+                  if (max)
+                    rs_info.max = std::atoi(max->get_inner().data());
+
+                }
+              bridge->send_irc_channel_list_request(iid, id, from, std::move(rs_info));
               stanza_error.disable();
             }
         }
@@ -749,10 +765,11 @@ void BiboumiComponent::send_ping_request(const std::string& from,
   this->waiting_iq[id] = result_cb;
 }
 
-void BiboumiComponent::send_iq_room_list_result(const std::string& id,
-                                             const std::string& to_jid,
-                                             const std::string& from,
-                                             const std::vector<ListElement>& rooms_list)
+void BiboumiComponent::send_iq_room_list_result(const std::string& id, const std::string& to_jid,
+                                                const std::string& from, const ChannelList& channel_list,
+                                                std::vector<ListElement>::const_iterator begin,
+                                                std::vector<ListElement>::const_iterator end,
+                                                const ResultSetInfo& rs_info)
 {
   Stanza iq("iq");
   iq["from"] = from + "@" + this->served_hostname;
@@ -761,12 +778,41 @@ void BiboumiComponent::send_iq_room_list_result(const std::string& id,
   iq["type"] = "result";
   XmlNode query("query");
   query["xmlns"] = DISCO_ITEMS_NS;
-  for (const auto& room: rooms_list)
+
+    for (auto it = begin; it != end; ++it)
     {
       XmlNode item("item");
-      item["jid"] = room.channel + "%" + from + "@" + this->served_hostname;
+        item["jid"] = it->channel + "@" + this->served_hostname;
       query.add_child(std::move(item));
     }
+
+  if ((rs_info.max >= 0 || !rs_info.after.empty() || !rs_info.before.empty()))
+    {
+      XmlNode set_node("set");
+      set_node["xmlns"] = RSM_NS;
+
+      if (begin != channel_list.channels.cend())
+        {
+          XmlNode first_node("first");
+          first_node["index"] = std::to_string(std::distance(channel_list.channels.cbegin(), begin));
+          first_node.set_inner(begin->channel + "@" + this->served_hostname);
+          set_node.add_child(std::move(first_node));
+        }
+      if (end != channel_list.channels.cbegin())
+        {
+          XmlNode last_node("last");
+          last_node.set_inner(std::prev(end)->channel + "@" + this->served_hostname);
+          set_node.add_child(std::move(last_node));
+        }
+      if (channel_list.complete)
+        {
+          XmlNode count_node("count");
+          count_node.set_inner(std::to_string(channel_list.channels.size()));
+          set_node.add_child(std::move(count_node));
+        }
+      query.add_child(std::move(set_node));
+    }
+
   iq.add_child(std::move(query));
   this->send_stanza(iq);
 }

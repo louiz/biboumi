@@ -31,6 +31,7 @@
 #define FORWARD_NS       "urn:xmpp:forward:0"
 #define CLIENT_NS        "jabber:client"
 #define DATAFORM_NS      "jabber:x:data"
+#define RSM_NS           "http://jabber.org/protocol/rsm"
 
 /**
  * An XMPP component, communicating with an XMPP server using the protocole
@@ -218,6 +219,9 @@ public:
   void handle_error(const Stanza& stanza);
 
   virtual void after_handshake() {}
+
+  const std::string& get_served_hostname() const
+  { return this->served_hostname; }
 
   /**
    * Whether or not we ever succeeded our authentication to the XMPP server

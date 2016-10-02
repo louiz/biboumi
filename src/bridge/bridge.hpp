@@ -1,5 +1,7 @@
 #pragma once
 
+#include <bridge/result_set_management.hpp>
+#include <bridge/list_element.hpp>
 
 #include <irc/irc_message.hpp>
 #include <irc/irc_client.hpp>
@@ -17,6 +19,7 @@
 
 class BiboumiComponent;
 class Poller;
+class ResultSetInfo;
 
 /**
  * A callback called for each IrcMessage we receive. If the message triggers
@@ -87,8 +90,19 @@ public:
   void send_irc_version_request(const std::string& irc_hostname, const std::string& target,
                                 const std::string& iq_id, const std::string& to_jid,
                                 const std::string& from_jid);
-  void send_irc_channel_list_request(const Iid& iid, const std::string& iq_id,
-                                     const std::string& to_jid);
+  void send_irc_channel_list_request(const Iid& iid, const std::string& iq_id, const std::string& to_jid,
+                                     ResultSetInfo rs_info);
+  /**
+   * Check if the channel list contains what is needed to answer the RSM request,
+   * if it does, send the iq result. If the list is complete but does not contain
+   * everything, send the result anyway (because there are no more available
+   * channels that could complete the list).
+   *
+   * Returns true if we sent the answer.
+   */
+  bool send_matching_channel_list(const ChannelList& channel_list,
+                                  const ResultSetInfo& rs_info, const std::string& id, const std::string& to_jid,
+                                  const std::string& from);
   void forward_affiliation_role_change(const Iid& iid, const std::string& nick,
                                        const std::string& affiliation, const std::string& role);
   /**
@@ -271,7 +285,6 @@ private:
    * response iq.
    */
   std::vector<irc_responder_callback_t> waiting_irc;
-
   /**
    * Resources to IRC channel/server mapping:
    */
@@ -300,6 +313,13 @@ private:
    * TODO: send message history
    */
   void generate_channel_join_for_resource(const Iid& iid, const std::string& resource);
+  /**
+   * A cache of the channels list (as returned by the server on a LIST
+   * request), to be re-used on a subsequent XMPP list request that
+   * uses result-set-management.
+   */
+  std::map<IrcHostname, ChannelList> channel_list_cache;
+
 #ifdef USE_DATABASE
   bool record_history { true };
 #endif

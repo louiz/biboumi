@@ -117,7 +117,8 @@ def match(stanza, xpath):
                                             'mam': 'urn:xmpp:mam:1',
                                             'delay': 'urn:xmpp:delay',
                                             'forward': 'urn:xmpp:forward:0',
-                                            'client': 'jabber:client'})
+                                            'client': 'jabber:client',
+                                            'rsm': 'http://jabber.org/protocol/rsm'})
     return matched
 
 
@@ -1244,7 +1245,195 @@ if __name__ == '__main__':
                          "/iq/disco_items:query/disco_items:item[@jid='#foo%{irc_server_one}']",
                          "/iq/disco_items:query/disco_items:item[@jid='#bar%{irc_server_one}']"
                      ))
-                 ])
+                 ]),
+        Scenario("channel_list_with_rsm",
+                 [
+                     handshake_sequence(),
+
+                     partial(log_message, "Join first channel #foo"),
+                     partial(send_stanza,
+                             "<presence from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}/{nick_one}' />"),
+                     connection_sequence("irc.localhost", '{jid_one}/{resource_one}'),
+                     partial(expect_stanza,
+                             "/message/body[text()='Mode #foo [+nt] by {irc_host_one}']"),
+                     partial(expect_stanza,
+                             ("/presence[@to='{jid_one}/{resource_one}'][@from='#foo%{irc_server_one}/{nick_one}']/muc_user:x/muc_user:item[@affiliation='admin'][@role='moderator']",
+                             "/presence/muc_user:x/muc_user:status[@code='110']")
+                             ),
+                     partial(expect_stanza, "/message[@from='#foo%{irc_server_one}'][@type='groupchat']/subject[not(text())]"),
+
+                     partial(log_message, "Join second channel #bar"),
+                     partial(send_stanza,
+                             "<presence from='{jid_one}/{resource_one}' to='#bar%{irc_server_one}/{nick_one}' />"),
+                     partial(expect_stanza,
+                             "/message/body[text()='Mode #bar [+nt] by {irc_host_one}']"),
+                     partial(expect_stanza, "/presence"),
+                     partial(expect_stanza, "/message[@from='#bar%{irc_server_one}'][@type='groupchat']/subject[not(text())]"),
+
+                     partial(log_message, "Join third channel #coucou"),
+                     partial(send_stanza,
+                             "<presence from='{jid_one}/{resource_one}' to='#coucou%{irc_server_one}/{nick_one}' />"),
+                     partial(expect_stanza,
+                             "/message/body[text()='Mode #coucou [+nt] by {irc_host_one}']"),
+                     partial(expect_stanza, "/presence"),
+                     partial(expect_stanza, "/message[@from='#coucou%{irc_server_one}'][@type='groupchat']/subject[not(text())]"),
+
+                     partial(log_message, "Request with max=0"),
+                     partial(send_stanza, "<iq from='{jid_one}/{resource_one}' id='id1' to='{irc_server_one}' type='get'><query xmlns='http://jabber.org/protocol/disco#items'><set xmlns='http://jabber.org/protocol/rsm'><max>0</max></set></query></iq>"),
+                     partial(expect_stanza, (
+                         "/iq[@type='result']/disco_items:query",
+                         )),
+
+                     partial(log_message, "Request with max=2"),
+                     partial(send_stanza, "<iq from='{jid_one}/{resource_one}' id='id1' to='{irc_server_one}' type='get'><query xmlns='http://jabber.org/protocol/disco#items'><set xmlns='http://jabber.org/protocol/rsm'><max>2</max></set></query></iq>"),
+                     partial(expect_stanza, (
+                         "/iq[@type='result']/disco_items:query",
+                         "/iq/disco_items:query/disco_items:item[@jid='#bar%{irc_server_one}']",
+                         "/iq/disco_items:query/disco_items:item[@jid='#coucou%{irc_server_one}']",
+                         "/iq/disco_items:query/rsm:set/rsm:first[text()='#bar%{irc_server_one}'][@index='0']",
+                         "/iq/disco_items:query/rsm:set/rsm:last[text()='#coucou%{irc_server_one}']",
+                         "/iq/disco_items:query/rsm:set/rsm:count[text()='3']"
+                     )),
+
+                     partial(log_message, "Request with max=12"),
+                     partial(send_stanza, "<iq from='{jid_one}/{resource_one}' id='id1' to='{irc_server_one}' type='get'><query xmlns='http://jabber.org/protocol/disco#items'><set xmlns='http://jabber.org/protocol/rsm'><max>12</max></set></query></iq>"),
+                     partial(expect_stanza, (
+                         "/iq[@type='result']/disco_items:query",
+                         "/iq/disco_items:query/disco_items:item[@jid='#bar%{irc_server_one}']",
+                         "/iq/disco_items:query/disco_items:item[@jid='#coucou%{irc_server_one}']",
+                         "/iq/disco_items:query/disco_items:item[@jid='#foo%{irc_server_one}']",
+                         "/iq/disco_items:query/rsm:set/rsm:first[text()='#bar%{irc_server_one}'][@index='0']",
+                         "/iq/disco_items:query/rsm:set/rsm:last[text()='#foo%{irc_server_one}']",
+                         "/iq/disco_items:query/rsm:set/rsm:count[text()='3']"
+                     )),
+
+                     partial(log_message, "Request with max=1 after=#bar"),
+                     partial(send_stanza, "<iq from='{jid_one}/{resource_one}' id='id1' to='{irc_server_one}' type='get'><query xmlns='http://jabber.org/protocol/disco#items'><set xmlns='http://jabber.org/protocol/rsm'><after>#bar%{irc_server_one}</after><max>1</max></set></query></iq>"),
+                     partial(expect_stanza, (
+                         "/iq[@type='result']/disco_items:query",
+                         "/iq/disco_items:query/disco_items:item[@jid='#coucou%{irc_server_one}']",
+                         "/iq/disco_items:query/rsm:set/rsm:first[text()='#coucou%{irc_server_one}'][@index='1']",
+                         "/iq/disco_items:query/rsm:set/rsm:last[text()='#coucou%{irc_server_one}']",
+                         "/iq/disco_items:query/rsm:set/rsm:count[text()='3']"
+                     )),
+
+                     partial(log_message, "Request with max=1 after=#bar"),
+                     partial(send_stanza, "<iq from='{jid_one}/{resource_one}' id='id1' to='{irc_server_one}' type='get'><query xmlns='http://jabber.org/protocol/disco#items'><set xmlns='http://jabber.org/protocol/rsm'><after>#bar%{irc_server_one}</after><max>1</max></set></query></iq>"),
+                     partial(expect_stanza, (
+                         "/iq[@type='result']/disco_items:query",
+                         "/iq/disco_items:query/disco_items:item[@jid='#coucou%{irc_server_one}']",
+                         "/iq/disco_items:query/rsm:set/rsm:first[text()='#coucou%{irc_server_one}'][@index='1']",
+                         "/iq/disco_items:query/rsm:set/rsm:last[text()='#coucou%{irc_server_one}']",
+                         "/iq/disco_items:query/rsm:set/rsm:count[text()='3']"
+                     ))
+                 ]),
+                Scenario("complete_channel_list_with_pages_of_3",
+                 [
+                     handshake_sequence(),
+
+                     partial(log_message, "Join 10 channels"),
+                     partial(send_stanza,
+                             "<presence from='{jid_one}/{resource_one}' to='#aaa%{irc_server_one}/{nick_one}' />"),
+                     connection_sequence("irc.localhost", '{jid_one}/{resource_one}'),
+                     partial(expect_stanza, "/message"),
+                     partial(expect_stanza, "/presence"),
+                     partial(expect_stanza, "/message"),
+
+                     partial(send_stanza,
+                             "<presence from='{jid_one}/{resource_one}' to='#bbb%{irc_server_one}/{nick_one}' />"),
+                     partial(expect_stanza, "/message"),
+                     partial(expect_stanza, "/presence"),
+                     partial(expect_stanza, "/message"),
+
+                     partial(send_stanza,
+                             "<presence from='{jid_one}/{resource_one}' to='#ccc%{irc_server_one}/{nick_one}' />"),
+                     partial(expect_stanza, "/message"),
+                     partial(expect_stanza, "/presence"),
+                     partial(expect_stanza, "/message"),
+
+                     partial(send_stanza,
+                             "<presence from='{jid_one}/{resource_one}' to='#ddd%{irc_server_one}/{nick_one}' />"),
+                     partial(expect_stanza, "/message"),
+                     partial(expect_stanza, "/presence"),
+                     partial(expect_stanza, "/message"),
+
+                     partial(send_stanza,
+                             "<presence from='{jid_one}/{resource_one}' to='#eee%{irc_server_one}/{nick_one}' />"),
+                     partial(expect_stanza, "/message"),
+                     partial(expect_stanza, "/presence"),
+                     partial(expect_stanza, "/message"),
+
+                     partial(send_stanza,
+                             "<presence from='{jid_one}/{resource_one}' to='#fff%{irc_server_one}/{nick_one}' />"),
+                     partial(expect_stanza, "/message"),
+                     partial(expect_stanza, "/presence"),
+                     partial(expect_stanza, "/message"),
+
+                     partial(send_stanza,
+                             "<presence from='{jid_one}/{resource_one}' to='#ggg%{irc_server_one}/{nick_one}' />"),
+                     partial(expect_stanza, "/message"),
+                     partial(expect_stanza, "/presence"),
+                     partial(expect_stanza, "/message"),
+
+                     partial(send_stanza,
+                             "<presence from='{jid_one}/{resource_one}' to='#hhh%{irc_server_one}/{nick_one}' />"),
+                     partial(expect_stanza, "/message"),
+                     partial(expect_stanza, "/presence"),
+                     partial(expect_stanza, "/message"),
+
+                     partial(send_stanza,
+                             "<presence from='{jid_one}/{resource_one}' to='#iii%{irc_server_one}/{nick_one}' />"),
+                     partial(expect_stanza, "/message"),
+                     partial(expect_stanza, "/presence"),
+                     partial(expect_stanza, "/message"),
+
+                     partial(send_stanza,
+                             "<presence from='{jid_one}/{resource_one}' to='#jjj%{irc_server_one}/{nick_one}' />"),
+                     partial(expect_stanza, "/message"),
+                     partial(expect_stanza, "/presence"),
+                     partial(expect_stanza, "/message"),
+
+                     partial(log_message, "Request the first page, with a limit of 3"),
+                     partial(send_stanza, "<iq from='{jid_one}/{resource_one}' id='id' to='{irc_server_one}' type='get'><query xmlns='http://jabber.org/protocol/disco#items'><set xmlns='http://jabber.org/protocol/rsm'><max>3</max></set></query></iq>"),
+                     partial(expect_stanza, (
+                         "/iq[@type='result']/disco_items:query",
+                         "/iq/disco_items:query/disco_items:item[@jid='#aaa%{irc_server_one}']",
+                         "/iq/disco_items:query/disco_items:item[@jid='#bbb%{irc_server_one}']",
+                         "/iq/disco_items:query/disco_items:item[@jid='#ccc%{irc_server_one}']",
+                         "/iq/disco_items:query/rsm:set/rsm:first[text()='#aaa%{irc_server_one}'][@index='0']",
+                         "/iq/disco_items:query/rsm:set/rsm:last[text()='#ccc%{irc_server_one}']"
+                     )),
+
+                     partial(log_message, "Request subsequent pages"),
+                     partial(send_stanza, "<iq from='{jid_one}/{resource_one}' id='id' to='{irc_server_one}' type='get'><query xmlns='http://jabber.org/protocol/disco#items'><set xmlns='http://jabber.org/protocol/rsm'><after>#ccc%{irc_server_one}</after><max>3</max></set></query></iq>"),
+                     partial(expect_stanza, (
+                         "/iq[@type='result']/disco_items:query",
+                         "/iq/disco_items:query/disco_items:item[@jid='#ddd%{irc_server_one}']",
+                         "/iq/disco_items:query/disco_items:item[@jid='#eee%{irc_server_one}']",
+                         "/iq/disco_items:query/disco_items:item[@jid='#fff%{irc_server_one}']",
+                         "/iq/disco_items:query/rsm:set/rsm:first[text()='#ddd%{irc_server_one}'][@index='3']",
+                         "/iq/disco_items:query/rsm:set/rsm:last[text()='#fff%{irc_server_one}']"
+                     )),
+
+                     partial(send_stanza, "<iq from='{jid_one}/{resource_one}' id='id' to='{irc_server_one}' type='get'><query xmlns='http://jabber.org/protocol/disco#items'><set xmlns='http://jabber.org/protocol/rsm'><after>#fff%{irc_server_one}</after><max>3</max></set></query></iq>"),
+                     partial(expect_stanza, (
+                         "/iq[@type='result']/disco_items:query",
+                         "/iq/disco_items:query/disco_items:item[@jid='#ggg%{irc_server_one}']",
+                         "/iq/disco_items:query/disco_items:item[@jid='#hhh%{irc_server_one}']",
+                         "/iq/disco_items:query/disco_items:item[@jid='#iii%{irc_server_one}']",
+                         "/iq/disco_items:query/rsm:set/rsm:first[text()='#ggg%{irc_server_one}'][@index='6']",
+                         "/iq/disco_items:query/rsm:set/rsm:last[text()='#iii%{irc_server_one}']"
+                     )),
+
+                     partial(send_stanza, "<iq from='{jid_one}/{resource_one}' id='id' to='{irc_server_one}' type='get'><query xmlns='http://jabber.org/protocol/disco#items'><set xmlns='http://jabber.org/protocol/rsm'><after>#iii%{irc_server_one}</after><max>3</max></set></query></iq>"),
+                     partial(expect_stanza, (
+                         "/iq[@type='result']/disco_items:query",
+                         "/iq/disco_items:query/disco_items:item[@jid='#jjj%{irc_server_one}']",
+                         "/iq/disco_items:query/rsm:set/rsm:first[text()='#jjj%{irc_server_one}'][@index='9']",
+                         "/iq/disco_items:query/rsm:set/rsm:last[text()='#jjj%{irc_server_one}']",
+                         "/iq/disco_items:query/rsm:set/rsm:count[text()='10']"
+                     )),
+                ])
     )
 
     failures = 0

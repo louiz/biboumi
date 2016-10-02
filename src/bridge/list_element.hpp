@@ -1,6 +1,6 @@
 #pragma once
 
-
+#include <vector>
 #include <string>
 
 struct ListElement
@@ -17,3 +17,8 @@ struct ListElement
 };
 
 
+struct ChannelList
+{
+    bool complete{true};
+    std::vector<ListElement> channels{};
+};
