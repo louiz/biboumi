@@ -1212,7 +1212,39 @@ if __name__ == '__main__':
                                          "/message/delay:delay[@from='#foo%{irc_server_one}']")),
 
                  partial(expect_stanza, "/message[@from='#foo%{irc_server_one}'][@type='groupchat']/subject[not(text())]"),
-             ])
+             ]),
+        Scenario("simple_channel_list",
+                 [
+                     handshake_sequence(),
+
+                     partial(log_message, "Join first channel #foo"),
+                     partial(send_stanza,
+                             "<presence from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}/{nick_one}' />"),
+                     connection_sequence("irc.localhost", '{jid_one}/{resource_one}'),
+                     partial(expect_stanza,
+                             "/message/body[text()='Mode #foo [+nt] by {irc_host_one}']"),
+                     partial(expect_stanza,
+                             ("/presence[@to='{jid_one}/{resource_one}'][@from='#foo%{irc_server_one}/{nick_one}']/muc_user:x/muc_user:item[@affiliation='admin'][@role='moderator']",
+                             "/presence/muc_user:x/muc_user:status[@code='110']")
+                             ),
+                     partial(expect_stanza, "/message[@from='#foo%{irc_server_one}'][@type='groupchat']/subject[not(text())]"),
+
+                     partial(log_message, "Join second channel #bar"),
+                     partial(send_stanza,
+                             "<presence from='{jid_one}/{resource_one}' to='#bar%{irc_server_one}/{nick_one}' />"),
+                     partial(expect_stanza,
+                             "/message/body[text()='Mode #bar [+nt] by {irc_host_one}']"),
+                     partial(expect_stanza, "/presence"),
+                     partial(expect_stanza, "/message[@from='#bar%{irc_server_one}'][@type='groupchat']/subject[not(text())]"),
+
+                     partial(log_message, "Request the whole channel list"),
+                     partial(send_stanza, "<iq from='{jid_one}/{resource_one}' id='id1' to='{irc_server_one}' type='get'><query xmlns='http://jabber.org/protocol/disco#items'/></iq>"),
+                     partial(expect_stanza, (
+                         "/iq[@type='result']/disco_items:query",
+                         "/iq/disco_items:query/disco_items:item[@jid='#foo%{irc_server_one}']",
+                         "/iq/disco_items:query/disco_items:item[@jid='#bar%{irc_server_one}']"
+                     ))
+                 ])
     )
 
     failures = 0

@@ -428,7 +428,7 @@ void IrcClient::send_kick_command(const std::string& chan_name, const std::strin
 
 void IrcClient::send_list_command()
 {
-  this->send_message(IrcMessage("LIST", {}));
+  this->send_message(IrcMessage("LIST", {"*"}));
 }
 
 void IrcClient::send_invitation(const std::string& chan_name, const std::string& nick)
