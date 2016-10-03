@@ -124,10 +124,7 @@ TEST_CASE("time_to_string")
 
 TEST_CASE("parse_datetime")
 {
-  const auto time = utils::parse_datetime("1970-01-01T00:00:00Z");
-  CHECK(time == 0);
-  CHECK(utils::parse_datetime("2016-08-29T14:29:28Z") == 1472480968);
-  CHECK(utils::parse_datetime("2016-08-29T14:29:28UT") == 1472480968);
-  CHECK(utils::parse_datetime("2016-08-29T14:29:28GMT") == 1472480968);
+  CHECK(utils::parse_datetime("1970-01-01T00:00:00z") == 0);
+  CHECK(utils::parse_datetime("2016-08-29T14:29:29Z") == 1472480969);
   CHECK(utils::parse_datetime("blah") == -1);
 }
