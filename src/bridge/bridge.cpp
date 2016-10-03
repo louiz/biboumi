@@ -713,7 +713,7 @@ void Bridge::send_irc_version_request(const std::string& irc_hostname, const std
       if (irc_hostname != hostname)
         return false;
       IrcUser user(message.prefix);
-      if (message.command == "NOTICE" && user.nick == target &&
+      if (message.command == "NOTICE" && utils::tolower(user.nick) == utils::tolower(target) &&
           message.arguments.size() >= 2 && message.arguments[1].substr(0, 9) == "\01VERSION ")
         {
           // remove the "\01VERSION " and the "\01" parts from the string

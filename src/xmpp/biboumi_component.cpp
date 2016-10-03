@@ -412,7 +412,8 @@ void BiboumiComponent::handle_iq(const Stanza& stanza)
       else if ((query = stanza.get_child("query", VERSION_NS)))
         {
           Iid iid(to.local, bridge);
-          if (iid.type != Iid::Type::Server && !to.resource.empty())
+          if ((iid.type == Iid::Type::Channel && !to.resource.empty()) ||
+              (iid.type == Iid::Type::User))
             {
               // Get the IRC user version
               std::string target;

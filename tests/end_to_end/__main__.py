@@ -999,6 +999,36 @@ if __name__ == '__main__':
                      partial(expect_stanza,
                              "/iq[@from='#foo%{irc_server_one}/{nick_one}'][@type='result'][@to='{jid_one}/{resource_one}'][@id='second_version']"),
                  ]),
+                Scenario("version_on_global_nick",
+                [
+                    partial(log_message, "Joining the channel"),
+                    handshake_sequence(),
+                    partial(send_stanza,
+                            "<presence from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}/{nick_one}' />"),
+                    connection_sequence("irc.localhost", '{jid_one}/{resource_one}'),
+                    partial(expect_stanza,
+                            "/message/body[text()='Mode #foo [+nt] by {irc_host_one}']"),
+                    partial(expect_stanza,
+                            ("/presence[@to='{jid_one}/{resource_one}'][@from='#foo%{irc_server_one}/{nick_one}']/muc_user:x/muc_user:item[@affiliation='admin'][@role='moderator']",
+                             "/presence/muc_user:x/muc_user:status[@code='110']")
+                            ),
+                    partial(expect_stanza, "/message[@from='#foo%{irc_server_one}'][@type='groupchat']/subject[not(text())]"),
+
+                    partial(log_message, "Send a version request to ourself"),
+                     partial(send_stanza,
+                             "<iq type='get' from='{jid_one}/{resource_one}' id='first_version' to='{lower_nick_one}%{irc_server_one}'><query xmlns='jabber:iq:version' /></iq>"),
+
+                     partial(log_message, "Receive our own request"),
+                     partial(expect_stanza,
+                             "/iq[@from='{lower_nick_one}%{irc_server_one}'][@type='get'][@to='{jid_one}/{resource_one}']",
+                             after = partial(save_value, "id", partial(extract_attribute, "/iq", 'id'))),
+                     partial(log_message, "Respond to the request"),
+                     partial(send_stanza,
+                             "<iq type='result' to='{lower_nick_one}%{irc_server_one}' id='{id}' from='{jid_one}/{resource_one}'><query xmlns='jabber:iq:version'><name>e2e test</name><version>1.0</version><os>Fedora</os></query></iq>"),
+                     partial(expect_stanza,
+                             "/iq[@from='{lower_nick_one}%{irc_server_one}'][@type='result'][@to='{jid_one}/{resource_one}'][@id='first_version']/version:query/version:name[text()='e2e test (through the biboumi gateway) 1.0 Fedora']"),
+
+                ]),
                 Scenario("self_invite",
                 [
                     handshake_sequence(),
