@@ -226,3 +226,8 @@ size_t Poller::size() const
 {
   return this->socket_handlers.size();
 }
+
+bool Poller::is_managing_socket(const socket_t socket) const
+{
+  return (this->socket_handlers.find(socket) != this->socket_handlers.end());
+}
