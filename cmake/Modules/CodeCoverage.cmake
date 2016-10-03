@@ -157,7 +157,7 @@ FUNCTION(SETUP_TARGET_FOR_COVERAGE _targetname _testrunner _outputname)
 
                 # Remove information about source files that are not part of
                 # the test (system file, external libraries, etc)
-		COMMAND ${LCOV_PATH} --remove ${_outputname}.info 'tests/*' '/usr/*' 'external/*' --output-file ${_outputname}.info.cleaned -q
+		COMMAND ${LCOV_PATH} --remove ${_outputname}.info 'tests/*' '/usr/*' 'external/*' 'build/*' --output-file ${_outputname}.info.cleaned -q
 
                 # Generate the report
 		COMMAND ${GENHTML_PATH} -o ${_outputname} ${_outputname}.info.cleaned
