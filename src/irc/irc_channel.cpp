@@ -1,12 +1,6 @@
 #include <irc/irc_channel.hpp>
 #include <algorithm>
 
-IrcChannel::IrcChannel():
-  joined(false),
-  self(nullptr)
-{
-}
-
 void IrcChannel::set_self(const std::string& name)
 {
   this->self = std::make_unique<IrcUser>(name);
