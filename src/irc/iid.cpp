@@ -5,6 +5,8 @@
 
 #include <utils/encoding.hpp>
 
+constexpr char Iid::separator[];
+
 Iid::Iid(const std::string& local, const std::string& server, Iid::Type type):
         type(type),
         local(local),

@@ -19,7 +19,7 @@
 
 class BiboumiComponent;
 class Poller;
-class ResultSetInfo;
+struct ResultSetInfo;
 
 /**
  * A callback called for each IrcMessage we receive. If the message triggers

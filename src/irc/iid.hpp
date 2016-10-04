@@ -54,7 +54,7 @@ public:
       User,
       Server,
   };
-  static constexpr auto separator = "%";
+  static constexpr char separator[]{"%"};
   Iid(const std::string& iid, const std::set<char>& chantypes);
   Iid(const std::string& iid, const std::initializer_list<char>& chantypes);
   Iid(const std::string& iid, const Bridge* bridge);
