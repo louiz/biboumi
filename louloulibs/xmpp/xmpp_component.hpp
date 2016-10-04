@@ -32,6 +32,7 @@
 #define CLIENT_NS        "jabber:client"
 #define DATAFORM_NS      "jabber:x:data"
 #define RSM_NS           "http://jabber.org/protocol/rsm"
+#define MUC_TRAFFIC_NS   "http://jabber.org/protocol/muc#traffic"
 
 /**
  * An XMPP component, communicating with an XMPP server using the protocole

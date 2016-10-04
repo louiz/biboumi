@@ -110,6 +110,8 @@ def match(stanza, xpath):
     tree = lxml.etree.parse(io.StringIO(str(stanza)))
     matched = tree.xpath(xpath, namespaces={'re': 'http://exslt.org/regular-expressions',
                                             'muc_user': 'http://jabber.org/protocol/muc#user',
+                                            'disco_info': 'http://jabber.org/protocol/disco#info',
+                                            'muc_traffic': 'http://jabber.org/protocol/muc#traffic',
                                             'disco_items': 'http://jabber.org/protocol/disco#items',
                                             'commands': 'http://jabber.org/protocol/commands',
                                             'dataform': 'jabber:x:data',
@@ -1463,7 +1465,38 @@ if __name__ == '__main__':
                          "/iq/disco_items:query/rsm:set/rsm:last[text()='#jjj%{irc_server_one}']",
                          "/iq/disco_items:query/rsm:set/rsm:count[text()='10']"
                      )),
-                ])
+
+                     partial(log_message, "Leaving the 10 channels"),
+                     partial(send_stanza, "<presence from='{jid_one}/{resource_one}' to='#aaa%{irc_server_one}/{nick_one}' type='unavailable' />"),
+                     partial(send_stanza, "<presence from='{jid_one}/{resource_one}' to='#bbb%{irc_server_one}/{nick_one}' type='unavailable' />"),
+                     partial(send_stanza, "<presence from='{jid_one}/{resource_one}' to='#ccc%{irc_server_one}/{nick_one}' type='unavailable' />"),
+                     partial(send_stanza, "<presence from='{jid_one}/{resource_one}' to='#ddd%{irc_server_one}/{nick_one}' type='unavailable' />"),
+                     partial(send_stanza, "<presence from='{jid_one}/{resource_one}' to='#eee%{irc_server_one}/{nick_one}' type='unavailable' />"),
+                     partial(send_stanza, "<presence from='{jid_one}/{resource_one}' to='#fff%{irc_server_one}/{nick_one}' type='unavailable' />"),
+                     partial(send_stanza, "<presence from='{jid_one}/{resource_one}' to='#ggg%{irc_server_one}/{nick_one}' type='unavailable' />"),
+                     partial(send_stanza, "<presence from='{jid_one}/{resource_one}' to='#hhh%{irc_server_one}/{nick_one}' type='unavailable' />"),
+                     partial(send_stanza, "<presence from='{jid_one}/{resource_one}' to='#iii%{irc_server_one}/{nick_one}' type='unavailable' />"),
+                     partial(send_stanza, "<presence from='{jid_one}/{resource_one}' to='#jjj%{irc_server_one}/{nick_one}' type='unavailable' />"),
+                     partial(expect_stanza, "/presence[@type='unavailable']"),
+                     partial(expect_stanza, "/presence[@type='unavailable']"),
+                     partial(expect_stanza, "/presence[@type='unavailable']"),
+                     partial(expect_stanza, "/presence[@type='unavailable']"),
+                     partial(expect_stanza, "/presence[@type='unavailable']"),
+                     partial(expect_stanza, "/presence[@type='unavailable']"),
+                     partial(expect_stanza, "/presence[@type='unavailable']"),
+                     partial(expect_stanza, "/presence[@type='unavailable']"),
+                     partial(expect_stanza, "/presence[@type='unavailable']"),
+                     partial(expect_stanza, "/presence[@type='unavailable']")
+                ]),
+                Scenario("muc_traffic_info",
+                [
+                     handshake_sequence(),
+
+                     partial(send_stanza,
+                             "<iq from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}' />"),
+                     partial(expect_stanza, "/iq[@type='result']/disco_info:query[@node='{muc_traffic}']"),
+                ]),
+
     )
 
     failures = 0

@@ -66,6 +66,11 @@ public:
    */
   void send_irc_server_disco_info(const std::string& id, const std::string& jid_to, const std::string& jid_from);
   /**
+   * Sends the allowed namespaces in MUC message, according to
+   * http://xmpp.org/extensions/xep-0045.html#impl-service-traffic
+   */
+   void send_irc_channel_muc_traffic_info(const std::string id, const std::string& jid_from, const std::string& jid_to);
+  /**
    * Send an iq version request
    */
   void send_iq_version_request(const std::string& from,

@@ -408,6 +408,13 @@ void BiboumiComponent::handle_iq(const Stanza& stanza)
                     stanza_error.disable();
                 }
             }
+          else if (iid.type == Iid::Type::Channel)
+            {
+              if (node == MUC_TRAFFIC_NS)
+                {
+                  this->send_irc_channel_muc_traffic_info(id, from, to_str);
+                }
+            }
         }
       else if ((query = stanza.get_child("query", VERSION_NS)))
         {
@@ -722,6 +729,25 @@ void BiboumiComponent::send_irc_server_disco_info(const std::string& id, const s
     }
   iq.add_child(std::move(query));
   this->send_stanza(iq);
+}
+
+void BiboumiComponent::send_irc_channel_muc_traffic_info(const std::string id, const std::string& jid_from, const std::string& jid_to)
+{
+  Stanza iq("iq");
+  iq["type"] = "result";
+  iq["id"] = id;
+  iq["from"] = jid_from;
+  iq["to"] = jid_to;
+
+  XmlNode query("query");
+  query["xmlns"] = DISCO_INFO_NS;
+  query["node"] = MUC_TRAFFIC_NS;
+  // We drop all “special” traffic (like xhtml-im, chatstates, etc), so
+  // don’t include any <feature/>
+  iq.add_child(std::move(iq));
+
+  this->send_stanza(iq);
+
 }
 
 void BiboumiComponent::send_iq_version_request(const std::string& from,
