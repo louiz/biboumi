@@ -6,11 +6,14 @@ Version 4.0
    remember). The distinction between a JID refering to a channel and a JID
    refering to a nickname is based on the first character (# or & by
    default, but this can be customized by the server with the ISUPPORT
-   extension)
+   extension).
  - Save all channel messages into the database, with an ad-hoc option to
    disable this feature.
  - When joining a room, biboumi sends an history of the most recents messages
    found in the database.
+ - Channel history can be retrieved using Message Archive Management.
+ - Result Set Management can be used to request only parts of the IRC channel
+   list.
 
 Version 3.0 - 2016-08-03
 ========================
