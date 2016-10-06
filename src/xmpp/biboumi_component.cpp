@@ -598,9 +598,8 @@ bool BiboumiComponent::handle_mam_request(const Stanza& stanza)
         const auto lines = Database::get_muc_logs(from.bare(), iid.get_local(), iid.get_server(), -1, start, end);
         for (const db::MucLogLine& line: lines)
         {
-          const auto queryid = query->get_tag("queryid");
           if (!line.nick.value().empty())
-            this->send_archived_message(line, to.full(), from.full(), queryid);
+            this->send_archived_message(line, to.full(), from.full(), query_id);
         }
         this->send_iq_result_full_jid(id, from.full(), to.full());
         return true;
@@ -617,7 +616,8 @@ void BiboumiComponent::send_archived_message(const db::MucLogLine& log_line, con
 
     XmlNode result("result");
     result["xmlns"] = MAM_NS;
-    result["queryid"] = queryid;
+    if (!queryid.empty())
+      result["queryid"] = queryid;
     result["id"] = log_line.uuid.value();
 
     XmlNode forwarded("forwarded");
