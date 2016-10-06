@@ -59,6 +59,8 @@ RUN rm -rf /charybdis
 
 RUN su - tester -c "echo export LANG=en_GB.utf-8 >> /home/tester/.bashrc"
 
+COPY coverity /home/tester/coverity
+
 WORKDIR /home/tester
 USER tester
 
