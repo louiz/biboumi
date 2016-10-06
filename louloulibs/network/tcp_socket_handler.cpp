@@ -80,7 +80,7 @@ void TCPSocketHandler::init_socket(const struct addrinfo* rp)
             }
           if (!rp)
             log_error("Failed to bind socket to ", this->bind_addr, ": ",
-                      strerror(bind_error));
+                      strerror(errno));
           else
             log_info("Socket successfully bound to ", this->bind_addr);
         }
