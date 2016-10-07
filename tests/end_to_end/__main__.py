@@ -91,11 +91,12 @@ class XMPPComponent(slixmpp.BaseXMPP):
         self.run_scenario()
 
     def run_scenario(self):
-        if scenario.steps:
-            step = scenario.steps.pop(0)
+        if self.scenario.steps:
+            step = self.scenario.steps.pop(0)
             step(self, self.biboumi)
         else:
-            self.biboumi.stop()
+            if self.biboumi:
+                self.biboumi.stop()
 
     @asyncio.coroutine
     def accept_routine(self):
@@ -194,10 +195,11 @@ class ProcessRunner:
 
 
 class BiboumiRunner(ProcessRunner):
-    def __init__(self, name, with_valgrind):
+    def __init__(self, name):
         super().__init__()
         self.name = name
         self.fd = open("biboumi_%s_output.txt" % (name,), "w")
+        with_valgrind = os.environ.get("E2E_WITH_VALGRIND") is not None
         if with_valgrind:
             self.create = asyncio.create_subprocess_exec("valgrind", "--suppressions=" + (os.environ.get("E2E_BIBOUMI_SUPP_DIR") or "") + "biboumi.supp", "--leak-check=full", "--show-leak-kinds=all",
                                                          "--errors-for-leak-kinds=all", "--error-exitcode=16",
@@ -248,7 +250,8 @@ class BiboumiTest:
         self.scenario = scenario
         self.expected_code = expected_code
 
-    def run(self, with_valgrind=True):
+    def run(self):
+        with_valgrind = os.environ.get("E2E_WITH_VALGRIND") is not None
         print("Running scenario: [33;1m%s[0m%s" % (self.scenario.name, " (with valgrind)" if with_valgrind else ''))
         # Redirect the slixmpp logging into a specific file
         output_filename = "slixmpp_%s_output.txt" % (self.scenario.name,)
@@ -259,7 +262,7 @@ class BiboumiTest:
                             filename=output_filename)
 
         with open("test.conf", "w") as fd:
-            fd.write(confs[scenario.conf])
+            fd.write(confs[self.scenario.conf])
 
         try:
             os.remove("e2e_test.sqlite")
@@ -267,7 +270,7 @@ class BiboumiTest:
             pass
 
         # Start the XMPP component and biboumi
-        biboumi = BiboumiRunner(scenario.name, with_valgrind)
+        biboumi = BiboumiRunner(self.scenario.name)
         xmpp = XMPPComponent(self.scenario, biboumi)
         asyncio.get_event_loop().run_until_complete(biboumi.start())
 
@@ -276,7 +279,7 @@ class BiboumiTest:
         xmpp.process()
         code = asyncio.get_event_loop().run_until_complete(biboumi.wait())
         xmpp.biboumi = None
-        scenario.steps.clear()
+        self.scenario.steps.clear()
         failed = False
         if not xmpp.failed:
             if code != self.expected_code:
@@ -1516,11 +1519,11 @@ if __name__ == '__main__':
     print("irc server started.")
     print("Running %s checks for biboumi." % (len(scenarios)))
 
-    for scenario in scenarios:
-        test = BiboumiTest(scenario)
-        if not test.run(os.getenv("E2E_BIBOUMI_VALGRIND") is not None):
+    for s in scenarios:
+        test = BiboumiTest(s)
+        if not test.run():
             print("You can check the files slixmpp_%s_output.txt and biboumi_%s_output.txt to help you debug." %
-                  (scenario.name, scenario.name))
+                  (s.name, s.name))
             failures += 1
 
     print("Waiting for irc server to exit…")
