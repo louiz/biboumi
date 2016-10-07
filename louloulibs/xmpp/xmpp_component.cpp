@@ -509,11 +509,8 @@ void XmppComponent::send_nick_change(const std::string& muc_name,
   this->send_user_join(muc_name, new_nick, "", affiliation, role, jid_to, self);
 }
 
-void XmppComponent::kick_user(const std::string& muc_name,
-                                  const std::string& target,
-                                  const std::string& txt,
-                                  const std::string& author,
-                                  const std::string& jid_to)
+void XmppComponent::kick_user(const std::string& muc_name, const std::string& target, const std::string& txt,
+                              const std::string& author, const std::string& jid_to, const bool self)
 {
   Stanza presence("presence");
   presence["from"] = muc_name + "@" + this->served_hostname + "/" + target;
@@ -535,6 +532,12 @@ void XmppComponent::kick_user(const std::string& muc_name,
   XmlNode status("status");
   status["code"] = "307";
   x.add_child(std::move(status));
+  if (self)
+    {
+      XmlNode status("status");
+      status["code"] = "110";
+      x.add_child(std::move(status));
+    }
   presence.add_child(std::move(x));
   this->send_stanza(presence);
 }

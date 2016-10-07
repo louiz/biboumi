@@ -916,10 +916,11 @@ size_t Bridge::active_clients() const
   return this->irc_clients.size();
 }
 
-void Bridge::kick_muc_user(Iid&& iid, const std::string& target, const std::string& reason, const std::string& author)
+void Bridge::kick_muc_user(Iid&& iid, const std::string& target, const std::string& reason, const std::string& author,
+                           const bool self)
 {
   for (const auto& resource: this->resources_in_chan[iid.to_tuple()])
-    this->xmpp.kick_user(std::to_string(iid), target, reason, author, this->user_jid + "/" + resource);
+      this->xmpp.kick_user(std::to_string(iid), target, reason, author, this->user_jid + "/" + resource, self);
 }
 
 void Bridge::send_nickname_conflict_error(const Iid& iid, const std::string& nickname)

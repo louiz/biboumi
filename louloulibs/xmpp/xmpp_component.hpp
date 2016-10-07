@@ -164,11 +164,8 @@ public:
   /**
    * An user is kicked from a room
    */
-  void kick_user(const std::string& muc_name,
-                     const std::string& target,
-                     const std::string& reason,
-                     const std::string& author,
-                     const std::string& jid_to);
+  void kick_user(const std::string& muc_name, const std::string& target, const std::string& reason,
+                 const std::string& author, const std::string& jid_to, const bool self);
   /**
    * Send a generic presence error
    */

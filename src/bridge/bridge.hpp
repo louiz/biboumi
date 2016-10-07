@@ -181,7 +181,8 @@ public:
                         const std::string& new_nick,
                         const char user_mode,
                         const bool self);
-  void kick_muc_user(Iid&& iid, const std::string& target, const std::string& reason, const std::string& author);
+  void kick_muc_user(Iid&& iid, const std::string& target, const std::string& reason, const std::string& author,
+                       const bool self);
   void send_nickname_conflict_error(const Iid& iid, const std::string& nickname);
   /**
    * Send a role/affiliation change, matching the change of mode for that user

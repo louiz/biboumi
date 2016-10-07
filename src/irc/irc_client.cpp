@@ -964,14 +964,15 @@ void IrcClient::on_kick(const IrcMessage& message)
   IrcChannel* channel = this->get_channel(chan_name);
   if (!channel->joined)
     return ;
-  if (channel->get_self()->nick == target)
+  const bool self = channel->get_self()->nick == target;
+  if (self)
     channel->joined = false;
   IrcUser author(message.prefix);
   Iid iid;
   iid.set_local(chan_name);
   iid.set_server(this->hostname);
   iid.type = Iid::Type::Channel;
-  this->bridge.kick_muc_user(std::move(iid), target, reason, author.nick);
+  this->bridge.kick_muc_user(std::move(iid), target, reason, author.nick, self);
 }
 
 void IrcClient::on_invite(const IrcMessage& message)
