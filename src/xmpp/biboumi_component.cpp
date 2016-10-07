@@ -389,7 +389,7 @@ void BiboumiComponent::handle_iq(const Stanza& stanza)
       const XmlNode* query;
       if ((query = stanza.get_child("query", DISCO_INFO_NS)))
         { // Disco info
-          Iid iid(to.local, {});
+          Iid iid(to.local, {'#', '&'});
           const std::string node = query->get_tag("node");
           if (to_str == this->served_hostname)
             {
@@ -413,6 +413,7 @@ void BiboumiComponent::handle_iq(const Stanza& stanza)
               if (node == MUC_TRAFFIC_NS)
                 {
                   this->send_irc_channel_muc_traffic_info(id, from, to_str);
+                  stanza_error.disable();
                 }
             }
         }
@@ -744,7 +745,7 @@ void BiboumiComponent::send_irc_channel_muc_traffic_info(const std::string id, c
   query["node"] = MUC_TRAFFIC_NS;
   // We drop all “special” traffic (like xhtml-im, chatstates, etc), so
   // don’t include any <feature/>
-  iq.add_child(std::move(iq));
+  iq.add_child(std::move(query));
 
   this->send_stanza(iq);
 
