@@ -124,7 +124,19 @@ TEST_CASE("time_to_string")
 
 TEST_CASE("parse_datetime")
 {
-  CHECK(utils::parse_datetime("1970-01-01T00:00:00z") == 0);
+  CHECK(utils::parse_datetime("1970-01-01T00:00:00Z") == 0);
+
+  const int twenty_three_hours = 82800;
+  CHECK(utils::parse_datetime("1970-01-01T23:00:12Z") == twenty_three_hours + 12);
+  CHECK(utils::parse_datetime("1970-01-01T23:00:12Z") == utils::parse_datetime("1970-01-01T23:00:12+00:00"));
+  CHECK(utils::parse_datetime("1970-01-01T23:00:12Z") == utils::parse_datetime("1970-01-01T23:00:12-00:00"));
+  CHECK(utils::parse_datetime("1970-01-02T00:00:12Z") == utils::parse_datetime("1970-01-01T23:00:12-01:00"));
+  CHECK(utils::parse_datetime("1970-01-02T00:00:12Z") == utils::parse_datetime("1970-01-02T01:00:12+01:00"));
+
   CHECK(utils::parse_datetime("2016-08-29T14:29:29Z") == 1472480969);
+
   CHECK(utils::parse_datetime("blah") == -1);
+  CHECK(utils::parse_datetime("1970-01-02T00:00:12B") == -1);
+  CHECK(utils::parse_datetime("1970-01-02T00:00:12*00:00") == -1);
+  CHECK(utils::parse_datetime("1970-01-02T00:00:12+0000") == -1);
 }
