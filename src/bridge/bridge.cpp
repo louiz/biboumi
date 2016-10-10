@@ -771,13 +771,13 @@ void Bridge::send_message(const Iid& iid, const std::string& nick, const std::st
           const auto chan_name = Iid(Jid(it->second).local, {}).get_local();
           for (const auto& resource: this->resources_in_chan[ChannelKey{chan_name, iid.get_server()}])
             this->xmpp.send_message(it->second, this->make_xmpp_body(body, encoding),
-                                    this->user_jid + "/" + resource, "chat", true);
+                                    this->user_jid + "/" + resource, "chat", true, true);
         }
       else
         {
           for (const auto& resource: this->resources_in_server[iid.get_server()])
             this->xmpp.send_message(std::to_string(iid), this->make_xmpp_body(body, encoding),
-                                    this->user_jid + "/" + resource, "chat", false);
+                                    this->user_jid + "/" + resource, "chat", false, true);
         }
     }
 }
@@ -835,7 +835,7 @@ void Bridge::send_xmpp_message(const std::string& from, const std::string& autho
   const auto encoding = in_encoding_for(*this, {from, this});
   for (const auto& resource: this->resources_in_server[from])
     {
-        this->xmpp.send_message(from, this->make_xmpp_body(body, encoding), this->user_jid + "/" + resource, "chat");
+      this->xmpp.send_message(from, this->make_xmpp_body(body, encoding), this->user_jid + "/" + resource, "chat", false, false);
     }
 }
 

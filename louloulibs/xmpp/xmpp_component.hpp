@@ -109,9 +109,8 @@ public:
    * If fulljid is false, the provided 'from' doesn't contain the
    * server-part of the JID and must be added.
    */
-  void send_message(const std::string& from, Xmpp::body&& body,
-                    const std::string& to, const std::string& type,
-                    const bool fulljid=false);
+  void send_message(const std::string& from, Xmpp::body&& body, const std::string& to,
+                    const std::string& type, const bool fulljid, const bool nocopy=false);
   /**
    * Send a join from a new participant
    */

@@ -273,7 +273,8 @@ void* XmppComponent::get_receive_buffer(const size_t size) const
   return this->parser.get_buffer(size);
 }
 
-void XmppComponent::send_message(const std::string& from, Xmpp::body&& body, const std::string& to, const std::string& type, const bool fulljid)
+void XmppComponent::send_message(const std::string& from, Xmpp::body&& body, const std::string& to,
+                                 const std::string& type, const bool fulljid, const bool nocopy)
 {
   XmlNode node("message");
   node["to"] = to;
@@ -294,6 +295,18 @@ void XmppComponent::send_message(const std::string& from, Xmpp::body&& body, con
       html.add_child(std::move(std::get<1>(body)));
       node.add_child(std::move(html));
     }
+
+  if (nocopy)
+    {
+      XmlNode private_node("private");
+      private_node["xmlns"] = "urn:xmpp:carbons:2";
+      node.add_child(std::move(private_node));
+
+      XmlNode nocopy("no-copy");
+      nocopy["xmlns"] = "urn:xmpp:hints";
+      node.add_child(std::move(nocopy));
+    }
+
   this->send_stanza(node);
 }
 
