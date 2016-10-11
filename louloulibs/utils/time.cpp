@@ -5,6 +5,8 @@
 #include <iomanip>
 #include <locale>
 
+#include "louloulibs.h"
+
 namespace utils
 {
 std::string to_string(const std::time_t& timestamp)
@@ -20,6 +22,7 @@ std::time_t parse_datetime(const std::string& stamp)
 {
   static const char* format = "%Y-%m-%dT%H:%M:%S";
   std::tm t = {};
+#ifdef HAS_GET_TIME
   std::istringstream ss(stamp);
   ss.imbue(std::locale("en_US.utf-8"));
 
@@ -27,6 +30,14 @@ std::time_t parse_datetime(const std::string& stamp)
   ss >> std::get_time(&t, format) >> timezone;
   if (ss.fail())
     return -1;
+#else
+                                             /* Y   -   m   -   d   T   H   :   M   :   S */
+  constexpr std::size_t stamp_size_without_tz = 4 + 1 + 2 + 1 + 2 + 1 + 2 + 1 + 2 + 1 + 2;
+  if (!strptime(stamp.data(), format, &t)) {
+    return -1;
+  }
+  const std::string timezone(stamp.data() + stamp_size_without_tz);
+#endif
 
   if (timezone.empty())
     return -1;
