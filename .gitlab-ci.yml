@@ -103,6 +103,15 @@ test:fedora:
   image: biboumi-test-fedora:latest
   <<: *basic_test
 
+test:openbsd:
+  variables:
+    COMPILER: "clang++"
+    SYSTEMD: "-DWITHOUT_SYSTEMD=1"
+  stage: test
+  tags:
+    - openbsd
+  <<: *basic_test
+
 test:coverity:
   stage: test
   image: biboumi-test-fedora:latest
