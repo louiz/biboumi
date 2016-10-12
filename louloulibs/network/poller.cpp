@@ -95,7 +95,7 @@ void Poller::remove_socket_handler(const socket_t socket)
 void Poller::watch_send_events(SocketHandler* socket_handler)
 {
 #if POLLER == POLL
-  for (size_t i = 0; i <= this->nfds; ++i)
+  for (size_t i = 0; i < this->nfds; ++i)
     {
       if (this->fds[i].fd == socket_handler->get_socket())
         {
@@ -171,7 +171,7 @@ int Poller::poll(const std::chrono::milliseconds& timeout)
   // We cannot possibly have more ready events than the number of fds we are
   // watching
   assert(static_cast<unsigned int>(nb_events) <= this->nfds);
-  for (size_t i = 0; i <= this->nfds && nb_events != 0; ++i)
+  for (size_t i = 0; i < this->nfds && nb_events != 0; ++i)
     {
       auto socket_handler = this->socket_handlers.at(this->fds[i].fd);
       if (this->fds[i].revents == 0)
