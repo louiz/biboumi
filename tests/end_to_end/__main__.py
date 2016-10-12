@@ -101,7 +101,7 @@ class XMPPComponent(slixmpp.BaseXMPP):
     @asyncio.coroutine
     def accept_routine(self):
         self.accepting_server = yield from self.loop.create_server(lambda: self,
-                                                                   "127.0.0.1", "8811", reuse_address=True)
+                                                                   "127.0.0.1", 8811, reuse_address=True)
 
     def check_stanza_against_all_expected_xpaths(self):
         pass
