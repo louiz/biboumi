@@ -121,7 +121,9 @@ def match(stanza, xpath):
                                             'delay': 'urn:xmpp:delay',
                                             'forward': 'urn:xmpp:forward:0',
                                             'client': 'jabber:client',
-                                            'rsm': 'http://jabber.org/protocol/rsm'})
+                                            'rsm': 'http://jabber.org/protocol/rsm',
+                                            'carbon': 'urn:xmpp:carbons:2',
+                                            'hints': 'urn:xmpp:hints'})
     return matched
 
 
@@ -691,7 +693,9 @@ if __name__ == '__main__':
                      # That second user sends a private message to the first one
                      partial(send_stanza, "<message from='{jid_two}/{resource_one}' to='#foo%{irc_server_one}/{nick_one}' type='chat'><body>RELLO</body></message>"),
                      # Message is received with a server-wide JID, by the two resources behind nick_one
-                     partial(expect_stanza, "/message[@from='{lower_nick_two}%{irc_server_one}'][@to='{jid_one}/{resource_one}'][@type='chat']/body[text()='RELLO']"),
+                     partial(expect_stanza, ("/message[@from='{lower_nick_two}%{irc_server_one}'][@to='{jid_one}/{resource_one}'][@type='chat']/body[text()='RELLO']",
+                                             "/message/hints:no-copy",
+                                             "/message/carbon:private")),
                      partial(expect_stanza, "/message[@from='{lower_nick_two}%{irc_server_one}'][@to='{jid_one}/{resource_two}'][@type='chat']/body[text()='RELLO']"),
 
                      # One resource leaves the server entirely.
