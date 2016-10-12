@@ -186,7 +186,8 @@ int Poller::poll(const std::chrono::milliseconds& timeout)
             socket_handler->on_send();
             nb_events--;
         }
-      else if (this->fds[i].revents & POLLOUT)
+      else if (this->fds[i].revents & POLLOUT ||
+               this->fds[i].revents & POLLIN)
         {
           socket_handler->connect();
           nb_events--;
