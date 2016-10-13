@@ -105,7 +105,7 @@ test:fedora:
 
 test:openbsd:
   variables:
-    COMPILER: "clang++"
+    COMPILER: "g++"
     SYSTEMD: "-DWITHOUT_SYSTEMD=1"
   stage: test
   tags:
