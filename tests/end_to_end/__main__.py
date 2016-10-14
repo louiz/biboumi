@@ -123,7 +123,8 @@ def match(stanza, xpath):
                                             'client': 'jabber:client',
                                             'rsm': 'http://jabber.org/protocol/rsm',
                                             'carbon': 'urn:xmpp:carbons:2',
-                                            'hints': 'urn:xmpp:hints'})
+                                            'hints': 'urn:xmpp:hints',
+                                            'stanza': 'urn:ietf:params:xml:ns:xmpp-stanzas'})
     return matched
 
 
@@ -646,6 +647,35 @@ if __name__ == '__main__':
                              ),
                      partial(send_stanza, "<iq type='set' id='hello-command2' from='{jid_one}/{resource_one}' to='{biboumi_host}'><command xmlns='http://jabber.org/protocol/commands' node='hello' sessionid='{sessionid}' action='next'><x xmlns='jabber:x:data' type='submit'><field var='name'><value>COUCOU</value></field></x></command></iq>"),
                      partial(expect_stanza, "/iq[@type='result']/commands:command[@node='hello'][@status='completed']/commands:note[@type='info'][text()='Hello COUCOU!']")
+                 ]),
+        Scenario("execute_forbidden_adhoc_command",
+                 [
+                     handshake_sequence(),
+                     partial(send_stanza, "<iq type='set' id='command1' from='{jid_one}/{resource_one}' to='{biboumi_host}'><command xmlns='http://jabber.org/protocol/commands' node='disconnect-user' action='execute' /></iq>"),
+                     partial(expect_stanza, ("/iq[@type='error'][@id='command1']/commands:command[@node='disconnect-user']",
+                                             "/iq/commands:command/commands:error[@type='cancel']/stanza:forbidden")),
+                 ]),
+        Scenario("execute_disconnect_user_adhoc_command",
+                 [
+                     handshake_sequence(),
+
+                     partial(log_message, "Join a channel"),
+                     partial(send_stanza, "<presence from='{jid_admin}/{resource_one}' to='#foo%{irc_server_one}/{nick_one}' />"),
+                     connection_sequence("irc.localhost", '{jid_admin}/{resource_one}'),
+                     partial(expect_stanza, "/message/body[text()='Mode #foo [+nt] by {irc_host_one}']"),
+                     partial(expect_stanza, "/presence"),
+                     partial(expect_stanza, "/message"),
+
+                     partial(send_stanza, "<iq type='set' id='command1' from='{jid_admin}/{resource_one}' to='{biboumi_host}'><command xmlns='http://jabber.org/protocol/commands' node='disconnect-user' action='execute' /></iq>"),
+                     partial(expect_stanza, ("/iq[@type='result']/commands:command[@node='disconnect-user'][@sessionid][@status='executing']",
+                                             "/iq/commands:command/commands:actions/commands:next",
+                                             ),
+                                             after = partial(save_value, "sessionid", partial(extract_attribute, "/iq/commands:command[@node='disconnect-user']", "sessionid"))
+                             ),
+                     partial(send_stanza, "<iq type='set' id='command2' from='{jid_admin}/{resource_one}' to='{biboumi_host}'><command xmlns='http://jabber.org/protocol/commands' node='disconnect-user' sessionid='{sessionid}' action='next'><x xmlns='jabber:x:data' type='submit'><field var='jids'><value>{jid_admin}</value></field><field var='quit-message'><value>Disconnected by e2e</value></field></x></command></iq>"),
+                     partial(expect_stanza, "/iq[@type='result']/commands:command[@node='disconnect-user'][@status='completed']/commands:note[@type='info'][text()='1 user has been disconnected.']"),
+                     # Note, charybdis ignores our QUIT message, so we can't test it
+                     partial(expect_stanza, "/presence[@type='unavailable'][@to='{jid_admin}/{resource_one}'][@from='#foo%{irc_server_one}/{nick_one}']"),
                  ]),
         Scenario("multisessionnick",
                  [
