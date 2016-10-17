@@ -268,8 +268,6 @@ def expect_unordered(list_of_xpaths, xmpp, biboumi):
             formatted_xpath = xpath.format_map(common_replacements)
             formatted_xpaths.append(formatted_xpath)
         formatted_list_of_xpaths.append(tuple(formatted_xpaths))
-    # formatted_list_of_xpaths = [tuple(xpath.format_map(common_replacements) for xpath in xpaths) for xpaths in list_of_xpaths]
-
     expect_unordered_already_formatted(formatted_list_of_xpaths, xmpp, biboumi)
 
 def expect_unordered_already_formatted(formatted_list_of_xpaths, xmpp, biboumi):
@@ -367,6 +365,7 @@ common_replacements = {
     'jid_two': 'second@example.com',
     'jid_admin': 'admin@example.com',
     'nick_two': 'Bobby',
+    'nick_three': 'Bernard',
     'lower_nick_one': 'nick',
     'lower_nick_two': 'bobby',
 }
@@ -728,16 +727,49 @@ if __name__ == '__main__':
                                              "/message/carbon:private")),
                      partial(expect_stanza, "/message[@from='{lower_nick_two}%{irc_server_one}'][@to='{jid_one}/{resource_two}'][@type='chat']/body[text()='RELLO']"),
 
+
+                     partial(log_message, "Nickname conflict"),
+                     # First occupant (with the two resources) changes her/his nick
+                     partial(send_stanza, "<presence from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}/{nick_two}' />"),
+                     partial(expect_unordered, [
+                         ("/message[@to='{jid_one}/{resource_one}'][@type='chat']/body[text()='irc.localhost: Bobby: Nickname is already in use.']",),
+                         ("/message[@to='{jid_one}/{resource_two}'][@type='chat']/body[text()='irc.localhost: Bobby: Nickname is already in use.']",),
+                         ("/presence[@to='{jid_one}/{resource_one}'][@from='#foo%{irc_server_one}/{nick_two}'][@type='error']",),
+                         ("/presence[@to='{jid_one}/{resource_two}'][@from='#foo%{irc_server_one}/{nick_two}'][@type='error']",),
+                     ]),
+
+                     # partial(log_message, "Nickname change"),
+                     # First occupant (with the two resources) changes her/his nick
+                     partial(send_stanza, "<presence from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}/{nick_three}' />"),
+                     partial(expect_unordered, [
+                         ("/presence[@from='#foo%{irc_server_one}/{nick_one}'][@to='{jid_two}/{resource_one}'][@type='unavailable']/muc_user:x/muc_user:item[@nick='Bernard']",
+                          "/presence/muc_user:x/muc_user:status[@code='303']"),
+                         ("/presence[@from='#foo%{irc_server_one}/{nick_three}'][@to='{jid_two}/{resource_one}']",),
+                         ("/presence[@from='#foo%{irc_server_one}/{nick_one}'][@to='{jid_one}/{resource_one}'][@type='unavailable']/muc_user:x/muc_user:item[@nick='Bernard']",
+                          "/presence/muc_user:x/muc_user:status[@code='303']",
+                          "/presence/muc_user:x/muc_user:status[@code='110']"),
+                         ("/presence[@from='#foo%{irc_server_one}/{nick_three}'][@to='{jid_one}/{resource_one}']",
+                          "/presence/muc_user:x/muc_user:status[@code='110']"),
+
+                         ("/presence[@from='#foo%{irc_server_one}/{nick_one}'][@to='{jid_one}/{resource_two}'][@type='unavailable']/muc_user:x/muc_user:item[@nick='Bernard']",
+                          "/presence/muc_user:x/muc_user:status[@code='303']",
+                          "/presence/muc_user:x/muc_user:status[@code='110']"),
+                         ("/presence[@from='#foo%{irc_server_one}/{nick_three}'][@to='{jid_one}/{resource_two}']",
+                          "/presence/muc_user:x/muc_user:status[@code='110']"),
+                     ]),
+
                      # One resource leaves the server entirely.
                      partial(send_stanza, "<presence type='unavailable' from='{jid_one}/{resource_two}' to='#foo%{irc_server_one}/{nick_one}' />"),
                      # The leave is forwarded only to us
                      partial(expect_stanza,
                              ("/presence[@type='unavailable']/muc_user:x/muc_user:status[@code='110']",
-                             "/presence/status[text()='Biboumi note: 1 resources are still in this channel.']")
+                              "/presence/status[text()='Biboumi note: 1 resources are still in this channel.']",
+                              )
                              ),
+
                      # The second user sends two new private messages to the first user
-                     partial(send_stanza, "<message from='{jid_two}/{resource_one}' to='#foo%{irc_server_one}/{nick_one}' type='chat'><body>first</body></message>"),
-                     partial(send_stanza, "<message from='{jid_two}/{resource_one}' to='#foo%{irc_server_one}/{nick_one}' type='chat'><body>second</body></message>"),
+                     partial(send_stanza, "<message from='{jid_two}/{resource_one}' to='#foo%{irc_server_one}/{nick_three}' type='chat'><body>first</body></message>"),
+                     partial(send_stanza, "<message from='{jid_two}/{resource_one}' to='#foo%{irc_server_one}/{nick_three}' type='chat'><body>second</body></message>"),
                      # The first user receives the two messages, on the connected resource, once each
                      partial(expect_stanza, "/message[@from='{lower_nick_two}%{irc_server_one}'][@to='{jid_one}/{resource_one}'][@type='chat']/body[text()='first']"),
                      partial(expect_stanza, "/message[@from='{lower_nick_two}%{irc_server_one}'][@to='{jid_one}/{resource_one}'][@type='chat']/body[text()='second']"),
