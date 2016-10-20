@@ -103,8 +103,6 @@ void TCPSocketHandler::connect(const std::string& address, const std::string& po
   this->port = port;
   this->use_tls = tls;
 
-  utils::ScopeGuard sg;
-
   struct addrinfo* addr_res;
 
   if (!this->connecting)
