@@ -151,13 +151,12 @@ def check_list_of_xpath(list_of_xpaths, xmpp, stanza):
     found = None
     for i, xpaths in enumerate(list_of_xpaths):
         if all_xpaths_match(stanza, xpaths):
-            found = i
+            found = True
+            list_of_xpaths.pop(i)
             break
 
-    if found is None:
+    if not found:
         raise StanzaError("Received stanza “%s” did not match any of the expected xpaths:\n%s" % (stanza, list_of_xpaths))
-
-    list_of_xpaths.pop(i)
 
     if list_of_xpaths:
         step = partial(expect_unordered_already_formatted, list_of_xpaths)
