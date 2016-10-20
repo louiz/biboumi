@@ -76,6 +76,7 @@ build:rpm:
       - build/rpmbuild/RPMS
       - build/rpmbuild/SRPMS
     when: always
+    name: $CI_PROJECT_NAME-rpm-$CI_BUILD_ID
 
 
 .template:basic_test: &basic_test
@@ -92,6 +93,7 @@ build:rpm:
       - build/coverage_e2e/
       - build/tests_outputs/
     when: always
+    name: $CI_PROJECT_NAME-rpm-$CI_BUILD_ID
 
 test:debian:
   stage: test
@@ -115,6 +117,8 @@ test:openbsd:
 test:coverity:
   stage: test
   image: biboumi-test-fedora:latest
+  allow_failure: true
+  when: manual
   script:
     - export PATH=$PATH:~/coverity/bin
     - cmake .. -DWITHOUT_SYSTEMD=1
