@@ -129,7 +129,7 @@ def match(stanza, xpath):
 
 
 def check_xpath(xpaths, xmpp, after, stanza):
-    for i, xpath in enumerate(xpaths):
+    for xpath in enumerate(xpaths):
         matched = match(stanza, xpath)
         if not matched:
             raise StanzaError("Received stanza “%s” did not match expected xpath “%s”" % (stanza, xpath))
