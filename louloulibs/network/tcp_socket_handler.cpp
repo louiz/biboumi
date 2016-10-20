@@ -305,23 +305,24 @@ void TCPSocketHandler::on_send()
   else
     {
       // remove all the strings that were successfully sent.
-      for (auto it = this->out_buf.begin();
-           it != this->out_buf.end();)
+      auto it = this->out_buf.begin();
+      while (it != this->out_buf.end())
         {
-          if (static_cast<size_t>(res) >= (*it).size())
+          if (static_cast<size_t>(res) >= it->size())
             {
-              res -= (*it).size();
-              it = this->out_buf.erase(it);
+              res -= it->size();
+              ++it;
             }
           else
             {
               // If one string has partially been sent, we use substr to
               // crop it
               if (res > 0)
-                (*it) = (*it).substr(res, std::string::npos);
+                *it = it->substr(res, std::string::npos);
               break;
             }
         }
+      this->out_buf.erase(this->out_buf.begin(), it);
       if (this->out_buf.empty())
         this->poller->stop_watching_send_events(this);
     }
