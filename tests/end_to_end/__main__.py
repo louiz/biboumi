@@ -57,7 +57,7 @@ class XMPPComponent(slixmpp.BaseXMPP):
 
         self.add_event_handler("session_end", self.on_end_session)
 
-        asyncio.ensure_future(self.accept_routine())
+        asyncio.async(self.accept_routine())
 
         self.scenario = scenario
         self.biboumi = biboumi
