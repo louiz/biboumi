@@ -502,6 +502,7 @@ void IrcClient::send_part_command(const std::string& chan_name, const std::strin
         this->leave_dummy_channel(status_message);
       else
         this->send_message(IrcMessage("PART", {chan_name, status_message}));
+      channel->parting = true;
     }
 }
 

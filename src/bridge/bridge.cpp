@@ -365,10 +365,7 @@ void Bridge::leave_irc_channel(Iid&& iid, const std::string& status_message, con
       // acknowledgment from the server
       IrcChannel* channel = irc->get_channel(iid.get_local());
       if (channel->joined && !channel->parting)
-        {
-          irc->send_part_command(iid.get_local(), status_message);
-          channel->parting = true;
-        }
+        irc->send_part_command(iid.get_local(), status_message);
       // Since there are no resources left in that channel, we don't
       // want to receive private messages using this room's JID
       this->remove_all_preferred_from_jid_of_room(iid.get_local());
