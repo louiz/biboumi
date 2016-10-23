@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+<!DOCTYPE database SYSTEM "litesql.dtd">
+
+<database name="BibouDB" namespace="db">
+    <object name="IrcServerOptions">
+        <field name="owner" type="string" length="3071"/>
+        <field name="server" type="string" length="3071"/>
+
+        <field name="pass" type="string" length="1024" default=""/>
+        <field name="afterConnectionCommand" type="string" length="510" default=""/>
+        <field name="tlsPorts" type="string" length="4096" default="6697;6670" />
+        <field name="ports" type="string" length="4096" default="6667" />
+        <field name="username" type="string" length="1024" default=""/>
+        <field name="realname" type="string" length="1024" default=""/>
+        <field name="verifyCert" type="boolean" default="true"/>
+        <field name="trustedFingerprint" type="string"/>
+
+        <field name="encodingOut" type="string" default="ISO-8859-1"/>
+        <field name="encodingIn"  type="string" default="ISO-8859-1"/>
+
+        <index unique="true">
+            <indexfield name="owner"/>
+            <indexfield name="server"/>
+        </index>
+    </object>
+
+    <object name="IrcChannelOptions">
+        <field name="owner" type="string" length="3071"/>
+        <field name="server" type="string" length="3071"/>
+        <field name="channel" type="string" length="1024"/>
+
+        <field name="encodingOut" type="string"/>
+        <field name="encodingIn"  type="string"/>
+
+        <index unique="true">
+            <indexfield name="owner"/>
+            <indexfield name="server"/>
+            <indexfield name="channel"/>
+        </index>
+    </object>
+
+    <object name="LogLine">
+        <field name="date" type="date" />
+        <field name="body" type="string" length="4096"/>
+    </object>
+</database>
