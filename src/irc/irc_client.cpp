@@ -931,29 +931,38 @@ void IrcClient::on_quit(const IrcMessage& message)
 
 void IrcClient::on_nick(const IrcMessage& message)
 {
-  const std::string new_nick = message.arguments[0];
+  const std::string new_nick = IrcUser(message.arguments[0]).nick;
+  const std::string current_nick = IrcUser(message.prefix).nick;
+  const auto change_nick_func = [&](const std::string& chan_name, const IrcChannel* channel)
+  {
+    IrcUser* user;
+    if (channel->get_self() && channel->get_self()->nick == current_nick)
+      user = channel->get_self();
+    else
+      user = channel->find_user(current_nick);
+    if (user)
+      {
+        std::string old_nick = user->nick;
+        Iid iid(chan_name, this->hostname, Iid::Type::Channel);
+        const bool self = channel->get_self()->nick == old_nick;
+        const char user_mode = user->get_most_significant_mode(this->sorted_user_modes);
+        this->bridge.send_nick_change(std::move(iid), old_nick, new_nick, user_mode, self);
+        user->nick = new_nick;
+        if (self)
+          {
+            channel->get_self()->nick = new_nick;
+            this->current_nick = new_nick;
+          }
+      }
+  };
+
+  if (this->get_dummy_channel().joined)
+    {
+      change_nick_func("", &this->get_dummy_channel());
+    }
   for (auto it = this->channels.begin(); it != this->channels.end(); ++it)
     {
-      const std::string chan_name = it->first;
-      IrcChannel* channel = it->second.get();
-      IrcUser* user = channel->find_user(message.prefix);
-      if (user)
-        {
-          std::string old_nick = user->nick;
-          Iid iid;
-          iid.set_local(chan_name);
-          iid.set_server(this->hostname);
-          iid.type = Iid::Type::Channel;
-          const bool self = channel->get_self()->nick == old_nick;
-          const char user_mode = user->get_most_significant_mode(this->sorted_user_modes);
-          this->bridge.send_nick_change(std::move(iid), old_nick, new_nick, user_mode, self);
-          user->nick = new_nick;
-          if (self)
-            {
-              channel->get_self()->nick = new_nick;
-              this->current_nick = new_nick;
-            }
-        }
+      change_nick_func(it->first, it->second.get());
     }
 }
 

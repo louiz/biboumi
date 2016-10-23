@@ -482,7 +482,7 @@ if __name__ == '__main__':
                              ),
                      partial(expect_stanza, "/message[@from='#foo%{irc_server_one}'][@type='groupchat']/subject[not(text())]"),
                  ]),
-        Scenario("virtual_channel_join",
+        Scenario("virtual_channel",
                  [
                      handshake_sequence(),
                      partial(send_stanza,
@@ -494,6 +494,38 @@ if __name__ == '__main__':
                              ),
                      partial(expect_stanza, "/message[@from='%{irc_server_one}'][@type='groupchat']/subject[re:test(text(), '^This is a virtual channel.*$')]"),
                      connection_end_sequence("irc.localhost", '{jid_one}/{resource_one}'),
+                     partial(send_stanza, "<presence type='unavailable' from='{jid_one}/{resource_one}' to='%{irc_server_one}/{nick_one}' />"),
+                     partial(expect_stanza, "/presence[@type='unavailable'][@from='%{irc_server_one}/{nick_one}']"),
+                     partial(expect_stanza, "/message[@from='{irc_server_one}']/body[text()='ERROR: Closing Link: localhost (Client Quit)']"),
+                     partial(expect_stanza, "/message[@from='{irc_server_one}']/body[text()='ERROR: Connection closed.']"),
+                 ]),
+        Scenario("irc_server_disconnection",
+                 [
+                     handshake_sequence(),
+                     partial(send_stanza,
+                             "<presence from='{jid_one}/{resource_one}' to='%{irc_server_one}/{nick_one}' />"),
+                     connection_begin_sequence("irc.localhost", '{jid_one}/{resource_one}'),
+                     partial(expect_stanza,
+                             ("/presence[@to='{jid_one}/{resource_one}'][@from='%{irc_server_one}/{nick_one}']/muc_user:x/muc_user:item[@affiliation='none'][@role='participant']",
+                              "/presence/muc_user:x/muc_user:status[@code='110']")
+                             ),
+                     partial(expect_stanza, "/message[@from='%{irc_server_one}'][@type='groupchat']/subject[re:test(text(), '^This is a virtual channel.*$')]"),
+                     connection_end_sequence("irc.localhost", '{jid_one}/{resource_one}'),
+
+                     partial(send_stanza, "<presence from='{jid_one}/{resource_one}' to='%{irc_server_one}/{nick_two}' />"),
+
+                     partial(expect_unordered, [
+                         ("/presence[@from='%{irc_server_one}/{nick_one}'][@to='{jid_one}/{resource_one}'][@type='unavailable']/muc_user:x/muc_user:item[@nick='{nick_two}']",
+                          "/presence/muc_user:x/muc_user:status[@code='110']",
+                          "/presence/muc_user:x/muc_user:status[@code='303']"),
+                         ("/presence[@from='%{irc_server_one}/{nick_two}'][@to='{jid_one}/{resource_one}']",
+                          "/presence/muc_user:x/muc_user:status[@code='110']"),
+                         ]),
+
+                     partial(send_stanza, "<presence type='unavailable' from='{jid_one}/{resource_one}' to='%{irc_server_one}/{nick_two}' />"),
+                     partial(expect_stanza, "/presence[@type='unavailable'][@from='%{irc_server_one}/{nick_two}']"),
+                     partial(expect_stanza, "/message[@from='{irc_server_one}']/body[text()='ERROR: Closing Link: localhost (Client Quit)']"),
+                     partial(expect_stanza, "/message[@from='{irc_server_one}']/body[text()='ERROR: Connection closed.']"),
                  ]),
         Scenario("channel_join_with_two_users",
                  [
