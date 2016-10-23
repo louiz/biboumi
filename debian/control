@@ -1,0 +1,34 @@
+Source: biboumi
+Section: net
+Priority: optional
+Build-Depends: cdbs,
+ debhelper,
+ dh-buildinfo,
+ licensecheck,
+ uuid-dev,
+ libexpat1-dev,
+ libidn11-dev,
+ libsystemd-dev,
+ libc-ares-dev
+Maintainer: Debian VoIP Team <pkg-voip-maintainers@lists.alioth.debian.org>
+Uploaders: Vasudev Kamath <vasudev@copyninja.info>
+ Jonas Smedegaard <dr@jones.dk>
+Vcs-Git: https://anonscm.debian.org/git/pkg-voip/biboumi.git
+Vcs-Browser: https://anonscm.debian.org/cgit/pkg-voip/biboumi.git
+Homepage: https://lab.louiz.org/louiz/biboumi/
+
+Package: biboumi
+Architecture: any
+Depends: ${misc:Depends},
+ ${shlibs:Depends}
+Description: XMPP gateway to connect to IRC servers
+ This package translates between XMPP and IRC protocols. It can be used to
+ connect to IRC channels using any XMPP client as if these channels were XMPP
+ MUCs.
+ .
+ The goal is to provide a way to access most of IRC features using any XMPP
+ client. It doesn’t however try to provide a complete mapping of the features of
+ both worlds simply because this is not useful and most probably impossible.
+ .
+ If IRC is the limiting factor then biboumi doesn’t try to work around this
+ issue. An important goal of the tool is to keep the software light and simple.

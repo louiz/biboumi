@@ -1,0 +1,12 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: biboumi
+Upstream-Contact: https://lab.louiz.org/louiz/biboumi/issues
+Source: https://lab.louiz.org/louiz/biboumi
+
+Files: debian/*
+Copyright: 2016, Vasudev Kamath <vasudev@copyninja.info>
+ 2016, Jonas Smedegaard <dr@jones.dk>
+License: GPL-3+
+
+License: GPL-3+
+License-Reference: /usr/share/common-licenses/GPL-3

@@ -1,0 +1,6 @@
+biboumi (3.0-1) unstable; urgency=medium
+
+  * Initial Release.
+    Closes: bug#841773.
+
+ -- Vasudev Kamath <vasudev@copyninja.info>  Sun, 23 Oct 2016 20:36:23 +0530
