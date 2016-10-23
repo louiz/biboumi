@@ -855,7 +855,10 @@ void BiboumiComponent::send_invitation(const std::string& room_target,
   XmlNode x("x");
   x["xmlns"] = MUC_USER_NS;
   XmlNode invite("invite");
-  invite["from"] = room_target + "@" + this->served_hostname + "/" + author_nick;
+  if (author_nick.empty())
+    invite["from"] = room_target + "@" + this->served_hostname;
+  else
+    invite["from"] = room_target + "@" + this->served_hostname + "/" + author_nick;
   x.add_child(std::move(invite));
   message.add_child(std::move(x));
   this->send_stanza(message);

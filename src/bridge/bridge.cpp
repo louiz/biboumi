@@ -839,8 +839,19 @@ void Bridge::send_xmpp_message(const std::string& from, const std::string& autho
 void Bridge::send_user_join(const std::string& hostname, const std::string& chan_name,
                             const IrcUser* user, const char user_mode, const bool self)
 {
-  for (const auto& resource: this->resources_in_chan[ChannelKey{chan_name, hostname}])
-    this->send_user_join(hostname, chan_name, user, user_mode, self, resource);
+  const auto resources = this->resources_in_chan[ChannelKey{chan_name, hostname}];
+  if (self && resources.empty())
+    { // This was a forced join: no client ever asked to join this room,
+      // but the server tells us we are in that room anyway.  XMPP can’t
+      // do that, so we invite all the resources to join that channel.
+      const Iid iid(chan_name, hostname, Iid::Type::Channel);
+      this->send_xmpp_invitation(iid, "");
+    }
+    else
+    {
+      for (const auto& resource: resources)
+        this->send_user_join(hostname, chan_name, user, user_mode, self, resource);
+    }
 }
 
 void Bridge::send_user_join(const std::string& hostname, const std::string& chan_name,
