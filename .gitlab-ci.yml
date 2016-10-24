@@ -93,7 +93,7 @@ build:rpm:
       - build/coverage_e2e/
       - build/tests_outputs/
     when: always
-    name: $CI_PROJECT_NAME-rpm-$CI_BUILD_ID
+    name: $CI_PROJECT_NAME-test-$CI_BUILD_ID
 
 test:debian:
   stage: test
