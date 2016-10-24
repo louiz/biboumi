@@ -1,6 +1,8 @@
 before_script:
   - uname -a
   - whoami
+  - export LC_ALL=C.UTF-8
+  - export LANG=C.UTF-8
   - echo $LANG
   - g++ --version
   - clang++ --version
@@ -24,6 +26,8 @@ variables:
     - cmake .. -DCMAKE_CXX_COMPILER=${COMPILER} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ${BOTAN} ${CARES} ${SYSTEMD} ${LIBIDN} ${LITESQL}
     - make biboumi -j$(nproc)
     - make check -j$(nproc)
+  tags:
+    - docker
 
 image: biboumi-test-fedora:latest
 
@@ -68,6 +72,9 @@ build:6:
 
 build:rpm:
   stage: build
+  image: biboumi-test-fedora:latest
+  tags:
+    - docker
   script:
     - cmake .. -DCMAKE_CXX_COMPILER=${COMPILER} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ${BOTAN} ${CARES} ${SYSTEMD} ${LIBIDN} ${LITESQL}
     - make rpm -j$(nproc)
@@ -98,11 +105,15 @@ build:rpm:
 test:debian:
   stage: test
   image: biboumi-test-debian:latest
+  tags:
+    - docker
   <<: *basic_test
 
 test:fedora:
   stage: test
   image: biboumi-test-fedora:latest
+  tags:
+    - docker
   <<: *basic_test
 
 test:openbsd:
