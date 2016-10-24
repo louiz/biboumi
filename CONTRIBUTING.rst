@@ -25,6 +25,12 @@ publicly available git repository and communicate us its address.  This
 can be done with a `gitlab merge request`_, or a `github pull request`_
 or just by sending a message into the `XMPP chatroom`_.
 
+It is suggested that you use gitlab’s merge requests: this will automatically
+run our continuous integration tests.
+
+It is also recommended to add some unit or end-to-end tests for the prosposed
+changes.
+
 
 Coding style
 ------------
