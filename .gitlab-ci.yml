@@ -1,6 +1,8 @@
 before_script:
   - uname -a
   - whoami
+  - export LC_ALL=C.UTF-8
+  - export LANG=C.UTF-8
   - echo $LANG
   - g++ --version
   - clang++ --version
