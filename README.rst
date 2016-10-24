@@ -52,13 +52,7 @@ Contact/Support
 * XMPP ChatRoom: biboumi@muc.poez.io
 * Report a bug:  https://lab.louiz.org/louiz/biboumi/issues/new
 
-To contribute, the preferred way is to commit your changes on some
-publicly-available git repository (a fork on gitlab or github or on your own
-repository) and to notify the developers with a ticket on the bug tracker,
-or a merge request on gitlab or a pull request on github.
-
-Optionally you can come discuss your changes on the XMPP chat room,
-beforehand.
+Also, see the `contributing`_ page.
 
 
 Licence
@@ -71,3 +65,4 @@ Please read the COPYING file for details.
 
 .. _INSTALL: INSTALL.rst
 .. _the documentation: doc/biboumi.1.rst
+.. _contributing: CONTRIBUTING.rst
