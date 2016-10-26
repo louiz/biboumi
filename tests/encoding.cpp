@@ -11,7 +11,6 @@ TEST_CASE("UTF-8 validation")
   CHECK_FALSE(utils::is_valid_utf8("\xFE\xFE\xFF\xFF"));
 
   std::string in = "Biboumi ╯°□°）╯︵ ┻━┻";
-  INFO(in);
   CHECK(utils::is_valid_utf8(in.data()));
 }
 
@@ -49,7 +48,6 @@ TEST_CASE("Remove invalid XML chars")
 {
   std::string without_ctrl_char("𤭢€¢$");
   std::string in = "Biboumi ╯°□°）╯︵ ┻━┻";
-  INFO(in);
   CHECK(utils::remove_invalid_xml_chars(without_ctrl_char) == without_ctrl_char);
   CHECK(utils::remove_invalid_xml_chars(in) == in);
   CHECK(utils::remove_invalid_xml_chars("\acouco\u0008u\uFFFEt\uFFFFe\r\n♥") == "coucoute\r\n♥");

@@ -38,7 +38,6 @@ TEST_CASE("Test timed event expiration")
   CHECK(TimedEventsManager::instance().execute_expired_events() == 0);
 
   std::chrono::milliseconds timoute = TimedEventsManager::instance().get_timeout();
-  INFO("Sleeping for " << timoute.count() << "ms");
   std::this_thread::sleep_for(timoute + 1ms);
 
   // Event is now expired
