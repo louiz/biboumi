@@ -417,15 +417,14 @@ void TCPSocketHandler::start_tls()
 void TCPSocketHandler::tls_recv()
 {
   static constexpr size_t buf_size = 4096;
-  char recv_buf[buf_size];
+  Botan::byte recv_buf[buf_size];
 
   const ssize_t size = this->do_recv(recv_buf, buf_size);
   if (size > 0)
     {
       const bool was_active = this->tls->is_active();
       try {
-        this->tls->received_data(reinterpret_cast<const Botan::byte*>(recv_buf),
-                                 static_cast<size_t>(size));
+        this->tls->received_data(recv_buf, static_cast<size_t>(size));
       } catch (const Botan::TLS::TLS_Exception& e) {
         // May happen if the server sends malformed TLS data (buggy server,
         // or more probably we are just connected to a server that sends
@@ -448,9 +447,8 @@ void TCPSocketHandler::tls_send(std::string&& data)
       const bool was_active = this->tls->is_active();
       if (!this->pre_buf.empty())
         {
-          this->tls->send(reinterpret_cast<const Botan::byte*>(this->pre_buf.data()),
-                          this->pre_buf.size());
-          this->pre_buf = "";
+          this->tls->send(this->pre_buf.data(), this->pre_buf.size());
+          this->pre_buf.clear();
         }
       if (!data.empty())
         this->tls->send(reinterpret_cast<const Botan::byte*>(data.data()),
@@ -459,7 +457,9 @@ void TCPSocketHandler::tls_send(std::string&& data)
         this->on_tls_activated();
     }
   else
-    this->pre_buf += data;
+    this->pre_buf.insert(this->pre_buf.end(),
+                         std::make_move_iterator(data.begin()),
+                         std::make_move_iterator(data.end()));
 }
 
 void TCPSocketHandler::tls_data_cb(const Botan::byte* data, size_t size)

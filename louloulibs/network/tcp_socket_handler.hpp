@@ -266,9 +266,6 @@ private:
    * An additional buffer to keep data that the user wants to send, but
    * cannot because the handshake is not done.
    */
-  std::string pre_buf;
+  std::vector<Botan::byte> pre_buf;
 #endif // BOTAN_FOUND
 };
-
-
-
