@@ -5,15 +5,14 @@
 
 #include <xmpp/xmpp_component.hpp>
 #include <config/config.hpp>
-#include <xmpp/jid.hpp>
-#include <utils/sha1.hpp>
 #include <utils/time.hpp>
+#include <xmpp/auth.hpp>
+#include <xmpp/jid.hpp>
 
 #include <stdexcept>
 #include <iostream>
 #include <set>
 
-#include <stdio.h>
 #include <uuid/uuid.h>
 
 #include <cstdlib>
@@ -139,17 +138,7 @@ void XmppComponent::on_remote_stream_open(const XmlNode& node)
     }
 
   // Try to authenticate
-  char digest[HASH_LENGTH * 2 + 1];
-  sha1nfo sha1;
-  sha1_init(&sha1);
-  sha1_write(&sha1, this->stream_id.data(), this->stream_id.size());
-  sha1_write(&sha1, this->secret.data(),  this->secret.size());
-  const uint8_t* result = sha1_result(&sha1);
-  for (int i=0; i < HASH_LENGTH; i++)
-    sprintf(digest + (i*2), "%02x", result[i]);
-  digest[HASH_LENGTH * 2] = '\0';
-
-  auto data = "<handshake xmlns='" COMPONENT_NS "'>"s + digest + "</handshake>";
+  auto data = "<handshake xmlns='" COMPONENT_NS "'>"s + get_handshake_digest(this->stream_id, this->secret) + "</handshake>";
   log_debug("XMPP SENDING: ", data);
   this->send_data(std::move(data));
 }
