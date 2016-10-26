@@ -75,13 +75,12 @@ namespace utils
   std::string remove_invalid_xml_chars(const std::string& original)
   {
     // The given string MUST be a valid utf-8 string
-    unsigned char* res = new unsigned char[original.size()];
-    const auto sg = utils::make_scope_guard([&res](auto&&) { delete[] res;});
+    std::vector<char> res(original.size(), '\0');
 
     // pointer where we write valid chars
-    unsigned char* r = res;
+    char* r = res.data();
 
-    const unsigned char* str = reinterpret_cast<const unsigned char*>(original.c_str());
+    const char* str = original.c_str();
     std::bitset<20> codepoint;
 
     while (*str)
@@ -140,7 +139,7 @@ namespace utils
         else
           throw std::runtime_error("Invalid UTF-8 passed to remove_invalid_xml_chars");
       }
-    return {reinterpret_cast<char*>(res), static_cast<size_t>(r-res)};
+    return {res.data(), static_cast<size_t>(r - res.data())};
   }
 
   std::string convert_to_utf8(const std::string& str, const char* charset)
