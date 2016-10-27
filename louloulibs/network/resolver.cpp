@@ -117,12 +117,13 @@ void Resolver::fill_ares_addrinfo4(const struct hostent* hostent)
       current->ai_protocol = 0;
       current->ai_addrlen = sizeof(struct sockaddr_in);
 
-      struct sockaddr_in* addr = new struct sockaddr_in;
-      addr->sin_family = hostent->h_addrtype;
-      addr->sin_port = htons(strtoul(this->port.data(), nullptr, 10));
-      addr->sin_addr.s_addr = (*address)->s_addr;
+      struct sockaddr_in* ai_addr = new struct sockaddr_in;
+      
+      ai_addr->sin_family = hostent->h_addrtype;
+      ai_addr->sin_port = htons(std::strtoul(this->port.data(), nullptr, 10));
+      ai_addr->sin_addr.s_addr = (*address)->s_addr;
 
-      current->ai_addr = reinterpret_cast<struct sockaddr*>(addr);
+      current->ai_addr = reinterpret_cast<struct sockaddr*>(ai_addr);
       current->ai_next = nullptr;
       current->ai_canonname = nullptr;
 
@@ -148,14 +149,14 @@ void Resolver::fill_ares_addrinfo6(const struct hostent* hostent)
       current->ai_protocol = 0;
       current->ai_addrlen = sizeof(struct sockaddr_in6);
 
-      struct sockaddr_in6* addr = new struct sockaddr_in6;
-      addr->sin6_family = hostent->h_addrtype;
-      addr->sin6_port = htons(strtoul(this->port.data(), nullptr, 10));
-      ::memcpy(addr->sin6_addr.s6_addr, (*address)->s6_addr, 16);
-      addr->sin6_flowinfo = 0;
-      addr->sin6_scope_id = 0;
+      struct sockaddr_in6* ai_addr = new struct sockaddr_in6;
+      ai_addr->sin6_family = hostent->h_addrtype;
+      ai_addr->sin6_port = htons(std::strtoul(this->port.data(), nullptr, 10));
+      ::memcpy(ai_addr->sin6_addr.s6_addr, (*address)->s6_addr, sizeof(ai_addr->sin6_addr.s6_addr));
+      ai_addr->sin6_flowinfo = 0;
+      ai_addr->sin6_scope_id = 0;
 
-      current->ai_addr = reinterpret_cast<struct sockaddr*>(addr);
+      current->ai_addr = reinterpret_cast<struct sockaddr*>(ai_addr);
       current->ai_canonname = nullptr;
 
       current->ai_next = prev;
