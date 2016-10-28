@@ -24,8 +24,8 @@ variables:
   script:
     - "echo Running cmake with the following parameters: -DCMAKE_CXX_COMPILER=${COMPILER} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ${BOTAN} ${CARES} ${SYSTEMD} ${LIBIDN} ${LITESQL}"
     - cmake .. -DCMAKE_CXX_COMPILER=${COMPILER} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ${BOTAN} ${CARES} ${SYSTEMD} ${LIBIDN} ${LITESQL}
-    - make biboumi -j$(nproc || 1)
-    - make check -j$(nproc || 1)
+    - make biboumi -j$(nproc || echo 1)
+    - make check -j$(nproc || echo 1)
   tags:
     - docker
 
@@ -77,7 +77,7 @@ build:rpm:
     - docker
   script:
     - cmake .. -DCMAKE_CXX_COMPILER=${COMPILER} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ${BOTAN} ${CARES} ${SYSTEMD} ${LIBIDN} ${LITESQL}
-    - make rpm -j$(nproc || 1)
+    - make rpm -j$(nproc || echo 1)
   artifacts:
     paths:
       - build/rpmbuild/RPMS
@@ -90,10 +90,10 @@ build:rpm:
   stage: test
   script:
     - cmake .. -DCMAKE_CXX_COMPILER=${COMPILER} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ${BOTAN} ${CARES} ${SYSTEMD} ${LIBIDN} ${LITESQL}
-    - make biboumi -j$(nproc || 1)
+    - make biboumi -j$(nproc || echo 1)
     - make check
     - make coverage
-    - mkdir tests_outputs && pushd tests_outputs && make coverage_e2e -j$(nproc || 1) -C .. && popd
+    - mkdir tests_outputs && pushd tests_outputs && make coverage_e2e -j$(nproc || echo 1) -C .. && popd
   artifacts:
     paths:
       - build/coverage/
@@ -133,6 +133,6 @@ test:coverity:
   script:
     - export PATH=$PATH:~/coverity/bin
     - cmake .. -DWITHOUT_SYSTEMD=1
-    - cov-build --dir cov-int   make biboumi test_suite -j$(nproc || 1)
+    - cov-build --dir cov-int   make biboumi test_suite -j$(nproc || echo 1)
     - tar czvf biboumi_coverity.tgz cov-int
     - curl --form token=$COVERITY_TOKEN   --form email=louiz@louiz.org   --form file=@biboumi_coverity.tgz  --form version="$(git rev-parse --short HEAD)" --form description="Automatic submission by gitlab-ci" https://scan.coverity.com/builds?project=louiz%2Fbiboumi
