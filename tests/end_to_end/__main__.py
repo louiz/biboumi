@@ -1627,6 +1627,7 @@ if __name__ == '__main__':
 
     failures = 0
 
+    scenar_list = sys.argv[1:]
     irc_output = open("irc_output.txt", "w")
     irc = IrcServerRunner()
     print("Starting irc server…")
@@ -1643,6 +1644,8 @@ if __name__ == '__main__':
     print("Running %s checks for biboumi." % (len(scenarios)))
 
     for s in scenarios:
+        if s.name not in scenar_list:
+            continue
         test = BiboumiTest(s)
         if not test.run():
             print("You can check the files slixmpp_%s_output.txt and biboumi_%s_output.txt to help you debug." %
