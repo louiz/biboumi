@@ -1611,6 +1611,18 @@ if __name__ == '__main__':
                              "<iq from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}' id='1' type='get'><query xmlns='http://jabber.org/protocol/disco#info' node='http://jabber.org/protocol/muc#traffic'/></iq>"),
                      partial(expect_stanza, "/iq[@type='result']/disco_info:query[@node='http://jabber.org/protocol/muc#traffic']"),
                 ]),
+                Scenario("raw_message",
+                [
+                     handshake_sequence(),
+                     partial(send_stanza, "<presence from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}/{nick_one}' />"),
+                     connection_sequence("irc.localhost", '{jid_one}/{resource_one}'),
+                     partial(expect_stanza, "/message"),
+                     partial(expect_stanza, "/presence"),
+                     partial(expect_stanza, "/message"),
+
+                     partial(send_stanza, "<message from='{jid_one}/{resource_one}' to='{irc_server_one}' type='chat'><body>WHOIS {nick_one}</body></message>"),
+                     partial(expect_stanza, "/message[@from='{irc_server_one}'][@type='chat']/body[text()='irc.localhost: {nick_one} ~{nick_one} localhost * {nick_one}']"),
+                ]),
     )
 
     failures = 0
