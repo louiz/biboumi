@@ -1677,7 +1677,7 @@ if __name__ == '__main__':
     print("Running %s checks for biboumi." % (len(scenarios)))
 
     for s in scenarios:
-        if s.name not in scenar_list:
+        if scenar_list and s.name not in scenar_list:
             continue
         test = BiboumiTest(s)
         if not test.run():
