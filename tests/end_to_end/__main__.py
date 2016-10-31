@@ -13,6 +13,8 @@ import os
 from functools import partial
 from slixmpp.xmlstream.matcher.base import MatcherBase
 
+if not hasattr(asyncio, "ensure_future"):
+    asyncio.ensure_future = getattr(asyncio, "async")
 
 class MatchAll(MatcherBase):
     """match everything"""
@@ -57,7 +59,7 @@ class XMPPComponent(slixmpp.BaseXMPP):
 
         self.add_event_handler("session_end", self.on_end_session)
 
-        asyncio.async(self.accept_routine())
+        asyncio.ensure_future(self.accept_routine())
 
         self.scenario = scenario
         self.biboumi = biboumi
