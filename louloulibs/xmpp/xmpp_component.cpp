@@ -222,9 +222,8 @@ void XmppComponent::close_document()
   this->doc_open = false;
 }
 
-void XmppComponent::handle_handshake(const Stanza& stanza)
+void XmppComponent::handle_handshake(const Stanza&)
 {
-  (void)stanza;
   this->authenticated = true;
   this->ever_auth = true;
   log_info("Authenticated with the XMPP server");

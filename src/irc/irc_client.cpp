@@ -942,7 +942,7 @@ void IrcClient::on_nick(const IrcMessage& message)
 {
   const std::string new_nick = IrcUser(message.arguments[0]).nick;
   const std::string current_nick = IrcUser(message.prefix).nick;
-  const auto change_nick_func = [&](const std::string& chan_name, const IrcChannel* channel)
+  const auto change_nick_func = [this, &new_nick, &current_nick](const std::string& chan_name, const IrcChannel* channel)
   {
     IrcUser* user;
     if (channel->get_self() && channel->get_self()->nick == current_nick)

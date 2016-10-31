@@ -196,12 +196,8 @@ namespace utils
                 outbuf_ptr++;
                 done = true;
                 break;
-              case E2BIG:
-                // This should never happen
-                done = true;
-                break;
-              default:
-                // This should happen even neverer
+              case E2BIG:  // This should never happen
+              default:     // This should happen even neverer
                 done = true;
                 break;
               }
