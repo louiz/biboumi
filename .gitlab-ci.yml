@@ -125,7 +125,7 @@ test:openbsd:
     - cmake .. -DCMAKE_CXX_COMPILER=${COMPILER} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ${BOTAN} ${CARES} ${SYSTEMD} ${LIBIDN} ${LITESQL}
     - make biboumi
     - make check
-    - mkdir tests_outputs && pushd tests_outputs && make e2e
+    - mkdir tests_outputs && pushd tests_outputs && make e2e -C ..
   tags:
     - openbsd
 
