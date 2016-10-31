@@ -121,9 +121,13 @@ test:openbsd:
     COMPILER: "g++"
     SYSTEMD: "-DWITHOUT_SYSTEMD=1"
   stage: test
+  script:
+    - cmake .. -DCMAKE_CXX_COMPILER=${COMPILER} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ${BOTAN} ${CARES} ${SYSTEMD} ${LIBIDN} ${LITESQL}
+    - make biboumi
+    - make check
+    - mkdir tests_outputs && pushd tests_outputs && make e2e
   tags:
     - openbsd
-  <<: *basic_test
 
 test:coverity:
   stage: test
