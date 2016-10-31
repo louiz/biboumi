@@ -214,6 +214,10 @@ public:
    */
   void on_empty_topic(const IrcMessage& message);
   /**
+   * The IRC server is confirming that the invitation has been forwarded
+   */
+  void on_invited(const IrcMessage& message);
+  /**
    * The channel has been completely joined (self presence, topic, all names
    * received etc), send the self presence and topic to the XMPP user.
    */

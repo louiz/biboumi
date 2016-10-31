@@ -46,6 +46,7 @@ static const std::unordered_map<std::string,
   {"323", {&IrcClient::on_rpl_listend, {0, 0}}},
   {"RPL_NOTOPIC", {&IrcClient::on_empty_topic, {0, 0}}},
   {"331", {&IrcClient::on_empty_topic, {0, 0}}},
+  {"341", {&IrcClient::on_invited, {3, 0}}},
   {"RPL_MOTDSTART", {&IrcClient::empty_motd, {0, 0}}},
   {"375", {&IrcClient::empty_motd, {0, 0}}},
   {"RPL_MOTD", {&IrcClient::on_motd_line, {2, 0}}},
@@ -707,6 +708,14 @@ void IrcClient::on_rpl_listend(const IrcMessage&)
 void IrcClient::empty_motd(const IrcMessage&)
 {
   this->motd.erase();
+}
+
+void IrcClient::on_invited(const IrcMessage& message)
+{
+  const std::string& chan_name = message.arguments[2];
+  const std::string& invited_nick = message.arguments[1];
+
+  this->bridge.send_xmpp_message(this->hostname, "", invited_nick + " has been invited to " + chan_name);
 }
 
 void IrcClient::on_empty_topic(const IrcMessage& message)
