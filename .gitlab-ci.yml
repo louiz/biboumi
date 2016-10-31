@@ -121,7 +121,7 @@ test:openbsd:
   variables:
     COMPILER: "g++"
     SYSTEMD: "-DWITHOUT_SYSTEMD=1"
-    NPROC: 1
+    NPROC: "1"
   stage: test
   tags:
     - openbsd
