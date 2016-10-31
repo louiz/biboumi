@@ -60,6 +60,7 @@ RUN rm -rf /charybdis
 RUN su - tester -c "echo export LANG=en_GB.utf-8 >> /home/tester/.bashrc"
 
 COPY coverity /home/tester/coverity
+COPY sonar-scanner-2.8 /home/tester/sonar-scanner
 
 WORKDIR /home/tester
 USER tester
