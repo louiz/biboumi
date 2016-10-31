@@ -1638,6 +1638,24 @@ if __name__ == '__main__':
                       "/iq/disco_info:query/disco_info:feature[@var='jabber:iq:version']",
                       )),
                 ]),
+                Scenario("invite_other",
+                [
+                     handshake_sequence(),
+                     partial(send_stanza, "<presence from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}/{nick_one}' />"),
+                     connection_sequence("irc.localhost", '{jid_one}/{resource_one}'),
+                     partial(expect_stanza, "/message"),
+                     partial(expect_stanza, "/presence"),
+                     partial(expect_stanza, "/message"),
+
+                     partial(send_stanza, "<presence from='{jid_two}/{resource_two}' to='#bar%{irc_server_one}@{biboumi_host}/{nick_two}' />"),
+                     connection_sequence("irc.localhost", '{jid_two}/{resource_two}'),
+                     partial(expect_stanza, "/message"),
+                     partial(expect_stanza, "/presence"),
+                     partial(expect_stanza, "/message"),
+                     partial(send_stanza, "<message from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}'><x xmlns='http://jabber.org/protocol/muc#user'><invite to='{nick_two}'/></x></message>"),
+                     partial(expect_stanza, "/message/body[text()='{nick_two} has been invited to #foo']"),
+                     partial(expect_stanza, "/message[@to='{jid_two}/{resource_two}'][@from='#foo%{irc_server_one}']/muc_user:x/muc_user:invite[@from='#foo%{irc_server_one}/{nick_one}']"),
+                ]),
     )
 
     failures = 0
