@@ -62,6 +62,8 @@ RUN su - tester -c "echo export LANG=en_GB.utf-8 >> /home/tester/.bashrc"
 COPY coverity /home/tester/coverity
 COPY sonar-scanner-2.8 /home/tester/sonar-scanner
 
+RUN dnf install -y which java-1.8.0-openjdk
+
 WORKDIR /home/tester
 USER tester
 
