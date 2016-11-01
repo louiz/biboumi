@@ -12,6 +12,7 @@
 
 #include <atomic>
 #include <signal.h>
+#include <litesql.hpp>
 
 // A flag set by the SIGINT signal handler.
 static std::atomic<bool> stop(false);
@@ -84,7 +85,7 @@ int main(int ac, char** av)
 
   try {
       open_database();
-    } catch (...) {
+    } catch (const litesql::DatabaseError&) {
       return 1;
     }
 
