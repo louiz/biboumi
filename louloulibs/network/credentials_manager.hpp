@@ -29,6 +29,7 @@ public:
 private:
   const TCPSocketHandler* const socket_handler;
 
+  static bool try_to_open_one_ca_bundle(const std::vector<std::string>& paths);
   static void load_certs();
   static Botan::Certificate_Store_In_Memory certificate_store;
   static bool certs_loaded;

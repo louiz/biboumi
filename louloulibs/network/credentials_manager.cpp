@@ -29,7 +29,7 @@ BasicCredentialsManager::BasicCredentialsManager(const TCPSocketHandler* const s
     socket_handler(socket_handler),
     trusted_fingerprint{}
 {
-  this->load_certs();
+  BasicCredentialsManager::load_certs();
 }
 
 void BasicCredentialsManager::set_trusted_fingerprint(const std::string& fingerprint)
@@ -62,17 +62,8 @@ void BasicCredentialsManager::verify_certificate_chain(const std::string& type,
     }
 }
 
-void BasicCredentialsManager::load_certs()
+bool BasicCredentialsManager::try_to_open_one_ca_bundle(const std::vector<std::string>& paths)
 {
-  //  Only load the certificates the first time
-  if (BasicCredentialsManager::certs_loaded)
-    return;
-  const std::string conf_path = Config::get("ca_file", "");
-  std::vector<std::string> paths;
-  if (conf_path.empty())
-    paths = default_cert_files;
-  else
-    paths.push_back(conf_path);
   for (const auto& path: paths)
     {
       try
@@ -87,25 +78,39 @@ void BasicCredentialsManager::load_certs()
               // will be ignored. As a result, some TLS connection may be refused
               // because the certificate is signed by an issuer that was ignored.
               try {
-                  const Botan::X509_Certificate cert(bundle);
-                  BasicCredentialsManager::certificate_store.add_certificate(cert);
-                } catch (const Botan::Decoding_Error& error)
-                {
+                  Botan::X509_Certificate cert(bundle);
+                  BasicCredentialsManager::certificate_store.add_certificate(std::move(cert));
+                } catch (const Botan::Decoding_Error& error) {
                   continue;
                 }
             }
           // Only use the first file that can successfully be read.
-          goto success;
+          return true;
         }
-      catch (Botan::Stream_IO_Error& e)
+      catch (const Botan::Stream_IO_Error& e)
         {
           log_debug(e.what());
         }
     }
-  //  If we could not open one of the files, print a warning
-  log_warning("The CA could not be loaded, TLS negociation will probably fail.");
-  success:
-  BasicCredentialsManager::certs_loaded = true;
+  return false;
+}
+
+void BasicCredentialsManager::load_certs()
+{
+  //  Only load the certificates the first time
+  if (BasicCredentialsManager::certs_loaded)
+    return;
+  const std::string conf_path = Config::get("ca_file", "");
+  std::vector<std::string> paths;
+  if (conf_path.empty())
+    paths = default_cert_files;
+  else
+    paths.push_back(conf_path);
+
+  if (BasicCredentialsManager::try_to_open_one_ca_bundle(paths))
+    BasicCredentialsManager::certs_loaded = true;
+  else
+    log_warning("The CA could not be loaded, TLS negociation will probably fail.");
 }
 
 std::vector<Botan::Certificate_Store*> BasicCredentialsManager::trusted_certificate_authorities(const std::string&, const std::string&)
