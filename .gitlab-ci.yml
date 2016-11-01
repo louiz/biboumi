@@ -148,5 +148,5 @@ test:sonar-qube:
     - cmake ..
     - ~/sonar-scanner/bin/build-wrapper-linux-x86/build-wrapper-linux-x86-64 --out-dir ./bw-outputs make biboumi test_suite
     - cd ..
-    - ~/sonar-scanner/bin/sonar-scanner -Dsonar.host.url=https://sonarqube.com -Dsonar.login=$SONAR_LOGIN -Dsonar.language=cpp -Dsonar.cfamily.build-wrapper-output=bw-outputs -Dsonar.sourceEncoding=UTF-8 -Dsonar.sources=src/,louloulibs/,tests/ -Dsonar.projectKey=biboumi -Dsonar.projectName=Biboumi -Dsonar.projectVersion=3.0
+    - ~/sonar-scanner/bin/sonar-scanner -Dsonar.host.url=https://sonarqube.com -Dsonar.login=$SONAR_LOGIN -Dsonar.language=cpp -Dsonar.cfamily.build-wrapper-output=build/bw-outputs -Dsonar.sourceEncoding=UTF-8 -Dsonar.sources=src/,louloulibs/,tests/ -Dsonar.projectKey=biboumi -Dsonar.projectName=Biboumi -Dsonar.projectVersion=3.0
 
