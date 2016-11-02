@@ -177,16 +177,23 @@ bool Bridge::join_irc_channel(const Iid& iid, const std::string& nickname, const
     { // Join the dummy channel
       if (irc->is_welcomed())
         {
-          if (irc->get_dummy_channel().joined)
+          if (res_in_chan)
             return false;
           // Immediately simulate a message coming from the IRC server saying that we
           // joined the channel
-          const IrcMessage join_message(irc->get_nick(), "JOIN", {""});
-          irc->on_channel_join(join_message);
-          const IrcMessage end_join_message(std::string(iid.get_server()), "366",
-                                            {irc->get_nick(),
-                                                "", "End of NAMES list"});
-          irc->on_channel_completely_joined(end_join_message);
+          if (irc->get_dummy_channel().joined)
+            {
+              this->generate_channel_join_for_resource(iid, resource);
+            }
+          else
+            {
+              const IrcMessage join_message(irc->get_nick(), "JOIN", {""});
+              irc->on_channel_join(join_message);
+              const IrcMessage end_join_message(std::string(iid.get_server()), "366",
+                                                {irc->get_nick(),
+                                                 "", "End of NAMES list"});
+              irc->on_channel_completely_joined(end_join_message);
+            }
         }
       else
         {

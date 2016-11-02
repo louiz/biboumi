@@ -1656,6 +1656,59 @@ if __name__ == '__main__':
                      partial(expect_stanza, "/message/body[text()='{nick_two} has been invited to #foo']"),
                      partial(expect_stanza, "/message[@to='{jid_two}/{resource_two}'][@from='#foo%{irc_server_one}']/muc_user:x/muc_user:invite[@from='#foo%{irc_server_one}/{nick_one}']"),
                 ]),
+                Scenario("virtual_channel_multisession",
+                 [
+                     handshake_sequence(),
+                     partial(send_stanza,
+                             "<presence from='{jid_one}/{resource_one}' to='%{irc_server_one}/{nick_one}' />"),
+                     connection_begin_sequence("irc.localhost", '{jid_one}/{resource_one}'),
+                     partial(expect_stanza,
+                             ("/presence[@to='{jid_one}/{resource_one}'][@from='%{irc_server_one}/{nick_one}']/muc_user:x/muc_user:item[@affiliation='none'][@role='participant']",
+                              "/presence/muc_user:x/muc_user:status[@code='110']")
+                             ),
+                     partial(expect_stanza, "/message[@from='%{irc_server_one}'][@type='groupchat']/subject[re:test(text(), '^This is a virtual channel.*$')]"),
+                     connection_end_sequence("irc.localhost", '{jid_one}/{resource_one}'),
+
+                     partial(send_stanza,
+                             "<presence from='{jid_one}/{resource_two}' to='%{irc_server_one}/{nick_one}' />"),
+
+                     partial(expect_stanza,
+                             ("/presence[@to='{jid_one}/{resource_two}'][@from='%{irc_server_one}/{nick_one}']/muc_user:x/muc_user:item[@affiliation='none'][@role='participant']",
+                              "/presence/muc_user:x/muc_user:status[@code='110']")
+                         ),
+                     partial(expect_stanza, "/message[@to='{jid_one}/{resource_two}'][@from='%{irc_server_one}'][@type='groupchat']/subject[re:test(text(), '^This is a virtual channel.*$')]"),
+
+
+                     partial(log_message, "Nick change"),
+                     partial(send_stanza, "<presence from='{jid_one}/{resource_one}' to='%{irc_server_one}/{nick_two}' />"),
+
+                     partial(expect_unordered, [
+                         ("/presence[@from='%{irc_server_one}/{nick_one}'][@to='{jid_one}/{resource_two}'][@type='unavailable']/muc_user:x/muc_user:item[@nick='Bobby']",
+                          "/presence/muc_user:x/muc_user:status[@code='303']",
+                          "/presence/muc_user:x/muc_user:status[@code='110']"),
+                         ("/presence[@from='%{irc_server_one}/{nick_two}'][@to='{jid_one}/{resource_two}']",
+                          "/presence/muc_user:x/muc_user:status[@code='110']"),
+
+                         ("/presence[@from='%{irc_server_one}/{nick_one}'][@to='{jid_one}/{resource_one}'][@type='unavailable']/muc_user:x/muc_user:item[@nick='Bobby']",
+                          "/presence/muc_user:x/muc_user:status[@code='303']",
+                          "/presence/muc_user:x/muc_user:status[@code='110']"),
+                         ("/presence[@from='%{irc_server_one}/{nick_two}'][@to='{jid_one}/{resource_one}']",
+                          "/presence/muc_user:x/muc_user:status[@code='110']"),
+                     ]),
+
+
+                     partial(log_message, "First resource leaves."),
+                     partial(send_stanza, "<presence type='unavailable' from='{jid_one}/{resource_one}' to='%{irc_server_one}/{nick_two}' />"),
+                     partial(expect_stanza, ("/presence[@type='unavailable'][@from='%{irc_server_one}/{nick_two}'][@to='{jid_one}/{resource_one}']/muc_user:x/muc_user:status[@code='110']",
+                                             "/presence/status[text()='Biboumi note: 1 resources are still in this channel.']",)
+                             ),
+
+                     partial(log_message, "Second resource leaves."),
+                     partial(send_stanza, "<presence type='unavailable' from='{jid_one}/{resource_two}' to='%{irc_server_one}/{nick_two}' />"),
+                     partial(expect_stanza, "/presence[@type='unavailable'][@from='%{irc_server_one}/{nick_two}']"),
+                     partial(expect_stanza, "/message[@from='{irc_server_one}']/body[text()='ERROR: Closing Link: localhost (Client Quit)']"),
+                     partial(expect_stanza, "/message[@from='{irc_server_one}']/body[text()='ERROR: Connection closed.']"),
+                 ]),
     )
 
     failures = 0
