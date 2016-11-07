@@ -15,6 +15,10 @@
 #include <database/database.hpp>
 #endif
 
+#ifndef HAS_PUT_TIME
+#include <ctime>
+#endif
+
 using namespace std::string_literals;
 
 void DisconnectUserStep1(XmppComponent& xmpp_component, AdhocSession&, XmlNode& command_node)
@@ -766,7 +770,15 @@ void GetIrcConnectionInfoStep1(XmppComponent& component, AdhocSession& session, 
   if (irc->is_using_tls())
     ss << " (using TLS)";
   const std::time_t now_c = std::chrono::system_clock::to_time_t(irc->connection_date);
+#ifdef HAS_PUT_TIME
   ss << " since " << std::put_time(std::localtime(&now_c), "%F %T");
+#else
+  constexpr std::size_t timestamp_size{10 + 1 + 8 + 1};
+  char buf[timestamp_size] = {};
+  const auto res = std::strftime(buf, timestamp_size, "%F %T", std::localtime(&now_c));
+  if (res > 0)
+    ss << " since " << buf;
+#endif
   ss << " (" << std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now() - irc->connection_date).count() << " seconds ago).";
 
   for (const auto& it: bridge->resources_in_chan)

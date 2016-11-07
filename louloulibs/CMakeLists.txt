@@ -156,4 +156,12 @@ check_cxx_source_compiles("
 
 mark_as_advanced(HAS_GET_TIME)
 
+check_cxx_source_compiles("
+  #include <iomanip>
+  int main()
+  { std::put_time(nullptr, \"\"); }"
+  HAS_PUT_TIME)
+
+mark_as_advanced(HAS_PUT_TIME)
+
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/louloulibs.h.cmake ${CMAKE_BINARY_DIR}/src/louloulibs.h)
