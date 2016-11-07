@@ -179,6 +179,8 @@ void TCPSocketHandler::connect(const std::string& address, const std::string& po
           if (this->use_tls)
             this->start_tls();
 #endif
+          this->connection_date = std::chrono::system_clock::now();
+
           this->on_connected();
           return ;
         }
@@ -395,6 +397,16 @@ bool TCPSocketHandler::is_connected() const
 bool TCPSocketHandler::is_connecting() const
 {
   return this->connecting || this->resolver.is_resolving();
+}
+
+bool TCPSocketHandler::is_using_tls() const
+{
+  return this->use_tls;
+}
+
+std::string TCPSocketHandler::get_port() const
+{
+  return this->port;
 }
 
 void* TCPSocketHandler::get_receive_buffer(const size_t) const

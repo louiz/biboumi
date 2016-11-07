@@ -22,3 +22,5 @@ void ConfigureIrcChannelStep2(XmppComponent&, AdhocSession& session, XmlNode& co
 void DisconnectUserFromServerStep1(XmppComponent&, AdhocSession& session, XmlNode& command_node);
 void DisconnectUserFromServerStep2(XmppComponent&, AdhocSession& session, XmlNode& command_node);
 void DisconnectUserFromServerStep3(XmppComponent&, AdhocSession& session, XmlNode& command_node);
+
+void GetIrcConnectionInfoStep1(XmppComponent&, AdhocSession& session, XmlNode& command_node);

@@ -106,6 +106,9 @@ public:
 #endif
   bool is_connected() const override final;
   bool is_connecting() const;
+  bool is_using_tls() const;
+  std::string get_port() const;
+  std::chrono::system_clock::time_point connection_date;
 
 private:
   /**

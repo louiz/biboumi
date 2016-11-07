@@ -248,10 +248,12 @@ private:
    * a IRCServerNotConnected error in that case.
    */
   IrcClient* get_irc_client(const std::string& hostname);
+public:
   /**
    * Idem, but returns nullptr if the server does not exist.
    */
   IrcClient* find_irc_client(const std::string& hostname) const;
+private:
   /**
    * The bare JID of the user associated with this bridge. Messages from/to this
    * JID are only managed by this bridge.
@@ -293,7 +295,9 @@ private:
   using ChannelName = std::string;
   using IrcHostname = std::string;
   using ChannelKey = std::tuple<ChannelName, IrcHostname>;
+public:
   std::map<ChannelKey, std::set<Resource>> resources_in_chan;
+private:
   std::map<IrcHostname, std::set<Resource>> resources_in_server;
   /**
    * Manage which resource is in which channel

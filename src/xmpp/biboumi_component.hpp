@@ -101,13 +101,13 @@ public:
                              const std::string& queryid);
 #endif
 
-private:
   /**
    * Return the bridge associated with the bare JID. Create a new one
    * if none already exist.
    */
   Bridge* get_user_bridge(const std::string& user_jid);
 
+private:
   /**
    * A map of id -> callback.  When we want to wait for an iq result, we add
    * the callback to this map, with the iq id as the key. When an iq result

@@ -1,10 +1,12 @@
 #include <xmpp/biboumi_adhoc_commands.hpp>
 #include <xmpp/biboumi_component.hpp>
+#include <utils/scopeguard.hpp>
+#include <bridge/bridge.hpp>
 #include <config/config.hpp>
 #include <utils/string.hpp>
 #include <utils/split.hpp>
 #include <xmpp/jid.hpp>
-#include <algorithm>
+#include <iomanip>
 
 #include <biboumi.h>
 
@@ -719,4 +721,67 @@ void DisconnectUserFromServerStep3(XmppComponent& xmpp_component, AdhocSession& 
   msg += ".";
   note.set_inner(msg);
   command_node.add_child(std::move(note));
+}
+
+void GetIrcConnectionInfoStep1(XmppComponent& component, AdhocSession& session, XmlNode& command_node)
+{
+  BiboumiComponent& biboumi_component = static_cast<BiboumiComponent&>(component);
+
+  const Jid owner(session.get_owner_jid());
+  const Jid target(session.get_target_jid());
+
+  std::string message{};
+
+  // As the function is exited, set the message in the response.
+  utils::ScopeGuard sg([&message, &command_node]()
+                       {
+                         command_node.delete_all_children();
+                         XmlNode note("note");
+                         note["type"] = "info";
+                         note.set_inner(message);
+                         command_node.add_child(std::move(note));
+                       });
+
+  Bridge* bridge = biboumi_component.get_user_bridge(owner.bare());
+  if (!bridge)
+    {
+      message = "You are not connected to anything.";
+      return;
+    }
+
+  std::string hostname;
+  if ((hostname = Config::get("fixed_irc_server", "")).empty())
+    hostname = target.local;
+
+  IrcClient* irc = bridge->find_irc_client(hostname);
+  if (!irc || !irc->is_connected())
+    {
+      message = "You are not connected to the IRC server "s + hostname;
+      return;
+    }
+
+  std::ostringstream ss;
+  ss << "Connected to IRC server " << irc->get_hostname() << " on port " << irc->get_port();
+  if (irc->is_using_tls())
+    ss << " (using TLS)";
+  const std::time_t now_c = std::chrono::system_clock::to_time_t(irc->connection_date);
+  ss << " since " << std::put_time(std::localtime(&now_c), "%F %T");
+  ss << " (" << std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now() - irc->connection_date).count() << " seconds ago).";
+
+  for (const auto& it: bridge->resources_in_chan)
+    {
+      const auto& channel_key = it.first;
+      const auto& irc_hostname = std::get<1>(channel_key);
+      const auto& resources = it.second;
+
+      if (irc_hostname == irc->get_hostname() && !resources.empty())
+        {
+          const auto& channel_name = std::get<0>(channel_key);
+          ss << "\n" << channel_name << " from " << resources.size() << " resource" << (resources.size() > 1 ? "s": "") << ": ";
+          for (const auto& resource: resources)
+            ss << resource << " ";
+        }
+    }
+
+  message = ss.str();
 }

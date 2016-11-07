@@ -63,6 +63,12 @@ BiboumiComponent::BiboumiComponent(std::shared_ptr<Poller> poller, const std::st
   this->adhoc_commands_handler.add_command("disconnect-from-irc-server", {{&DisconnectUserFromServerStep1, &DisconnectUserFromServerStep2, &DisconnectUserFromServerStep3}, "Disconnect from the selected IRC servers", false});
   this->adhoc_commands_handler.add_command("reload", {{&Reload}, "Reload biboumi’s configuration", true});
 
+  AdhocCommand get_irc_connection_info{{&GetIrcConnectionInfoStep1}, "Returns various information about your connection to this IRC server.", false};
+  if (!Config::get("fixed_irc_server", "").empty())
+    this->adhoc_commands_handler.add_command("get-irc-connection-info", get_irc_connection_info);
+  else
+    this->irc_server_adhoc_commands_handler.add_command("get-irc-connection-info", get_irc_connection_info);
+
 #ifdef USE_DATABASE
   AdhocCommand configure_server_command({&ConfigureIrcServerStep1, &ConfigureIrcServerStep2}, "Configure a few settings for that IRC server", false);
   AdhocCommand configure_global_command({&ConfigureGlobalStep1, &ConfigureGlobalStep2}, "Configure a few settings", false);
