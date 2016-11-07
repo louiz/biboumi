@@ -113,6 +113,7 @@ def match(stanza, xpath):
     tree = lxml.etree.parse(io.StringIO(str(stanza)))
     matched = tree.xpath(xpath, namespaces={'re': 'http://exslt.org/regular-expressions',
                                             'muc_user': 'http://jabber.org/protocol/muc#user',
+                                            'muc': 'http://jabber.org/protocol/muc',
                                             'disco_info': 'http://jabber.org/protocol/disco#info',
                                             'muc_traffic': 'http://jabber.org/protocol/muc#traffic',
                                             'disco_items': 'http://jabber.org/protocol/disco#items',
@@ -1835,6 +1836,22 @@ if __name__ == '__main__':
 
                      partial(send_stanza, "<iq type='set' id='command2' from='{jid_one}/{resource_one}' to='{biboumi_host}'><command xmlns='http://jabber.org/protocol/commands' node='get-irc-connection-info' action='execute' /></iq>"),
                      partial(expect_stanza, r"/iq/commands:command/commands:note[re:test(text(), 'Connected to IRC server irc.localhost on port 6667 since \d\d\d\d-\d\d-\d\d \d\d:\d\d:\d\d \(\d+ seconds ago\)\.\n#foo from 1 resource: {resource_one}.*')]"),
+                 ], conf='fixed_server'),
+        Scenario("invalid_room_jid",
+                 [
+                     handshake_sequence(),
+                     partial(send_stanza, "<presence from='{jid_one}/{resource_one}' to='invalid%{irc_server_one}/{nick_one}' />"),
+                     partial(expect_stanza, ("/presence[@type='error'][@to='{jid_one}/{resource_one}'][@from='invalid%{irc_server_one}/{nick_one}']/error[@type='cancel']/stanza:item-not-found",
+                                             "/presence/muc:x",
+                                             "/presence/error/stanza:text")),
+                 ]),
+        Scenario("invalid_room_jid_fixed",
+                 [
+                     handshake_sequence(),
+                     partial(send_stanza, "<presence from='{jid_one}/{resource_one}' to='invalid@{biboumi_host}/{nick_one}' />"),
+                     partial(expect_stanza, ("/presence[@type='error'][@to='{jid_one}/{resource_one}'][@from='invalid@{biboumi_host}/{nick_one}']/error[@type='cancel']/stanza:item-not-found",
+                                             "/presence/muc:x",
+                                             "/presence/error/stanza:text")),
                  ], conf='fixed_server'),
     )
 
