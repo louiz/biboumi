@@ -269,8 +269,6 @@ void BiboumiComponent::handle_message(const Stanza& stanza)
           }
 
     }
-  else if (iid.type == Iid::Type::User)
-    this->send_invalid_user_error(to.local, from_str);
   } catch (const IRCNotConnected& ex)
     {
       this->send_stanza_error("message", from_str, to_str, id,

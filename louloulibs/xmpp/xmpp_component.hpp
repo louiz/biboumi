@@ -128,12 +128,6 @@ public:
                                const std::string& nick,
                                const std::string& to);
   /**
-   * Send an error to indicate that the user tried to send a message to an
-   * invalid user.
-   */
-  void send_invalid_user_error(const std::string& user_name,
-                               const std::string& to);
-  /**
    * Send the MUC topic to the user
    */
   void send_topic(const std::string& from, Xmpp::body&& xmpp_topic, const std::string& to, const std::string& who);

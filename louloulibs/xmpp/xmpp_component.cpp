@@ -367,31 +367,6 @@ void XmppComponent::send_invalid_room_error(const std::string& muc_name,
   this->send_stanza(presence);
 }
 
-void XmppComponent::send_invalid_user_error(const std::string& user_name, const std::string& to)
-{
-  Stanza message("message");
-  message["from"] = user_name + "@" + this->served_hostname;
-  message["to"] = to;
-  message["type"] = "error";
-  XmlNode x("x");
-  x["xmlns"] = MUC_NS;
-  message.add_child(std::move(x));
-  XmlNode error("error");
-  error["type"] = "cancel";
-  XmlNode item_not_found("item-not-found");
-  item_not_found["xmlns"] = STANZA_NS;
-  error.add_child(std::move(item_not_found));
-  XmlNode text("text");
-  text["xmlns"] = STANZA_NS;
-  text["xml:lang"] = "en";
-  text.set_inner(user_name +
-                 " is not a valid IRC user name. A correct user jid is of the form: <nick>!<server>@" +
-                 this->served_hostname);
-  error.add_child(std::move(text));
-  message.add_child(std::move(error));
-  this->send_stanza(message);
-}
-
 void XmppComponent::send_topic(const std::string& from, Xmpp::body&& topic, const std::string& to, const std::string& who)
 {
   XmlNode message("message");
