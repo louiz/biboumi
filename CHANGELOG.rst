@@ -3,10 +3,12 @@ Version 4.0
 
  - The separator between the IRC nickname and the IRC server is now '%'
    instead of '!'. This makes things simpler (only one separator to
-   remember). The distinction between a JID refering to a channel and a JID
+   remember). The distinction between a JID referring to a channel and a JID
    refering to a nickname is based on the first character (# or & by
    default, but this can be customized by the server with the ISUPPORT
    extension).
+ - Handle channel invitations in both directions.
+ - Add support for `JID escaping <.http://www.xmpp.org/extensions/xep-0106.html>`.
  - Save all channel messages into the database, with an ad-hoc option to
    disable this feature.
  - When joining a room, biboumi sends an history of the most recents messages
