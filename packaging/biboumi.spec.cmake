@@ -59,6 +59,9 @@ make check %{?_smp_mflags}
 
 
 %changelog
+* ${RPM_DATE} Le Coz Florent <louiz@louiz.org> - ${RPM_VERSION}-1
+- Build latest git revision
+
 * Wed Nov 9 2016 Le Coz Florent <louiz@louiz.org> - 4.0-1
 - Update to 4.0 sources
 
