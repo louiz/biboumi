@@ -4,7 +4,7 @@ project(biboumi)
 
 set(${PROJECT_NAME}_VERSION_MAJOR 4)
 set(${PROJECT_NAME}_VERSION_MINOR 0)
-set(${PROJECT_NAME}_VERSION_SUFFIX "~dev")
+set(${PROJECT_NAME}_VERSION_SUFFIX "")
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++1y -pedantic -Wall -Wextra")
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")

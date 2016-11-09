@@ -1,5 +1,5 @@
-Version 4.0
-===========
+Version 4.0 - 2016-11-09
+========================
 
  - The separator between the IRC nickname and the IRC server is now '%'
    instead of '!'. This makes things simpler (only one separator to
