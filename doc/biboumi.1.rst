@@ -322,8 +322,8 @@ List channels
 
 You can list the IRC channels on a given IRC server by sending an XMPP disco
 items request on the IRC server JID.  The number of channels on some servers
-is huge, and biboumi does not (yet) support result set management (XEP 0059)
-so the result stanza may be very big.
+is huge so the result stanza may be very big, unless your client supports
+result set management (XEP 0059)
 
 Nicknames
 ---------
