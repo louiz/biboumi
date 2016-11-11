@@ -5,6 +5,7 @@
 
 #include <logger/logger.hpp>
 
+#include <cstring>
 #include <unistd.h>
 #include <fcntl.h>
 
@@ -27,7 +28,7 @@ void TCPClientSocketHandler::init_socket(const struct addrinfo* rp)
   if (this->socket != -1)
     ::close(this->socket);
   if ((this->socket = ::socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol)) == -1)
-    throw std::runtime_error("Could not create socket: "s + strerror(errno));
+    throw std::runtime_error("Could not create socket: "s + std::strerror(errno));
   // Bind the socket to a specific address, if specified
   if (!this->bind_addr.empty())
     {
@@ -66,7 +67,7 @@ void TCPClientSocketHandler::init_socket(const struct addrinfo* rp)
   const int existing_flags = ::fcntl(this->socket, F_GETFL, 0);
   if ((existing_flags == -1) ||
       (::fcntl(this->socket, F_SETFL, existing_flags | O_NONBLOCK) == -1))
-    throw std::runtime_error("Could not initialize socket: "s + strerror(errno));
+    throw std::runtime_error("Could not initialize socket: "s + std::strerror(errno));
 }
 
 void TCPClientSocketHandler::connect(const std::string& address, const std::string& port, const bool tls)
@@ -176,11 +177,11 @@ void TCPClientSocketHandler::connect(const std::string& address, const std::stri
                                                               "connection_timeout"s + std::to_string(this->socket)));
           return ;
         }
-      log_info("Connection failed:", strerror(errno));
+      log_info("Connection failed:", std::strerror(errno));
     }
   log_error("All connection attempts failed.");
   this->close();
-  this->on_connection_failed(strerror(errno));
+  this->on_connection_failed(std::strerror(errno));
   return ;
 }
 
