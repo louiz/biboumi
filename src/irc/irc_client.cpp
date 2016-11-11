@@ -131,7 +131,7 @@ IrcClient::IrcClient(std::shared_ptr<Poller> poller, const std::string& hostname
                      const std::string& nickname, const std::string& username,
                      const std::string& realname, const std::string& user_hostname,
                      Bridge& bridge):
-  TCPSocketHandler(poller),
+  TCPClientSocketHandler(poller),
   hostname(hostname),
   user_hostname(user_hostname),
   username(username),
@@ -338,7 +338,7 @@ void IrcClient::parse_in_buffer(const size_t)
       if (pos == std::string::npos)
         break ;
       IrcMessage message(this->in_buf.substr(0, pos));
-      this->in_buf = this->in_buf.substr(pos + 2, std::string::npos);
+      this->consume_in_buffer(pos + 2);
       log_debug("IRC RECEIVING: (", this->get_hostname(), ") ", message);
 
       // Call the standard callback (if any), associated with the command

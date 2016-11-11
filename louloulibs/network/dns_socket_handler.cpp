@@ -40,6 +40,11 @@ bool DNSSocketHandler::is_connected() const
   return true;
 }
 
+bool DNSSocketHandler::is_connecting() const
+{
+  return false;
+}
+
 void DNSSocketHandler::remove_from_poller()
 {
   if (this->poller->is_managing_socket(this->socket))

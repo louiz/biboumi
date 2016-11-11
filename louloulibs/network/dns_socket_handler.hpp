@@ -40,6 +40,7 @@ public:
    * Always true, see the comment for connect()
    */
   bool is_connected() const override final;
+  bool is_connecting() const override final;
   void remove_from_poller();
 
 private:

@@ -24,6 +24,7 @@ public:
   virtual void on_send() = 0;
   virtual void connect() = 0;
   virtual bool is_connected() const = 0;
+  virtual bool is_connecting() const = 0;
 
   socket_t get_socket() const
   { return this->socket; }
