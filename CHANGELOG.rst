@@ -1,6 +1,7 @@
 Version 5.0
 ===========
 
+ - An identd server has been added
 
 Version 4.0 - 2016-11-09
 ========================

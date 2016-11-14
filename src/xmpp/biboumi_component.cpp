@@ -8,7 +8,6 @@
 #include <xmpp/biboumi_adhoc_commands.hpp>
 #include <bridge/list_element.hpp>
 #include <config/config.hpp>
-#include <utils/sha1.hpp>
 #include <utils/time.hpp>
 #include <xmpp/jid.hpp>
 

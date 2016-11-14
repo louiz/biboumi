@@ -31,6 +31,11 @@ class TCPClientSocketHandler: public TCPSocketHandler
   void close() override final;
   std::chrono::system_clock::time_point connection_date;
 
+  /**
+   * Whether or not this connection is using the two given TCP ports.
+   */
+  bool match_port_pairt(const uint16_t local, const uint16_t remote) const;
+
  protected:
   bool hostname_resolution_failed;
   /**
@@ -69,6 +74,8 @@ class TCPClientSocketHandler: public TCPSocketHandler
    * Port we are connected/connecting to
    */
   std::string port;
+
+  uint16_t local_port;
 
   bool connected;
   bool connecting;

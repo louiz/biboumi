@@ -231,6 +231,7 @@ public:
    */
   void trigger_on_irc_message(const std::string& irc_hostname, const IrcMessage& message);
   std::unordered_map<std::string, std::shared_ptr<IrcClient>>& get_irc_clients();
+  const std::unordered_map<std::string, std::shared_ptr<IrcClient>>& get_irc_clients() const;
   std::set<char> get_chantypes(const std::string& hostname) const;
 #ifdef USE_DATABASE
   void set_record_history(const bool val);

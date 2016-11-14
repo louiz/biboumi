@@ -154,6 +154,25 @@ void TCPClientSocketHandler::connect(const std::string& address, const std::stri
 #endif
           this->connection_date = std::chrono::system_clock::now();
 
+          // Get our local TCP port and store it
+          this->local_port = static_cast<uint16_t>(-1);
+          if (rp->ai_family == AF_INET6)
+            {
+              struct sockaddr_in6 a;
+              socklen_t l = sizeof(a);
+              if (::getsockname(this->socket, (struct sockaddr*)&a, &l) != -1)
+                this->local_port = ::ntohs(a.sin6_port);
+            }
+          else if (rp->ai_family == AF_INET)
+            {
+              struct sockaddr_in a;
+              socklen_t l = sizeof(a);
+              if (::getsockname(this->socket, (struct sockaddr*)&a, &l) != -1)
+                this->local_port = ::ntohs(a.sin_port);
+            }
+
+          log_debug("Local port: ", this->local_port, ", and remote port: ", this->port);
+
           this->on_connected();
           return ;
         }
@@ -230,4 +249,10 @@ bool TCPClientSocketHandler::is_connecting() const
 std::string TCPClientSocketHandler::get_port() const
 {
   return this->port;
+}
+
+bool TCPClientSocketHandler::match_port_pairt(const uint16_t local, const uint16_t remote) const
+{
+  const uint16_t remote_port = static_cast<uint16_t>(std::stoi(this->port));
+  return this->is_connected() && local == this->local_port && remote == remote_port;
 }

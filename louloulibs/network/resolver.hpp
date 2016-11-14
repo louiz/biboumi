@@ -125,5 +125,3 @@ private:
 };
 
 std::string addr_to_string(const struct addrinfo* rp);
-
-

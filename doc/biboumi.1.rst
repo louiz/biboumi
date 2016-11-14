@@ -152,6 +152,12 @@ for example use outgoing_bind=192.168.1.11 to force biboumi to use the
 interface with this address.  Note that this is only used for connections
 to IRC servers.
 
+identd_port
+-----------
+
+The TCP port on which to listen for identd queries.  The default is the standard value: 113.
+
+
 Usage
 =====
 

@@ -155,6 +155,19 @@ if(USE_DATABASE)
 endif()
 
 #
+## identd
+#
+file(GLOB source_identd
+  src/identd/*.[hc]pp)
+add_library(identd STATIC ${source_identd})
+target_link_libraries(identd bridge network utils src_utils logger)
+
+if(USE_DATABASE)
+  target_link_libraries(xmpp database)
+  target_link_libraries(irc database)
+endif()
+
+#
 ## bridge
 #
 file(GLOB source_bridge
@@ -172,6 +185,7 @@ target_link_libraries(${PROJECT_NAME}
   bridge
   utils
   src_utils
+  identd
   config)
 if(SYSTEMD_FOUND)
   target_link_libraries(xmpp ${SYSTEMD_LIBRARIES})

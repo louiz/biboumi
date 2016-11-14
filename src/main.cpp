@@ -14,6 +14,8 @@
 #include <signal.h>
 #include <litesql.hpp>
 
+#include <identd/identd_server.hpp>
+
 // A flag set by the SIGINT signal handler.
 static std::atomic<bool> stop(false);
 // Flag set by the SIGUSR1/2 signal handler.
@@ -121,9 +123,12 @@ int main(int ac, char** av)
   sigaction(SIGUSR2, &on_sigusr, nullptr);
 
   auto p = std::make_shared<Poller>();
+
   auto xmpp_component =
     std::make_shared<BiboumiComponent>(p, hostname, password);
   xmpp_component->start();
+
+  IdentdServer identd(*xmpp_component, p, static_cast<uint16_t>(Config::get_int("identd_port", 113)));
 
 #ifdef CARES_FOUND
   DNSHandler::instance.watch_dns_sockets(p);
@@ -135,6 +140,7 @@ int main(int ac, char** av)
     // Check for empty irc_clients (not connected, or with no joined
     // channel) and remove them
     xmpp_component->clean();
+    identd.clean();
     if (stop)
     {
       log_info("Signal received, exiting...");
@@ -144,6 +150,7 @@ int main(int ac, char** av)
       exiting = true;
       stop.store(false);
       xmpp_component->shutdown();
+      identd.shutdown();
       // Cancel the timer for a potential reconnection
       TimedEventsManager::instance().cancel("XMPP reconnection");
     }
@@ -157,26 +164,30 @@ int main(int ac, char** av)
     // happened because we sent something invalid to it and it decided to
     // close the connection.  This is a bug that should be fixed, but we
     // still reconnect automatically instead of dropping everything
-    if (!exiting && xmpp_component->ever_auth &&
+    if (!exiting &&
         !xmpp_component->is_connected() &&
         !xmpp_component->is_connecting())
     {
-      if (xmpp_component->first_connection_try == true)
-      { // immediately re-try to connect
-        xmpp_component->reset();
-        xmpp_component->start();
-      }
-      else
-      { // Re-connecting failed, we now try only each few seconds
-        auto reconnect_later = [xmpp_component]()
+      if (xmpp_component->ever_auth)
         {
-          xmpp_component->reset();
-          xmpp_component->start();
-        };
-        TimedEvent event(std::chrono::steady_clock::now() + 2s,
-                         reconnect_later, "XMPP reconnection");
-        TimedEventsManager::instance().add_event(std::move(event));
-      }
+          if (xmpp_component->first_connection_try == true)
+            { // immediately re-try to connect
+              xmpp_component->reset();
+              xmpp_component->start();
+            }
+          else
+            { // Re-connecting failed, we now try only each few seconds
+              auto reconnect_later = [xmpp_component]()
+              {
+                xmpp_component->reset();
+                xmpp_component->start();
+              };
+              TimedEvent event(std::chrono::steady_clock::now() + 2s, reconnect_later, "XMPP reconnection");
+              TimedEventsManager::instance().add_event(std::move(event));
+            }
+        }
+      else
+        identd.shutdown();
     }
     // If the only existing connection is the one to the XMPP component:
     // close the XMPP stream.

@@ -1033,6 +1033,11 @@ std::unordered_map<std::string, std::shared_ptr<IrcClient>>& Bridge::get_irc_cli
   return this->irc_clients;
 }
 
+const std::unordered_map<std::string, std::shared_ptr<IrcClient>>& Bridge::get_irc_clients() const
+{
+  return this->irc_clients;
+}
+
 std::set<char> Bridge::get_chantypes(const std::string& hostname) const
 {
   IrcClient* irc = this->find_irc_client(hostname);
