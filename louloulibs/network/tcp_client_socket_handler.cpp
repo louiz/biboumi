@@ -161,14 +161,14 @@ void TCPClientSocketHandler::connect(const std::string& address, const std::stri
               struct sockaddr_in6 a;
               socklen_t l = sizeof(a);
               if (::getsockname(this->socket, (struct sockaddr*)&a, &l) != -1)
-                this->local_port = ::ntohs(a.sin6_port);
+                this->local_port = ntohs(a.sin6_port);
             }
           else if (rp->ai_family == AF_INET)
             {
               struct sockaddr_in a;
               socklen_t l = sizeof(a);
               if (::getsockname(this->socket, (struct sockaddr*)&a, &l) != -1)
-                this->local_port = ::ntohs(a.sin_port);
+                this->local_port = ntohs(a.sin_port);
             }
 
           log_debug("Local port: ", this->local_port, ", and remote port: ", this->port);

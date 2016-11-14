@@ -2,6 +2,7 @@
 
 #include <network/tcp_server_socket.hpp>
 #include <identd/identd_socket.hpp>
+#include <algorithm>
 #include <unistd.h>
 
 class BiboumiComponent;

@@ -162,11 +162,6 @@ file(GLOB source_identd
 add_library(identd STATIC ${source_identd})
 target_link_libraries(identd bridge network utils src_utils logger)
 
-if(USE_DATABASE)
-  target_link_libraries(xmpp database)
-  target_link_libraries(irc database)
-endif()
-
 #
 ## bridge
 #
