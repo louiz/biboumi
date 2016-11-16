@@ -43,10 +43,9 @@ void TCPClientSocketHandler::init_socket(const struct addrinfo* rp)
         {
           utils::ScopeGuard sg([result](){ freeaddrinfo(result); });
           struct addrinfo* rp;
-          int bind_error = 0;
           for (rp = result; rp; rp = rp->ai_next)
             {
-              if ((bind_error = ::bind(this->socket,
+              if ((::bind(this->socket,
                          reinterpret_cast<const struct sockaddr*>(rp->ai_addr),
                          rp->ai_addrlen)) == 0)
                 break;
