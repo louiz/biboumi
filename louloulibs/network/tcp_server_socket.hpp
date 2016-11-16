@@ -1,8 +1,8 @@
 #pragma once
 
 #include <network/socket_handler.hpp>
-#include <network/resolver.hpp>
 #include <network/poller.hpp>
+#include <logger/logger.hpp>
 
 #include <string>
 
@@ -10,8 +10,6 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/ip.h>
-
-#include <logger/logger.hpp>
 
 #include <cstring>
 #include <cassert>
