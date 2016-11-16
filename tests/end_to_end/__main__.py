@@ -345,7 +345,8 @@ confs = {
 password=coucou
 db_name=e2e_test.sqlite
 port=8811
-admin=admin@example.com""",
+admin=admin@example.com
+identd_port=1113""",
 
 'fixed_server':
 """hostname=biboumi.localhost
@@ -354,6 +355,7 @@ db_name=e2e_test.sqlite
 port=8811
 fixed_irc_server=irc.localhost
 admin=admin@example.com
+identd_port=1113
 """}
 
 common_replacements = {
@@ -402,11 +404,11 @@ def connection_begin_sequence(irc_host, jid):
             xpath_re % (r'^%s: \*\*\* (Checking Ident|Looking up your hostname...)$' % irc_host)),
     # These three messages can be received in any order
     partial(expect_stanza,
-            xpath_re % (r'^%s: (\*\*\* Found your hostname: .*|ACK multi-prefix|\*\*\* No Ident response)$' % irc_host)),
+            xpath_re % (r'^%s: (\*\*\* Found your hostname: .*|ACK multi-prefix|\*\*\* Got Ident response)$' % irc_host)),
     partial(expect_stanza,
-            xpath_re % (r'^%s: (\*\*\* Found your hostname: .*|ACK multi-prefix|\*\*\* No Ident response)$' % irc_host)),
+            xpath_re % (r'^%s: (\*\*\* Found your hostname: .*|ACK multi-prefix|\*\*\* Got Ident response)$' % irc_host)),
     partial(expect_stanza,
-            xpath_re % (r'^%s: (\*\*\* Found your hostname: .*|ACK multi-prefix|\*\*\* No Ident response)$' % irc_host)),
+            xpath_re % (r'^%s: (\*\*\* Found your hostname: .*|ACK multi-prefix|\*\*\* Got Ident response)$' % irc_host)),
     )
 
 
