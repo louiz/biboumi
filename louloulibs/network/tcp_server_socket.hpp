@@ -14,8 +14,6 @@
 #include <cstring>
 #include <cassert>
 
-using namespace std::string_literals;
-
 template <typename RemoteSocketType>
 class TcpSocketServer: public SocketHandler
 {
@@ -24,11 +22,11 @@ class TcpSocketServer: public SocketHandler
       SocketHandler(poller, -1)
   {
     if ((this->socket = ::socket(AF_INET6, SOCK_STREAM, 0)) == -1)
-      throw std::runtime_error("Could not create socket: "s + std::strerror(errno));
+      throw std::runtime_error(std::string{"Could not create socket: "} + std::strerror(errno));
 
     int opt = 1;
     if (::setsockopt(this->socket, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) == -1)
-      throw std::runtime_error("Failed to set socket option: "s + std::strerror(errno));
+      throw std::runtime_error(std::string{"Failed to set socket option: "} + std::strerror(errno));
 
     struct sockaddr_in6 addr{};
     addr.sin6_family = AF_INET6;
