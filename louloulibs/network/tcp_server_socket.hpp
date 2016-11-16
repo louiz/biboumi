@@ -63,20 +63,8 @@ class TcpSocketServer: public SocketHandler
   {
     this->poller->add_socket_handler(this);
   }
-  void on_send() override
-  {
-    assert(false);
-  }
-  void connect() override
-  {
-    assert(false);
-  }
   bool is_connected() const override
   {
     return true;
-  }
-  bool is_connecting() const override
-  {
-    return false;
   }
 };

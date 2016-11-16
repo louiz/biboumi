@@ -32,15 +32,9 @@ public:
   void on_recv() override final;
   void on_send() override final;
   /**
-   * Do nothing, because we are always considered to be connected, since the
-   * connection is done by c-ares and not by us.
-   */
-  void connect() override final;
-  /**
    * Always true, see the comment for connect()
    */
   bool is_connected() const override final;
-  bool is_connecting() const override final;
   void remove_from_poller();
 
 private:

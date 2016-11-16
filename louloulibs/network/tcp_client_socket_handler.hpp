@@ -24,7 +24,7 @@ class TCPClientSocketHandler: public TCPSocketHandler
    */
   virtual void on_connected() = 0;
   bool is_connected() const override;
-  bool is_connecting() const;
+  bool is_connecting() const override;
 
   std::string get_port() const;
 

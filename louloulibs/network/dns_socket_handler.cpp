@@ -15,10 +15,6 @@ DNSSocketHandler::DNSSocketHandler(std::shared_ptr<Poller> poller,
 {
 }
 
-void DNSSocketHandler::connect()
-{
-}
-
 void DNSSocketHandler::on_recv()
 {
   // always stop watching send and read events. We will re-watch them if the
@@ -38,11 +34,6 @@ void DNSSocketHandler::on_send()
 bool DNSSocketHandler::is_connected() const
 {
   return true;
-}
-
-bool DNSSocketHandler::is_connecting() const
-{
-  return false;
 }
 
 void DNSSocketHandler::remove_from_poller()
