@@ -103,9 +103,9 @@ private:
    */
   void raw_send(std::string&& data);
 
-#ifdef BOTAN_FOUND
  protected:
   virtual bool is_connecting() const = 0;
+#ifdef BOTAN_FOUND
   /**
    * Create the TLS::Client object, with all the callbacks etc. This must be
    * called only when we know we are able to send TLS-encrypted data over
