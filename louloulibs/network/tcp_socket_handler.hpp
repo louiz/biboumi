@@ -204,8 +204,8 @@ protected:
   /**
    * Called when we detect a disconnection from the remote host.
    */
-  virtual void on_connection_close(const std::string& error) = 0;
-  virtual void on_connection_failed(const std::string& error) = 0;
+  virtual void on_connection_close(const std::string&) {}
+  virtual void on_connection_failed(const std::string&) {}
 
 private:
 #ifdef BOTAN_FOUND

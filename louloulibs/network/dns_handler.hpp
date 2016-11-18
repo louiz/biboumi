@@ -20,8 +20,9 @@ class DNSSocketHandler;
 
 class DNSHandler
 {
-public:
+private:
   DNSHandler();
+public:
   ~DNSHandler() = default;
   DNSHandler(const DNSHandler&) = delete;
   DNSHandler(DNSHandler&&) = delete;

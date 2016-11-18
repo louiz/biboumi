@@ -8,7 +8,6 @@
 #include <utils/timed_events.hpp>
 
 #include <algorithm>
-#include <stdexcept>
 
 DNSHandler DNSHandler::instance;
 

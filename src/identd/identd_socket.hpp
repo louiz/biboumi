@@ -22,8 +22,6 @@ class IdentdSocket: public TCPSocketHandler
   std::string generate_answer(const BiboumiComponent& biboumi, uint16_t local, uint16_t remote);
 
   void parse_in_buffer(const std::size_t size) override final;
-  void on_connection_close(const std::string&) override final
-  {}
 
   bool is_connected() const override final
   {
@@ -35,10 +33,5 @@ class IdentdSocket: public TCPSocketHandler
   }
 
  private:
-  void connect() override
-  { assert(false); }
-  void on_connection_failed(const std::string&) override final
-  { assert(false); }
-
   IdentdServer& server;
 };
