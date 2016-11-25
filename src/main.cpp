@@ -12,7 +12,9 @@
 
 #include <atomic>
 #include <signal.h>
-#include <litesql.hpp>
+#ifdef USE_DATABASE
+# include <litesql.hpp>
+#endif
 
 #include <identd/identd_server.hpp>
 
@@ -85,11 +87,14 @@ int main(int ac, char** av)
   if (hostname.empty())
     return config_help("hostname");
 
+
+#ifdef USE_DATABASE
   try {
-      open_database();
-    } catch (const litesql::DatabaseError&) {
-      return 1;
-    }
+    open_database();
+  } catch (const litesql::DatabaseError&) {
+    return 1;
+  }
+#endif
 
   // Block the signals we want to manage. They will be unblocked only during
   // the epoll_pwait or ppoll calls. This avoids some race conditions,
