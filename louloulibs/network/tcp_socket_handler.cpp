@@ -419,10 +419,14 @@ void TCPSocketHandler::start_tls()
 {
   Botan::TLS::Server_Information server_info(this->address, "irc", std::stoul(this->port));
   this->tls = std::make_unique<Botan::TLS::Client>(
-      std::bind(&TCPSocketHandler::tls_output_fn, this, ph::_1, ph::_2),
-      std::bind(&TCPSocketHandler::tls_data_cb, this, ph::_1, ph::_2),
-      std::bind(&TCPSocketHandler::tls_alert_cb, this, ph::_1, ph::_2, ph::_3),
-      std::bind(&TCPSocketHandler::tls_handshake_cb, this, ph::_1),
+# if BOTAN_VERSION_CODE >= BOTAN_VERSION_CODE_FOR(1,11,32)
+      *this,
+# else
+      [this](const Botan::byte* data, size_t size) { this->tls_emit_data(data, size); },
+      [this](const Botan::byte* data, size_t size) { this->tls_record_received(0, data, size); },
+      [this](Botan::TLS::Alert alert, const Botan::byte*, size_t) { this->tls_alert(alert); },
+      [this](const Botan::TLS::Session& session) { return this->tls_session_established(session); },
+# endif
       session_manager, this->credential_manager, policy,
       rng, server_info, Botan::TLS::Protocol_Version::latest_tls_version());
 }
@@ -475,7 +479,7 @@ void TCPSocketHandler::tls_send(std::string&& data)
                          std::make_move_iterator(data.end()));
 }
 
-void TCPSocketHandler::tls_data_cb(const Botan::byte* data, size_t size)
+void TCPSocketHandler::tls_record_received(uint64_t, const Botan::byte *data, size_t size)
 {
   this->in_buf += std::string(reinterpret_cast<const char*>(data),
                               size);
@@ -483,17 +487,17 @@ void TCPSocketHandler::tls_data_cb(const Botan::byte* data, size_t size)
     this->parse_in_buffer(size);
 }
 
-void TCPSocketHandler::tls_output_fn(const Botan::byte* data, size_t size)
+void TCPSocketHandler::tls_emit_data(const Botan::byte *data, size_t size)
 {
   this->raw_send(std::string(reinterpret_cast<const char*>(data), size));
 }
 
-void TCPSocketHandler::tls_alert_cb(Botan::TLS::Alert alert, const Botan::byte*, size_t)
+void TCPSocketHandler::tls_alert(Botan::TLS::Alert alert)
 {
   log_debug("tls_alert: ", alert.type_string());
 }
 
-bool TCPSocketHandler::tls_handshake_cb(const Botan::TLS::Session& session)
+bool TCPSocketHandler::tls_session_established(const Botan::TLS::Session& session)
 {
   log_debug("Handshake with ", session.server_info().hostname(), " complete.",
             " Version: ", session.version().to_string(),
