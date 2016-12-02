@@ -16,7 +16,7 @@
 # include <botan/tls_exceptn.h>
 
 Botan::AutoSeeded_RNG TCPSocketHandler::rng;
-Botan::TLS::Policy TCPSocketHandler::policy;
+BiboumiTLSPolicy TCPSocketHandler::policy;
 Botan::TLS::Session_Manager_In_Memory TCPSocketHandler::session_manager(TCPSocketHandler::rng);
 
 #endif

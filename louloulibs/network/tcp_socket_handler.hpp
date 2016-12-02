@@ -19,6 +19,17 @@
 #include <string>
 #include <list>
 
+class BiboumiTLSPolicy: public Botan::TLS::Policy
+{
+public:
+#if BOTAN_VERSION_CODE >= BOTAN_VERSION_CODE_FOR(1,11,33)
+  bool use_ecc_point_compression() const override
+  {
+    return true;
+  }
+#endif
+};
+
 /**
  * Does all the read/write, buffering etc. With optional tls.
  * But doesn’t do any connect() or accept() or anything else.
@@ -191,7 +202,7 @@ private:
    * Botan stuff to manipulate a TLS session.
    */
   static Botan::AutoSeeded_RNG rng;
-  static Botan::TLS::Policy policy;
+  static BiboumiTLSPolicy policy;
   static Botan::TLS::Session_Manager_In_Memory session_manager;
 protected:
   BasicCredentialsManager credential_manager;
