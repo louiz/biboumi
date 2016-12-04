@@ -131,6 +131,8 @@ test:openbsd:
 test:coverity:
   stage: test
   image: biboumi-test-fedora:latest
+  tags:
+    - docker
   allow_failure: true
   when: manual
   script:
@@ -143,6 +145,8 @@ test:coverity:
 test:sonar-qube:
   stage: test
   image: biboumi-test-fedora:latest
+  tags:
+    - docker
   script:
     - cmake ..
     - ~/sonar-scanner/bin/build-wrapper-linux-x86/build-wrapper-linux-x86-64 --out-dir ./bw-outputs make biboumi test_suite
