@@ -172,6 +172,15 @@ private:
    * anything here appart from logging the TLS session information.
    */
   bool tls_session_established(const Botan::TLS::Session& session) BOTAN_TLS_CALLBACKS_OVERRIDE;
+
+#if BOTAN_VERSION_CODE >= BOTAN_VERSION_CODE_FOR(1,11,34)
+  void tls_verify_cert_chain(const std::vector<Botan::X509_Certificate>& cert_chain,
+                             const std::vector<std::shared_ptr<const Botan::OCSP::Response>>& ocsp_responses,
+                             const std::vector<Botan::Certificate_Store*>& trusted_roots,
+                             Botan::Usage_Type usage,
+                             const std::string& hostname,
+                             const Botan::TLS::Policy& policy) BOTAN_TLS_CALLBACKS_OVERRIDE;
+#endif
   /**
    * Called whenever the tls session goes from inactive to active. This
    * means that the handshake has just been successfully done, and we can

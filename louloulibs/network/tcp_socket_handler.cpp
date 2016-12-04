@@ -311,6 +311,31 @@ bool TCPSocketHandler::tls_session_established(const Botan::TLS::Session& sessio
   return true;
 }
 
+#if BOTAN_VERSION_CODE >= BOTAN_VERSION_CODE_FOR(1,11,34)
+void TCPSocketHandler::tls_verify_cert_chain(const std::vector<Botan::X509_Certificate>& cert_chain,
+                                             const std::vector<std::shared_ptr<const Botan::OCSP::Response>>& ocsp_responses,
+                                             const std::vector<Botan::Certificate_Store*>& trusted_roots,
+                                             Botan::Usage_Type usage, const std::string& hostname,
+                                             const Botan::TLS::Policy& policy)
+{
+  log_debug("Checking remote certificate for hostname ", hostname);
+  try
+    {
+      Botan::TLS::Callbacks::tls_verify_cert_chain(cert_chain, ocsp_responses, trusted_roots, usage, hostname, policy);
+      log_debug("Certificate is valid");
+    }
+  catch (const std::exception& tls_exception)
+    {
+      log_warning("TLS certificate check failed: ", tls_exception.what());
+      std::exception_ptr exception_ptr{};
+      if (this->abort_on_invalid_cert())
+        exception_ptr = std::current_exception();
+
+      check_tls_certificate(cert_chain, hostname, this->credential_manager.get_trusted_fingerprint(), exception_ptr);
+    }
+}
+#endif
+
 void TCPSocketHandler::on_tls_activated()
 {
   this->send_data({});
