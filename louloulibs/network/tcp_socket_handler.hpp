@@ -47,8 +47,10 @@ public:
  * But doesn’t do any connect() or accept() or anything else.
  */
 class TCPSocketHandler: public SocketHandler
-#if BOTAN_VERSION_CODE >= BOTAN_VERSION_CODE_FOR(1,11,32)
+#ifdef BOTAN_FOUND
+# if BOTAN_VERSION_CODE >= BOTAN_VERSION_CODE_FOR(1,11,32)
     ,public Botan::TLS::Callbacks
+# endif
 #endif
 {
 protected:
