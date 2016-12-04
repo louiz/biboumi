@@ -569,13 +569,11 @@ bool BiboumiComponent::handle_mam_request(const Stanza& stanza)
     Jid to(stanza.get_tag("to"));
 
     const XmlNode* query = stanza.get_child("query", MAM_NS);
-    std::string query_id;
-    if (query)
-      query_id = query->get_tag("queryid");
 
     Iid iid(to.local, {'#', '&'});
-    if (iid.type == Iid::Type::Channel && to.resource.empty())
+    if (query && iid.type == Iid::Type::Channel && to.resource.empty())
       {
+        const std::string query_id = query->get_tag("queryid");
         std::string start;
         std::string end;
         const XmlNode* x = query->get_child("x", DATAFORM_NS);
