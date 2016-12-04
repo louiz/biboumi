@@ -1,6 +1,5 @@
 #pragma once
 
-
 #include "louloulibs.h"
 
 #include <network/socket_handler.hpp>
@@ -20,6 +19,11 @@
 #include <list>
 
 #ifdef BOTAN_FOUND
+
+# include <botan/types.h>
+# include <botan/botan.h>
+# include <botan/tls_session_manager.h>
+
 class BiboumiTLSPolicy: public Botan::TLS::Policy
 {
 public:
