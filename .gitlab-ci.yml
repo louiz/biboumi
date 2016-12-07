@@ -1,8 +1,6 @@
 before_script:
   - uname -a
   - whoami
-  - g++ --version
-  - clang++ --version
   - rm -rf build/
   - mkdir build/
   - cd build
