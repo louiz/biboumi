@@ -7,6 +7,7 @@
 #include <utils/split.hpp>
 #include <xmpp/jid.hpp>
 #include <algorithm>
+#include <sstream>
 #include <iomanip>
 
 #include <biboumi.h>

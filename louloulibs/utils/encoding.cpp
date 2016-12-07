@@ -7,6 +7,7 @@
 #include <assert.h>
 #include <string.h>
 #include <iconv.h>
+#include <cerrno>
 
 #include <map>
 #include <bitset>

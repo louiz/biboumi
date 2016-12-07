@@ -1,6 +1,7 @@
 #include <identd/identd_socket.hpp>
 #include <identd/identd_server.hpp>
 #include <xmpp/biboumi_component.hpp>
+#include <sstream>
 #include <iomanip>
 
 #include <utils/sha1.hpp>
