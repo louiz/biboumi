@@ -115,6 +115,7 @@ test:freebsd:
   tags:
     - freebsd
   variables:
+    COMPILER: "clang++"
     SYSTEMD: "-DWITHOUT_SYSTEMD=1"
   stage: test
   script:
