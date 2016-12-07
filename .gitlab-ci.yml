@@ -116,6 +116,18 @@ test:fedora:
     - docker
   <<: *basic_test
 
+test:freebsd:
+  tags:
+    - freebsd
+  variables:
+    SYSTEMD: "-DWITHOUT_SYSTEMD=1"
+  stage: test
+  script:
+    - cmake .. -DCMAKE_CXX_COMPILER=${COMPILER} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ${BOTAN} ${CARES} ${SYSTEMD} ${LIBIDN} ${LITESQL}
+    - make biboumi
+    - make check
+    - make e2e
+
 test:openbsd:
   variables:
     COMPILER: "g++"
