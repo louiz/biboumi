@@ -62,9 +62,9 @@ class TCPClientSocketHandler: public TCPSocketHandler
    * triggered a EINPROGRESS error when connect()ing to it, to reuse it
    * directly when connect() is called again.
    */
-  struct addrinfo addrinfo;
-  struct sockaddr_in6 ai_addr;
-  socklen_t ai_addrlen;
+  struct addrinfo addrinfo{};
+  struct sockaddr_in6 ai_addr{};
+  socklen_t ai_addrlen{};
 
   /**
    * Hostname we are connected/connecting to
@@ -75,7 +75,7 @@ class TCPClientSocketHandler: public TCPSocketHandler
    */
   std::string port;
 
-  uint16_t local_port;
+  uint16_t local_port{};
 
   bool connected;
   bool connecting;
