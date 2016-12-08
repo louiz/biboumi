@@ -24,7 +24,7 @@ std::time_t parse_datetime(const std::string& stamp)
   std::tm t = {};
 #ifdef HAS_GET_TIME
   std::istringstream ss(stamp);
-  ss.imbue(std::locale("en_US.utf-8"));
+  ss.imbue(std::locale("en_US.UTF-8"));
 
   std::string timezone;
   ss >> std::get_time(&t, format) >> timezone;
