@@ -222,14 +222,7 @@ protected:
   virtual void on_connection_close(const std::string&) {}
   virtual void on_connection_failed(const std::string&) {}
 
-private:
 #ifdef BOTAN_FOUND
-  /**
-   * Botan stuff to manipulate a TLS session.
-   */
-  static Botan::AutoSeeded_RNG rng;
-  static BiboumiTLSPolicy policy;
-  static Botan::TLS::Session_Manager_In_Memory session_manager;
 protected:
   BasicCredentialsManager credential_manager;
 private:

@@ -15,10 +15,24 @@
 # include <botan/hex.h>
 # include <botan/tls_exceptn.h>
 
-Botan::AutoSeeded_RNG TCPSocketHandler::rng;
-BiboumiTLSPolicy TCPSocketHandler::policy;
-Botan::TLS::Session_Manager_In_Memory TCPSocketHandler::session_manager(TCPSocketHandler::rng);
-
+namespace
+{
+    Botan::AutoSeeded_RNG& get_rng()
+    {
+      static Botan::AutoSeeded_RNG rng{};
+      return rng;
+    }
+    BiboumiTLSPolicy& get_policy()
+    {
+      static BiboumiTLSPolicy policy{};
+      return policy;
+    }
+    Botan::TLS::Session_Manager_In_Memory& get_session_manager()
+    {
+      static Botan::TLS::Session_Manager_In_Memory session_manager{get_rng()};
+      return session_manager;
+    }
+}
 #endif
 
 #ifndef UIO_FASTIOV
@@ -229,8 +243,8 @@ void TCPSocketHandler::start_tls(const std::string& address, const std::string& 
       [this](Botan::TLS::Alert alert, const Botan::byte*, size_t) { this->tls_alert(alert); },
       [this](const Botan::TLS::Session& session) { return this->tls_session_established(session); },
 # endif
-      session_manager, this->credential_manager, policy,
-      rng, server_info, Botan::TLS::Protocol_Version::latest_tls_version());
+      get_session_manager(), this->credential_manager, get_policy(),
+      get_rng(), server_info, Botan::TLS::Protocol_Version::latest_tls_version());
 }
 
 void TCPSocketHandler::tls_recv()
