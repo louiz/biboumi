@@ -1,5 +1,6 @@
 before_script:
   - uname -a
+  - locale
   - whoami
   - rm -rf build/
   - mkdir build/
