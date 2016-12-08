@@ -64,6 +64,8 @@ COPY sonar-scanner-2.8 /home/tester/sonar-scanner
 
 RUN dnf install -y which java-1.8.0-openjdk
 
+ENV LC_ALL C.UTF-8
+
 WORKDIR /home/tester
 USER tester
 

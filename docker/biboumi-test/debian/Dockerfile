@@ -57,17 +57,6 @@ RUN cd /charybdis && git checkout 4f2b9a4 && sed s/113/1113/ -i /charybdis/authd
 RUN chown -R tester:tester /home/tester/ircd
 RUN rm -rf /charybdis
 
-RUN apt install -y locales
-RUN export LANGUAGE=en_US.UTF-8
-RUN export LANG=en_US.UTF-8
-RUN export LC_ALL=en_US.UTF-8
-RUN locale-gen
-RUN dpkg-reconfigure locales
-
-RUN dpkg-reconfigure locales && \
-    locale-gen C.UTF-8 && \
-    /usr/sbin/update-locale LANG=C.UTF-8
-
 ENV LC_ALL C.UTF-8
 
 WORKDIR /home/tester
