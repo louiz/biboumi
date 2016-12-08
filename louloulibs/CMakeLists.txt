@@ -6,10 +6,6 @@ set(${PROJECT_NAME}_VERSION_SUFFIX "~dev")
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++1y -pedantic -Wall -Wextra")
 
-# Define a __FILENAME__ macro to get the filename of each file, instead of
-# the full path as in __FILE__
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D__FILENAME__='\"$(subst ${CMAKE_SOURCE_DIR}/,,$(abspath $<))\"'")
-
 #
 ## Look for external libraries
 #
@@ -142,6 +138,14 @@ endif()
 if(SYSTEMD_FOUND)
   target_link_libraries(xmpplib ${SYSTEMD_LIBRARIES})
 endif()
+
+# Define a __FILENAME__ macro with the relative path (from the base project directory)
+# of each source file
+file(GLOB_RECURSE source_all *.[hc]pp)
+foreach(file ${source_all})
+  file(RELATIVE_PATH shorter_file ${CMAKE_CURRENT_SOURCE_DIR} ${file})
+  set_property(SOURCE ${file} APPEND PROPERTY COMPILE_DEFINITIONS __FILENAME__="${shorter_file}")
+endforeach()
 
 #
 ## Check if we have std::get_time
