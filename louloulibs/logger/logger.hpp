@@ -33,15 +33,15 @@
 # define __FILENAME__ __FILE__
 #endif
 
+
 /**
- * Juste a structure representing a stream doing nothing with its input.
+ * A buffer, used to construct an ostream that does nothing
+ * when we output data in it
  */
-class nullstream: public std::ostream
+class NullBuffer: public std::streambuf
 {
-public:
-  nullstream():
-    std::ostream(0)
-  { }
+ public:
+  int overflow(int c) { return c; }
 };
 
 class Logger
@@ -59,9 +59,11 @@ public:
 
 private:
   const int log_level;
-  std::ofstream ofstream;
-  nullstream null_stream;
+  std::ofstream ofstream{};
   std::ostream stream;
+
+  NullBuffer null_buffer;
+  std::ostream null_stream;
 };
 
 #define WHERE __FILENAME__, ":", __LINE__, ":\t"

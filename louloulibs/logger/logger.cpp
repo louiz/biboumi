@@ -3,14 +3,18 @@
 
 Logger::Logger(const int log_level):
   log_level(log_level),
-  stream(std::cout.rdbuf())
+  stream(std::cout.rdbuf()),
+  null_buffer{},
+  null_stream{&null_buffer}
 {
 }
 
 Logger::Logger(const int log_level, const std::string& log_file):
   log_level(log_level),
   ofstream(log_file.data(), std::ios_base::app),
-  stream(ofstream.rdbuf())
+  stream(ofstream.rdbuf()),
+  null_buffer{},
+  null_stream{&null_buffer}
 {
 }
 
