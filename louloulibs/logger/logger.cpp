@@ -3,7 +3,7 @@
 
 Logger::Logger(const int log_level):
   log_level(log_level),
-  stream(std::cout.rdbuf()),
+  stream(std::clog.rdbuf()),
   null_buffer{},
   null_stream{&null_buffer}
 {
