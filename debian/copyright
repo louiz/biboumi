@@ -3,6 +3,24 @@ Upstream-Name: biboumi
 Upstream-Contact: https://lab.louiz.org/louiz/biboumi/issues
 Source: https://lab.louiz.org/louiz/biboumi
 
+Files: *
+Copyright: 2015, Florent Le Coz
+License: Zlib
+
+Files: cmake/Modules/CodeCoverage.cmake
+Copyright: 2012-2015, Lars Bilke
+License: BSD-3-clause
+
+Files: cmake/Modules/FindLITESQL.cmake
+ louloulibs/cmake/Modules/FindBOTAN.cmake
+ louloulibs/cmake/Modules/FindCARES.cmake
+ louloulibs/cmake/Modules/FindICONV.cmake
+ louloulibs/cmake/Modules/FindLIBIDN.cmake
+ louloulibs/cmake/Modules/FindLIBUUID.cmake
+ louloulibs/cmake/Modules/FindSYSTEMD.cmake
+Copyright: NONE
+License: public-domain
+
 Files: debian/*
 Copyright: 2016, Vasudev Kamath <vasudev@copyninja.info>
  2016, Jonas Smedegaard <dr@jones.dk>
