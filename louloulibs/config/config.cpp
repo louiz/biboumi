@@ -1,8 +1,7 @@
 #include <config/config.hpp>
-#include <logger/logger.hpp>
 
+#include <iostream>
 #include <cstring>
-#include <sstream>
 
 #include <cstdlib>
 
@@ -66,7 +65,7 @@ bool Config::read_conf(const std::string& name)
   std::ifstream file(Config::filename.data());
   if (!file.is_open())
     {
-      log_error("Error while opening file ", filename, " for reading: ", strerror(errno));
+      std::cerr << "Error while opening file " << filename << " for reading: " << strerror(errno) << std::endl;
       return false;
     }
 
@@ -96,7 +95,7 @@ void Config::save_to_file()
   std::ofstream file(Config::filename.data());
   if (file.fail())
     {
-      log_error("Could not save config file.");
+      std::cerr << "Could not save config file." << std::endl;
       return ;
     }
   for (const auto& it: Config::values)

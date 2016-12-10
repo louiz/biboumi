@@ -99,7 +99,6 @@ target_link_libraries(utils ${ICONV_LIBRARIES})
 file(GLOB source_config
   config/*.[hc]pp)
 add_library(config STATIC ${source_config})
-target_link_libraries(config utils)
 
 #
 ## logger

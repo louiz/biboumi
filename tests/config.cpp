@@ -8,7 +8,7 @@
 TEST_CASE("Config basic")
 {
   // Disable all output for this test
-  IoTester<std::ostream> out(std::cout);
+  IoTester<std::ostream> out(std::cerr);
   // Write a value in the config file
   Config::read_conf("test.cfg");
   Config::set("coucou", "bonjour", true);
