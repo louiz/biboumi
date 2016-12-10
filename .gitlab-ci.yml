@@ -92,6 +92,7 @@ build:rpm:
     - make check
     - make coverage
     - mkdir tests_outputs && pushd tests_outputs && make coverage_e2e -j$(nproc || echo 1) -C .. && popd
+    - if [ ! -z $COVERALLS_TOKEN -a ! -z $UPLOAD_TO_COVERALLS ]; then gem install coveralls-lcov && coveralls-lcov --repo-token $COVERALLS_TOKEN coverage_e2e.info.cleaned; fi
   artifacts:
     paths:
       - build/coverage/
@@ -101,6 +102,8 @@ build:rpm:
     name: $CI_PROJECT_NAME-test-$CI_BUILD_ID
 
 test:debian:
+  variables:
+    UPLOAD_TO_COVERALLS: "true"
   image: biboumi-test-debian:latest
   <<: *basic_test
 
