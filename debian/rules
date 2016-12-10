@@ -6,5 +6,5 @@ include /usr/share/cdbs/1/rules/utils.mk
 include /usr/share/cdbs/1/class/cmake.mk
 
 dev-deps = expat1 idn11 systemd c-ares
-CDBS_BUILD_DEPENDS += , uuid-dev
+CDBS_BUILD_DEPENDS += , cmake, catch, uuid-dev
 CDBS_BUILD_DEPENDS += , $(patsubst %,$(comma) lib%-dev,$(dev-deps))
