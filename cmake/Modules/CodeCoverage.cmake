@@ -162,9 +162,6 @@ FUNCTION(SETUP_TARGET_FOR_COVERAGE _targetname _testrunner _outputname)
         # Generate the report
         COMMAND ${GENHTML_PATH} -o ${_outputname} ${_outputname}.info.cleaned
 
-        # Clean the temporary files we created
-        COMMAND ${CMAKE_COMMAND} -E remove ${_outputname}.info ${_outputname}.info.cleaned
-
         WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
         COMMENT "Resetting code coverage counters to zero.\nProcessing code coverage counters and generating report."
     )
