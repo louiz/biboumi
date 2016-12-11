@@ -146,6 +146,7 @@ test:sonar-qube:
   tags:
     - docker
   image: biboumi-test-fedora:latest
+  allow_failure: true
   script:
     - cmake ..
     - ~/sonar-scanner/bin/build-wrapper-linux-x86/build-wrapper-linux-x86-64 --out-dir ./bw-outputs make biboumi test_suite
