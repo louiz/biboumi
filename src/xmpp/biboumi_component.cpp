@@ -289,7 +289,7 @@ void BiboumiComponent::handle_message(const Stanza& stanza)
 }
 
 // We MUST return an iq, whatever happens, except if the type is
-// "result".
+// "result" or "error".
 // To do this, we use a scopeguard. If an exception is raised somewhere, an
 // iq of type error "internal-server-error" is sent. If we handle the
 // request properly (by calling a function that registers an iq to be sent
@@ -556,6 +556,10 @@ void BiboumiComponent::handle_iq(const Stanza& stanza)
               this->waiting_iq.erase(it);
             }
         }
+    }
+  else if (type == "error")
+    {
+      stanza_error.disable();
     }
   }
   catch (const IRCNotConnected& ex)
