@@ -53,6 +53,7 @@ public:
       Channel,
       User,
       Server,
+      None,
   };
   static constexpr char separator[]{"%"};
   Iid(const std::string& iid, const std::set<char>& chantypes);

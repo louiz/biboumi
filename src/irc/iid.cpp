@@ -34,9 +34,10 @@ Iid::Iid(const std::string& iid, const Bridge *bridge)
 
 void Iid::set_type(const std::set<char>& chantypes)
 {
+  if (this->local.empty() && this->server.empty())
+    this->type = Iid::Type::None;
   if (this->local.empty())
     return;
-
   if (chantypes.count(this->local[0]) == 1)
     this->type = Iid::Type::Channel;
   else
@@ -105,6 +106,8 @@ namespace std {
     {
       if (iid.type == Iid::Type::Server)
         return iid.get_server();
+      else if (iid.get_local().empty() && iid.get_server().empty())
+        return {};
       else
         return iid.get_encoded_local() + iid.separator + iid.get_server();
     }
