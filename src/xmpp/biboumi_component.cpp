@@ -165,7 +165,6 @@ void BiboumiComponent::handle_presence(const Stanza& stanza)
     {
       if (type == "subscribe")
         { // Auto-accept any subscription request for an IRC server
-          this->add_to_roster(to_str, from.bare());
           this->accept_subscription(to_str, from.bare());
           this->ask_subscription(to_str, from.bare());
         }
