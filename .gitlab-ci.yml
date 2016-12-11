@@ -92,7 +92,8 @@ build:rpm:
     - make coverage_check -j$(nproc || echo 1)
     - make coverage_e2e -j$(nproc || echo 1)
     - make coverage
-    - bash <(curl -s https://codecov.io/bash) -X gcov -X coveragepy -f ./coverage_total.info
+    - bash <(curl -s https://codecov.io/bash) -X gcov -X coveragepy -f ./coverage_e2e.info -F integration
+    - bash <(curl -s https://codecov.io/bash) -X gcov -X coveragepy -f ./coverage_test_suite.info -F unittests
   artifacts:
     paths:
       - build/coverage_test_suite/
