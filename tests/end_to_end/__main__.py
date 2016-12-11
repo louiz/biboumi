@@ -1840,6 +1840,19 @@ if __name__ == '__main__':
                                              "/presence/muc:x",
                                              "/presence/error/stanza:text")),
                  ], conf='fixed_server'),
+        Scenario("irc_server_presence_subscription",
+                  [
+                      handshake_sequence(),
+                      partial(send_stanza, "<presence type='subscribe' from='{jid_one}/{resource_one}' to='{irc_server_one}' id='sub1' />"),
+                      partial(expect_stanza, "/presence[@to='{jid_one}'][@from='{irc_server_one}'][@type='subscribed']")
+                  ]),
+        Scenario("fixed_irc_server_presence_subscription",
+                  [
+                      handshake_sequence(),
+                      partial(send_stanza, "<presence type='subscribe' from='{jid_one}/{resource_one}' to='{biboumi_host}' id='sub1' />"),
+                      partial(expect_stanza, "/presence[@to='{jid_one}'][@from='{biboumi_host}'][@type='subscribed']")
+                  ], conf='fixed_server')
+
     )
 
 

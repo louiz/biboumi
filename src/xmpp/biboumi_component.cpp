@@ -161,6 +161,16 @@ void BiboumiComponent::handle_presence(const Stanza& stanza)
           bridge->leave_irc_channel(std::move(iid), status ? status->get_inner() : "", from.resource);
         }
     }
+  else if (iid.type == Iid::Type::Server || iid.type == Iid::Type::None)
+    {
+      if (type == "subscribe")
+        { // Auto-accept any subscription request for an IRC server
+          this->add_to_roster(to_str, from.bare());
+          this->accept_subscription(to_str, from.bare());
+          this->ask_subscription(to_str, from.bare());
+        }
+
+    }
   else
     {
       // A user wants to join an invalid IRC channel, return a presence error to him/her
@@ -751,20 +761,6 @@ void BiboumiComponent::send_irc_channel_muc_traffic_info(const std::string id, c
 
 }
 
-void BiboumiComponent::send_iq_version_request(const std::string& from,
-                                            const std::string& jid_to)
-{
-  Stanza iq("iq");
-  iq["type"] = "get";
-  iq["id"] = "version_"s + this->next_id();
-  iq["from"] = from + "@" + this->served_hostname;
-  iq["to"] = jid_to;
-  XmlNode query("query");
-  query["xmlns"] = VERSION_NS;
-  iq.add_child(std::move(query));
-  this->send_stanza(iq);
-}
-
 void BiboumiComponent::send_ping_request(const std::string& from,
                                          const std::string& jid_to,
                                          const std::string& id)
@@ -862,4 +858,24 @@ void BiboumiComponent::send_invitation(const std::string& room_target,
   x.add_child(std::move(invite));
   message.add_child(std::move(x));
   this->send_stanza(message);
+}
+
+void BiboumiComponent::accept_subscription(const std::string& from, const std::string& to)
+{
+  Stanza presence("presence");
+  presence["from"] = from;
+  presence["to"] = to;
+  presence["id"] = this->next_id();
+  presence["type"] = "subscribed";
+  this->send_stanza(presence);
+}
+
+void BiboumiComponent::ask_subscription(const std::string& from, const std::string& to)
+{
+ Stanza presence("presence");
+  presence["from"] = from;
+  presence["to"] = to;
+  presence["id"] = this->next_id();
+  presence["type"] = "subscribe";
+  this->send_stanza(presence);
 }

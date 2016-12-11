@@ -179,10 +179,6 @@ public:
                                     const std::string& role,
                                     const std::string& jid_to);
   /**
-   * Send a result IQ with the gateway disco informations.
-   */
-  void send_self_disco_info(const std::string& id, const std::string& jid_to);
-  /**
    * Send a result IQ with the given version, or the gateway version if the
    * passed string is empty.
    */

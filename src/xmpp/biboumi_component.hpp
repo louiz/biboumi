@@ -71,11 +71,6 @@ public:
    */
    void send_irc_channel_muc_traffic_info(const std::string id, const std::string& jid_from, const std::string& jid_to);
   /**
-   * Send an iq version request
-   */
-  void send_iq_version_request(const std::string& from,
-                               const std::string& jid_to);
-  /**
    * Send a ping request
    */
   void send_ping_request(const std::string& from,
@@ -88,6 +83,8 @@ public:
                                 const ChannelList& channel_list, std::vector<ListElement>::const_iterator begin,
                                 std::vector<ListElement>::const_iterator end, const ResultSetInfo& rs_info);
   void send_invitation(const std::string& room_target, const std::string& jid_to, const std::string& author_nick);
+  void accept_subscription(const std::string& from, const std::string& to);
+  void ask_subscription(const std::string& from, const std::string& to);
   /**
    * Handle the various stanza types
    */
