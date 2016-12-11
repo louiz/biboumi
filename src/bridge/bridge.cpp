@@ -393,8 +393,12 @@ void Bridge::leave_irc_channel(Iid&& iid, const std::string& status_message, con
     }
 }
 
-void Bridge::send_irc_nick_change(const Iid& iid, const std::string& new_nick)
+void Bridge::send_irc_nick_change(const Iid& iid, const std::string& new_nick, const std::string& requesting_resource)
 {
+  // We don’t change the nick if the presence was sent to a channel the resource is not in.
+  auto res_in_chan = this->is_resource_in_chan(ChannelKey{iid.get_local(), iid.get_server()}, requesting_resource);
+  if (!res_in_chan)
+    return;
   IrcClient* irc = this->get_irc_client(iid.get_server());
   irc->send_nick_command(new_nick);
 }

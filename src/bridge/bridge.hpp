@@ -80,7 +80,7 @@ public:
   void send_private_message(const Iid& iid, const std::string& body, const std::string& type="PRIVMSG");
   void send_raw_message(const std::string& hostname, const std::string& body);
   void leave_irc_channel(Iid&& iid, const std::string& status_message, const std::string& resource);
-  void send_irc_nick_change(const Iid& iid, const std::string& new_nick);
+  void send_irc_nick_change(const Iid& iid, const std::string& new_nick, const std::string& requesting_resource);
   void send_irc_kick(const Iid& iid, const std::string& target, const std::string& reason,
                      const std::string& iq_id, const std::string& to_jid);
   void set_channel_topic(const Iid& iid, const std::string& subject);
