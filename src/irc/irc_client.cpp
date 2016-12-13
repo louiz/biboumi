@@ -66,6 +66,7 @@ static const std::unordered_map<std::string,
   {"433", {&IrcClient::on_nickname_conflict, {2, 0}}},
   {"438", {&IrcClient::on_nickname_change_too_fast, {2, 0}}},
   {"443", {&IrcClient::on_useronchannel, {3, 0}}},
+  {"475", {&IrcClient::on_channel_bad_key, {3, 0}}},
   {"ERR_USERONCHANNEL", {&IrcClient::on_useronchannel, {3, 0}}},
   {"001", {&IrcClient::on_welcome_message, {1, 0}}},
   {"PART", {&IrcClient::on_part, {1, 0}}},
@@ -113,7 +114,6 @@ static const std::unordered_map<std::string,
   {"472", {&IrcClient::on_generic_error, {2, 0}}},
   {"473", {&IrcClient::on_generic_error, {2, 0}}},
   {"474", {&IrcClient::on_generic_error, {2, 0}}},
-  {"475", {&IrcClient::on_generic_error, {2, 0}}},
   {"476", {&IrcClient::on_generic_error, {2, 0}}},
   {"477", {&IrcClient::on_generic_error, {2, 0}}},
   {"481", {&IrcClient::on_generic_error, {2, 0}}},
@@ -1012,6 +1012,18 @@ void IrcClient::on_mode(const IrcMessage& message)
     this->on_channel_mode(message);
   else
     this->on_user_mode(message);
+}
+
+void IrcClient::on_channel_bad_key(const IrcMessage& message)
+{
+  this->on_generic_error(message);
+  const std::string& nickname = message.arguments[0];
+  const std::string& channel = message.arguments[1];
+  std::string text;
+  if (message.arguments.size() > 2)
+    text = message.arguments[2];
+
+  this->bridge.send_presence_error({channel, this->hostname, Iid::Type::Channel}, nickname, "auth", "not-authorized", "", text);
 }
 
 void IrcClient::on_channel_mode(const IrcMessage& message)

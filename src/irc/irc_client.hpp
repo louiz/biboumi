@@ -257,6 +257,7 @@ public:
   void on_nick(const IrcMessage& message);
   void on_kick(const IrcMessage& message);
   void on_mode(const IrcMessage& message);
+  void on_channel_bad_key(const IrcMessage& message);
   /**
    * A mode towards our own user is received (note, that is different from a
    * channel mode towards or own nick, see
