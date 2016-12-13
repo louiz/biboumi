@@ -23,14 +23,14 @@ TEST_CASE("Basic logging")
       Config::set("log_level", "0");
       WHEN("we log some debug text")
         {
-          IoTester<std::ostream> out(std::clog);
+          IoTester<std::ostream> out(std::cout);
           log_debug("deb", "ug");
           THEN("debug logs are written")
             CHECK(out.str() == debug_header + "tests/logger.cpp:" + std::to_string(__LINE__ - 2) + ":\tdebug\n");
         }
       WHEN("we log some errors")
         {
-          IoTester<std::ostream> out(std::clog);
+          IoTester<std::ostream> out(std::cout);
           log_error("err", 12, "or");
           THEN("error logs are written")
             CHECK(out.str() == error_header + "tests/logger.cpp:" + std::to_string(__LINE__ - 2) + ":\terr12or\n");
@@ -41,14 +41,14 @@ TEST_CASE("Basic logging")
       Config::set("log_level", "3");
       WHEN("we log some debug text")
         {
-          IoTester<std::ostream> out(std::clog);
+          IoTester<std::ostream> out(std::cout);
           log_debug(123, "debug");
           THEN("nothing is written")
             CHECK(out.str().empty());
         }
       WHEN("we log some errors")
         {
-          IoTester<std::ostream> out(std::clog);
+          IoTester<std::ostream> out(std::cout);
           log_error(123, " errors");
           THEN("error logs are still written")
             CHECK(out.str() == error_header + "tests/logger.cpp:" + std::to_string(__LINE__ - 2) + ":\t123 errors\n");
