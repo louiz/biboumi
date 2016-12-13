@@ -172,8 +172,8 @@ void XmppComponent::on_stanza(const Stanza& stanza)
 
 void XmppComponent::send_stream_error(const std::string& name, const std::string& explanation)
 {
-  XmlNode node("stream:error", nullptr);
-  XmlNode error(name, nullptr);
+  XmlNode node("stream:error");
+  XmlNode error(name);
   error["xmlns"] = STREAM_NS;
   if (!explanation.empty())
     error.set_inner(explanation);
