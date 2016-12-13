@@ -524,7 +524,7 @@ void XmppComponent::send_presence_error(const std::string& muc_name,
                                         const std::string& type,
                                         const std::string& condition,
                                         const std::string& error_code,
-                                        const std::string& /* text */)
+                                        const std::string& text)
 {
   Stanza presence("presence");
   presence["from"] = muc_name + "@" + this->served_hostname + "/" + nickname;
@@ -536,6 +536,12 @@ void XmppComponent::send_presence_error(const std::string& muc_name,
   XmlNode error("error");
   error["by"] = muc_name + "@" + this->served_hostname;
   error["type"] = type;
+  if (text.empty())
+    {
+      XmlNode text_node("text");
+      text_node["xmlns"] = STANZA_NS;
+      text_node.set_inner(text);
+    }
   if (!error_code.empty())
     error["code"] = error_code;
   XmlNode subnode(condition);
