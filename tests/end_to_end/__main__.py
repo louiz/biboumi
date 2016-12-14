@@ -406,6 +406,27 @@ def connection_begin_sequence(irc_host, jid):
             xpath_re % (r'^%s: (\*\*\* Checking Ident|\*\*\* Looking up your hostname\.\.\.|\*\*\* Found your hostname: .*|ACK multi-prefix|\*\*\* Got Ident response)$' % irc_host)),
     )
 
+def connection_tls_begin_sequence(irc_host, jid):
+    jid = jid.format_map(common_replacements)
+    xpath    = "/message[@to='" + jid + "'][@from='irc.localhost@biboumi.localhost']/body[text()='%s']"
+    xpath_re = "/message[@to='" + jid + "'][@from='irc.localhost@biboumi.localhost']/body[re:test(text(), '%s')]"
+    return (
+        partial(expect_stanza,
+                xpath % ('Connecting to %s:7778 (encrypted)' % irc_host)),
+        partial(expect_stanza,
+                xpath % 'Connected to IRC server (encrypted).'),
+        # These five messages can be receive in any order
+        partial(expect_stanza,
+                xpath_re % (r'^%s: (\*\*\* Checking Ident|\*\*\* Looking up your hostname\.\.\.|\*\*\* Found your hostname: .*|ACK multi-prefix|\*\*\* Got Ident response)$' % irc_host)),
+        partial(expect_stanza,
+                xpath_re % (r'^%s: (\*\*\* Checking Ident|\*\*\* Looking up your hostname\.\.\.|\*\*\* Found your hostname: .*|ACK multi-prefix|\*\*\* Got Ident response)$' % irc_host)),
+        partial(expect_stanza,
+                xpath_re % (r'^%s: (\*\*\* Checking Ident|\*\*\* Looking up your hostname\.\.\.|\*\*\* Found your hostname: .*|ACK multi-prefix|\*\*\* Got Ident response)$' % irc_host)),
+        partial(expect_stanza,
+                xpath_re % (r'^%s: (\*\*\* Checking Ident|\*\*\* Looking up your hostname\.\.\.|\*\*\* Found your hostname: .*|ACK multi-prefix|\*\*\* Got Ident response)$' % irc_host)),
+        partial(expect_stanza,
+                xpath_re % (r'^%s: (\*\*\* Checking Ident|\*\*\* Looking up your hostname\.\.\.|\*\*\* Found your hostname: .*|ACK multi-prefix|\*\*\* Got Ident response)$' % irc_host)),
+    )
 
 def connection_end_sequence(irc_host, jid):
     jid = jid.format_map(common_replacements)
@@ -433,12 +454,15 @@ def connection_end_sequence(irc_host, jid):
     partial(expect_stanza,
             xpath % "- This is charybdis MOTD you might replace it, but if not your friends will\n- laugh at you.\n"),
     partial(expect_stanza,
-            xpath_re % r'^User mode for \w+ is \[\+i\]$'),
+            xpath_re % r'^User mode for \w+ is \[\+Z?i\]$'),
     )
 
 
 def connection_sequence(irc_host, jid):
     return connection_begin_sequence(irc_host, jid) + connection_end_sequence(irc_host, jid)
+
+def connection_tls_sequence(irc_host, jid):
+    return connection_tls_begin_sequence(irc_host, jid) + connection_end_sequence(irc_host, jid)
 
 
 def extract_attribute(xpath, name, stanza):
@@ -1846,6 +1870,34 @@ if __name__ == '__main__':
                      partial(send_stanza, "<iq type='set' id='id4' from='{jid_one}/{resource_one}' to='{irc_server_one}'><command xmlns='http://jabber.org/protocol/commands' action='cancel' node='configure' sessionid='{sessionid}' /></iq>"),
                      partial(expect_stanza, "/iq[@type='result']/commands:command[@node='configure'][@status='canceled']"),
                  ]),
+         Scenario("irc_tls_connection",
+                  [
+                     handshake_sequence(),
+                     # First, use an adhoc command to configure how we connect to the irc server, configure
+                     # only one TLS port, and disable the cert verification.
+                     partial(send_stanza, "<iq type='set' id='id1' from='{jid_one}/{resource_one}' to='{irc_server_one}'><command xmlns='http://jabber.org/protocol/commands' node='configure' action='execute' /></iq>"),
+                     partial(expect_stanza, "/iq[@type='result']",
+                             after = partial(save_value, "sessionid", partial(extract_attribute, "/iq[@type='result']/commands:command[@node='configure']", "sessionid"))),
+                     partial(send_stanza, "<iq type='set' id='id2' from='{jid_one}/{resource_one}' to='{irc_server_one}'>"
+                                           "<command xmlns='http://jabber.org/protocol/commands' node='configure' sessionid='{sessionid}' action='next'>"
+                                           "<x xmlns='jabber:x:data' type='submit'>"
+                                           "<field var='ports' />"
+                                           "<field var='tls_ports'><value>7778</value></field>"
+                                           "<field var='verify_cert'><value>0</value></field>"
+                                           "</x></command></iq>"),
+                      partial(expect_stanza, "/iq[@type='result']/commands:command[@node='configure'][@status='completed']/commands:note[@type='info'][text()='Configuration successfully applied.']"),
+
+                      partial(send_stanza,
+                              "<presence from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}/{nick_one}' />"),
+                      connection_tls_sequence("irc.localhost", '{jid_one}/{resource_one}'),
+                      partial(expect_stanza,
+                              "/message/body[text()='Mode #foo [+nt] by {irc_host_one}']"),
+                      partial(expect_stanza,
+                              ("/presence[@to='{jid_one}/{resource_one}'][@from='#foo%{irc_server_one}/{nick_one}']/muc_user:x/muc_user:item[@affiliation='admin'][@role='moderator']",
+                               "/presence/muc_user:x/muc_user:status[@code='110']")
+                              ),
+                      partial(expect_stanza, "/message[@from='#foo%{irc_server_one}'][@type='groupchat']/subject[not(text())]"),
+                  ]),
          Scenario("get_irc_connection_info",
                  [
                      handshake_sequence(),
