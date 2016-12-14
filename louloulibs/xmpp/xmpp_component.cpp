@@ -541,6 +541,7 @@ void XmppComponent::send_presence_error(const std::string& muc_name,
       XmlNode text_node("text");
       text_node["xmlns"] = STANZA_NS;
       text_node.set_inner(text);
+      error.add_child(std::move(text_node));
     }
   if (!error_code.empty())
     error["code"] = error_code;
