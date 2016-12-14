@@ -26,40 +26,31 @@ void DisconnectUserStep1(XmppComponent& xmpp_component, AdhocSession&, XmlNode& 
 {
   auto& biboumi_component = static_cast<BiboumiComponent&>(xmpp_component);
 
-  XmlNode x("jabber:x:data:x");
+  XmlSubNode x(command_node, "jabber:x:data:x");
   x["type"] = "form";
-  XmlNode title("title");
+  XmlSubNode title(x, "title");
   title.set_inner("Disconnect a user from the gateway");
-  x.add_child(std::move(title));
-  XmlNode instructions("instructions");
+  XmlSubNode instructions(x, "instructions");
   instructions.set_inner("Choose a user JID and a quit message");
-  x.add_child(std::move(instructions));
-  XmlNode jids_field("field");
+  XmlSubNode jids_field(x, "field");
   jids_field["var"] = "jids";
   jids_field["type"] = "list-multi";
   jids_field["label"] = "The JIDs to disconnect";
-  XmlNode required("required");
-  jids_field.add_child(std::move(required));
+  XmlSubNode required(jids_field, "required");
   for (Bridge* bridge: biboumi_component.get_bridges())
     {
-      XmlNode option("option");
+      XmlSubNode option(jids_field, "option");
       option["label"] = bridge->get_jid();
-      XmlNode value("value");
+      XmlSubNode value(option, "value");
       value.set_inner(bridge->get_jid());
-      option.add_child(std::move(value));
-      jids_field.add_child(std::move(option));
     }
-  x.add_child(std::move(jids_field));
 
-  XmlNode message_field("field");
+  XmlSubNode message_field(x, "field");
   message_field["var"] = "quit-message";
   message_field["type"] = "text-single";
   message_field["label"] = "Quit message";
-  XmlNode message_value("value");
+  XmlSubNode message_value(message_field, "value");
   message_value.set_inner("Disconnected by admin");
-  message_field.add_child(std::move(message_value));
-  x.add_child(std::move(message_field));
-  command_node.add_child(std::move(x));
 }
 
 void DisconnectUserStep2(XmppComponent& xmpp_component, AdhocSession& session, XmlNode& command_node)
@@ -98,7 +89,7 @@ void DisconnectUserStep2(XmppComponent& xmpp_component, AdhocSession& session, X
             }
           command_node.delete_all_children();
 
-          XmlNode note("note");
+          XmlSubNode note(command_node, "note");
           note["type"] = "info";
           if (num == 0)
             note.set_inner("No user were disconnected.");
@@ -106,15 +97,12 @@ void DisconnectUserStep2(XmppComponent& xmpp_component, AdhocSession& session, X
             note.set_inner("1 user has been disconnected.");
           else
             note.set_inner(std::to_string(num) + " users have been disconnected.");
-          command_node.add_child(std::move(note));
           return;
         }
     }
-  XmlNode error(ADHOC_NS":error");
+  XmlSubNode error(command_node, ADHOC_NS":error");
   error["type"] = "modify";
-  XmlNode condition(STANZA_NS":bad-request");
-  error.add_child(std::move(condition));
-  command_node.add_child(std::move(error));
+  XmlSubNode condition(error, STANZA_NS":bad-request");
   session.terminate();
 }
 
@@ -127,43 +115,38 @@ void ConfigureGlobalStep1(XmppComponent&, AdhocSession& session, XmlNode& comman
 
   auto options = Database::get_global_options(owner.bare());
 
-  XmlNode x("jabber:x:data:x");
+  XmlSubNode x(command_node, "jabber:x:data:x");
   x["type"] = "form";
-  XmlNode title("title");
+  XmlSubNode title(x, "title");
   title.set_inner("Configure some global default settings.");
-  x.add_child(std::move(title));
-  XmlNode instructions("instructions");
+  XmlSubNode instructions(x, "instructions");
   instructions.set_inner("Edit the form, to configure your global settings for the component.");
-  x.add_child(std::move(instructions));
 
-  XmlNode required("required");
-
-  XmlNode max_histo_length("field");
+  XmlSubNode max_histo_length(x, "field");
   max_histo_length["var"] = "max_history_length";
   max_histo_length["type"] = "text-single";
   max_histo_length["label"] = "Max history length";
   max_histo_length["desc"] = "The maximum number of lines in the history that the server sends when joining a channel";
 
-  XmlNode value("value");
-  value.set_inner(std::to_string(options.maxHistoryLength.value()));
-  max_histo_length.add_child(std::move(value));
-  x.add_child(std::move(max_histo_length));
+  {
+    XmlSubNode value(max_histo_length, "value");
+    value.set_inner(std::to_string(options.maxHistoryLength.value()));
+  }
 
-  XmlNode record_history("field");
+  XmlSubNode record_history(x, "field");
   record_history["var"] = "record_history";
   record_history["type"] = "boolean";
   record_history["label"] = "Record history";
   record_history["desc"] = "Whether to save the messages into the database, or not";
 
-  value.set_name("value");
-  if (options.recordHistory.value())
-    value.set_inner("true");
-  else
-    value.set_inner("false");
-  record_history.add_child(std::move(value));
-  x.add_child(std::move(record_history));
-
-  command_node.add_child(std::move(x));
+  {
+    XmlSubNode value(record_history, "value");
+    value.set_name("value");
+    if (options.recordHistory.value())
+      value.set_inner("true");
+    else
+      value.set_inner("false");
+  }
 }
 
 void ConfigureGlobalStep2(XmppComponent& xmpp_component, AdhocSession& session, XmlNode& command_node)
@@ -195,17 +178,14 @@ void ConfigureGlobalStep2(XmppComponent& xmpp_component, AdhocSession& session, 
       options.update();
 
       command_node.delete_all_children();
-      XmlNode note("note");
+      XmlSubNode note(command_node, "note");
       note["type"] = "info";
       note.set_inner("Configuration successfully applied.");
-      command_node.add_child(std::move(note));
       return;
     }
-  XmlNode error(ADHOC_NS":error");
+  XmlSubNode error(command_node, ADHOC_NS":error");
   error["type"] = "modify";
-  XmlNode condition(STANZA_NS":bad-request");
-  error.add_child(std::move(condition));
-  command_node.add_child(std::move(error));
+  XmlSubNode condition(error, STANZA_NS":bad-request");
   session.terminate();
 }
 
@@ -219,18 +199,16 @@ void ConfigureIrcServerStep1(XmppComponent&, AdhocSession& session, XmlNode& com
   auto options = Database::get_irc_server_options(owner.local + "@" + owner.domain,
                                                   server_domain);
 
-  XmlNode x("jabber:x:data:x");
+  XmlSubNode x(command_node, "jabber:x:data:x");
   x["type"] = "form";
-  XmlNode title("title");
+  XmlSubNode title(x, "title");
   title.set_inner("Configure the IRC server "s + server_domain);
-  x.add_child(std::move(title));
-  XmlNode instructions("instructions");
+  XmlSubNode instructions(x, "instructions");
   instructions.set_inner("Edit the form, to configure the settings of the IRC server "s + server_domain);
-  x.add_child(std::move(instructions));
 
   XmlNode required("required");
 
-  XmlNode ports("field");
+  XmlSubNode ports(x, "field");
   ports["var"] = "ports";
   ports["type"] = "text-multi";
   ports["label"] = "Ports";
@@ -238,15 +216,13 @@ void ConfigureIrcServerStep1(XmppComponent&, AdhocSession& session, XmlNode& com
   auto vals = utils::split(options.ports.value(), ';', false);
   for (const auto& val: vals)
     {
-      XmlNode ports_value("value");
+      XmlSubNode ports_value(ports, "value");
       ports_value.set_inner(val);
-      ports.add_child(std::move(ports_value));
     }
   ports.add_child(required);
-  x.add_child(std::move(ports));
 
 #ifdef BOTAN_FOUND
-  XmlNode tls_ports("field");
+  XmlSubNode tls_ports(x, "field");
   tls_ports["var"] = "tls_ports";
   tls_ports["type"] = "text-multi";
   tls_ports["label"] = "TLS ports";
@@ -254,126 +230,105 @@ void ConfigureIrcServerStep1(XmppComponent&, AdhocSession& session, XmlNode& com
   vals = utils::split(options.tlsPorts.value(), ';', false);
   for (const auto& val: vals)
     {
-      XmlNode tls_ports_value("value");
+      XmlSubNode tls_ports_value(tls_ports, "value");
       tls_ports_value.set_inner(val);
-      tls_ports.add_child(std::move(tls_ports_value));
     }
   tls_ports.add_child(required);
-  x.add_child(std::move(tls_ports));
 
-  XmlNode verify_cert("field");
+  XmlSubNode verify_cert(x, "field");
   verify_cert["var"] = "verify_cert";
   verify_cert["type"] = "boolean";
   verify_cert["label"] = "Verify certificate";
   verify_cert["desc"] = "Whether or not to abort the connection if the server’s TLS certificate is invalid";
-  XmlNode verify_cert_value("value");
+  XmlSubNode verify_cert_value(verify_cert, "value");
   if (options.verifyCert.value())
     verify_cert_value.set_inner("true");
   else
     verify_cert_value.set_inner("false");
-  verify_cert.add_child(std::move(verify_cert_value));
-  x.add_child(std::move(verify_cert));
 
-  XmlNode fingerprint("field");
+  XmlSubNode fingerprint(x, "field");
   fingerprint["var"] = "fingerprint";
   fingerprint["type"] = "text-single";
   fingerprint["label"] = "SHA-1 fingerprint of the TLS certificate to trust.";
   if (!options.trustedFingerprint.value().empty())
     {
-      XmlNode fingerprint_value("value");
+      XmlSubNode fingerprint_value(fingerprint, "value");
       fingerprint_value.set_inner(options.trustedFingerprint.value());
-      fingerprint.add_child(std::move(fingerprint_value));
     }
   fingerprint.add_child(required);
-  x.add_child(std::move(fingerprint));
 #endif
 
-  XmlNode pass("field");
+  XmlSubNode pass(x, "field");
   pass["var"] = "pass";
   pass["type"] = "text-private";
   pass["label"] = "Server password (to be used in a PASS command when connecting)";
   if (!options.pass.value().empty())
     {
-      XmlNode pass_value("value");
+      XmlSubNode pass_value(pass, "value");
       pass_value.set_inner(options.pass.value());
-      pass.add_child(std::move(pass_value));
     }
   pass.add_child(required);
-  x.add_child(std::move(pass));
 
-  XmlNode after_cnt_cmd("field");
+  XmlSubNode after_cnt_cmd(x, "field");
   after_cnt_cmd["var"] = "after_connect_command";
   after_cnt_cmd["type"] = "text-single";
   after_cnt_cmd["desc"] = "Custom IRC command sent after the connection is established with the server.";
   after_cnt_cmd["label"] = "After-connection IRC command";
   if (!options.afterConnectionCommand.value().empty())
     {
-      XmlNode after_cnt_cmd_value("value");
+      XmlSubNode after_cnt_cmd_value(after_cnt_cmd, "value");
       after_cnt_cmd_value.set_inner(options.afterConnectionCommand.value());
-      after_cnt_cmd.add_child(std::move(after_cnt_cmd_value));
     }
   after_cnt_cmd.add_child(required);
-  x.add_child(std::move(after_cnt_cmd));
 
   if (Config::get("realname_customization", "true") == "true")
     {
-      XmlNode username("field");
+      XmlSubNode username(x, "field");
       username["var"] = "username";
       username["type"] = "text-single";
       username["label"] = "Username";
       if (!options.username.value().empty())
         {
-          XmlNode username_value("value");
+          XmlSubNode username_value(username, "value");
           username_value.set_inner(options.username.value());
-          username.add_child(std::move(username_value));
         }
       username.add_child(required);
-      x.add_child(std::move(username));
 
-      XmlNode realname("field");
+      XmlSubNode realname(x, "field");
       realname["var"] = "realname";
       realname["type"] = "text-single";
       realname["label"] = "Realname";
       if (!options.realname.value().empty())
         {
-          XmlNode realname_value("value");
+          XmlSubNode realname_value(realname, "value");
           realname_value.set_inner(options.realname.value());
-          realname.add_child(std::move(realname_value));
         }
       realname.add_child(required);
-      x.add_child(std::move(realname));
     }
 
-  XmlNode encoding_out("field");
+  XmlSubNode encoding_out(x, "field");
   encoding_out["var"] = "encoding_out";
   encoding_out["type"] = "text-single";
   encoding_out["desc"] = "The encoding used when sending messages to the IRC server.";
   encoding_out["label"] = "Out encoding";
   if (!options.encodingOut.value().empty())
     {
-      XmlNode encoding_out_value("value");
+      XmlSubNode encoding_out_value(encoding_out, "value");
       encoding_out_value.set_inner(options.encodingOut.value());
-      encoding_out.add_child(std::move(encoding_out_value));
     }
   encoding_out.add_child(required);
-  x.add_child(std::move(encoding_out));
 
-  XmlNode encoding_in("field");
+  XmlSubNode encoding_in(x, "field");
   encoding_in["var"] = "encoding_in";
   encoding_in["type"] = "text-single";
   encoding_in["desc"] = "The encoding used to decode message received from the IRC server.";
   encoding_in["label"] = "In encoding";
   if (!options.encodingIn.value().empty())
     {
-      XmlNode encoding_in_value("value");
+      XmlSubNode encoding_in_value(encoding_in, "value");
       encoding_in_value.set_inner(options.encodingIn.value());
-      encoding_in.add_child(std::move(encoding_in_value));
     }
   encoding_in.add_child(required);
-  x.add_child(std::move(encoding_in));
-
-
-  command_node.add_child(std::move(x));
 }
 
 void ConfigureIrcServerStep2(XmppComponent&, AdhocSession& session, XmlNode& command_node)
@@ -458,17 +413,14 @@ void ConfigureIrcServerStep2(XmppComponent&, AdhocSession& session, XmlNode& com
       options.update();
 
       command_node.delete_all_children();
-      XmlNode note("note");
+      XmlSubNode note(command_node, "note");
       note["type"] = "info";
       note.set_inner("Configuration successfully applied.");
-      command_node.add_child(std::move(note));
       return;
     }
-  XmlNode error(ADHOC_NS":error");
+  XmlSubNode error(command_node, ADHOC_NS":error");
   error["type"] = "modify";
-  XmlNode condition(STANZA_NS":bad-request");
-  error.add_child(std::move(condition));
-  command_node.add_child(std::move(error));
+  XmlSubNode condition(error, STANZA_NS":bad-request");
   session.terminate();
 }
 
@@ -480,46 +432,38 @@ void ConfigureIrcChannelStep1(XmppComponent&, AdhocSession& session, XmlNode& co
   auto options = Database::get_irc_channel_options_with_server_default(owner.local + "@" + owner.domain,
                                                                        iid.get_server(), iid.get_local());
 
-  XmlNode x("jabber:x:data:x");
+  XmlSubNode x(command_node, "jabber:x:data:x");
   x["type"] = "form";
-  XmlNode title("title");
+  XmlSubNode title(x, "title");
   title.set_inner("Configure the IRC channel "s + iid.get_local() + " on server "s + iid.get_server());
-  x.add_child(std::move(title));
-  XmlNode instructions("instructions");
+  XmlSubNode instructions(x, "instructions");
   instructions.set_inner("Edit the form, to configure the settings of the IRC channel "s + iid.get_local());
-  x.add_child(std::move(instructions));
 
   XmlNode required("required");
 
-  XmlNode encoding_out("field");
+  XmlSubNode encoding_out(x, "field");
   encoding_out["var"] = "encoding_out";
   encoding_out["type"] = "text-single";
   encoding_out["desc"] = "The encoding used when sending messages to the IRC server. Defaults to the server's “out encoding” if unset for the channel";
   encoding_out["label"] = "Out encoding";
   if (!options.encodingOut.value().empty())
     {
-      XmlNode encoding_out_value("value");
+      XmlSubNode encoding_out_value(encoding_out, "value");
       encoding_out_value.set_inner(options.encodingOut.value());
-      encoding_out.add_child(std::move(encoding_out_value));
     }
   encoding_out.add_child(required);
-  x.add_child(std::move(encoding_out));
 
-  XmlNode encoding_in("field");
+  XmlSubNode encoding_in(x, "field");
   encoding_in["var"] = "encoding_in";
   encoding_in["type"] = "text-single";
   encoding_in["desc"] = "The encoding used to decode message received from the IRC server. Defaults to the server's “in encoding” if unset for the channel";
   encoding_in["label"] = "In encoding";
   if (!options.encodingIn.value().empty())
     {
-      XmlNode encoding_in_value("value");
+      XmlSubNode encoding_in_value(encoding_in, "value");
       encoding_in_value.set_inner(options.encodingIn.value());
-      encoding_in.add_child(std::move(encoding_in_value));
     }
   encoding_in.add_child(required);
-  x.add_child(std::move(encoding_in));
-
-  command_node.add_child(std::move(x));
 }
 
 void ConfigureIrcChannelStep2(XmppComponent&, AdhocSession& session, XmlNode& command_node)
@@ -548,17 +492,14 @@ void ConfigureIrcChannelStep2(XmppComponent&, AdhocSession& session, XmlNode& co
       options.update();
 
       command_node.delete_all_children();
-      XmlNode note("note");
+      XmlSubNode note(command_node, "note");
       note["type"] = "info";
       note.set_inner("Configuration successfully applied.");
-      command_node.add_child(std::move(note));
       return;
     }
-  XmlNode error(ADHOC_NS":error");
+  XmlSubNode error(command_node, ADHOC_NS":error");
   error["type"] = "modify";
-  XmlNode condition(STANZA_NS":bad-request");
-  error.add_child(std::move(condition));
-  command_node.add_child(std::move(error));
+  XmlSubNode condition(error, STANZA_NS":bad-request");
   session.terminate();
 }
 #endif  // USE_DATABASE
@@ -576,31 +517,24 @@ void DisconnectUserFromServerStep1(XmppComponent& xmpp_component, AdhocSession& 
     { // Send a form to select the user to disconnect
       auto& biboumi_component = static_cast<BiboumiComponent&>(xmpp_component);
 
-      XmlNode x("jabber:x:data:x");
+      XmlSubNode x(command_node, "jabber:x:data:x");
       x["type"] = "form";
-      XmlNode title("title");
+      XmlSubNode title(x, "title");
       title.set_inner("Disconnect a user from selected IRC servers");
-      x.add_child(std::move(title));
-      XmlNode instructions("instructions");
+      XmlSubNode instructions(x, "instructions");
       instructions.set_inner("Choose a user JID");
-      x.add_child(std::move(instructions));
-      XmlNode jids_field("field");
+      XmlSubNode jids_field(x, "field");
       jids_field["var"] = "jid";
       jids_field["type"] = "list-single";
       jids_field["label"] = "The JID to disconnect";
-      XmlNode required("required");
-      jids_field.add_child(std::move(required));
+      XmlSubNode required(jids_field, "required");
       for (Bridge* bridge: biboumi_component.get_bridges())
         {
-          XmlNode option("option");
+          XmlSubNode option(jids_field, "option");
           option["label"] = bridge->get_jid();
-          XmlNode value("value");
+          XmlSubNode value(option, "value");
           value.set_inner(bridge->get_jid());
-          option.add_child(std::move(value));
-          jids_field.add_child(std::move(option));
         }
-      x.add_child(std::move(jids_field));
-      command_node.add_child(std::move(x));
     }
 }
 
@@ -628,53 +562,42 @@ void DisconnectUserFromServerStep2(XmppComponent& xmpp_component, AdhocSession& 
   command_node.delete_all_children();
   auto& biboumi_component = static_cast<BiboumiComponent&>(xmpp_component);
 
-  XmlNode x("jabber:x:data:x");
+  XmlSubNode x(command_node, "jabber:x:data:x");
   x["type"] = "form";
-  XmlNode title("title");
+  XmlSubNode title(x, "title");
   title.set_inner("Disconnect a user from selected IRC servers");
-  x.add_child(std::move(title));
-  XmlNode instructions("instructions");
+  XmlSubNode instructions(x, "instructions");
   instructions.set_inner("Choose one or more servers to disconnect this JID from");
-  x.add_child(std::move(instructions));
-  XmlNode jids_field("field");
+  XmlSubNode jids_field(x, "field");
   jids_field["var"] = "irc-servers";
   jids_field["type"] = "list-multi";
   jids_field["label"] = "The servers to disconnect from";
-  XmlNode required("required");
-  jids_field.add_child(std::move(required));
+  XmlSubNode required(jids_field, "required");
   Bridge* bridge = biboumi_component.find_user_bridge(jid_to_disconnect);
 
   if (!bridge || bridge->get_irc_clients().empty())
     {
-      XmlNode note("note");
+      XmlSubNode note(command_node, "note");
       note["type"] = "info";
       note.set_inner("User "s + jid_to_disconnect + " is not connected to any IRC server.");
-      command_node.add_child(std::move(note));
       session.terminate();
       return ;
     }
 
   for (const auto& pair: bridge->get_irc_clients())
     {
-      XmlNode option("option");
+      XmlSubNode option(jids_field, "option");
       option["label"] = pair.first;
-      XmlNode value("value");
+      XmlSubNode value(option, "value");
       value.set_inner(pair.first);
-      option.add_child(std::move(value));
-      jids_field.add_child(std::move(option));
     }
-  x.add_child(std::move(jids_field));
 
-  XmlNode message_field("field");
+  XmlSubNode message_field(x, "field");
   message_field["var"] = "quit-message";
   message_field["type"] = "text-single";
   message_field["label"] = "Quit message";
-  XmlNode message_value("value");
+  XmlSubNode message_value(message_field, "value");
   message_value.set_inner("Killed by admin");
-  message_field.add_child(std::move(message_value));
-  x.add_child(std::move(message_field));
-
-  command_node.add_child(std::move(x));
 }
 
 void DisconnectUserFromServerStep3(XmppComponent& xmpp_component, AdhocSession& session, XmlNode& command_node)
@@ -719,14 +642,13 @@ void DisconnectUserFromServerStep3(XmppComponent& xmpp_component, AdhocSession& 
         }
     }
   command_node.delete_all_children();
-  XmlNode note("note");
+  XmlSubNode note(command_node, "note");
   note["type"] = "info";
   std::string msg = jid_to_disconnect + " was disconnected from " + std::to_string(number) + " IRC server";
   if (number > 1)
     msg += "s";
   msg += ".";
   note.set_inner(msg);
-  command_node.add_child(std::move(note));
 }
 
 void GetIrcConnectionInfoStep1(XmppComponent& component, AdhocSession& session, XmlNode& command_node)
@@ -742,10 +664,9 @@ void GetIrcConnectionInfoStep1(XmppComponent& component, AdhocSession& session, 
   utils::ScopeGuard sg([&message, &command_node]()
                        {
                          command_node.delete_all_children();
-                         XmlNode note("note");
+                         XmlSubNode note(command_node, "note");
                          note["type"] = "info";
                          note.set_inner(message);
-                         command_node.add_child(std::move(note));
                        });
 
   Bridge* bridge = biboumi_component.get_user_bridge(owner.bare());

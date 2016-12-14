@@ -625,39 +625,33 @@ bool BiboumiComponent::handle_mam_request(const Stanza& stanza)
 void BiboumiComponent::send_archived_message(const db::MucLogLine& log_line, const std::string& from, const std::string& to,
                                              const std::string& queryid)
 {
-    Stanza message("message");
+  Stanza message("message");
+  {
     message["from"] = from;
     message["to"] = to;
 
-    XmlNode result("result");
+    XmlSubNode result(message, "result");
     result["xmlns"] = MAM_NS;
     if (!queryid.empty())
       result["queryid"] = queryid;
     result["id"] = log_line.uuid.value();
 
-    XmlNode forwarded("forwarded");
+    XmlSubNode forwarded(result, "forwarded");
     forwarded["xmlns"] = FORWARD_NS;
 
-    XmlNode delay("delay");
+    XmlSubNode delay(forwarded, "delay");
     delay["xmlns"] = DELAY_NS;
     delay["stamp"] = utils::to_string(log_line.date.value().timeStamp());
 
-    forwarded.add_child(std::move(delay));
-
-    XmlNode submessage("message");
+    XmlSubNode submessage(forwarded, "message");
     submessage["xmlns"] = CLIENT_NS;
     submessage["from"] = from + "/" + log_line.nick.value();
     submessage["type"] = "groupchat";
 
-    XmlNode body("body");
+    XmlSubNode body(submessage, "body");
     body.set_inner(log_line.body.value());
-    submessage.add_child(std::move(body));
-
-    forwarded.add_child(std::move(submessage));
-    result.add_child(std::move(forwarded));
-    message.add_child(std::move(result));
-
-    this->send_stanza(message);
+  }
+  this->send_stanza(message);
 }
 
 #endif
@@ -699,24 +693,23 @@ std::vector<Bridge*> BiboumiComponent::get_bridges() const
 void BiboumiComponent::send_self_disco_info(const std::string& id, const std::string& jid_to)
 {
   Stanza iq("iq");
-  iq["type"] = "result";
-  iq["id"] = id;
-  iq["to"] = jid_to;
-  iq["from"] = this->served_hostname;
-  XmlNode query("query");
-  query["xmlns"] = DISCO_INFO_NS;
-  XmlNode identity("identity");
-  identity["category"] = "conference";
-  identity["type"] = "irc";
-  identity["name"] = "Biboumi XMPP-IRC gateway";
-  query.add_child(std::move(identity));
-  for (const char* ns: {DISCO_INFO_NS, MUC_NS, ADHOC_NS, PING_NS, MAM_NS, VERSION_NS})
-    {
-      XmlNode feature("feature");
-      feature["var"] = ns;
-      query.add_child(std::move(feature));
-    }
-  iq.add_child(std::move(query));
+  {
+    iq["type"] = "result";
+    iq["id"] = id;
+    iq["to"] = jid_to;
+    iq["from"] = this->served_hostname;
+    XmlSubNode query(iq, "query");
+    query["xmlns"] = DISCO_INFO_NS;
+    XmlSubNode identity(query, "identity");
+    identity["category"] = "conference";
+    identity["type"] = "irc";
+    identity["name"] = "Biboumi XMPP-IRC gateway";
+    for (const char *ns: {DISCO_INFO_NS, MUC_NS, ADHOC_NS, PING_NS, MAM_NS, VERSION_NS})
+      {
+        XmlSubNode feature(query, "feature");
+        feature["var"] = ns;
+      }
+  }
   this->send_stanza(iq);
 }
 
@@ -724,44 +717,42 @@ void BiboumiComponent::send_irc_server_disco_info(const std::string& id, const s
 {
   Jid from(jid_from);
   Stanza iq("iq");
-  iq["type"] = "result";
-  iq["id"] = id;
-  iq["to"] = jid_to;
-  iq["from"] = jid_from;
-  XmlNode query("query");
-  query["xmlns"] = DISCO_INFO_NS;
-  XmlNode identity("identity");
-  identity["category"] = "conference";
-  identity["type"] = "irc";
-  identity["name"] = "IRC server "s + from.local + " over Biboumi";
-  query.add_child(std::move(identity));
-  for (const char* ns: {DISCO_INFO_NS, ADHOC_NS, PING_NS, VERSION_NS})
-    {
-      XmlNode feature("feature");
-      feature["var"] = ns;
-      query.add_child(std::move(feature));
-    }
-  iq.add_child(std::move(query));
+  {
+    iq["type"] = "result";
+    iq["id"] = id;
+    iq["to"] = jid_to;
+    iq["from"] = jid_from;
+    XmlSubNode query(iq, "query");
+    query["xmlns"] = DISCO_INFO_NS;
+    XmlSubNode identity(query, "identity");
+    identity["category"] = "conference";
+    identity["type"] = "irc";
+    identity["name"] = "IRC server "s + from.local + " over Biboumi";
+    for (const char *ns: {DISCO_INFO_NS, ADHOC_NS, PING_NS, VERSION_NS})
+      {
+        XmlSubNode feature(query, "feature");
+        feature["var"] = ns;
+      }
+  }
   this->send_stanza(iq);
 }
 
 void BiboumiComponent::send_irc_channel_muc_traffic_info(const std::string id, const std::string& jid_from, const std::string& jid_to)
 {
   Stanza iq("iq");
-  iq["type"] = "result";
-  iq["id"] = id;
-  iq["from"] = jid_from;
-  iq["to"] = jid_to;
+  {
+    iq["type"] = "result";
+    iq["id"] = id;
+    iq["from"] = jid_from;
+    iq["to"] = jid_to;
 
-  XmlNode query("query");
-  query["xmlns"] = DISCO_INFO_NS;
-  query["node"] = MUC_TRAFFIC_NS;
-  // We drop all “special” traffic (like xhtml-im, chatstates, etc), so
-  // don’t include any <feature/>
-  iq.add_child(std::move(query));
-
+    XmlSubNode query(iq, "query");
+    query["xmlns"] = DISCO_INFO_NS;
+    query["node"] = MUC_TRAFFIC_NS;
+    // We drop all “special” traffic (like xhtml-im, chatstates, etc), so
+    // don’t include any <feature/>
+  }
   this->send_stanza(iq);
-
 }
 
 void BiboumiComponent::send_ping_request(const std::string& from,
@@ -769,13 +760,14 @@ void BiboumiComponent::send_ping_request(const std::string& from,
                                          const std::string& id)
 {
   Stanza iq("iq");
-  iq["type"] = "get";
-  iq["id"] = id;
-  iq["from"] = from + "@" + this->served_hostname;
-  iq["to"] = jid_to;
-  XmlNode ping("ping");
-  ping["xmlns"] = PING_NS;
-  iq.add_child(std::move(ping));
+  {
+    iq["type"] = "get";
+    iq["id"] = id;
+    iq["from"] = from + "@" + this->served_hostname;
+    iq["to"] = jid_to;
+    XmlSubNode ping(iq, "ping");
+    ping["xmlns"] = PING_NS;
+  }
   this->send_stanza(iq);
 
   auto result_cb = [from, id](Bridge* bridge, const Stanza& stanza)
@@ -799,48 +791,43 @@ void BiboumiComponent::send_iq_room_list_result(const std::string& id, const std
                                                 const ResultSetInfo& rs_info)
 {
   Stanza iq("iq");
-  iq["from"] = from + "@" + this->served_hostname;
-  iq["to"] = to_jid;
-  iq["id"] = id;
-  iq["type"] = "result";
-  XmlNode query("query");
-  query["xmlns"] = DISCO_ITEMS_NS;
+  {
+    iq["from"] = from + "@" + this->served_hostname;
+    iq["to"] = to_jid;
+    iq["id"] = id;
+    iq["type"] = "result";
+    XmlSubNode query(iq, "query");
+    query["xmlns"] = DISCO_ITEMS_NS;
 
     for (auto it = begin; it != end; ++it)
-    {
-      XmlNode item("item");
+      {
+        XmlSubNode item(query, "item");
         item["jid"] = it->channel + "@" + this->served_hostname;
-      query.add_child(std::move(item));
-    }
+      }
 
-  if ((rs_info.max >= 0 || !rs_info.after.empty() || !rs_info.before.empty()))
-    {
-      XmlNode set_node("set");
-      set_node["xmlns"] = RSM_NS;
+    if ((rs_info.max >= 0 || !rs_info.after.empty() || !rs_info.before.empty()))
+      {
+        XmlSubNode set_node(query, "set");
+        set_node["xmlns"] = RSM_NS;
 
-      if (begin != channel_list.channels.cend())
-        {
-          XmlNode first_node("first");
-          first_node["index"] = std::to_string(std::distance(channel_list.channels.cbegin(), begin));
-          first_node.set_inner(begin->channel + "@" + this->served_hostname);
-          set_node.add_child(std::move(first_node));
-        }
-      if (end != channel_list.channels.cbegin())
-        {
-          XmlNode last_node("last");
-          last_node.set_inner(std::prev(end)->channel + "@" + this->served_hostname);
-          set_node.add_child(std::move(last_node));
-        }
-      if (channel_list.complete)
-        {
-          XmlNode count_node("count");
-          count_node.set_inner(std::to_string(channel_list.channels.size()));
-          set_node.add_child(std::move(count_node));
-        }
-      query.add_child(std::move(set_node));
-    }
-
-  iq.add_child(std::move(query));
+        if (begin != channel_list.channels.cend())
+          {
+            XmlSubNode first_node(set_node, "first");
+            first_node["index"] = std::to_string(std::distance(channel_list.channels.cbegin(), begin));
+            first_node.set_inner(begin->channel + "@" + this->served_hostname);
+          }
+        if (end != channel_list.channels.cbegin())
+          {
+            XmlSubNode last_node(set_node, "last");
+            last_node.set_inner(std::prev(end)->channel + "@" + this->served_hostname);
+          }
+        if (channel_list.complete)
+          {
+            XmlSubNode count_node(set_node, "count");
+            count_node.set_inner(std::to_string(channel_list.channels.size()));
+          }
+      }
+  }
   this->send_stanza(iq);
 }
 
@@ -849,17 +836,17 @@ void BiboumiComponent::send_invitation(const std::string& room_target,
                                        const std::string& author_nick)
 {
   Stanza message("message");
-  message["from"] = room_target + "@" + this->served_hostname;
-  message["to"] = jid_to;
-  XmlNode x("x");
-  x["xmlns"] = MUC_USER_NS;
-  XmlNode invite("invite");
-  if (author_nick.empty())
-    invite["from"] = room_target + "@" + this->served_hostname;
-  else
-    invite["from"] = room_target + "@" + this->served_hostname + "/" + author_nick;
-  x.add_child(std::move(invite));
-  message.add_child(std::move(x));
+  {
+    message["from"] = room_target + "@" + this->served_hostname;
+    message["to"] = jid_to;
+    XmlSubNode x(message, "x");
+    x["xmlns"] = MUC_USER_NS;
+    XmlSubNode invite(x, "invite");
+    if (author_nick.empty())
+      invite["from"] = room_target + "@" + this->served_hostname;
+    else
+      invite["from"] = room_target + "@" + this->served_hostname + "/" + author_nick;
+  }
   this->send_stanza(message);
 }
 
@@ -875,7 +862,7 @@ void BiboumiComponent::accept_subscription(const std::string& from, const std::s
 
 void BiboumiComponent::ask_subscription(const std::string& from, const std::string& to)
 {
- Stanza presence("presence");
+  Stanza presence("presence");
   presence["from"] = from;
   presence["to"] = to;
   presence["id"] = this->next_id();

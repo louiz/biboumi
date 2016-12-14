@@ -36,20 +36,16 @@ XmlNode AdhocCommandsHandler::handle_request(const std::string& executor_jid, co
   auto command_it = this->commands.find(node);
   if (command_it == this->commands.end())
     {
-      XmlNode error(ADHOC_NS":error");
+      XmlSubNode error(command_node, ADHOC_NS":error");
       error["type"] = "cancel";
-      XmlNode condition(STANZA_NS":item-not-found");
-      error.add_child(std::move(condition));
-      command_node.add_child(std::move(error));
+      XmlSubNode condition(error, STANZA_NS":item-not-found");
     }
   else if (command_it->second.is_admin_only() &&
            Config::get("admin", "") != jid.local + "@" + jid.domain)
     {
-      XmlNode error(ADHOC_NS":error");
+      XmlSubNode error(command_node, ADHOC_NS":error");
       error["type"] = "cancel";
-      XmlNode condition(STANZA_NS":forbidden");
-      error.add_child(std::move(condition));
-      command_node.add_child(std::move(error));
+      XmlSubNode condition(error, STANZA_NS":forbidden");
     }
   else
     {
@@ -68,11 +64,9 @@ XmlNode AdhocCommandsHandler::handle_request(const std::string& executor_jid, co
       auto session_it = this->sessions.find(std::make_pair(sessionid, executor_jid));
       if (session_it == this->sessions.end())
         {
-          XmlNode error(ADHOC_NS":error");
+          XmlSubNode error(command_node, ADHOC_NS":error");
           error["type"] = "modify";
-          XmlNode condition(STANZA_NS":bad-request");
-          error.add_child(std::move(condition));
-          command_node.add_child(std::move(error));
+          XmlSubNode condition(error, STANZA_NS":bad-request");
         }
       else if (action == "execute" || action == "next" || action == "complete")
         {
@@ -90,10 +84,8 @@ XmlNode AdhocCommandsHandler::handle_request(const std::string& executor_jid, co
           else
             {
               command_node["status"] = "executing";
-              XmlNode actions("actions");
-              XmlNode next("next");
-              actions.add_child(std::move(next));
-              command_node.add_child(std::move(actions));
+              XmlSubNode actions(command_node, "actions");
+              XmlSubNode next(actions, "next");
             }
         }
       else if (action == "cancel")
@@ -104,11 +96,9 @@ XmlNode AdhocCommandsHandler::handle_request(const std::string& executor_jid, co
         }
       else                      // unsupported action
         {
-          XmlNode error(ADHOC_NS":error");
+          XmlSubNode error(command_node, ADHOC_NS":error");
           error["type"] = "modify";
-          XmlNode condition(STANZA_NS":bad-request");
-          error.add_child(std::move(condition));
-          command_node.add_child(std::move(error));
+          XmlSubNode condition(error, STANZA_NS":bad-request");
         }
     }
   return command_node;

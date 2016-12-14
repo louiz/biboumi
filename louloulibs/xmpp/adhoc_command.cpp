@@ -18,30 +18,24 @@ bool AdhocCommand::is_admin_only() const
 
 void PingStep1(XmppComponent&, AdhocSession&, XmlNode& command_node)
 {
-  XmlNode note("note");
+  XmlSubNode note(command_node, "note");
   note["type"] = "info";
   note.set_inner("Pong");
-  command_node.add_child(std::move(note));
 }
 
 void HelloStep1(XmppComponent&, AdhocSession&, XmlNode& command_node)
 {
-  XmlNode x("jabber:x:data:x");
+  XmlSubNode x(command_node, "jabber:x:data:x");
   x["type"] = "form";
-  XmlNode title("title");
+  XmlSubNode title(x, "title");
   title.set_inner("Configure your name.");
-  x.add_child(std::move(title));
-  XmlNode instructions("instructions");
+  XmlSubNode instructions(x, "instructions");
   instructions.set_inner("Please provide your name.");
-  x.add_child(std::move(instructions));
-  XmlNode name_field("field");
+  XmlSubNode name_field(x, "field");
   name_field["var"] = "name";
   name_field["type"] = "text-single";
   name_field["label"] = "Your name";
-  XmlNode required("required");
-  name_field.add_child(std::move(required));
-  x.add_child(std::move(name_field));
-  command_node.add_child(std::move(x));
+  XmlSubNode required(name_field, "required");
 }
 
 void HelloStep2(XmppComponent&, AdhocSession& session, XmlNode& command_node)
@@ -60,21 +54,18 @@ void HelloStep2(XmppComponent&, AdhocSession& session, XmlNode& command_node)
         {
           if (const XmlNode* value = name_field->get_child("value", "jabber:x:data"))
             {
-              XmlNode note("note");
+              command_node.delete_all_children();
+              XmlSubNode note(command_node, "note");
               note["type"] = "info";
               note.set_inner("Hello "s + value->get_inner() + "!"s);
-              command_node.delete_all_children();
-              command_node.add_child(std::move(note));
               return;
             }
         }
     }
   command_node.delete_all_children();
-  XmlNode error(ADHOC_NS":error");
+  XmlSubNode error(command_node, ADHOC_NS":error");
   error["type"] = "modify";
-  XmlNode condition(STANZA_NS":bad-request");
-  error.add_child(std::move(condition));
-  command_node.add_child(std::move(error));
+  XmlSubNode condition(error, STANZA_NS":bad-request");
   session.terminate();
 }
 
@@ -82,8 +73,7 @@ void Reload(XmppComponent&, AdhocSession&, XmlNode& command_node)
 {
   ::reload_process();
   command_node.delete_all_children();
-  XmlNode note("note");
+  XmlSubNode note(command_node, "note");
   note["type"] = "info";
   note.set_inner("Configuration reloaded.");
-  command_node.add_child(std::move(note));
 }

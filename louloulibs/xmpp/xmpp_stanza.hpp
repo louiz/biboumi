@@ -143,4 +143,18 @@ std::ostream& operator<<(std::ostream& os, const XmlNode& node);
  */
 using Stanza = XmlNode;
 
+class XmlSubNode: public XmlNode
+{
+public:
+    XmlSubNode(XmlNode& parent_ref, const std::string& name):
+            XmlNode(name),
+            parent_to_add(parent_ref)
+    {}
 
+    ~XmlSubNode()
+    {
+      this->parent_to_add.add_child(std::move(*this));
+    }
+private:
+    XmlNode& parent_to_add;
+};

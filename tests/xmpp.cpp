@@ -52,3 +52,20 @@ TEST_CASE("handshake_digest")
   const auto res = get_handshake_digest("id1234", "S4CR3T");
   CHECK(res == "c92901b5d376ad56269914da0cce3aab976847df");
 }
+
+TEST_CASE("substanzas")
+{
+  Stanza a("a");
+  {
+    XmlSubNode b(a, "b");
+    {
+      CHECK(!a.has_children());
+      XmlSubNode c(b, "c");
+      XmlSubNode d(b, "d");
+      CHECK(!c.has_children());
+      CHECK(!d.has_children());
+    }
+    CHECK(b.has_children());
+  }
+  CHECK(a.has_children());
+}
