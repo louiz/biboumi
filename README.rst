@@ -4,8 +4,8 @@ Biboumi
 .. image:: https://lab.louiz.org/louiz/biboumi/badges/master/build.svg
    :target: https://lab.louiz.org/louiz/biboumi/commits/master
 
-.. image:: https://lab.louiz.org/louiz/biboumi/badges/master/coverage.svg
-   :target: https://lab.louiz.org/louiz/biboumi/commits/master
+.. image:: https://codecov.io/gh/louiz/biboumi/branch/master/graph/badge.svg
+  :target: https://codecov.io/gh/louiz/biboumi
 
 .. image:: https://sonarqube.com/api/badges/gate?key=biboumi
    :target: https://sonarqube.com/component_issues/index?id=biboumi
