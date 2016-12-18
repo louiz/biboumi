@@ -1095,6 +1095,82 @@ if __name__ == '__main__':
                              ("/iq[@id='kick1'][@type='result']",),
                      ]),
                 ]),
+        Scenario("mode_change",
+                [
+                     handshake_sequence(),
+                     # First user joins
+                     partial(send_stanza,
+                     "<presence from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}/{nick_one}' />"),
+                     connection_sequence("irc.localhost", '{jid_one}/{resource_one}'),
+                     partial(expect_stanza, "/message"),
+                     partial(expect_stanza, "/presence/muc_user:x/muc_user:status[@code='110']"),
+                     partial(expect_stanza, "/message[@type='groupchat']/subject"),
+
+                     # Second user joins
+                     partial(send_stanza,
+                     "<presence from='{jid_two}/{resource_one}' to='#foo%{irc_server_one}/{nick_two}' />"),
+                     connection_sequence("irc.localhost", '{jid_two}/{resource_one}'),
+                     partial(expect_unordered, [
+                         ("/presence/muc_user:x/muc_user:item[@affiliation='none'][@role='participant']",),
+                         ("/presence/muc_user:x/muc_user:item[@affiliation='admin'][@role='moderator']",),
+                         ("/presence/muc_user:x/muc_user:status[@code='110']",),
+                         ("/message/subject",),
+                         ]),
+
+                     # Change a user mode with a message starting with /mode
+                    partial(send_stanza,
+                            "<message from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}' type='groupchat'><body>/mode +v {nick_two}</body></message>"),
+                    partial(expect_unordered, [
+                        ("/message[@to='{jid_one}/{resource_one}']/body[text()='Mode #foo [+v {nick_two}] by {nick_one}']",),
+                        ("/message[@to='{jid_two}/{resource_one}']/body[text()='Mode #foo [+v {nick_two}] by {nick_one}']",),
+                        ("/presence[@to='{jid_two}/{resource_one}'][@from='#foo%{irc_server_one}/{nick_two}']/muc_user:x/muc_user:item[@affiliation='member'][@role='participant']",),
+                        ("/presence[@to='{jid_one}/{resource_one}'][@from='#foo%{irc_server_one}/{nick_two}']/muc_user:x/muc_user:item[@affiliation='member'][@role='participant']",)
+                        ]),
+
+                    # using an iq
+                    partial(send_stanza,
+                            "<iq from='{jid_one}/{resource_one}' id='id1' to='#foo%{irc_server_one}' type='set'><query xmlns='http://jabber.org/protocol/muc#admin'><item affiliation='admin' nick='{nick_two}'/></query></iq>"),
+                    partial(expect_unordered, [
+                        ("/message[@to='{jid_one}/{resource_one}']/body[text()='Mode #foo [+o {nick_two}] by {nick_one}']",),
+                        ("/message[@to='{jid_two}/{resource_one}']/body[text()='Mode #foo [+o {nick_two}] by {nick_one}']",),
+                        ("/presence[@to='{jid_two}/{resource_one}'][@from='#foo%{irc_server_one}/{nick_two}']/muc_user:x/muc_user:item[@affiliation='admin'][@role='moderator']",),
+                        ("/presence[@to='{jid_one}/{resource_one}'][@from='#foo%{irc_server_one}/{nick_two}']/muc_user:x/muc_user:item[@affiliation='admin'][@role='moderator']",),
+                        ("/iq[@id='id1'][@type='result'][@to='{jid_one}/{resource_one}'][@from='#foo%{irc_server_one}']",),
+                        ]),
+
+                    # remove the mode
+                    partial(send_stanza,
+                            "<iq from='{jid_one}/{resource_one}' id='id1' to='#foo%{irc_server_one}' type='set'><query xmlns='http://jabber.org/protocol/muc#admin'><item affiliation='member' nick='{nick_two}' role='participant'/></query></iq>"),
+                    partial(expect_unordered, [
+                        ("/message[@to='{jid_one}/{resource_one}']/body[text()='Mode #foo [+v-o {nick_two} {nick_two}] by {nick_one}']",),
+                        ("/message[@to='{jid_two}/{resource_one}']/body[text()='Mode #foo [+v-o {nick_two} {nick_two}] by {nick_one}']",),
+                        ("/presence[@to='{jid_two}/{resource_one}'][@from='#foo%{irc_server_one}/{nick_two}']/muc_user:x/muc_user:item[@affiliation='member'][@role='participant']",),
+                        ("/presence[@to='{jid_one}/{resource_one}'][@from='#foo%{irc_server_one}/{nick_two}']/muc_user:x/muc_user:item[@affiliation='member'][@role='participant']",),
+                        ("/iq[@id='id1'][@type='result'][@to='{jid_one}/{resource_one}'][@from='#foo%{irc_server_one}']",),
+                        ]),
+
+                    # using an iq, an a non-existant nick
+                    partial(send_stanza,
+                            "<iq from='{jid_one}/{resource_one}' id='id1' to='#foo%{irc_server_one}' type='set'><query xmlns='http://jabber.org/protocol/muc#admin'><item affiliation='admin' nick='blectre'/></query></iq>"),
+                    partial(expect_stanza, "/iq[@type='error']"),
+
+                    # using an iq, without the rights to do it
+                    partial(send_stanza,
+                            "<iq from='{jid_two}/{resource_one}' id='id1' to='#foo%{irc_server_one}' type='set'><query xmlns='http://jabber.org/protocol/muc#admin'><item affiliation='admin' nick='{nick_one}'/></query></iq>"),
+                    partial(expect_unordered, [
+                        ("/iq[@type='error']",),
+                        ("/message[@type='chat'][@to='{jid_two}/{resource_one}']",),
+                    ]),
+
+                    # using an iq, with an unknown mode
+                    partial(send_stanza,
+                            "<iq from='{jid_two}/{resource_one}' id='id1' to='#foo%{irc_server_one}' type='set'><query xmlns='http://jabber.org/protocol/muc#admin'><item affiliation='owner' nick='{nick_one}'/></query></iq>"),
+                    partial(expect_unordered, [
+                        ("/iq[@type='error']",),
+                        ("/message[@type='chat'][@to='{jid_two}/{resource_one}']",),
+                    ]),
+
+                ]),
                 Scenario("multisession_kick",
                  [
                      handshake_sequence(),

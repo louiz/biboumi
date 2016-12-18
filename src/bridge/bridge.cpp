@@ -263,9 +263,11 @@ void Bridge::send_channel_message(const Iid& iid, const std::string& body)
     }
 }
 
-void Bridge::forward_affiliation_role_change(const Iid& iid, const std::string& nick,
+void Bridge::forward_affiliation_role_change(const Iid& iid, const std::string& from,
+                                             const std::string& nick,
                                              const std::string& affiliation,
-                                             const std::string& role)
+                                             const std::string& role,
+                                             const std::string& id)
 {
   IrcClient* irc = this->get_irc_client(iid.get_server());
   IrcChannel* chan = irc->get_channel(iid.get_local());
@@ -273,7 +275,11 @@ void Bridge::forward_affiliation_role_change(const Iid& iid, const std::string& 
     return;
   IrcUser* user = chan->find_user(nick);
   if (!user)
-    return;
+    {
+      this->xmpp.send_stanza_error("iq", from, std::to_string(iid), id, "cancel",
+                                   "item-not-found", "no such nick", false);
+      return;
+    }
   // For each affiliation or role, we have a “maximal” mode that we want to
   // set. We must remove any superior mode at the same time. For example if
   // the user already has +o mode, and we set its affiliation to member, we
@@ -325,6 +331,56 @@ void Bridge::forward_affiliation_role_change(const Iid& iid, const std::string& 
   std::vector<std::string> args(nb, nick);
   args.insert(args.begin(), modes);
   irc->send_mode_command(iid.get_local(), args);
+
+  irc_responder_callback_t cb = [this, iid, irc, id, from, nick](const std::string& irc_hostname, const IrcMessage& message) -> bool
+  {
+    if (irc_hostname != iid.get_server())
+      return false;
+
+    if (message.command == "MODE" && message.arguments.size() >= 2)
+      {
+        const std::string& chan_name = message.arguments[0];
+        if (chan_name != iid.get_local())
+          return false;
+        const std::string actor_nick = IrcUser{message.prefix}.nick;
+        if (!irc || irc->get_own_nick() != actor_nick)
+          return false;
+
+        this->xmpp.send_iq_result(id, from, std::to_string(iid));
+      }
+    else if (message.command == "401" && message.arguments.size() >= 2)
+        {
+          const std::string target_later = message.arguments[1];
+          if (target_later != nick)
+            return false;
+          std::string error_message = "No such nick";
+          if (message.arguments.size() >= 3)
+            error_message = message.arguments[2];
+          this->xmpp.send_stanza_error("iq", from, std::to_string(iid), id, "cancel", "item-not-found",
+                                        error_message, false);
+        }
+    else if (message.command == "482" && message.arguments.size() >= 2)
+      {
+        const std::string chan_name_later = utils::tolower(message.arguments[1]);
+        if (chan_name_later != iid.get_local())
+          return false;
+        std::string error_message = "You're not channel operator";
+        if (message.arguments.size() >= 3)
+          error_message = message.arguments[2];
+        this->xmpp.send_stanza_error("iq", from, std::to_string(iid), id, "cancel", "not-allowed",
+                                     error_message, false);
+      }
+    else if (message.command == "472" && message.arguments.size() >= 2)
+      {
+          std::string error_message = "Unknown mode: "s + message.arguments[1];
+          if (message.arguments.size() >= 3)
+            error_message = message.arguments[2];
+          this->xmpp.send_stanza_error("iq", from, std::to_string(iid), id, "cancel", "not-allowed",
+                                        error_message, false);
+      }
+    return true;
+  };
+  this->add_waiting_irc(std::move(cb));
 }
 
 void Bridge::send_private_message(const Iid& iid, const std::string& body, const std::string& type)

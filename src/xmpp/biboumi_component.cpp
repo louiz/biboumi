@@ -352,7 +352,7 @@ void BiboumiComponent::handle_iq(const Stanza& stanza)
                       bridge->send_irc_kick(iid, nick, reason, id, from);
                     }
                   else
-                    bridge->forward_affiliation_role_change(iid, nick, affiliation, role);
+                    bridge->forward_affiliation_role_change(iid, from, nick, affiliation, role, id);
                   stanza_error.disable();
                 }
             }

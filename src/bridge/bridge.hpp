@@ -103,8 +103,8 @@ public:
   bool send_matching_channel_list(const ChannelList& channel_list,
                                   const ResultSetInfo& rs_info, const std::string& id, const std::string& to_jid,
                                   const std::string& from);
-  void forward_affiliation_role_change(const Iid& iid, const std::string& nick,
-                                       const std::string& affiliation, const std::string& role);
+  void forward_affiliation_role_change(const Iid& iid, const std::string& from, const std::string& nick,
+                                       const std::string& affiliation, const std::string& role, const std::string& id);
   /**
    * Directly send a CTCP PING request to the IRC user
    */
