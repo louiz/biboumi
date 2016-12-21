@@ -25,3 +25,5 @@ include /usr/share/cdbs/1/class/cmake.mk
 dev-deps = expat1 idn11 systemd c-ares, botan1.10
 CDBS_BUILD_DEPENDS += , cmake, catch, uuid-dev, pandoc
 CDBS_BUILD_DEPENDS += , $(patsubst %,$(comma) lib%-dev,$(dev-deps))
+
+DEB_MAKE_CHECK_TARGET = check
