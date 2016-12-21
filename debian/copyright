@@ -2,6 +2,7 @@ Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: biboumi
 Upstream-Contact: https://lab.louiz.org/louiz/biboumi/issues
 Source: https://lab.louiz.org/louiz/biboumi
+ https://lab.louiz.org/louiz/biboumi.git
 
 Files: *
 Copyright: 2015, Florent Le Coz (louiz’) <louiz@louiz.org>
