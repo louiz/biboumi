@@ -74,6 +74,10 @@ public:
    * Returns the number of SocketHandlers managed by the poller.
    */
   size_t size() const;
+  /**
+   * Whether the given socket is managed by the poller
+   */
+   bool is_managing_socket(const socket_t socket) const;
 
 private:
   /**

@@ -59,6 +59,9 @@ make check %{?_smp_mflags}
 
 
 %changelog
+* Wed Nov 9 2016 Le Coz Florent <louiz@louiz.org> - 4.0-1
+- Update to 4.0 sources
+
 * Thu Aug 4 2016 Le Coz Florent <louiz@louiz.org> - 3.0-1
 - Update to 3.0 sources
 

@@ -129,6 +129,7 @@ public:
    * Send the LIST irc command
    */
   void send_list_command();
+  void send_invitation(const std::string& chan_name, const std::string& nick);
   void send_topic_command(const std::string& chan_name, const std::string& topic);
   /**
    * Send the QUIT irc command
@@ -213,6 +214,10 @@ public:
    */
   void on_empty_topic(const IrcMessage& message);
   /**
+   * The IRC server is confirming that the invitation has been forwarded
+   */
+  void on_invited(const IrcMessage& message);
+  /**
    * The channel has been completely joined (self presence, topic, all names
    * received etc), send the self presence and topic to the XMPP user.
    */
@@ -235,6 +240,10 @@ public:
    */
   void on_nickname_change_too_fast(const IrcMessage& message);
   /**
+   * An error when we try to invite a user already in the channel
+   */
+  void on_useronchannel(const IrcMessage& message);
+  /**
    * Handles most errors from the server by just forwarding the message to the user.
    */
   void on_generic_error(const IrcMessage& message);
@@ -244,6 +253,7 @@ public:
   void on_welcome_message(const IrcMessage& message);
   void on_part(const IrcMessage& message);
   void on_error(const IrcMessage& message);
+  void on_invite(const IrcMessage& message);
   void on_nick(const IrcMessage& message);
   void on_kick(const IrcMessage& message);
   void on_mode(const IrcMessage& message);
@@ -280,8 +290,9 @@ public:
 
   const Resolver& get_resolver() const { return this->dns_resolver; }
 
-  const std::vector<char>& get_sorted_user_modes() const { return sorted_user_modes; }
+  const std::vector<char>& get_sorted_user_modes() const { return this->sorted_user_modes; }
 
+  std::set<char> get_chantypes() const { return this->chantypes; }
 private:
   /**
    * The hostname of the server we are connected to.

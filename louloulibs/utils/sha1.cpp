@@ -119,36 +119,3 @@ uint8_t* sha1_result(sha1nfo *s) {
   // Return pointer to hash (20 characters)
   return s->state.b;
 }
-
-#define HMAC_IPAD 0x36
-#define HMAC_OPAD 0x5c
-
-void sha1_initHmac(sha1nfo *s, const uint8_t* key, int keyLength) {
-  uint8_t i;
-  memset(s->keyBuffer, 0, BLOCK_LENGTH);
-  if (keyLength > BLOCK_LENGTH) {
-    // Hash long keys
-    sha1_init(s);
-    for (;keyLength--;) sha1_writebyte(s, *key++);
-    memcpy(s->keyBuffer, sha1_result(s), HASH_LENGTH);
-  } else {
-    // Block length keys are used as is
-    memcpy(s->keyBuffer, key, keyLength);
-  }
-  // Start inner hash
-  sha1_init(s);
-  for (i=0; i<BLOCK_LENGTH; i++) {
-    sha1_writebyte(s, s->keyBuffer[i] ^ HMAC_IPAD);
-  }
-}
-
-uint8_t* sha1_resultHmac(sha1nfo *s) {
-  uint8_t i;
-  // Complete inner hash
-  memcpy(s->innerHash,sha1_result(s),HASH_LENGTH);
-  // Calculate outer hash
-  sha1_init(s);
-  for (i=0; i<BLOCK_LENGTH; i++) sha1_writebyte(s, s->keyBuffer[i] ^ HMAC_OPAD);
-  for (i=0; i<HASH_LENGTH; i++) sha1_writebyte(s, s->innerHash[i]);
-  return sha1_result(s);
-}

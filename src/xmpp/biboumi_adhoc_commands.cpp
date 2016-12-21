@@ -1,9 +1,13 @@
 #include <xmpp/biboumi_adhoc_commands.hpp>
 #include <xmpp/biboumi_component.hpp>
+#include <utils/scopeguard.hpp>
+#include <bridge/bridge.hpp>
 #include <config/config.hpp>
 #include <utils/string.hpp>
 #include <utils/split.hpp>
 #include <xmpp/jid.hpp>
+#include <algorithm>
+#include <iomanip>
 
 #include <biboumi.h>
 
@@ -11,9 +15,9 @@
 #include <database/database.hpp>
 #endif
 
-#include <louloulibs.h>
-
-#include <algorithm>
+#ifndef HAS_PUT_TIME
+#include <ctime>
+#endif
 
 using namespace std::string_literals;
 
@@ -114,6 +118,96 @@ void DisconnectUserStep2(XmppComponent& xmpp_component, AdhocSession& session, X
 }
 
 #ifdef USE_DATABASE
+
+void ConfigureGlobalStep1(XmppComponent&, AdhocSession& session, XmlNode& command_node)
+{
+  const Jid owner(session.get_owner_jid());
+  const Jid target(session.get_target_jid());
+
+  auto options = Database::get_global_options(owner.bare());
+
+  XmlNode x("jabber:x:data:x");
+  x["type"] = "form";
+  XmlNode title("title");
+  title.set_inner("Configure some global default settings.");
+  x.add_child(std::move(title));
+  XmlNode instructions("instructions");
+  instructions.set_inner("Edit the form, to configure your global settings for the component.");
+  x.add_child(std::move(instructions));
+
+  XmlNode required("required");
+
+  XmlNode max_histo_length("field");
+  max_histo_length["var"] = "max_history_length";
+  max_histo_length["type"] = "text-single";
+  max_histo_length["label"] = "Max history length";
+  max_histo_length["desc"] = "The maximum number of lines in the history that the server sends when joining a channel";
+
+  XmlNode value("value");
+  value.set_inner(std::to_string(options.maxHistoryLength.value()));
+  max_histo_length.add_child(std::move(value));
+  x.add_child(std::move(max_histo_length));
+
+  XmlNode record_history("field");
+  record_history["var"] = "record_history";
+  record_history["type"] = "boolean";
+  record_history["label"] = "Record history";
+  record_history["desc"] = "Whether to save the messages into the database, or not";
+
+  value.set_name("value");
+  if (options.recordHistory.value())
+    value.set_inner("true");
+  else
+    value.set_inner("false");
+  record_history.add_child(std::move(value));
+  x.add_child(std::move(record_history));
+
+  command_node.add_child(std::move(x));
+}
+
+void ConfigureGlobalStep2(XmppComponent& xmpp_component, AdhocSession& session, XmlNode& command_node)
+{
+  BiboumiComponent& biboumi_component = static_cast<BiboumiComponent&>(xmpp_component);
+
+  const XmlNode* x = command_node.get_child("x", "jabber:x:data");
+  if (x)
+    {
+      const Jid owner(session.get_owner_jid());
+      auto options = Database::get_global_options(owner.bare());
+      for (const XmlNode* field: x->get_children("field", "jabber:x:data"))
+        {
+          const XmlNode* value = field->get_child("value", "jabber:x:data");
+
+          if (field->get_tag("var") == "max_history_length" &&
+              value && !value->get_inner().empty())
+            options.maxHistoryLength = value->get_inner();
+          else if (field->get_tag("var") == "record_history" &&
+                   value && !value->get_inner().empty())
+            {
+              options.recordHistory = to_bool(value->get_inner());
+              Bridge* bridge = biboumi_component.find_user_bridge(owner.bare());
+              if (bridge)
+                bridge->set_record_history(options.recordHistory.value());
+            }
+        }
+
+      options.update();
+
+      command_node.delete_all_children();
+      XmlNode note("note");
+      note["type"] = "info";
+      note.set_inner("Configuration successfully applied.");
+      command_node.add_child(std::move(note));
+      return;
+    }
+  XmlNode error(ADHOC_NS":error");
+  error["type"] = "modify";
+  XmlNode condition(STANZA_NS":bad-request");
+  error.add_child(std::move(condition));
+  command_node.add_child(std::move(error));
+  session.terminate();
+}
+
 void ConfigureIrcServerStep1(XmppComponent&, AdhocSession& session, XmlNode& command_node)
 {
   const Jid owner(session.get_owner_jid());
@@ -315,7 +409,7 @@ void ConfigureIrcServerStep2(XmppComponent&, AdhocSession& session, XmlNode& com
             }
 
           else if (field->get_tag("var") == "verify_cert" && value
-              && !value->get_inner().empty())
+                   && !value->get_inner().empty())
             {
               auto val = to_bool(value->get_inner());
               options.verifyCert = val;
@@ -381,7 +475,7 @@ void ConfigureIrcChannelStep1(XmppComponent&, AdhocSession& session, XmlNode& co
 {
   const Jid owner(session.get_owner_jid());
   const Jid target(session.get_target_jid());
-  const Iid iid(target.local);
+  const Iid iid(target.local, {});
   auto options = Database::get_irc_channel_options_with_server_default(owner.local + "@" + owner.domain,
                                                                        iid.get_server(), iid.get_local());
 
@@ -434,7 +528,7 @@ void ConfigureIrcChannelStep2(XmppComponent&, AdhocSession& session, XmlNode& co
     {
       const Jid owner(session.get_owner_jid());
       const Jid target(session.get_target_jid());
-      const Iid iid(target.local);
+      const Iid iid(target.local, {});
       auto options = Database::get_irc_channel_options(owner.local + "@" + owner.domain,
                                                        iid.get_server(), iid.get_local());
       for (const XmlNode* field: x->get_children("field", "jabber:x:data"))
@@ -442,7 +536,7 @@ void ConfigureIrcChannelStep2(XmppComponent&, AdhocSession& session, XmlNode& co
           const XmlNode* value = field->get_child("value", "jabber:x:data");
 
           if (field->get_tag("var") == "encoding_out" &&
-                   value && !value->get_inner().empty())
+              value && !value->get_inner().empty())
             options.encodingOut = value->get_inner();
 
           else if (field->get_tag("var") == "encoding_in" &&
@@ -632,4 +726,75 @@ void DisconnectUserFromServerStep3(XmppComponent& xmpp_component, AdhocSession& 
   msg += ".";
   note.set_inner(msg);
   command_node.add_child(std::move(note));
+}
+
+void GetIrcConnectionInfoStep1(XmppComponent& component, AdhocSession& session, XmlNode& command_node)
+{
+  BiboumiComponent& biboumi_component = static_cast<BiboumiComponent&>(component);
+
+  const Jid owner(session.get_owner_jid());
+  const Jid target(session.get_target_jid());
+
+  std::string message{};
+
+  // As the function is exited, set the message in the response.
+  utils::ScopeGuard sg([&message, &command_node]()
+                       {
+                         command_node.delete_all_children();
+                         XmlNode note("note");
+                         note["type"] = "info";
+                         note.set_inner(message);
+                         command_node.add_child(std::move(note));
+                       });
+
+  Bridge* bridge = biboumi_component.get_user_bridge(owner.bare());
+  if (!bridge)
+    {
+      message = "You are not connected to anything.";
+      return;
+    }
+
+  std::string hostname;
+  if ((hostname = Config::get("fixed_irc_server", "")).empty())
+    hostname = target.local;
+
+  IrcClient* irc = bridge->find_irc_client(hostname);
+  if (!irc || !irc->is_connected())
+    {
+      message = "You are not connected to the IRC server "s + hostname;
+      return;
+    }
+
+  std::ostringstream ss;
+  ss << "Connected to IRC server " << irc->get_hostname() << " on port " << irc->get_port();
+  if (irc->is_using_tls())
+    ss << " (using TLS)";
+  const std::time_t now_c = std::chrono::system_clock::to_time_t(irc->connection_date);
+#ifdef HAS_PUT_TIME
+  ss << " since " << std::put_time(std::localtime(&now_c), "%F %T");
+#else
+  constexpr std::size_t timestamp_size{10 + 1 + 8 + 1};
+  char buf[timestamp_size] = {};
+  const auto res = std::strftime(buf, timestamp_size, "%F %T", std::localtime(&now_c));
+  if (res > 0)
+    ss << " since " << buf;
+#endif
+  ss << " (" << std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now() - irc->connection_date).count() << " seconds ago).";
+
+  for (const auto& it: bridge->resources_in_chan)
+    {
+      const auto& channel_key = it.first;
+      const auto& irc_hostname = std::get<1>(channel_key);
+      const auto& resources = it.second;
+
+      if (irc_hostname == irc->get_hostname() && !resources.empty())
+        {
+          const auto& channel_name = std::get<0>(channel_key);
+          ss << "\n" << channel_name << " from " << resources.size() << " resource" << (resources.size() > 1 ? "s": "") << ": ";
+          for (const auto& resource: resources)
+            ss << resource << " ";
+        }
+    }
+
+  message = ss.str();
 }

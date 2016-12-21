@@ -13,6 +13,8 @@ import os
 from functools import partial
 from slixmpp.xmlstream.matcher.base import MatcherBase
 
+if not hasattr(asyncio, "ensure_future"):
+    asyncio.ensure_future = getattr(asyncio, "async")
 
 class MatchAll(MatcherBase):
     """match everything"""
@@ -57,7 +59,7 @@ class XMPPComponent(slixmpp.BaseXMPP):
 
         self.add_event_handler("session_end", self.on_end_session)
 
-        asyncio.async(self.accept_routine())
+        asyncio.ensure_future(self.accept_routine())
 
         self.scenario = scenario
         self.biboumi = biboumi
@@ -74,7 +76,7 @@ class XMPPComponent(slixmpp.BaseXMPP):
         self.scenario.steps = []
         self.failed = True
 
-    def on_end_session(self, event):
+    def on_end_session(self, _):
         self.loop.stop()
 
     def handle_incoming_stanza(self, stanza):
@@ -91,16 +93,17 @@ class XMPPComponent(slixmpp.BaseXMPP):
         self.run_scenario()
 
     def run_scenario(self):
-        if scenario.steps:
-            step = scenario.steps.pop(0)
+        if self.scenario.steps:
+            step = self.scenario.steps.pop(0)
             step(self, self.biboumi)
         else:
-            self.biboumi.stop()
+            if self.biboumi:
+                self.biboumi.stop()
 
     @asyncio.coroutine
     def accept_routine(self):
         self.accepting_server = yield from self.loop.create_server(lambda: self,
-                                                                   "127.0.0.1", "8811", reuse_address=True)
+                                                                   "127.0.0.1", 8811, reuse_address=True)
 
     def check_stanza_against_all_expected_xpaths(self):
         pass
@@ -110,15 +113,26 @@ def match(stanza, xpath):
     tree = lxml.etree.parse(io.StringIO(str(stanza)))
     matched = tree.xpath(xpath, namespaces={'re': 'http://exslt.org/regular-expressions',
                                             'muc_user': 'http://jabber.org/protocol/muc#user',
+                                            'muc': 'http://jabber.org/protocol/muc',
+                                            'disco_info': 'http://jabber.org/protocol/disco#info',
+                                            'muc_traffic': 'http://jabber.org/protocol/muc#traffic',
                                             'disco_items': 'http://jabber.org/protocol/disco#items',
                                             'commands': 'http://jabber.org/protocol/commands',
                                             'dataform': 'jabber:x:data',
-                                            'version': 'jabber:iq:version'})
+                                            'version': 'jabber:iq:version',
+                                            'mam': 'urn:xmpp:mam:1',
+                                            'delay': 'urn:xmpp:delay',
+                                            'forward': 'urn:xmpp:forward:0',
+                                            'client': 'jabber:client',
+                                            'rsm': 'http://jabber.org/protocol/rsm',
+                                            'carbon': 'urn:xmpp:carbons:2',
+                                            'hints': 'urn:xmpp:hints',
+                                            'stanza': 'urn:ietf:params:xml:ns:xmpp-stanzas'})
     return matched
 
 
 def check_xpath(xpaths, xmpp, after, stanza):
-    for i, xpath in enumerate(xpaths):
+    for xpath in xpaths:
         matched = match(stanza, xpath)
         if not matched:
             raise StanzaError("Received stanza “%s” did not match expected xpath “%s”" % (stanza, xpath))
@@ -128,6 +142,28 @@ def check_xpath(xpaths, xmpp, after, stanza):
                 af(stanza, xmpp)
         else:
             after(stanza, xmpp)
+
+def all_xpaths_match(stanza, xpaths):
+    for xpath in xpaths:
+        matched = match(stanza, xpath)
+        if not matched:
+            return False
+    return True
+
+def check_list_of_xpath(list_of_xpaths, xmpp, stanza):
+    found = None
+    for i, xpaths in enumerate(list_of_xpaths):
+        if all_xpaths_match(stanza, xpaths):
+            found = True
+            list_of_xpaths.pop(i)
+            break
+
+    if not found:
+        raise StanzaError("Received stanza “%s” did not match any of the expected xpaths:\n%s" % (stanza, list_of_xpaths))
+
+    if list_of_xpaths:
+        step = partial(expect_unordered_already_formatted, list_of_xpaths)
+        xmpp.scenario.steps.insert(0, step)
 
 
 def check_xpath_optional(xpaths, xmpp, after, stanza):
@@ -187,10 +223,11 @@ class ProcessRunner:
 
 
 class BiboumiRunner(ProcessRunner):
-    def __init__(self, name, with_valgrind):
+    def __init__(self, name):
         super().__init__()
         self.name = name
         self.fd = open("biboumi_%s_output.txt" % (name,), "w")
+        with_valgrind = os.environ.get("E2E_WITH_VALGRIND") is not None
         if with_valgrind:
             self.create = asyncio.create_subprocess_exec("valgrind", "--suppressions=" + (os.environ.get("E2E_BIBOUMI_SUPP_DIR") or "") + "biboumi.supp", "--leak-check=full", "--show-leak-kinds=all",
                                                          "--errors-for-leak-kinds=all", "--error-exitcode=16",
@@ -224,6 +261,19 @@ def expect_stanza(xpaths, xmpp, biboumi, optional=False, after=None):
     else:
         print("Warning, from argument type passed to expect_stanza: %s" % (type(xpaths)))
 
+# list_of_xpaths: [(xpath, xpath), (xpath, xpath), (xpath)]
+def expect_unordered(list_of_xpaths, xmpp, biboumi):
+    formatted_list_of_xpaths = []
+    for xpaths in list_of_xpaths:
+        formatted_xpaths = []
+        for xpath in xpaths:
+            formatted_xpath = xpath.format_map(common_replacements)
+            formatted_xpaths.append(formatted_xpath)
+        formatted_list_of_xpaths.append(tuple(formatted_xpaths))
+    expect_unordered_already_formatted(formatted_list_of_xpaths, xmpp, biboumi)
+
+def expect_unordered_already_formatted(formatted_list_of_xpaths, xmpp, biboumi):
+    xmpp.stanza_checker = partial(check_list_of_xpath, formatted_list_of_xpaths, xmpp)
 
 def log_message(message, xmpp, biboumi):
     print("[33;1m%s[0m" % (message,))
@@ -241,7 +291,8 @@ class BiboumiTest:
         self.scenario = scenario
         self.expected_code = expected_code
 
-    def run(self, with_valgrind=True):
+    def run(self):
+        with_valgrind = os.environ.get("E2E_WITH_VALGRIND") is not None
         print("Running scenario: [33;1m%s[0m%s" % (self.scenario.name, " (with valgrind)" if with_valgrind else ''))
         # Redirect the slixmpp logging into a specific file
         output_filename = "slixmpp_%s_output.txt" % (self.scenario.name,)
@@ -252,10 +303,15 @@ class BiboumiTest:
                             filename=output_filename)
 
         with open("test.conf", "w") as fd:
-            fd.write(confs[scenario.conf])
+            fd.write(confs[self.scenario.conf])
+
+        try:
+            os.remove("e2e_test.sqlite")
+        except FileNotFoundError:
+            pass
 
         # Start the XMPP component and biboumi
-        biboumi = BiboumiRunner(scenario.name, with_valgrind)
+        biboumi = BiboumiRunner(self.scenario.name)
         xmpp = XMPPComponent(self.scenario, biboumi)
         asyncio.get_event_loop().run_until_complete(biboumi.start())
 
@@ -264,7 +320,7 @@ class BiboumiTest:
         xmpp.process()
         code = asyncio.get_event_loop().run_until_complete(biboumi.wait())
         xmpp.biboumi = None
-        scenario.steps.clear()
+        self.scenario.steps.clear()
         failed = False
         if not xmpp.failed:
             if code != self.expected_code:
@@ -311,6 +367,7 @@ common_replacements = {
     'jid_two': 'second@example.com',
     'jid_admin': 'admin@example.com',
     'nick_two': 'Bobby',
+    'nick_three': 'Bernard',
     'lower_nick_one': 'nick',
     'lower_nick_two': 'bobby',
 }
@@ -428,7 +485,7 @@ if __name__ == '__main__':
                              ),
                      partial(expect_stanza, "/message[@from='#foo%{irc_server_one}'][@type='groupchat']/subject[not(text())]"),
                  ]),
-        Scenario("virtual_channel_join",
+        Scenario("virtual_channel",
                  [
                      handshake_sequence(),
                      partial(send_stanza,
@@ -440,6 +497,38 @@ if __name__ == '__main__':
                              ),
                      partial(expect_stanza, "/message[@from='%{irc_server_one}'][@type='groupchat']/subject[re:test(text(), '^This is a virtual channel.*$')]"),
                      connection_end_sequence("irc.localhost", '{jid_one}/{resource_one}'),
+                     partial(send_stanza, "<presence type='unavailable' from='{jid_one}/{resource_one}' to='%{irc_server_one}/{nick_one}' />"),
+                     partial(expect_stanza, "/presence[@type='unavailable'][@from='%{irc_server_one}/{nick_one}']"),
+                     partial(expect_stanza, "/message[@from='{irc_server_one}']/body[text()='ERROR: Closing Link: localhost (Client Quit)']"),
+                     partial(expect_stanza, "/message[@from='{irc_server_one}']/body[text()='ERROR: Connection closed.']"),
+                 ]),
+        Scenario("irc_server_disconnection",
+                 [
+                     handshake_sequence(),
+                     partial(send_stanza,
+                             "<presence from='{jid_one}/{resource_one}' to='%{irc_server_one}/{nick_one}' />"),
+                     connection_begin_sequence("irc.localhost", '{jid_one}/{resource_one}'),
+                     partial(expect_stanza,
+                             ("/presence[@to='{jid_one}/{resource_one}'][@from='%{irc_server_one}/{nick_one}']/muc_user:x/muc_user:item[@affiliation='none'][@role='participant']",
+                              "/presence/muc_user:x/muc_user:status[@code='110']")
+                             ),
+                     partial(expect_stanza, "/message[@from='%{irc_server_one}'][@type='groupchat']/subject[re:test(text(), '^This is a virtual channel.*$')]"),
+                     connection_end_sequence("irc.localhost", '{jid_one}/{resource_one}'),
+
+                     partial(send_stanza, "<presence from='{jid_one}/{resource_one}' to='%{irc_server_one}/{nick_two}' />"),
+
+                     partial(expect_unordered, [
+                         ("/presence[@from='%{irc_server_one}/{nick_one}'][@to='{jid_one}/{resource_one}'][@type='unavailable']/muc_user:x/muc_user:item[@nick='{nick_two}']",
+                          "/presence/muc_user:x/muc_user:status[@code='110']",
+                          "/presence/muc_user:x/muc_user:status[@code='303']"),
+                         ("/presence[@from='%{irc_server_one}/{nick_two}'][@to='{jid_one}/{resource_one}']",
+                          "/presence/muc_user:x/muc_user:status[@code='110']"),
+                         ]),
+
+                     partial(send_stanza, "<presence type='unavailable' from='{jid_one}/{resource_one}' to='%{irc_server_one}/{nick_two}' />"),
+                     partial(expect_stanza, "/presence[@type='unavailable'][@from='%{irc_server_one}/{nick_two}']"),
+                     partial(expect_stanza, "/message[@from='{irc_server_one}']/body[text()='ERROR: Closing Link: localhost (Client Quit)']"),
+                     partial(expect_stanza, "/message[@from='{irc_server_one}']/body[text()='ERROR: Connection closed.']"),
                  ]),
         Scenario("channel_join_with_two_users",
                  [
@@ -464,24 +553,13 @@ if __name__ == '__main__':
                      partial(send_stanza,
                              "<presence from='{jid_two}/{resource_one}' to='#foo%{irc_server_one}/{nick_two}' />"),
                      connection_sequence("irc.localhost", '{jid_two}/{resource_one}'),
-                     # Our presence, sent to the other user
-                     partial(log_message,
-                             "Our presence sent to the other user"),
-                     partial(expect_stanza,
-                             ("/presence[@to='{jid_one}/{resource_one}'][@from='#foo%{irc_server_one}/{nick_two}']/muc_user:x/muc_user:item[@affiliation='none'][@jid='~bobby@localhost'][@role='participant']",)),
-                     # The other user presence
-                     partial(log_message,
-                             "The other user presence"),
-                     partial(expect_stanza,
-                             "/presence[@to='{jid_second}/{resource_one}'][@from='#foo%{irc_server_one}/{nick_one}']/muc_user:x/muc_user:item[@affiliation='none'][@jid='~nick@localhost'][@role='participant']"),
-                     # Our own presence
-                     partial(log_message,
-                             "Our own presence"),
-                     partial(expect_stanza,
-                             ("/presence[@to='{jid_two}/{resource_one}'][@from='#foo%{irc_server_one}/{nick_two}']/muc_user:x/muc_user:item[@affiliation='none'][@jid='~bobby@localhost'][@role='participant']",
-                              "/presence/muc_user:x/muc_user:status[@code='110']")
-                             ),
-                     partial(expect_stanza, "/message[@from='#foo%{irc_server_one}'][@type='groupchat']/subject[not(text())]"),
+                     partial(expect_unordered, [
+                         ("/presence[@to='{jid_one}/{resource_one}'][@from='#foo%{irc_server_one}/{nick_two}']/muc_user:x/muc_user:item[@affiliation='none'][@role='participant'][@jid='~bobby@localhost']",),
+                         ("/presence[@to='{jid_two}/{resource_one}'][@from='#foo%{irc_server_one}/{nick_one}']/muc_user:x/muc_user:item[@affiliation='admin'][@role='moderator']",),
+                         ("/presence[@to='{jid_two}/{resource_one}'][@from='#foo%{irc_server_one}/{nick_two}']/muc_user:x/muc_user:item[@affiliation='none'][@jid='~bobby@localhost'][@role='participant']",
+                         "/presence/muc_user:x/muc_user:status[@code='110']",),
+                         ("/message[@from='#foo%{irc_server_one}'][@type='groupchat']/subject[not(text())]",),
+                         ]),
                  ]),
         Scenario("channel_custom_topic",
                  [
@@ -512,7 +590,7 @@ if __name__ == '__main__':
                              ("/presence[@to='{jid_one}/{resource_one}'][@from='#foo%{irc_server_one}/{nick_two}']/muc_user:x/muc_user:item[@affiliation='none'][@jid='~bobby@localhost'][@role='participant']",)),
                      # The other user presence
                      partial(expect_stanza,
-                             "/presence[@to='{jid_second}/{resource_one}'][@from='#foo%{irc_server_one}/{nick_one}']/muc_user:x/muc_user:item[@affiliation='admin'][@jid='~nick@localhost'][@role='moderator']"),
+                             "/presence[@to='{jid_two}/{resource_one}'][@from='#foo%{irc_server_one}/{nick_one}']/muc_user:x/muc_user:item[@affiliation='admin'][@role='moderator']"),
                      # Our own presence
                      partial(expect_stanza,
                              ("/presence[@to='{jid_two}/{resource_one}'][@from='#foo%{irc_server_one}/{nick_two}']/muc_user:x/muc_user:item[@affiliation='none'][@jid='~bobby@localhost'][@role='participant']",
@@ -554,7 +632,7 @@ if __name__ == '__main__':
                      handshake_sequence(),
                      partial(send_stanza, "<iq type='get' id='idwhatever' from='{jid_one}/{resource_one}' to='{biboumi_host}'><query xmlns='http://jabber.org/protocol/disco#items' node='http://jabber.org/protocol/commands' /></iq>"),
                      partial(expect_stanza, ("/iq[@type='result']/disco_items:query[@node='http://jabber.org/protocol/commands']",
-                                             "/iq/disco_items:query/disco_items:item[3]")),
+                                             "/iq/disco_items:query/disco_items:item[5]")),
                  ], conf='fixed_server'),
         Scenario("list_admin_adhoc_fixed_server",
                  [
@@ -570,7 +648,7 @@ if __name__ == '__main__':
                      handshake_sequence(),
                      partial(send_stanza, "<iq type='get' id='idwhatever' from='{jid_one}/{resource_one}' to='{irc_host_one}@{biboumi_host}'><query xmlns='http://jabber.org/protocol/disco#items' node='http://jabber.org/protocol/commands' /></iq>"),
                      partial(expect_stanza, ("/iq[@type='result']/disco_items:query[@node='http://jabber.org/protocol/commands']",
-                                             "/iq/disco_items:query/disco_items:item[1]")),
+                                             "/iq/disco_items:query/disco_items:item[2]")),
                  ]),
         Scenario("list_adhoc_irc_fixed_server",
                  [
@@ -603,6 +681,35 @@ if __name__ == '__main__':
                      partial(send_stanza, "<iq type='set' id='hello-command2' from='{jid_one}/{resource_one}' to='{biboumi_host}'><command xmlns='http://jabber.org/protocol/commands' node='hello' sessionid='{sessionid}' action='next'><x xmlns='jabber:x:data' type='submit'><field var='name'><value>COUCOU</value></field></x></command></iq>"),
                      partial(expect_stanza, "/iq[@type='result']/commands:command[@node='hello'][@status='completed']/commands:note[@type='info'][text()='Hello COUCOU!']")
                  ]),
+        Scenario("execute_forbidden_adhoc_command",
+                 [
+                     handshake_sequence(),
+                     partial(send_stanza, "<iq type='set' id='command1' from='{jid_one}/{resource_one}' to='{biboumi_host}'><command xmlns='http://jabber.org/protocol/commands' node='disconnect-user' action='execute' /></iq>"),
+                     partial(expect_stanza, ("/iq[@type='error'][@id='command1']/commands:command[@node='disconnect-user']",
+                                             "/iq/commands:command/commands:error[@type='cancel']/stanza:forbidden")),
+                 ]),
+        Scenario("execute_disconnect_user_adhoc_command",
+                 [
+                     handshake_sequence(),
+
+                     partial(log_message, "Join a channel"),
+                     partial(send_stanza, "<presence from='{jid_admin}/{resource_one}' to='#foo%{irc_server_one}/{nick_one}' />"),
+                     connection_sequence("irc.localhost", '{jid_admin}/{resource_one}'),
+                     partial(expect_stanza, "/message/body[text()='Mode #foo [+nt] by {irc_host_one}']"),
+                     partial(expect_stanza, "/presence"),
+                     partial(expect_stanza, "/message"),
+
+                     partial(send_stanza, "<iq type='set' id='command1' from='{jid_admin}/{resource_one}' to='{biboumi_host}'><command xmlns='http://jabber.org/protocol/commands' node='disconnect-user' action='execute' /></iq>"),
+                     partial(expect_stanza, ("/iq[@type='result']/commands:command[@node='disconnect-user'][@sessionid][@status='executing']",
+                                             "/iq/commands:command/commands:actions/commands:next",
+                                             ),
+                                             after = partial(save_value, "sessionid", partial(extract_attribute, "/iq/commands:command[@node='disconnect-user']", "sessionid"))
+                             ),
+                     partial(send_stanza, "<iq type='set' id='command2' from='{jid_admin}/{resource_one}' to='{biboumi_host}'><command xmlns='http://jabber.org/protocol/commands' node='disconnect-user' sessionid='{sessionid}' action='next'><x xmlns='jabber:x:data' type='submit'><field var='jids'><value>{jid_admin}</value></field><field var='quit-message'><value>Disconnected by e2e</value></field></x></command></iq>"),
+                     partial(expect_stanza, "/iq[@type='result']/commands:command[@node='disconnect-user'][@status='completed']/commands:note[@type='info'][text()='1 user has been disconnected.']"),
+                     # Note, charybdis ignores our QUIT message, so we can't test it
+                     partial(expect_stanza, "/presence[@type='unavailable'][@to='{jid_admin}/{resource_one}'][@from='#foo%{irc_server_one}/{nick_one}']"),
+                 ]),
         Scenario("multisessionnick",
                  [
                      handshake_sequence(),
@@ -621,51 +728,85 @@ if __name__ == '__main__':
                      partial(send_stanza,
                              "<presence from='{jid_one}/{resource_two}' to='#foo%{irc_server_one}/{nick_one}' />"),
                      # We receive our own join
-                     partial(expect_stanza,
-                             ("/presence[@to='{jid_one}/{resource_two}'][@from='#foo%{irc_server_one}/{nick_one}']/muc_user:x/muc_user:item[@affiliation='admin'][@role='moderator']",
-                              "/presence/muc_user:x/muc_user:status[@code='110']")
+                     partial(expect_unordered,
+                             [("/presence[@to='{jid_one}/{resource_two}'][@from='#foo%{irc_server_one}/{nick_one}']/muc_user:x/muc_user:item[@affiliation='admin'][@role='moderator']",
+                              "/presence/muc_user:x/muc_user:status[@code='110']"),
+                              ("/message[@from='#foo%{irc_server_one}'][@type='groupchat'][@to='{jid_one}/{resource_two}']/subject[not(text())]",)]
                              ),
-                     partial(expect_stanza, "/message[@from='#foo%{irc_server_one}'][@type='groupchat'][@to='{jid_one}/{resource_two}']/subject[not(text())]"),
 
                      # A different user joins the same room
                      partial(send_stanza,
                              "<presence from='{jid_two}/{resource_one}' to='#foo%{irc_server_one}/{nick_two}' />"),
                      connection_sequence("irc.localhost", '{jid_two}/{resource_one}'),
 
-                     partial(expect_stanza,
-                     ("/presence[@to='{jid_one}/{resource_one}'][@from='#foo%{irc_server_one}/{nick_two}']",)),
-                     partial(expect_stanza,
-                     ("/presence[@to='{jid_one}/{resource_two}'][@from='#foo%{irc_server_one}/{nick_two}']",)),
+                     partial(expect_unordered, [
+                                ("/presence[@to='{jid_one}/{resource_one}'][@from='#foo%{irc_server_one}/{nick_two}']",),
+                                ("/presence[@to='{jid_one}/{resource_two}'][@from='#foo%{irc_server_one}/{nick_two}']",),
+                                ("/presence[@to='{jid_two}/{resource_one}'][@from='#foo%{irc_server_one}/{nick_two}']",
+                                "/presence/muc_user:x/muc_user:status[@code='110']",),
+                                ("/presence[@to='{jid_two}/{resource_one}'][@from='#foo%{irc_server_one}/{nick_one}']",),
+                                ]
+                             ),
 
-                     partial(expect_stanza,
-                     "/presence[@to='{jid_second}/{resource_one}'][@from='#foo%{irc_server_one}/{nick_one}']"),
-                     partial(expect_stanza,
-                     ("/presence[@to='{jid_two}/{resource_one}'][@from='#foo%{irc_server_one}/{nick_two}']",
-                     "/presence/muc_user:x/muc_user:status[@code='110']")
-                     ),
                      partial(expect_stanza, "/message[@from='#foo%{irc_server_one}'][@type='groupchat']/subject[not(text())]"),
 
                      # That second user sends a private message to the first one
                      partial(send_stanza, "<message from='{jid_two}/{resource_one}' to='#foo%{irc_server_one}/{nick_one}' type='chat'><body>RELLO</body></message>"),
                      # Message is received with a server-wide JID, by the two resources behind nick_one
-                     partial(expect_stanza, "/message[@from='{lower_nick_two}!{irc_server_one}'][@to='{jid_one}/{resource_one}'][@type='chat']/body[text()='RELLO']"),
-                     partial(expect_stanza, "/message[@from='{lower_nick_two}!{irc_server_one}'][@to='{jid_one}/{resource_two}'][@type='chat']/body[text()='RELLO']"),
+                     partial(expect_stanza, ("/message[@from='{lower_nick_two}%{irc_server_one}'][@to='{jid_one}/{resource_one}'][@type='chat']/body[text()='RELLO']",
+                                             "/message/hints:no-copy",
+                                             "/message/carbon:private")),
+                     partial(expect_stanza, "/message[@from='{lower_nick_two}%{irc_server_one}'][@to='{jid_one}/{resource_two}'][@type='chat']/body[text()='RELLO']"),
+
+
+                     partial(log_message, "Nickname conflict"),
+                     # First occupant (with the two resources) changes her/his nick
+                     partial(send_stanza, "<presence from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}/{nick_two}' />"),
+                     partial(expect_unordered, [
+                         ("/message[@to='{jid_one}/{resource_one}'][@type='chat']/body[text()='irc.localhost: Bobby: Nickname is already in use.']",),
+                         ("/message[@to='{jid_one}/{resource_two}'][@type='chat']/body[text()='irc.localhost: Bobby: Nickname is already in use.']",),
+                         ("/presence[@to='{jid_one}/{resource_one}'][@from='#foo%{irc_server_one}/{nick_two}'][@type='error']",),
+                         ("/presence[@to='{jid_one}/{resource_two}'][@from='#foo%{irc_server_one}/{nick_two}'][@type='error']",),
+                     ]),
+
+                     # partial(log_message, "Nickname change"),
+                     # First occupant (with the two resources) changes her/his nick
+                     partial(send_stanza, "<presence from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}/{nick_three}' />"),
+                     partial(expect_unordered, [
+                         ("/presence[@from='#foo%{irc_server_one}/{nick_one}'][@to='{jid_two}/{resource_one}'][@type='unavailable']/muc_user:x/muc_user:item[@nick='Bernard']",
+                          "/presence/muc_user:x/muc_user:status[@code='303']"),
+                         ("/presence[@from='#foo%{irc_server_one}/{nick_three}'][@to='{jid_two}/{resource_one}']",),
+                         ("/presence[@from='#foo%{irc_server_one}/{nick_one}'][@to='{jid_one}/{resource_one}'][@type='unavailable']/muc_user:x/muc_user:item[@nick='Bernard']",
+                          "/presence/muc_user:x/muc_user:status[@code='303']",
+                          "/presence/muc_user:x/muc_user:status[@code='110']"),
+                         ("/presence[@from='#foo%{irc_server_one}/{nick_three}'][@to='{jid_one}/{resource_one}']",
+                          "/presence/muc_user:x/muc_user:status[@code='110']"),
+
+                         ("/presence[@from='#foo%{irc_server_one}/{nick_one}'][@to='{jid_one}/{resource_two}'][@type='unavailable']/muc_user:x/muc_user:item[@nick='Bernard']",
+                          "/presence/muc_user:x/muc_user:status[@code='303']",
+                          "/presence/muc_user:x/muc_user:status[@code='110']"),
+                         ("/presence[@from='#foo%{irc_server_one}/{nick_three}'][@to='{jid_one}/{resource_two}']",
+                          "/presence/muc_user:x/muc_user:status[@code='110']"),
+                     ]),
 
                      # One resource leaves the server entirely.
                      partial(send_stanza, "<presence type='unavailable' from='{jid_one}/{resource_two}' to='#foo%{irc_server_one}/{nick_one}' />"),
                      # The leave is forwarded only to us
                      partial(expect_stanza,
                              ("/presence[@type='unavailable']/muc_user:x/muc_user:status[@code='110']",
-                             "/presence/status[text()='Biboumi note: 1 resources are still in this channel.']")
+                              "/presence/status[text()='Biboumi note: 1 resources are still in this channel.']",
+                              )
                              ),
+
                      # The second user sends two new private messages to the first user
-                     partial(send_stanza, "<message from='{jid_two}/{resource_one}' to='#foo%{irc_server_one}/{nick_one}' type='chat'><body>first</body></message>"),
-                     partial(send_stanza, "<message from='{jid_two}/{resource_one}' to='#foo%{irc_server_one}/{nick_one}' type='chat'><body>second</body></message>"),
+                     partial(send_stanza, "<message from='{jid_two}/{resource_one}' to='#foo%{irc_server_one}/{nick_three}' type='chat'><body>first</body></message>"),
+                     partial(send_stanza, "<message from='{jid_two}/{resource_one}' to='#foo%{irc_server_one}/{nick_three}' type='chat'><body>second</body></message>"),
                      # The first user receives the two messages, on the connected resource, once each
-                     partial(expect_stanza, "/message[@from='{lower_nick_two}!{irc_server_one}'][@to='{jid_one}/{resource_one}'][@type='chat']/body[text()='first']"),
-                     partial(expect_stanza, "/message[@from='{lower_nick_two}!{irc_server_one}'][@to='{jid_one}/{resource_one}'][@type='chat']/body[text()='second']"),
 
-
+                     partial(expect_unordered, [
+                         ("/message[@from='{lower_nick_two}%{irc_server_one}'][@to='{jid_one}/{resource_one}'][@type='chat']/body[text()='first']",),
+                         ("/message[@from='{lower_nick_two}%{irc_server_one}'][@to='{jid_one}/{resource_one}'][@type='chat']/body[text()='second']",),
+                         ]),
                  ]),
         Scenario("channel_messages",
                  [
@@ -677,7 +818,7 @@ if __name__ == '__main__':
                      partial(expect_stanza,
                      "/message/body[text()='Mode #foo [+nt] by {irc_host_one}']"),
                      partial(expect_stanza,
-                     ("/presence[@to='{jid_one}/{resource_one}'][@from='#foo%{irc_server_one}/{nick_one}']/muc_user:x/muc_user:item[@affiliation='admin'][@jid='~nick@localhost'][@role='moderator']",
+                     ("/presence[@to='{jid_one}/{resource_one}'][@from='#foo%{irc_server_one}/{nick_one}']/muc_user:x/muc_user:item[@affiliation='admin'][@role='moderator']",
                      "/presence/muc_user:x/muc_user:status[@code='110']")
                      ),
                      partial(expect_stanza, "/message[@from='#foo%{irc_server_one}'][@type='groupchat']/subject[not(text())]"),
@@ -687,31 +828,29 @@ if __name__ == '__main__':
                      "<presence from='{jid_two}/{resource_one}' to='#foo%{irc_server_one}/{nick_two}' />"),
                      connection_sequence("irc.localhost", '{jid_two}/{resource_one}'),
                      # Our presence, sent to the other user
-                     partial(expect_stanza,
-                     ("/presence[@to='{jid_one}/{resource_one}'][@from='#foo%{irc_server_one}/{nick_two}']/muc_user:x/muc_user:item[@affiliation='none'][@jid='~bobby@localhost'][@role='participant']",)),
-                     # The other user presence
-                     partial(expect_stanza,
-                     "/presence[@to='{jid_second}/{resource_one}'][@from='#foo%{irc_server_one}/{nick_one}']/muc_user:x/muc_user:item[@affiliation='none'][@jid='~nick@localhost'][@role='participant']"),
-                     # Our own presence
-                     partial(expect_stanza,
-                     ("/presence[@to='{jid_two}/{resource_one}'][@from='#foo%{irc_server_one}/{nick_two}']/muc_user:x/muc_user:item[@affiliation='none'][@jid='~bobby@localhost'][@role='participant']",
-                     "/presence/muc_user:x/muc_user:status[@code='110']")
-                     ),
-                     partial(expect_stanza, "/message[@from='#foo%{irc_server_one}'][@type='groupchat']/subject[not(text())]"),
+                     partial(expect_unordered, [
+                         ("/presence[@to='{jid_one}/{resource_one}'][@from='#foo%{irc_server_one}/{nick_two}']/muc_user:x/muc_user:item[@affiliation='none'][@jid='~bobby@localhost'][@role='participant']",),
+                         ("/presence[@to='{jid_two}/{resource_one}'][@from='#foo%{irc_server_one}/{nick_one}']/muc_user:x/muc_user:item[@affiliation='admin'][@role='moderator']",),
+                         ("/presence[@to='{jid_two}/{resource_one}'][@from='#foo%{irc_server_one}/{nick_two}']/muc_user:x/muc_user:item[@affiliation='none'][@jid='~bobby@localhost'][@role='participant']",
+                          "/presence/muc_user:x/muc_user:status[@code='110']"),
+                         ("/message[@from='#foo%{irc_server_one}'][@type='groupchat']/subject[not(text())]",)
+                     ]),
 
                      # Send a channel message
                      partial(send_stanza, "<message from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}' type='groupchat'><body>coucou</body></message>"),
                      # Receive the message, forwarded to the two users
-                     partial(expect_stanza, "/message[@from='#foo%{irc_server_one}/{nick_one}'][@to='{jid_one}/{resource_one}'][@type='groupchat']/body[text()='coucou']"),
-                     partial(expect_stanza, "/message[@from='#foo%{irc_server_one}/{nick_one}'][@to='{jid_two}/{resource_one}'][@type='groupchat']/body[text()='coucou']"),
+                     partial(expect_unordered, [
+                         ("/message[@from='#foo%{irc_server_one}/{nick_one}'][@to='{jid_one}/{resource_one}'][@type='groupchat']/body[text()='coucou']",),
+                         ("/message[@from='#foo%{irc_server_one}/{nick_one}'][@to='{jid_two}/{resource_one}'][@type='groupchat']/body[text()='coucou']",)
+                         ]),
 
                      # Send a private message, to a in-room JID
                      partial(send_stanza, "<message from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}/{nick_two}' type='chat'><body>coucou in private</body></message>"),
                      # Message is received with a server-wide JID
-                     partial(expect_stanza, "/message[@from='{lower_nick_one}!{irc_server_one}'][@to='{jid_two}/{resource_one}'][@type='chat']/body[text()='coucou in private']"),
+                     partial(expect_stanza, "/message[@from='{lower_nick_one}%{irc_server_one}'][@to='{jid_two}/{resource_one}'][@type='chat']/body[text()='coucou in private']"),
 
                      # Respond to the message, to the server-wide JID
-                     partial(send_stanza, "<message from='{jid_two}/{resource_one}' to='{lower_nick_one}!{irc_server_one}' type='chat'><body>yes</body></message>"),
+                     partial(send_stanza, "<message from='{jid_two}/{resource_one}' to='{lower_nick_one}%{irc_server_one}' type='chat'><body>yes</body></message>"),
                      # The response is received from the in-room JID
                      partial(expect_stanza, "/message[@from='#foo%{irc_server_one}/{nick_two}'][@to='{jid_one}/{resource_one}'][@type='chat']/body[text()='yes']"),
 
@@ -729,10 +868,10 @@ if __name__ == '__main__':
                      # Send a private message, to a in-room JID
                      partial(send_stanza, "<message from='{jid_one}/{resource_one}' to='%{irc_server_one}/{nick_two}' type='chat'><body>re in private</body></message>"),
                      # Message is received with a server-wide JID
-                     partial(expect_stanza, "/message[@from='{lower_nick_one}!{irc_server_one}'][@to='{jid_two}/{resource_one}'][@type='chat']/body[text()='re in private']"),
+                     partial(expect_stanza, "/message[@from='{lower_nick_one}%{irc_server_one}'][@to='{jid_two}/{resource_one}'][@type='chat']/body[text()='re in private']"),
 
                      # Respond to the message, to the server-wide JID
-                     partial(send_stanza, "<message from='{jid_two}/{resource_one}' to='{lower_nick_one}!{irc_server_one}' type='chat'><body>re</body></message>"),
+                     partial(send_stanza, "<message from='{jid_two}/{resource_one}' to='{lower_nick_one}%{irc_server_one}' type='chat'><body>re</body></message>"),
                      # The response is received from the in-room JID
                      partial(expect_stanza, "/message[@from='%{irc_server_one}/{nick_two}'][@to='{jid_one}/{resource_one}'][@type='chat']/body[text()='re']"),
 
@@ -743,9 +882,9 @@ if __name__ == '__main__':
                      "/presence[@type='unavailable']/muc_user:x/muc_user:status[@code='110']"),
 
                      # The private messages from this nick should now come (again) from the server-wide JID
-                     partial(send_stanza, "<message from='{jid_two}/{resource_one}' to='{lower_nick_one}!{irc_server_one}' type='chat'><body>hihihoho</body></message>"),
+                     partial(send_stanza, "<message from='{jid_two}/{resource_one}' to='{lower_nick_one}%{irc_server_one}' type='chat'><body>hihihoho</body></message>"),
                      partial(expect_stanza,
-                     "/message[@from='{lower_nick_two}!{irc_server_one}'][@to='{jid_one}/{resource_one}']"),
+                     "/message[@from='{lower_nick_two}%{irc_server_one}'][@to='{jid_one}/{resource_one}']"),
                  ]
                  ),
                 Scenario("encoded_channel_join",
@@ -781,10 +920,10 @@ if __name__ == '__main__':
                              "<iq type='get' from='{jid_one}/{resource_one}' id='first_ping' to='#foo%{irc_server_one}/{nick_one}'><ping xmlns='urn:xmpp:ping' /></iq>"),
                      # We receive our own ping request,
                      partial(expect_stanza,
-                             "/iq[@from='{lower_nick_one}!{irc_server_one}'][@type='get'][@to='{jid_one}/{resource_one}'][@id='gnip_tsrif']"),
+                             "/iq[@from='{lower_nick_one}%{irc_server_one}'][@type='get'][@to='{jid_one}/{resource_one}'][@id='gnip_tsrif']"),
                      # Respond to the request
                      partial(send_stanza,
-                             "<iq type='result' to='{lower_nick_one}!{irc_server_one}' id='gnip_tsrif' from='{jid_one}/{resource_one}'/>"),
+                             "<iq type='result' to='{lower_nick_one}%{irc_server_one}' id='gnip_tsrif' from='{jid_one}/{resource_one}'/>"),
                      partial(expect_stanza,
                              "/iq[@from='#foo%{irc_server_one}/{nick_one}'][@type='result'][@to='{jid_one}/{resource_one}'][@id='first_ping']"),
 
@@ -802,21 +941,21 @@ if __name__ == '__main__':
                              "<iq type='get' from='{jid_one}/{resource_one}' id='second_ping' to='#foo%{irc_server_one}/{nick_one}'><ping xmlns='urn:xmpp:ping' /></iq>"),
                      # We receive our own ping request. Note that we don't know the to value, it could be one of our two resources.
                      partial(expect_stanza,
-                             "/iq[@from='{lower_nick_one}!{irc_server_one}'][@type='get'][@to][@id='gnip_dnoces']",
+                             "/iq[@from='{lower_nick_one}%{irc_server_one}'][@type='get'][@to][@id='gnip_dnoces']",
                              after = partial(save_value, "to", partial(extract_attribute, "/iq", "to"))),
                      # Respond to the request, using the extracted 'to' value as our 'from'
                      partial(send_stanza,
-                             "<iq type='result' to='{lower_nick_one}!{irc_server_one}' id='gnip_dnoces' from='{to}'/>"),
+                             "<iq type='result' to='{lower_nick_one}%{irc_server_one}' id='gnip_dnoces' from='{to}'/>"),
                      partial(expect_stanza,
                              "/iq[@from='#foo%{irc_server_one}/{nick_one}'][@type='result'][@to='{jid_one}/{resource_one}'][@id='second_ping']"),
                      ## And re-do exactly the same thing, just change the resource initiating the self ping
                      partial(send_stanza,
                              "<iq type='get' from='{jid_one}/{resource_two}' id='third_ping' to='#foo%{irc_server_one}/{nick_one}'><ping xmlns='urn:xmpp:ping' /></iq>"),
                      partial(expect_stanza,
-                             "/iq[@from='{lower_nick_one}!{irc_server_one}'][@type='get'][@to][@id='gnip_driht']",
+                             "/iq[@from='{lower_nick_one}%{irc_server_one}'][@type='get'][@to][@id='gnip_driht']",
                              after = partial(save_value, "to", partial(extract_attribute, "/iq", "to"))),
                      partial(send_stanza,
-                             "<iq type='result' to='{lower_nick_one}!{irc_server_one}' id='gnip_driht' from='{to}'/>"),
+                             "<iq type='result' to='{lower_nick_one}%{irc_server_one}' id='gnip_driht' from='{to}'/>"),
                      partial(expect_stanza,
                              "/iq[@from='#foo%{irc_server_one}/{nick_one}'][@type='result'][@to='{jid_one}/{resource_two}'][@id='third_ping']"),
 
@@ -836,34 +975,30 @@ if __name__ == '__main__':
                      partial(send_stanza,
                      "<presence from='{jid_two}/{resource_one}' to='#foo%{irc_server_one}/{nick_two}' />"),
                      connection_sequence("irc.localhost", '{jid_two}/{resource_one}'),
-                     partial(expect_stanza,
-                     "/presence/muc_user:x/muc_user:item[@affiliation='none'][@role='participant']",),
-
-                     partial(expect_stanza,
-                     "/presence/muc_user:x/muc_user:item[@affiliation='admin'][@role='moderator']"),
-                     partial(expect_stanza,
-                     "/presence/muc_user:x/muc_user:status[@code='110']"),
-                     partial(expect_stanza, "/message/subject"),
+                     partial(expect_unordered, [
+                         ("/presence/muc_user:x/muc_user:item[@affiliation='none'][@role='participant']",),
+                         ("/presence/muc_user:x/muc_user:item[@affiliation='admin'][@role='moderator']",),
+                         ("/presence/muc_user:x/muc_user:status[@code='110']",),
+                         ("/message/subject",),
+                         ]),
 
                      # Moderator kicks participant
                      partial(log_message, "Moderator kicks participant"),
                      partial(send_stanza,
                      "<iq id='kick1' to='#foo%{irc_server_one}' from='{jid_one}/{resource_one}' type='set'><query xmlns='http://jabber.org/protocol/muc#admin'><item nick='{nick_two}' role='none'><reason>reported</reason></item></query></iq>"),
                      partial(log_message, "Presence is sent to everyone"),
-                     partial(expect_stanza,
-                             ("/presence[@type='unavailable'][@to='{jid_second}/{resource_one}']/muc_user:x/muc_user:item[@role='none']/muc_user:actor[@nick='{nick_one}']",
+                     partial(expect_unordered, [
+                             ("/presence[@type='unavailable'][@to='{jid_two}/{resource_one}']/muc_user:x/muc_user:item[@role='none']/muc_user:actor[@nick='{nick_one}']",
                               "/presence/muc_user:x/muc_user:item/muc_user:reason[text()='reported']",
                               "/presence/muc_user:x/muc_user:status[@code='307']",
                               "/presence/muc_user:x/muc_user:status[@code='110']"
-                             )),
-                     partial(expect_stanza,
-                             ("/presence[@type='unavailable']/muc_user:x/muc_user:item[@role='none']/muc_user:actor[@nick='{nick_one}']",
+                             ),
+                             ("/presence[@type='unavailable'][@to='{jid_one}/{resource_one}']/muc_user:x/muc_user:item[@role='none']/muc_user:actor[@nick='{nick_one}']",
                               "/presence/muc_user:x/muc_user:item/muc_user:reason[text()='reported']",
                               "/presence/muc_user:x/muc_user:status[@code='307']",
                               ),
-                             ),
-                     partial(expect_stanza,
-                     "/iq[@id='kick1'][@type='result']"),
+                             ("/iq[@id='kick1'][@type='result']",),
+                     ]),
                 ]),
                 Scenario("multisession_kick",
                  [
@@ -876,18 +1011,16 @@ if __name__ == '__main__':
                      partial(expect_stanza, "/presence/muc_user:x/muc_user:status[@code='110']"),
                      partial(expect_stanza, "/message[@type='groupchat']/subject"),
 
-                     # Second user joins, from two resources
+                     # Second user joins, fprom two resources
                      partial(send_stanza,
                              "<presence from='{jid_two}/{resource_one}' to='#foo%{irc_server_one}/{nick_two}' />"),
                      connection_sequence("irc.localhost", '{jid_two}/{resource_one}'),
-                     partial(expect_stanza,
-                             "/presence/muc_user:x/muc_user:item[@affiliation='none'][@role='participant']",),
-
-                     partial(expect_stanza,
-                             "/presence/muc_user:x/muc_user:item[@affiliation='admin'][@role='moderator']"),
-                     partial(expect_stanza,
-                             "/presence/muc_user:x/muc_user:status[@code='110']"),
-                     partial(expect_stanza, "/message/subject"),
+                     partial(expect_unordered, [
+                         ("/presence/muc_user:x/muc_user:item[@affiliation='none'][@role='participant']",),
+                         ("/presence/muc_user:x/muc_user:item[@affiliation='admin'][@role='moderator']",),
+                         ("/presence/muc_user:x/muc_user:status[@code='110']",),
+                         ("/message/subject",),
+                     ]),
 
                      partial(send_stanza,
                              "<presence from='{jid_two}/{resource_two}' to='#foo%{irc_server_one}/{nick_two}' />"),
@@ -904,26 +1037,23 @@ if __name__ == '__main__':
                      partial(send_stanza,
                              "<iq id='kick1' to='#foo%{irc_server_one}' from='{jid_one}/{resource_one}' type='set'><query xmlns='http://jabber.org/protocol/muc#admin'><item nick='{nick_two}' role='none'><reason>reported</reason></item></query></iq>"),
                      partial(log_message, "Unavailable presence is sent to the two resources"),
-                     partial(expect_stanza,
-                             ("/presence[@type='unavailable'][@to='{jid_second}/{resource_one}']/muc_user:x/muc_user:item[@role='none']/muc_user:actor[@nick='{nick_one}']",
+                     partial(expect_unordered, [
+                             ("/presence[@type='unavailable'][@to='{jid_two}/{resource_one}']/muc_user:x/muc_user:item[@role='none']/muc_user:actor[@nick='{nick_one}']",
                               "/presence/muc_user:x/muc_user:item/muc_user:reason[text()='reported']",
                               "/presence/muc_user:x/muc_user:status[@code='307']",
                               "/presence/muc_user:x/muc_user:status[@code='110']"
-                              )),
-                     partial(expect_stanza,
-                             ("/presence[@type='unavailable'][@to='{jid_second}/{resource_two}']/muc_user:x/muc_user:item[@role='none']/muc_user:actor[@nick='{nick_one}']",
+                              ),
+                             ("/presence[@type='unavailable'][@to='{jid_two}/{resource_two}']/muc_user:x/muc_user:item[@role='none']/muc_user:actor[@nick='{nick_one}']",
                               "/presence/muc_user:x/muc_user:item/muc_user:reason[text()='reported']",
                               "/presence/muc_user:x/muc_user:status[@code='307']",
                               "/presence/muc_user:x/muc_user:status[@code='110']"
-                              )),
-                     partial(expect_stanza,
+                              ),
                              ("/presence[@type='unavailable']/muc_user:x/muc_user:item[@role='none']/muc_user:actor[@nick='{nick_one}']",
                               "/presence/muc_user:x/muc_user:item/muc_user:reason[text()='reported']",
                               "/presence/muc_user:x/muc_user:status[@code='307']",
                               ),
-                             ),
-                     partial(expect_stanza,
-                             "/iq[@id='kick1'][@type='result']"),
+                             ("/iq[@id='kick1'][@type='result']",),
+                             ]),
                  ]),
                 Scenario("self_version",
                  [
@@ -944,11 +1074,11 @@ if __name__ == '__main__':
                              "<iq type='get' from='{jid_one}/{resource_one}' id='first_version' to='#foo%{irc_server_one}/{nick_one}'><query xmlns='jabber:iq:version' /></iq>"),
                      # We receive our own request,
                      partial(expect_stanza,
-                             "/iq[@from='{lower_nick_one}!{irc_server_one}'][@type='get'][@to='{jid_one}/{resource_one}']",
+                             "/iq[@from='{lower_nick_one}%{irc_server_one}'][@type='get'][@to='{jid_one}/{resource_one}']",
                              after = partial(save_value, "id", partial(extract_attribute, "/iq", 'id'))),
                      # Respond to the request
                      partial(send_stanza,
-                             "<iq type='result' to='{lower_nick_one}!{irc_server_one}' id='{id}' from='{jid_one}/{resource_one}'><query xmlns='jabber:iq:version'><name>e2e test</name><version>1.0</version><os>Fedora</os></query></iq>"),
+                             "<iq type='result' to='{lower_nick_one}%{irc_server_one}' id='{id}' from='{jid_one}/{resource_one}'><query xmlns='jabber:iq:version'><name>e2e test</name><version>1.0</version><os>Fedora</os></query></iq>"),
                      partial(expect_stanza,
                              "/iq[@from='#foo%{irc_server_one}/{nick_one}'][@type='result'][@to='{jid_one}/{resource_one}'][@id='first_version']/version:query/version:name[text()='e2e test (through the biboumi gateway) 1.0 Fedora']"),
 
@@ -966,12 +1096,12 @@ if __name__ == '__main__':
                              "<iq type='get' from='{jid_one}/{resource_two}' id='second_version' to='#foo%{irc_server_one}/{nick_one}'><query xmlns='jabber:iq:version' /></iq>"),
                      # We receive our own request. Note that we don't know the to value, it could be one of our two resources.
                      partial(expect_stanza,
-                             "/iq[@from='{lower_nick_one}!{irc_server_one}'][@type='get'][@to]",
+                             "/iq[@from='{lower_nick_one}%{irc_server_one}'][@type='get'][@to]",
                              after = (partial(save_value, "to", partial(extract_attribute, "/iq", "to")),
                                       partial(save_value, "id", partial(extract_attribute, "/iq", "id")))),
                      # Respond to the request, using the extracted 'to' value as our 'from'
                      partial(send_stanza,
-                             "<iq type='result' to='{lower_nick_one}!{irc_server_one}' id='{id}' from='{to}'><query xmlns='jabber:iq:version'><name>e2e test</name><version>1.0</version><os>Fedora</os></query></iq>"),
+                             "<iq type='result' to='{lower_nick_one}%{irc_server_one}' id='{id}' from='{to}'><query xmlns='jabber:iq:version'><name>e2e test</name><version>1.0</version><os>Fedora</os></query></iq>"),
                      partial(expect_stanza,
                              "/iq[@from='#foo%{irc_server_one}/{nick_one}'][@type='result'][@to='{jid_one}/{resource_two}'][@id='second_version']"),
 
@@ -980,19 +1110,755 @@ if __name__ == '__main__':
                              "<iq type='get' from='{jid_one}/{resource_one}' id='second_version' to='#foo%{irc_server_one}/{nick_one}'><query xmlns='jabber:iq:version' /></iq>"),
                      # We receive our own request. Note that we don't know the to value, it could be one of our two resources.
                      partial(expect_stanza,
-                             "/iq[@from='{lower_nick_one}!{irc_server_one}'][@type='get'][@to]",
+                             "/iq[@from='{lower_nick_one}%{irc_server_one}'][@type='get'][@to]",
                              after = (partial(save_value, "to", partial(extract_attribute, "/iq", "to")),
                                       partial(save_value, "id", partial(extract_attribute, "/iq", "id")))),
                      # Respond to the request, using the extracted 'to' value as our 'from'
                      partial(send_stanza,
-                             "<iq type='result' to='{lower_nick_one}!{irc_server_one}' id='{id}' from='{to}'><query xmlns='jabber:iq:version'><name>e2e test</name><version>1.0</version><os>Fedora</os></query></iq>"),
+                             "<iq type='result' to='{lower_nick_one}%{irc_server_one}' id='{id}' from='{to}'><query xmlns='jabber:iq:version'><name>e2e test</name><version>1.0</version><os>Fedora</os></query></iq>"),
                      partial(expect_stanza,
                              "/iq[@from='#foo%{irc_server_one}/{nick_one}'][@type='result'][@to='{jid_one}/{resource_one}'][@id='second_version']"),
                  ]),
+                Scenario("version_on_global_nick",
+                [
+                    partial(log_message, "Joining the channel"),
+                    handshake_sequence(),
+                    partial(send_stanza,
+                            "<presence from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}/{nick_one}' />"),
+                    connection_sequence("irc.localhost", '{jid_one}/{resource_one}'),
+                    partial(expect_stanza,
+                            "/message/body[text()='Mode #foo [+nt] by {irc_host_one}']"),
+                    partial(expect_stanza,
+                            ("/presence[@to='{jid_one}/{resource_one}'][@from='#foo%{irc_server_one}/{nick_one}']/muc_user:x/muc_user:item[@affiliation='admin'][@role='moderator']",
+                             "/presence/muc_user:x/muc_user:status[@code='110']")
+                            ),
+                    partial(expect_stanza, "/message[@from='#foo%{irc_server_one}'][@type='groupchat']/subject[not(text())]"),
+
+                    partial(log_message, "Send a version request to ourself"),
+                     partial(send_stanza,
+                             "<iq type='get' from='{jid_one}/{resource_one}' id='first_version' to='{lower_nick_one}%{irc_server_one}'><query xmlns='jabber:iq:version' /></iq>"),
+
+                     partial(log_message, "Receive our own request"),
+                     partial(expect_stanza,
+                             "/iq[@from='{lower_nick_one}%{irc_server_one}'][@type='get'][@to='{jid_one}/{resource_one}']",
+                             after = partial(save_value, "id", partial(extract_attribute, "/iq", 'id'))),
+                     partial(log_message, "Respond to the request"),
+                     partial(send_stanza,
+                             "<iq type='result' to='{lower_nick_one}%{irc_server_one}' id='{id}' from='{jid_one}/{resource_one}'><query xmlns='jabber:iq:version'><name>e2e test</name><version>1.0</version><os>Fedora</os></query></iq>"),
+                     partial(expect_stanza,
+                             "/iq[@from='{lower_nick_one}%{irc_server_one}'][@type='result'][@to='{jid_one}/{resource_one}'][@id='first_version']/version:query/version:name[text()='e2e test (through the biboumi gateway) 1.0 Fedora']"),
+
+                ]),
+                Scenario("self_invite",
+                [
+                    handshake_sequence(),
+                    partial(send_stanza,
+                            "<presence from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}/{nick_one}' />"),
+                    connection_sequence("irc.localhost", '{jid_one}/{resource_one}'),
+                    partial(expect_stanza,
+                            "/message/body[text()='Mode #foo [+nt] by {irc_host_one}']"),
+                    partial(expect_stanza,
+                            ("/presence[@to='{jid_one}/{resource_one}'][@from='#foo%{irc_server_one}/{nick_one}']/muc_user:x/muc_user:item[@affiliation='admin'][@role='moderator']",
+                             "/presence/muc_user:x/muc_user:status[@code='110']")
+                            ),
+                    partial(expect_stanza, "/message[@from='#foo%{irc_server_one}'][@type='groupchat']/subject[not(text())]"),
+                    partial(send_stanza,
+                            "<message from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}'><x xmlns='http://jabber.org/protocol/muc#user'><invite to='{nick_one}'/></x></message>"),
+                    partial(expect_stanza,
+                            "/message/body[text()='{nick_one} is already on channel #foo']")
+                ]),
+                Scenario("client_error",
+                [
+                    handshake_sequence(),
+                    # First resource
+                    partial(send_stanza,
+                            "<presence from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}/{nick_one}' />"),
+                    connection_sequence("irc.localhost", '{jid_one}/{resource_one}'),
+                    partial(expect_stanza,
+                            "/message/body[text()='Mode #foo [+nt] by {irc_host_one}']"),
+                    partial(expect_stanza,
+                            ("/presence[@to='{jid_one}/{resource_one}'][@from='#foo%{irc_server_one}/{nick_one}']/muc_user:x/muc_user:item[@affiliation='admin'][@role='moderator']",
+                             "/presence/muc_user:x/muc_user:status[@code='110']")
+                            ),
+                    partial(expect_stanza, "/message[@from='#foo%{irc_server_one}'][@type='groupchat']/subject[not(text())]"),
+
+                    # Second resource, same channel
+                    partial(send_stanza,
+                            "<presence from='{jid_one}/{resource_two}' to='#foo%{irc_server_one}/{nick_one}' />"),
+                    partial(expect_stanza,
+                            ("/presence[@to='{jid_one}/{resource_two}'][@from='#foo%{irc_server_one}/{nick_one}']/muc_user:x/muc_user:item[@affiliation='admin'][@role='moderator']",
+                             "/presence/muc_user:x/muc_user:status[@code='110']")
+                            ),
+                    partial(expect_stanza, "/message[@from='#foo%{irc_server_one}'][@type='groupchat'][@to='{jid_one}/{resource_two}']/subject[not(text())]"),
+
+                    # Now the first resource has an error
+                    partial(send_stanza,
+                            "<message from='{jid_one}/{resource_one}' to='#foo%%{irc_server_one}/{nick_one}' type='error'><error type='cancel'><recipient-unavailable xmlns='urn:ietf:params:xml:ns:xmpp-stanzas'/></error></message>"),
+                    # Receive a leave only to the leaving resource
+                    partial(expect_stanza,
+                            ("/presence[@type='unavailable'][@from='#foo%{irc_server_one}/{nick_one}'][@to='{jid_one}/{resource_one}']/muc_user:x/muc_user:status[@code='110']",
+                             "/presence/status[text()='Biboumi note: 1 resources are still in this channel.']")
+                            ),
+                ]),
+                Scenario("simple_mam",
+                [
+                    handshake_sequence(),
+                    partial(send_stanza,
+                            "<presence from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}/{nick_one}' />"),
+                    connection_sequence("irc.localhost", '{jid_one}/{resource_one}'),
+                    partial(expect_stanza,
+                            "/message/body[text()='Mode #foo [+nt] by {irc_host_one}']"),
+                    partial(expect_stanza,
+                            ("/presence[@to='{jid_one}/{resource_one}'][@from='#foo%{irc_server_one}/{nick_one}']/muc_user:x/muc_user:item[@affiliation='admin'][@role='moderator']",
+                             "/presence/muc_user:x/muc_user:status[@code='110']")
+                            ),
+                    partial(expect_stanza, "/message[@from='#foo%{irc_server_one}'][@type='groupchat']/subject[not(text())]"),
+
+                    # Send two channel messages
+                    partial(send_stanza, "<message from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}' type='groupchat'><body>coucou</body></message>"),
+                    partial(expect_stanza, "/message[@from='#foo%{irc_server_one}/{nick_one}'][@to='{jid_one}/{resource_one}'][@type='groupchat']/body[text()='coucou']"),
+
+                    partial(send_stanza, "<message from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}' type='groupchat'><body>coucou 2</body></message>"),
+                    partial(expect_stanza, "/message[@from='#foo%{irc_server_one}/{nick_one}'][@to='{jid_one}/{resource_one}'][@type='groupchat']/body[text()='coucou 2']"),
+
+                    # Retrieve the complete archive
+                    partial(send_stanza, "<iq to='#foo%{irc_server_one}' from='{jid_one}/{resource_one}' type='set' id='id1'><query xmlns='urn:xmpp:mam:1' queryid='qid1' /></iq>"),
+
+                    partial(expect_stanza,
+                            ("/message/mam:result[@queryid='qid1']/forward:forwarded/delay:delay",
+                            "/message/mam:result[@queryid='qid1']/forward:forwarded/client:message[@from='#foo%{irc_server_one}/{nick_one}'][@type='groupchat']/client:body[text()='coucou']")
+                            ),
+                    partial(expect_stanza,
+                            ("/message/mam:result[@queryid='qid1']/forward:forwarded/delay:delay",
+                            "/message/mam:result[@queryid='qid1']/forward:forwarded/client:message[@from='#foo%{irc_server_one}/{nick_one}'][@type='groupchat']/client:body[text()='coucou 2']")
+                            ),
+
+                    partial(expect_stanza,
+                            "/iq[@type='result'][@id='id1'][@from='#foo%{irc_server_one}'][@to='{jid_one}/{resource_one}']"),
+
+                    # Retrieve an empty archive by specifying an early “end” date
+                    partial(send_stanza, """<iq to='#foo%{irc_server_one}' from='{jid_one}/{resource_one}' type='set' id='id2'>
+                    <query xmlns='urn:xmpp:mam:1' queryid='qid2'>
+                    <x xmlns='jabber:x:data' type='submit'>
+                    <field var='FORM_TYPE' type='hidden'> <value>urn:xmpp:mam:1</value></field>
+                    <field var='end'><value>2000-06-07T00:00:00Z</value></field>
+                    </x>
+                    </query></iq>"""),
+
+                    partial(expect_stanza,
+                            "/iq[@type='result'][@id='id2'][@from='#foo%{irc_server_one}'][@to='{jid_one}/{resource_one}']"),
+
+                    # Retrieve an empty archive by specifying a late “start” date
+                    # (note that this test will break in ~1000 years)
+                    partial(send_stanza, """<iq to='#foo%{irc_server_one}' from='{jid_one}/{resource_one}' type='set' id='id3'>
+                    <query xmlns='urn:xmpp:mam:1' queryid='qid3'>
+                    <x xmlns='jabber:x:data' type='submit'>
+                    <field var='FORM_TYPE' type='hidden'> <value>urn:xmpp:mam:1</value></field>
+                    <field var='start'><value>3016-06-07T00:00:00Z</value></field>
+                    </x>
+                    </query></iq>"""),
+
+                    partial(expect_stanza,
+                            "/iq[@type='result'][@id='id3'][@from='#foo%{irc_server_one}'][@to='{jid_one}/{resource_one}']"),
+                ]),
+        Scenario("mam_on_fixed_server",
+                 [
+                     handshake_sequence(),
+
+                     partial(send_stanza,
+                             "<presence from='{jid_one}/{resource_one}' to='#foo@{biboumi_host}/{nick_one}' />"),
+                     connection_sequence("irc.localhost", '{jid_one}/{resource_one}'),
+                     partial(expect_stanza,
+                             "/message/body[text()='Mode #foo [+nt] by {irc_host_one}']"),
+                     partial(expect_stanza,
+                             ("/presence[@to='{jid_one}/{resource_one}'][@from='#foo@{biboumi_host}/{nick_one}']/muc_user:x/muc_user:item[@affiliation='admin'][@role='moderator']",
+                              "/presence/muc_user:x/muc_user:status[@code='110']")
+                             ),
+                     partial(expect_stanza, "/message[@from='#foo@{biboumi_host}'][@type='groupchat']/subject[not(text())]"),
+
+                     partial(send_stanza, "<message from='{jid_one}/{resource_one}' to='#foo@{biboumi_host}' type='groupchat'><body>coucou</body></message>"),
+                     partial(expect_stanza, "/message[@from='#foo@{biboumi_host}/{nick_one}'][@to='{jid_one}/{resource_one}'][@type='groupchat']/body[text()='coucou']"),
+
+                     partial(send_stanza, "<message from='{jid_one}/{resource_one}' to='#foo@{biboumi_host}' type='groupchat'><body>coucou 2</body></message>"),
+                     partial(expect_stanza, "/message[@from='#foo@{biboumi_host}/{nick_one}'][@to='{jid_one}/{resource_one}'][@type='groupchat']/body[text()='coucou 2']"),
+
+                     # Retrieve the complete archive
+                     partial(send_stanza, "<iq to='#foo@{biboumi_host}' from='{jid_one}/{resource_one}' type='set' id='id1'><query xmlns='urn:xmpp:mam:1' queryid='qid1' /></iq>"),
+
+                     partial(expect_stanza,
+                             ("/message/mam:result[@queryid='qid1']/forward:forwarded/delay:delay",
+                              "/message/mam:result[@queryid='qid1']/forward:forwarded/client:message[@from='#foo@{biboumi_host}/{nick_one}'][@type='groupchat']/client:body[text()='coucou']")
+                             ),
+                     partial(expect_stanza,
+                             ("/message/mam:result[@queryid='qid1']/forward:forwarded/delay:delay",
+                              "/message/mam:result[@queryid='qid1']/forward:forwarded/client:message[@from='#foo@{biboumi_host}/{nick_one}'][@type='groupchat']/client:body[text()='coucou 2']")
+                             ),
+                 ], conf="fixed_server"),
+        Scenario("channel_history_on_fixed_server",
+                 [
+                     handshake_sequence(),
+                     # First user join
+                     partial(send_stanza,
+                             "<presence from='{jid_one}/{resource_one}' to='#foo@{biboumi_host}/{nick_one}' />"),
+                     connection_sequence("irc.localhost", '{jid_one}/{resource_one}'),
+                     partial(expect_stanza,
+                             "/message/body[text()='Mode #foo [+nt] by {irc_host_one}']"),
+                     partial(expect_stanza,
+                             ("/presence[@to='{jid_one}/{resource_one}'][@from='#foo@{biboumi_host}/{nick_one}']/muc_user:x/muc_user:item[@affiliation='admin'][@jid='~nick@localhost'][@role='moderator']",
+                              "/presence/muc_user:x/muc_user:status[@code='110']")
+                             ),
+                     partial(expect_stanza, "/message[@from='#foo@{biboumi_host}'][@type='groupchat']/subject[not(text())]"),
+
+                     # Send one channel message
+                     partial(send_stanza, "<message from='{jid_one}/{resource_one}' to='#foo@{biboumi_host}' type='groupchat'><body>coucou</body></message>"),
+                     partial(expect_stanza, "/message[@from='#foo@{biboumi_host}/{nick_one}'][@to='{jid_one}/{resource_one}'][@type='groupchat']/body[text()='coucou']"),
+
+                     # Second user joins
+                     partial(send_stanza,
+                             "<presence from='{jid_one}/{resource_two}' to='#foo@{biboumi_host}/{nick_one}' />"),
+                     # connection_sequence("irc.localhost", '{jid_one}/{resource_two}'),
+                     # partial(expect_stanza,
+                     #         "/message/body[text()='Mode #foo [+nt] by {irc_host_one}']"),
+                     partial(expect_stanza,
+                             ("/presence[@to='{jid_one}/{resource_two}'][@from='#foo@{biboumi_host}/{nick_one}']/muc_user:x/muc_user:item[@affiliation='admin'][@jid='~nick@localhost'][@role='moderator']",
+                              "/presence/muc_user:x/muc_user:status[@code='110']")
+                             ),
+                     # Receive the history message
+                     partial(expect_stanza, ("/message[@from='#foo@{biboumi_host}/{nick_one}']/body[text()='coucou']",
+                                             "/message/delay:delay[@from='#foo@{biboumi_host}']")),
+
+                     partial(expect_stanza, "/message[@from='#foo@{biboumi_host}'][@type='groupchat']/subject[not(text())]"),
+                 ], conf="fixed_server"),
+    Scenario("channel_history",
+             [
+                 handshake_sequence(),
+                 # First user join
+                 partial(send_stanza,
+                         "<presence from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}/{nick_one}' />"),
+                 connection_sequence("irc.localhost", '{jid_one}/{resource_one}'),
+                 partial(expect_stanza,
+                         "/message/body[text()='Mode #foo [+nt] by {irc_host_one}']"),
+                 partial(expect_stanza,
+                         ("/presence[@to='{jid_one}/{resource_one}'][@from='#foo%{irc_server_one}/{nick_one}']/muc_user:x/muc_user:item[@affiliation='admin'][@jid='~nick@localhost'][@role='moderator']",
+                          "/presence/muc_user:x/muc_user:status[@code='110']")
+                         ),
+                 partial(expect_stanza, "/message[@from='#foo%{irc_server_one}'][@type='groupchat']/subject[not(text())]"),
+
+                 # Send one channel message
+                 partial(send_stanza, "<message from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}' type='groupchat'><body>coucou</body></message>"),
+                 partial(expect_stanza, "/message[@from='#foo%{irc_server_one}/{nick_one}'][@to='{jid_one}/{resource_one}'][@type='groupchat']/body[text()='coucou']"),
+
+                 # Second user joins
+                 partial(send_stanza,
+                         "<presence from='{jid_one}/{resource_two}' to='#foo%{irc_server_one}/{nick_one}' />"),
+                 # connection_sequence("irc.localhost", '{jid_one}/{resource_two}'),
+                 # partial(expect_stanza,
+                 #         "/message/body[text()='Mode #foo [+nt] by {irc_host_one}']"),
+                 partial(expect_stanza,
+                         ("/presence[@to='{jid_one}/{resource_two}'][@from='#foo%{irc_server_one}/{nick_one}']/muc_user:x/muc_user:item[@affiliation='admin'][@jid='~nick@localhost'][@role='moderator']",
+                          "/presence/muc_user:x/muc_user:status[@code='110']")
+                         ),
+                 # Receive the history message
+                 partial(expect_stanza, ("/message[@from='#foo%{irc_server_one}/{nick_one}']/body[text()='coucou']",
+                                         "/message/delay:delay[@from='#foo%{irc_server_one}']")),
+
+                 partial(expect_stanza, "/message[@from='#foo%{irc_server_one}'][@type='groupchat']/subject[not(text())]"),
+             ]),
+        Scenario("simple_channel_list",
+                 [
+                     handshake_sequence(),
+
+                     partial(log_message, "Join first channel #foo"),
+                     partial(send_stanza,
+                             "<presence from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}/{nick_one}' />"),
+                     connection_sequence("irc.localhost", '{jid_one}/{resource_one}'),
+                     partial(expect_stanza,
+                             "/message/body[text()='Mode #foo [+nt] by {irc_host_one}']"),
+                     partial(expect_stanza,
+                             ("/presence[@to='{jid_one}/{resource_one}'][@from='#foo%{irc_server_one}/{nick_one}']/muc_user:x/muc_user:item[@affiliation='admin'][@role='moderator']",
+                             "/presence/muc_user:x/muc_user:status[@code='110']")
+                             ),
+                     partial(expect_stanza, "/message[@from='#foo%{irc_server_one}'][@type='groupchat']/subject[not(text())]"),
+
+                     partial(log_message, "Join second channel #bar"),
+                     partial(send_stanza,
+                             "<presence from='{jid_one}/{resource_one}' to='#bar%{irc_server_one}/{nick_one}' />"),
+                     partial(expect_stanza,
+                             "/message/body[text()='Mode #bar [+nt] by {irc_host_one}']"),
+                     partial(expect_stanza, "/presence"),
+                     partial(expect_stanza, "/message[@from='#bar%{irc_server_one}'][@type='groupchat']/subject[not(text())]"),
+
+                     partial(log_message, "Request the whole channel list"),
+                     partial(send_stanza, "<iq from='{jid_one}/{resource_one}' id='id1' to='{irc_server_one}' type='get'><query xmlns='http://jabber.org/protocol/disco#items'/></iq>"),
+                     partial(expect_stanza, (
+                         "/iq[@type='result']/disco_items:query",
+                         "/iq/disco_items:query/disco_items:item[@jid='#foo%{irc_server_one}']",
+                         "/iq/disco_items:query/disco_items:item[@jid='#bar%{irc_server_one}']"
+                     ))
+                 ]),
+        Scenario("channel_list_with_rsm",
+                 [
+                     handshake_sequence(),
+
+                     partial(log_message, "Join first channel #foo"),
+                     partial(send_stanza,
+                             "<presence from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}/{nick_one}' />"),
+                     connection_sequence("irc.localhost", '{jid_one}/{resource_one}'),
+                     partial(expect_stanza,
+                             "/message/body[text()='Mode #foo [+nt] by {irc_host_one}']"),
+                     partial(expect_stanza,
+                             ("/presence[@to='{jid_one}/{resource_one}'][@from='#foo%{irc_server_one}/{nick_one}']/muc_user:x/muc_user:item[@affiliation='admin'][@role='moderator']",
+                             "/presence/muc_user:x/muc_user:status[@code='110']")
+                             ),
+                     partial(expect_stanza, "/message[@from='#foo%{irc_server_one}'][@type='groupchat']/subject[not(text())]"),
+
+                     partial(log_message, "Join second channel #bar"),
+                     partial(send_stanza,
+                             "<presence from='{jid_one}/{resource_one}' to='#bar%{irc_server_one}/{nick_one}' />"),
+                     partial(expect_stanza,
+                             "/message/body[text()='Mode #bar [+nt] by {irc_host_one}']"),
+                     partial(expect_stanza, "/presence"),
+                     partial(expect_stanza, "/message[@from='#bar%{irc_server_one}'][@type='groupchat']/subject[not(text())]"),
+
+                     partial(log_message, "Join third channel #coucou"),
+                     partial(send_stanza,
+                             "<presence from='{jid_one}/{resource_one}' to='#coucou%{irc_server_one}/{nick_one}' />"),
+                     partial(expect_stanza,
+                             "/message/body[text()='Mode #coucou [+nt] by {irc_host_one}']"),
+                     partial(expect_stanza, "/presence"),
+                     partial(expect_stanza, "/message[@from='#coucou%{irc_server_one}'][@type='groupchat']/subject[not(text())]"),
+
+                     partial(log_message, "Request with max=0"),
+                     partial(send_stanza, "<iq from='{jid_one}/{resource_one}' id='id1' to='{irc_server_one}' type='get'><query xmlns='http://jabber.org/protocol/disco#items'><set xmlns='http://jabber.org/protocol/rsm'><max>0</max></set></query></iq>"),
+                     partial(expect_stanza, (
+                         "/iq[@type='result']/disco_items:query",
+                         )),
+
+                     partial(log_message, "Request with max=2"),
+                     partial(send_stanza, "<iq from='{jid_one}/{resource_one}' id='id1' to='{irc_server_one}' type='get'><query xmlns='http://jabber.org/protocol/disco#items'><set xmlns='http://jabber.org/protocol/rsm'><max>2</max></set></query></iq>"),
+                     partial(expect_stanza, (
+                         "/iq[@type='result']/disco_items:query",
+                         "/iq/disco_items:query/disco_items:item[@jid='#bar%{irc_server_one}']",
+                         "/iq/disco_items:query/disco_items:item[@jid='#coucou%{irc_server_one}']",
+                         "/iq/disco_items:query/rsm:set/rsm:first[text()='#bar%{irc_server_one}'][@index='0']",
+                         "/iq/disco_items:query/rsm:set/rsm:last[text()='#coucou%{irc_server_one}']",
+                         "/iq/disco_items:query/rsm:set/rsm:count[text()='3']"
+                     )),
+
+                     partial(log_message, "Request with max=12"),
+                     partial(send_stanza, "<iq from='{jid_one}/{resource_one}' id='id1' to='{irc_server_one}' type='get'><query xmlns='http://jabber.org/protocol/disco#items'><set xmlns='http://jabber.org/protocol/rsm'><max>12</max></set></query></iq>"),
+                     partial(expect_stanza, (
+                         "/iq[@type='result']/disco_items:query",
+                         "/iq/disco_items:query/disco_items:item[@jid='#bar%{irc_server_one}']",
+                         "/iq/disco_items:query/disco_items:item[@jid='#coucou%{irc_server_one}']",
+                         "/iq/disco_items:query/disco_items:item[@jid='#foo%{irc_server_one}']",
+                         "/iq/disco_items:query/rsm:set/rsm:first[text()='#bar%{irc_server_one}'][@index='0']",
+                         "/iq/disco_items:query/rsm:set/rsm:last[text()='#foo%{irc_server_one}']",
+                         "/iq/disco_items:query/rsm:set/rsm:count[text()='3']"
+                     )),
+
+                     partial(log_message, "Request with max=1 after=#bar"),
+                     partial(send_stanza, "<iq from='{jid_one}/{resource_one}' id='id1' to='{irc_server_one}' type='get'><query xmlns='http://jabber.org/protocol/disco#items'><set xmlns='http://jabber.org/protocol/rsm'><after>#bar%{irc_server_one}</after><max>1</max></set></query></iq>"),
+                     partial(expect_stanza, (
+                         "/iq[@type='result']/disco_items:query",
+                         "/iq/disco_items:query/disco_items:item[@jid='#coucou%{irc_server_one}']",
+                         "/iq/disco_items:query/rsm:set/rsm:first[text()='#coucou%{irc_server_one}'][@index='1']",
+                         "/iq/disco_items:query/rsm:set/rsm:last[text()='#coucou%{irc_server_one}']",
+                         "/iq/disco_items:query/rsm:set/rsm:count[text()='3']"
+                     )),
+
+                     partial(log_message, "Request with max=1 after=#bar"),
+                     partial(send_stanza, "<iq from='{jid_one}/{resource_one}' id='id1' to='{irc_server_one}' type='get'><query xmlns='http://jabber.org/protocol/disco#items'><set xmlns='http://jabber.org/protocol/rsm'><after>#bar%{irc_server_one}</after><max>1</max></set></query></iq>"),
+                     partial(expect_stanza, (
+                         "/iq[@type='result']/disco_items:query",
+                         "/iq/disco_items:query/disco_items:item[@jid='#coucou%{irc_server_one}']",
+                         "/iq/disco_items:query/rsm:set/rsm:first[text()='#coucou%{irc_server_one}'][@index='1']",
+                         "/iq/disco_items:query/rsm:set/rsm:last[text()='#coucou%{irc_server_one}']",
+                         "/iq/disco_items:query/rsm:set/rsm:count[text()='3']"
+                     ))
+                 ]),
+                Scenario("complete_channel_list_with_pages_of_3",
+                 [
+                     handshake_sequence(),
+
+                     partial(log_message, "Join 10 channels"),
+                     partial(send_stanza,
+                             "<presence from='{jid_one}/{resource_one}' to='#aaa%{irc_server_one}/{nick_one}' />"),
+                     connection_sequence("irc.localhost", '{jid_one}/{resource_one}'),
+                     partial(expect_stanza, "/message"),
+                     partial(expect_stanza, "/presence"),
+                     partial(expect_stanza, "/message"),
+
+                     partial(send_stanza,
+                             "<presence from='{jid_one}/{resource_one}' to='#bbb%{irc_server_one}/{nick_one}' />"),
+                     partial(expect_stanza, "/message"),
+                     partial(expect_stanza, "/presence"),
+                     partial(expect_stanza, "/message"),
+
+                     partial(send_stanza,
+                             "<presence from='{jid_one}/{resource_one}' to='#ccc%{irc_server_one}/{nick_one}' />"),
+                     partial(expect_stanza, "/message"),
+                     partial(expect_stanza, "/presence"),
+                     partial(expect_stanza, "/message"),
+
+                     partial(send_stanza,
+                             "<presence from='{jid_one}/{resource_one}' to='#ddd%{irc_server_one}/{nick_one}' />"),
+                     partial(expect_stanza, "/message"),
+                     partial(expect_stanza, "/presence"),
+                     partial(expect_stanza, "/message"),
+
+                     partial(send_stanza,
+                             "<presence from='{jid_one}/{resource_one}' to='#eee%{irc_server_one}/{nick_one}' />"),
+                     partial(expect_stanza, "/message"),
+                     partial(expect_stanza, "/presence"),
+                     partial(expect_stanza, "/message"),
+
+                     partial(send_stanza,
+                             "<presence from='{jid_one}/{resource_one}' to='#fff%{irc_server_one}/{nick_one}' />"),
+                     partial(expect_stanza, "/message"),
+                     partial(expect_stanza, "/presence"),
+                     partial(expect_stanza, "/message"),
+
+                     partial(send_stanza,
+                             "<presence from='{jid_one}/{resource_one}' to='#ggg%{irc_server_one}/{nick_one}' />"),
+                     partial(expect_stanza, "/message"),
+                     partial(expect_stanza, "/presence"),
+                     partial(expect_stanza, "/message"),
+
+                     partial(send_stanza,
+                             "<presence from='{jid_one}/{resource_one}' to='#hhh%{irc_server_one}/{nick_one}' />"),
+                     partial(expect_stanza, "/message"),
+                     partial(expect_stanza, "/presence"),
+                     partial(expect_stanza, "/message"),
+
+                     partial(send_stanza,
+                             "<presence from='{jid_one}/{resource_one}' to='#iii%{irc_server_one}/{nick_one}' />"),
+                     partial(expect_stanza, "/message"),
+                     partial(expect_stanza, "/presence"),
+                     partial(expect_stanza, "/message"),
+
+                     partial(send_stanza,
+                             "<presence from='{jid_one}/{resource_one}' to='#jjj%{irc_server_one}/{nick_one}' />"),
+                     partial(expect_stanza, "/message"),
+                     partial(expect_stanza, "/presence"),
+                     partial(expect_stanza, "/message"),
+
+                     partial(log_message, "Request the first page, with a limit of 3"),
+                     partial(send_stanza, "<iq from='{jid_one}/{resource_one}' id='id' to='{irc_server_one}' type='get'><query xmlns='http://jabber.org/protocol/disco#items'><set xmlns='http://jabber.org/protocol/rsm'><max>3</max></set></query></iq>"),
+                     partial(expect_stanza, (
+                         "/iq[@type='result']/disco_items:query",
+                         "/iq/disco_items:query/disco_items:item[@jid='#aaa%{irc_server_one}']",
+                         "/iq/disco_items:query/disco_items:item[@jid='#bbb%{irc_server_one}']",
+                         "/iq/disco_items:query/disco_items:item[@jid='#ccc%{irc_server_one}']",
+                         "/iq/disco_items:query/rsm:set/rsm:first[text()='#aaa%{irc_server_one}'][@index='0']",
+                         "/iq/disco_items:query/rsm:set/rsm:last[text()='#ccc%{irc_server_one}']"
+                     )),
+
+                     partial(log_message, "Request subsequent pages"),
+                     partial(send_stanza, "<iq from='{jid_one}/{resource_one}' id='id' to='{irc_server_one}' type='get'><query xmlns='http://jabber.org/protocol/disco#items'><set xmlns='http://jabber.org/protocol/rsm'><after>#ccc%{irc_server_one}</after><max>3</max></set></query></iq>"),
+                     partial(expect_stanza, (
+                         "/iq[@type='result']/disco_items:query",
+                         "/iq/disco_items:query/disco_items:item[@jid='#ddd%{irc_server_one}']",
+                         "/iq/disco_items:query/disco_items:item[@jid='#eee%{irc_server_one}']",
+                         "/iq/disco_items:query/disco_items:item[@jid='#fff%{irc_server_one}']",
+                         "/iq/disco_items:query/rsm:set/rsm:first[text()='#ddd%{irc_server_one}'][@index='3']",
+                         "/iq/disco_items:query/rsm:set/rsm:last[text()='#fff%{irc_server_one}']"
+                     )),
+
+                     partial(send_stanza, "<iq from='{jid_one}/{resource_one}' id='id' to='{irc_server_one}' type='get'><query xmlns='http://jabber.org/protocol/disco#items'><set xmlns='http://jabber.org/protocol/rsm'><after>#fff%{irc_server_one}</after><max>3</max></set></query></iq>"),
+                     partial(expect_stanza, (
+                         "/iq[@type='result']/disco_items:query",
+                         "/iq/disco_items:query/disco_items:item[@jid='#ggg%{irc_server_one}']",
+                         "/iq/disco_items:query/disco_items:item[@jid='#hhh%{irc_server_one}']",
+                         "/iq/disco_items:query/disco_items:item[@jid='#iii%{irc_server_one}']",
+                         "/iq/disco_items:query/rsm:set/rsm:first[text()='#ggg%{irc_server_one}'][@index='6']",
+                         "/iq/disco_items:query/rsm:set/rsm:last[text()='#iii%{irc_server_one}']"
+                     )),
+
+                     partial(send_stanza, "<iq from='{jid_one}/{resource_one}' id='id' to='{irc_server_one}' type='get'><query xmlns='http://jabber.org/protocol/disco#items'><set xmlns='http://jabber.org/protocol/rsm'><after>#iii%{irc_server_one}</after><max>3</max></set></query></iq>"),
+                     partial(expect_stanza, (
+                         "/iq[@type='result']/disco_items:query",
+                         "/iq/disco_items:query/disco_items:item[@jid='#jjj%{irc_server_one}']",
+                         "/iq/disco_items:query/rsm:set/rsm:first[text()='#jjj%{irc_server_one}'][@index='9']",
+                         "/iq/disco_items:query/rsm:set/rsm:last[text()='#jjj%{irc_server_one}']",
+                         "/iq/disco_items:query/rsm:set/rsm:count[text()='10']"
+                     )),
+
+                     partial(log_message, "Leaving the 10 channels"),
+                     partial(send_stanza, "<presence from='{jid_one}/{resource_one}' to='#aaa%{irc_server_one}/{nick_one}' type='unavailable' />"),
+                     partial(send_stanza, "<presence from='{jid_one}/{resource_one}' to='#bbb%{irc_server_one}/{nick_one}' type='unavailable' />"),
+                     partial(send_stanza, "<presence from='{jid_one}/{resource_one}' to='#ccc%{irc_server_one}/{nick_one}' type='unavailable' />"),
+                     partial(send_stanza, "<presence from='{jid_one}/{resource_one}' to='#ddd%{irc_server_one}/{nick_one}' type='unavailable' />"),
+                     partial(send_stanza, "<presence from='{jid_one}/{resource_one}' to='#eee%{irc_server_one}/{nick_one}' type='unavailable' />"),
+                     partial(send_stanza, "<presence from='{jid_one}/{resource_one}' to='#fff%{irc_server_one}/{nick_one}' type='unavailable' />"),
+                     partial(send_stanza, "<presence from='{jid_one}/{resource_one}' to='#ggg%{irc_server_one}/{nick_one}' type='unavailable' />"),
+                     partial(send_stanza, "<presence from='{jid_one}/{resource_one}' to='#hhh%{irc_server_one}/{nick_one}' type='unavailable' />"),
+                     partial(send_stanza, "<presence from='{jid_one}/{resource_one}' to='#iii%{irc_server_one}/{nick_one}' type='unavailable' />"),
+                     partial(send_stanza, "<presence from='{jid_one}/{resource_one}' to='#jjj%{irc_server_one}/{nick_one}' type='unavailable' />"),
+                     partial(expect_stanza, "/presence[@type='unavailable']"),
+                     partial(expect_stanza, "/presence[@type='unavailable']"),
+                     partial(expect_stanza, "/presence[@type='unavailable']"),
+                     partial(expect_stanza, "/presence[@type='unavailable']"),
+                     partial(expect_stanza, "/presence[@type='unavailable']"),
+                     partial(expect_stanza, "/presence[@type='unavailable']"),
+                     partial(expect_stanza, "/presence[@type='unavailable']"),
+                     partial(expect_stanza, "/presence[@type='unavailable']"),
+                     partial(expect_stanza, "/presence[@type='unavailable']"),
+                     partial(expect_stanza, "/presence[@type='unavailable']")
+                ]),
+                Scenario("muc_traffic_info",
+                [
+                     handshake_sequence(),
+
+                     partial(send_stanza,
+                             "<iq from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}' id='1' type='get'><query xmlns='http://jabber.org/protocol/disco#info' node='http://jabber.org/protocol/muc#traffic'/></iq>"),
+                     partial(expect_stanza, "/iq[@type='result']/disco_info:query[@node='http://jabber.org/protocol/muc#traffic']"),
+                ]),
+                Scenario("raw_message",
+                [
+                     handshake_sequence(),
+                     partial(send_stanza, "<presence from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}/{nick_one}' />"),
+                     connection_sequence("irc.localhost", '{jid_one}/{resource_one}'),
+                     partial(expect_stanza, "/message"),
+                     partial(expect_stanza, "/presence"),
+                     partial(expect_stanza, "/message"),
+
+                     partial(send_stanza, "<message from='{jid_one}/{resource_one}' to='{irc_server_one}' type='chat'><body>WHOIS {nick_one}</body></message>"),
+                     partial(expect_stanza, "/message[@from='{irc_server_one}'][@type='chat']/body[text()='irc.localhost: {nick_one} ~{nick_one} localhost * {nick_one}']"),
+                ]),
+                Scenario("self_disco_info",
+                [
+                     handshake_sequence(),
+                     partial(send_stanza, "<iq type='get' id='get1' from='{jid_one}/{resource_one}' to='{biboumi_host}'><query xmlns='http://jabber.org/protocol/disco#info'/></iq>"),
+                     partial(expect_stanza,
+                     ("/iq[@type='result']/disco_info:query/disco_info:identity[@category='conference'][@type='irc'][@name='Biboumi XMPP-IRC gateway']",
+                      "/iq/disco_info:query/disco_info:feature[@var='jabber:iq:version']",
+                      "/iq/disco_info:query/disco_info:feature[@var='http://jabber.org/protocol/commands']",
+                      "/iq/disco_info:query/disco_info:feature[@var='urn:xmpp:ping']",
+                      "/iq/disco_info:query/disco_info:feature[@var='urn:xmpp:mam:1']",
+                      "/iq/disco_info:query/disco_info:feature[@var='jabber:iq:version']",
+                      )),
+                ]),
+                Scenario("invite_other",
+                [
+                     handshake_sequence(),
+                     partial(send_stanza, "<presence from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}/{nick_one}' />"),
+                     connection_sequence("irc.localhost", '{jid_one}/{resource_one}'),
+                     partial(expect_stanza, "/message"),
+                     partial(expect_stanza, "/presence"),
+                     partial(expect_stanza, "/message"),
+
+                     partial(send_stanza, "<presence from='{jid_two}/{resource_two}' to='#bar%{irc_server_one}@{biboumi_host}/{nick_two}' />"),
+                     connection_sequence("irc.localhost", '{jid_two}/{resource_two}'),
+                     partial(expect_stanza, "/message"),
+                     partial(expect_stanza, "/presence"),
+                     partial(expect_stanza, "/message"),
+                     partial(send_stanza, "<message from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}'><x xmlns='http://jabber.org/protocol/muc#user'><invite to='{nick_two}'/></x></message>"),
+                     partial(expect_stanza, "/message/body[text()='{nick_two} has been invited to #foo']"),
+                     partial(expect_stanza, "/message[@to='{jid_two}/{resource_two}'][@from='#foo%{irc_server_one}']/muc_user:x/muc_user:invite[@from='#foo%{irc_server_one}/{nick_one}']"),
+                ]),
+                Scenario("virtual_channel_multisession",
+                 [
+                     handshake_sequence(),
+                     partial(send_stanza,
+                             "<presence from='{jid_one}/{resource_one}' to='%{irc_server_one}/{nick_one}' />"),
+                     connection_begin_sequence("irc.localhost", '{jid_one}/{resource_one}'),
+                     partial(expect_stanza,
+                             ("/presence[@to='{jid_one}/{resource_one}'][@from='%{irc_server_one}/{nick_one}']/muc_user:x/muc_user:item[@affiliation='none'][@role='participant']",
+                              "/presence/muc_user:x/muc_user:status[@code='110']")
+                             ),
+                     partial(expect_stanza, "/message[@from='%{irc_server_one}'][@type='groupchat']/subject[re:test(text(), '^This is a virtual channel.*$')]"),
+                     connection_end_sequence("irc.localhost", '{jid_one}/{resource_one}'),
+
+                     partial(send_stanza,
+                             "<presence from='{jid_one}/{resource_two}' to='%{irc_server_one}/{nick_one}' />"),
+
+                     partial(expect_stanza,
+                             ("/presence[@to='{jid_one}/{resource_two}'][@from='%{irc_server_one}/{nick_one}']/muc_user:x/muc_user:item[@affiliation='none'][@role='participant']",
+                              "/presence/muc_user:x/muc_user:status[@code='110']")
+                         ),
+                     partial(expect_stanza, "/message[@to='{jid_one}/{resource_two}'][@from='%{irc_server_one}'][@type='groupchat']/subject[re:test(text(), '^This is a virtual channel.*$')]"),
+
+
+                     partial(log_message, "Nick change"),
+                     partial(send_stanza, "<presence from='{jid_one}/{resource_one}' to='%{irc_server_one}/{nick_two}' />"),
+
+                     partial(expect_unordered, [
+                         ("/presence[@from='%{irc_server_one}/{nick_one}'][@to='{jid_one}/{resource_two}'][@type='unavailable']/muc_user:x/muc_user:item[@nick='Bobby']",
+                          "/presence/muc_user:x/muc_user:status[@code='303']",
+                          "/presence/muc_user:x/muc_user:status[@code='110']"),
+                         ("/presence[@from='%{irc_server_one}/{nick_two}'][@to='{jid_one}/{resource_two}']",
+                          "/presence/muc_user:x/muc_user:status[@code='110']"),
+
+                         ("/presence[@from='%{irc_server_one}/{nick_one}'][@to='{jid_one}/{resource_one}'][@type='unavailable']/muc_user:x/muc_user:item[@nick='Bobby']",
+                          "/presence/muc_user:x/muc_user:status[@code='303']",
+                          "/presence/muc_user:x/muc_user:status[@code='110']"),
+                         ("/presence[@from='%{irc_server_one}/{nick_two}'][@to='{jid_one}/{resource_one}']",
+                          "/presence/muc_user:x/muc_user:status[@code='110']"),
+                     ]),
+
+
+                     partial(log_message, "First resource leaves."),
+                     partial(send_stanza, "<presence type='unavailable' from='{jid_one}/{resource_one}' to='%{irc_server_one}/{nick_two}' />"),
+                     partial(expect_stanza, ("/presence[@type='unavailable'][@from='%{irc_server_one}/{nick_two}'][@to='{jid_one}/{resource_one}']/muc_user:x/muc_user:status[@code='110']",
+                                             "/presence/status[text()='Biboumi note: 1 resources are still in this channel.']",)
+                             ),
+
+                     partial(log_message, "Second resource leaves."),
+                     partial(send_stanza, "<presence type='unavailable' from='{jid_one}/{resource_two}' to='%{irc_server_one}/{nick_two}' />"),
+                     partial(expect_stanza, "/presence[@type='unavailable'][@from='%{irc_server_one}/{nick_two}']"),
+                     partial(expect_stanza, "/message[@from='{irc_server_one}']/body[text()='ERROR: Closing Link: localhost (Client Quit)']"),
+                     partial(expect_stanza, "/message[@from='{irc_server_one}']/body[text()='ERROR: Connection closed.']"),
+                 ]),
+                Scenario("global_configure",
+                [
+                    handshake_sequence(),
+                    partial(send_stanza, "<iq type='set' id='id1' from='{jid_one}/{resource_one}' to='{biboumi_host}'><command xmlns='http://jabber.org/protocol/commands' node='configure' action='execute' /></iq>"),
+                    partial(expect_stanza, ("/iq[@type='result']/commands:command[@node='configure'][@sessionid][@status='executing']",
+                                            "/iq/commands:command/dataform:x[@type='form']/dataform:title[text()='Configure some global default settings.']",
+                                            "/iq/commands:command/dataform:x[@type='form']/dataform:instructions[text()='Edit the form, to configure your global settings for the component.']",
+                                            "/iq/commands:command/dataform:x[@type='form']/dataform:field[@type='text-single'][@var='max_history_length']/dataform:value[text()='20']",
+                                            "/iq/commands:command/dataform:x[@type='form']/dataform:field[@type='boolean'][@var='record_history']/dataform:value[text()='true']",
+                                            "/iq/commands:command/commands:actions/commands:next",
+                                            ),
+                            after = partial(save_value, "sessionid", partial(extract_attribute, "/iq[@type='result']/commands:command[@node='configure']", "sessionid"))
+                    ),
+                    partial(send_stanza, "<iq type='set' id='id2' from='{jid_one}/{resource_one}' to='{biboumi_host}'><command xmlns='http://jabber.org/protocol/commands' node='configure' sessionid='{sessionid}' action='next'><x xmlns='jabber:x:data' type='submit'><field var='record_history'><value>0</value></field><field var='max_history_length'><value>42</value></field></x></command></iq>"),
+                    partial(expect_stanza, "/iq[@type='result']/commands:command[@node='configure'][@status='completed']/commands:note[@type='info'][text()='Configuration successfully applied.']"),
+
+                    partial(send_stanza, "<iq type='set' id='id3' from='{jid_one}/{resource_one}' to='{biboumi_host}'><command xmlns='http://jabber.org/protocol/commands' node='configure' action='execute' /></iq>"),
+                    partial(expect_stanza, ("/iq[@type='result']/commands:command[@node='configure'][@sessionid][@status='executing']",
+                                            "/iq/commands:command/dataform:x[@type='form']/dataform:title[text()='Configure some global default settings.']",
+                                            "/iq/commands:command/dataform:x[@type='form']/dataform:instructions[text()='Edit the form, to configure your global settings for the component.']",
+                                            "/iq/commands:command/dataform:x[@type='form']/dataform:field[@type='text-single'][@var='max_history_length']/dataform:value[text()='42']",
+                                            "/iq/commands:command/dataform:x[@type='form']/dataform:field[@type='boolean'][@var='record_history']/dataform:value[text()='false']",
+                                            "/iq/commands:command/commands:actions/commands:next",
+                                            ),
+                            after = partial(save_value, "sessionid", partial(extract_attribute, "/iq[@type='result']/commands:command[@node='configure']", "sessionid"))
+                            ),
+                    partial(send_stanza, "<iq type='set' id='id4' from='{jid_one}/{resource_one}' to='{biboumi_host}'><command xmlns='http://jabber.org/protocol/commands' action='cancel' node='configure' sessionid='{sessionid}' /></iq>"),
+                    partial(expect_stanza, "/iq[@type='result']/commands:command[@node='configure'][@status='canceled']"),
+                ]),
+        Scenario("irc_server_configure",
+                 [
+                     handshake_sequence(),
+                     partial(send_stanza, "<iq type='set' id='id1' from='{jid_one}/{resource_one}' to='{irc_server_one}'><command xmlns='http://jabber.org/protocol/commands' node='configure' action='execute' /></iq>"),
+                     partial(expect_stanza, ("/iq[@type='result']/commands:command[@node='configure'][@sessionid][@status='executing']",
+                                             "/iq/commands:command/dataform:x[@type='form']/dataform:title[text()='Configure the IRC server irc.localhost']",
+                                             "/iq/commands:command/dataform:x[@type='form']/dataform:instructions[text()='Edit the form, to configure the settings of the IRC server irc.localhost']",
+                                             "/iq/commands:command/dataform:x[@type='form']/dataform:field[@type='text-multi'][@var='ports']/dataform:value[text()='6667']",
+                                             "/iq/commands:command/dataform:x[@type='form']/dataform:field[@type='text-multi'][@var='tls_ports']/dataform:value[text()='6670']",
+                                             "/iq/commands:command/dataform:x[@type='form']/dataform:field[@type='text-multi'][@var='tls_ports']/dataform:value[text()='6697']",
+                                             "/iq/commands:command/dataform:x[@type='form']/dataform:field[@type='boolean'][@var='verify_cert']/dataform:value[text()='true']",
+                                             "/iq/commands:command/dataform:x[@type='form']/dataform:field[@type='text-single'][@var='fingerprint']",
+                                             "/iq/commands:command/dataform:x[@type='form']/dataform:field[@type='text-private'][@var='pass']",
+                                             "/iq/commands:command/dataform:x[@type='form']/dataform:field[@type='text-single'][@var='after_connect_command']",
+                                             "/iq/commands:command/dataform:x[@type='form']/dataform:field[@type='text-single'][@var='username']",
+                                             "/iq/commands:command/dataform:x[@type='form']/dataform:field[@type='text-single'][@var='realname']",
+                                             "/iq/commands:command/dataform:x[@type='form']/dataform:field[@type='text-single'][@var='encoding_in']",
+                                             "/iq/commands:command/dataform:x[@type='form']/dataform:field[@type='text-single'][@var='encoding_out']/dataform:value[text()='ISO-8859-1']",
+                                             "/iq/commands:command/commands:actions/commands:next",
+                                             ),
+                             after = partial(save_value, "sessionid", partial(extract_attribute, "/iq[@type='result']/commands:command[@node='configure']", "sessionid"))
+                             ),
+                     partial(send_stanza, "<iq type='set' id='id2' from='{jid_one}/{resource_one}' to='{irc_server_one}'>"
+                                          "<command xmlns='http://jabber.org/protocol/commands' node='configure' sessionid='{sessionid}' action='next'>"
+                                          "<x xmlns='jabber:x:data' type='submit'>"
+                                          "<field var='ports' />"
+                                          "<field var='tls_ports'><value>6697</value><value>6698</value></field>"
+                                          "<field var='verify_cert'><value>1</value></field>"
+                                          "<field var='fingerprint'><value>12:12:12</value></field>"
+                                          "<field var='pass'><value>coucou</value></field>"
+                                          "<field var='after_connect_command'><value>INVALID command</value></field>"
+                                          "<field var='username'><value>username</value></field>"
+                                          "<field var='realname'><value>realname</value></field>"
+                                          "<field var='encoding_out'><value>UTF-8</value></field>"
+                                          "<field var='encoding_in'><value>latin-1</value></field>"
+                                          "</x></command></iq>"),
+                     partial(expect_stanza, "/iq[@type='result']/commands:command[@node='configure'][@status='completed']/commands:note[@type='info'][text()='Configuration successfully applied.']"),
+
+                     partial(send_stanza, "<iq type='set' id='id3' from='{jid_one}/{resource_one}' to='{irc_server_one}'><command xmlns='http://jabber.org/protocol/commands' node='configure' action='execute' /></iq>"),
+                     partial(expect_stanza, ("/iq[@type='result']/commands:command[@node='configure'][@sessionid][@status='executing']",
+                                             "/iq/commands:command/dataform:x[@type='form']/dataform:title[text()='Configure the IRC server irc.localhost']",
+                                             "/iq/commands:command/dataform:x[@type='form']/dataform:instructions[text()='Edit the form, to configure the settings of the IRC server irc.localhost']",
+                                             "/iq/commands:command/dataform:x[@type='form']/dataform:field[@type='text-multi']",
+                                             "/iq/commands:command/dataform:x[@type='form']/dataform:field[@type='text-multi'][@var='tls_ports']/dataform:value[text()='6697']",
+                                             "/iq/commands:command/dataform:x[@type='form']/dataform:field[@type='text-multi'][@var='tls_ports']/dataform:value[text()='6698']",
+                                             "/iq/commands:command/dataform:x[@type='form']/dataform:field[@type='boolean'][@var='verify_cert']/dataform:value[text()='true']",
+                                             "/iq/commands:command/dataform:x[@type='form']/dataform:field[@type='text-single'][@var='fingerprint']/dataform:value[text()='12:12:12']",
+                                             "/iq/commands:command/dataform:x[@type='form']/dataform:field[@type='text-private'][@var='pass']/dataform:value[text()='coucou']",
+                                             "/iq/commands:command/dataform:x[@type='form']/dataform:field[@type='text-single'][@var='after_connect_command']/dataform:value[text()='INVALID command']",
+                                             "/iq/commands:command/dataform:x[@type='form']/dataform:field[@type='text-single'][@var='username']/dataform:value[text()='username']",
+                                             "/iq/commands:command/dataform:x[@type='form']/dataform:field[@type='text-single'][@var='realname']/dataform:value[text()='realname']",
+                                             "/iq/commands:command/dataform:x[@type='form']/dataform:field[@type='text-single'][@var='encoding_in']/dataform:value[text()='latin-1']",
+                                             "/iq/commands:command/dataform:x[@type='form']/dataform:field[@type='text-single'][@var='encoding_out']/dataform:value[text()='UTF-8']",
+                                             "/iq/commands:command/commands:actions/commands:next",
+                                             ),
+                             after = partial(save_value, "sessionid", partial(extract_attribute, "/iq[@type='result']/commands:command[@node='configure']", "sessionid"))
+                             ),
+                     partial(send_stanza, "<iq type='set' id='id4' from='{jid_one}/{resource_one}' to='{irc_server_one}'><command xmlns='http://jabber.org/protocol/commands' action='cancel' node='configure' sessionid='{sessionid}' /></iq>"),
+                     partial(expect_stanza, "/iq[@type='result']/commands:command[@node='configure'][@status='canceled']"),
+                 ]),
+         Scenario("get_irc_connection_info",
+                 [
+                     handshake_sequence(),
+
+                     partial(log_message, "Not connected yet"),
+                     partial(send_stanza, "<iq type='set' id='command1' from='{jid_one}/{resource_one}' to='{irc_server_one}'><command xmlns='http://jabber.org/protocol/commands' node='get-irc-connection-info' action='execute' /></iq>"),
+                     partial(expect_stanza, "/iq/commands:command/commands:note[text()='You are not connected to the IRC server irc.localhost']"),
+
+                     partial(log_message, "Join one room"),
+                     partial(send_stanza,
+                             "<presence from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}/{nick_one}' />"),
+                     connection_sequence("irc.localhost", '{jid_one}/{resource_one}'),
+                     partial(expect_stanza, "/message"),
+                     partial(expect_stanza, "/presence"),
+                     partial(expect_stanza, "/message"),
+
+                     partial(send_stanza, "<iq type='set' id='command2' from='{jid_one}/{resource_one}' to='{irc_server_one}'><command xmlns='http://jabber.org/protocol/commands' node='get-irc-connection-info' action='execute' /></iq>"),
+                     partial(expect_stanza, r"/iq/commands:command/commands:note[re:test(text(), 'Connected to IRC server irc.localhost on port 6667 since \d\d\d\d-\d\d-\d\d \d\d:\d\d:\d\d \(\d+ seconds ago\)\.\n#foo from 1 resource: {resource_one}.*')]"),
+                 ]),
+         Scenario("get_irc_connection_info_fixed",
+                 [
+                     handshake_sequence(),
+
+                     partial(log_message, "Not connected yet"),
+                     partial(send_stanza, "<iq type='set' id='command1' from='{jid_one}/{resource_one}' to='{biboumi_host}'><command xmlns='http://jabber.org/protocol/commands' node='get-irc-connection-info' action='execute' /></iq>"),
+                     partial(expect_stanza, "/iq/commands:command/commands:note[text()='You are not connected to the IRC server irc.localhost']"),
+
+                     partial(log_message, "Join one room"),
+                     partial(send_stanza,
+                             "<presence from='{jid_one}/{resource_one}' to='#foo@{biboumi_host}/{nick_one}' />"),
+                     connection_sequence("irc.localhost", '{jid_one}/{resource_one}'),
+                     partial(expect_stanza, "/message"),
+                     partial(expect_stanza, "/presence"),
+                     partial(expect_stanza, "/message"),
+
+                     partial(send_stanza, "<iq type='set' id='command2' from='{jid_one}/{resource_one}' to='{biboumi_host}'><command xmlns='http://jabber.org/protocol/commands' node='get-irc-connection-info' action='execute' /></iq>"),
+                     partial(expect_stanza, r"/iq/commands:command/commands:note[re:test(text(), 'Connected to IRC server irc.localhost on port 6667 since \d\d\d\d-\d\d-\d\d \d\d:\d\d:\d\d \(\d+ seconds ago\)\.\n#foo from 1 resource: {resource_one}.*')]"),
+                 ], conf='fixed_server'),
+        Scenario("invalid_room_jid",
+                 [
+                     handshake_sequence(),
+                     partial(send_stanza, "<presence from='{jid_one}/{resource_one}' to='invalid%{irc_server_one}/{nick_one}' />"),
+                     partial(expect_stanza, ("/presence[@type='error'][@to='{jid_one}/{resource_one}'][@from='invalid%{irc_server_one}/{nick_one}']/error[@type='cancel']/stanza:item-not-found",
+                                             "/presence/muc:x",
+                                             "/presence/error/stanza:text")),
+                 ]),
+        Scenario("invalid_room_jid_fixed",
+                 [
+                     handshake_sequence(),
+                     partial(send_stanza, "<presence from='{jid_one}/{resource_one}' to='invalid@{biboumi_host}/{nick_one}' />"),
+                     partial(expect_stanza, ("/presence[@type='error'][@to='{jid_one}/{resource_one}'][@from='invalid@{biboumi_host}/{nick_one}']/error[@type='cancel']/stanza:item-not-found",
+                                             "/presence/muc:x",
+                                             "/presence/error/stanza:text")),
+                 ], conf='fixed_server'),
     )
+
 
     failures = 0
 
+    scenar_list = sys.argv[1:]
     irc_output = open("irc_output.txt", "w")
     irc = IrcServerRunner()
     print("Starting irc server…")
@@ -1008,11 +1874,13 @@ if __name__ == '__main__':
     print("irc server started.")
     print("Running %s checks for biboumi." % (len(scenarios)))
 
-    for scenario in scenarios:
-        test = BiboumiTest(scenario)
-        if not test.run(os.getenv("E2E_BIBOUMI_VALGRIND") is not None):
+    for s in scenarios:
+        if scenar_list and s.name not in scenar_list:
+            continue
+        test = BiboumiTest(s)
+        if not test.run():
             print("You can check the files slixmpp_%s_output.txt and biboumi_%s_output.txt to help you debug." %
-                  (scenario.name, scenario.name))
+                  (s.name, s.name))
             failures += 1
 
     print("Waiting for irc server to exit…")

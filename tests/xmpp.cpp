@@ -1,6 +1,7 @@
 #include "catch.hpp"
 
 #include <xmpp/xmpp_parser.hpp>
+#include <xmpp/auth.hpp>
 
 TEST_CASE("Test basic XML parsing")
 {
@@ -44,4 +45,10 @@ TEST_CASE("XML escape")
 {
   const std::string unescaped = "'coucou'<cc>/&\"gaga\"";
   CHECK(xml_escape(unescaped) == "&apos;coucou&apos;&lt;cc&gt;/&amp;&quot;gaga&quot;");
+}
+
+TEST_CASE("handshake_digest")
+{
+  const auto res = get_handshake_digest("id1234", "S4CR3T");
+  CHECK(res == "c92901b5d376ad56269914da0cce3aab976847df");
 }

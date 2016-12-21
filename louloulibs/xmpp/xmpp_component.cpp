@@ -5,16 +5,18 @@
 
 #include <xmpp/xmpp_component.hpp>
 #include <config/config.hpp>
+#include <utils/time.hpp>
+#include <xmpp/auth.hpp>
 #include <xmpp/jid.hpp>
-#include <utils/sha1.hpp>
 
 #include <stdexcept>
 #include <iostream>
 #include <set>
 
-#include <stdio.h>
+#include <uuid/uuid.h>
 
-#include <uuid.h>
+#include <cstdlib>
+#include <set>
 
 #include <louloulibs.h>
 #ifdef SYSTEMD_FOUND
@@ -136,17 +138,7 @@ void XmppComponent::on_remote_stream_open(const XmlNode& node)
     }
 
   // Try to authenticate
-  char digest[HASH_LENGTH * 2 + 1];
-  sha1nfo sha1;
-  sha1_init(&sha1);
-  sha1_write(&sha1, this->stream_id.data(), this->stream_id.size());
-  sha1_write(&sha1, this->secret.data(),  this->secret.size());
-  const uint8_t* result = sha1_result(&sha1);
-  for (int i=0; i < HASH_LENGTH; i++)
-    sprintf(digest + (i*2), "%02x", result[i]);
-  digest[HASH_LENGTH * 2] = '\0';
-
-  auto data = "<handshake xmlns='" COMPONENT_NS "'>"s + digest + "</handshake>";
+  auto data = "<handshake xmlns='" COMPONENT_NS "'>"s + get_handshake_digest(this->stream_id, this->secret) + "</handshake>";
   log_debug("XMPP SENDING: ", data);
   this->send_data(std::move(data));
 }
@@ -230,9 +222,8 @@ void XmppComponent::close_document()
   this->doc_open = false;
 }
 
-void XmppComponent::handle_handshake(const Stanza& stanza)
+void XmppComponent::handle_handshake(const Stanza&)
 {
-  (void)stanza;
   this->authenticated = true;
   this->ever_auth = true;
   log_info("Authenticated with the XMPP server");
@@ -270,7 +261,8 @@ void* XmppComponent::get_receive_buffer(const size_t size) const
   return this->parser.get_buffer(size);
 }
 
-void XmppComponent::send_message(const std::string& from, Xmpp::body&& body, const std::string& to, const std::string& type, const bool fulljid)
+void XmppComponent::send_message(const std::string& from, Xmpp::body&& body, const std::string& to,
+                                 const std::string& type, const bool fulljid, const bool nocopy)
 {
   XmlNode node("message");
   node["to"] = to;
@@ -291,6 +283,18 @@ void XmppComponent::send_message(const std::string& from, Xmpp::body&& body, con
       html.add_child(std::move(std::get<1>(body)));
       node.add_child(std::move(html));
     }
+
+  if (nocopy)
+    {
+      XmlNode private_node("private");
+      private_node["xmlns"] = "urn:xmpp:carbons:2";
+      node.add_child(std::move(private_node));
+
+      XmlNode nocopy("no-copy");
+      nocopy["xmlns"] = "urn:xmpp:hints";
+      node.add_child(std::move(nocopy));
+    }
+
   this->send_stanza(node);
 }
 
@@ -363,31 +367,6 @@ void XmppComponent::send_invalid_room_error(const std::string& muc_name,
   this->send_stanza(presence);
 }
 
-void XmppComponent::send_invalid_user_error(const std::string& user_name, const std::string& to)
-{
-  Stanza message("message");
-  message["from"] = user_name + "@" + this->served_hostname;
-  message["to"] = to;
-  message["type"] = "error";
-  XmlNode x("x");
-  x["xmlns"] = MUC_NS;
-  message.add_child(std::move(x));
-  XmlNode error("error");
-  error["type"] = "cancel";
-  XmlNode item_not_found("item-not-found");
-  item_not_found["xmlns"] = STANZA_NS;
-  error.add_child(std::move(item_not_found));
-  XmlNode text("text");
-  text["xmlns"] = STANZA_NS;
-  text["xml:lang"] = "en";
-  text.set_inner(user_name +
-                 " is not a valid IRC user name. A correct user jid is of the form: <nick>!<server>@" +
-                 this->served_hostname);
-  error.add_child(std::move(text));
-  message.add_child(std::move(error));
-  this->send_stanza(message);
-}
-
 void XmppComponent::send_topic(const std::string& from, Xmpp::body&& topic, const std::string& to, const std::string& who)
 {
   XmlNode message("message");
@@ -423,6 +402,29 @@ void XmppComponent::send_muc_message(const std::string& muc_name, const std::str
       html.add_child(std::move(std::get<1>(xmpp_body)));
       message.add_child(std::move(html));
     }
+  this->send_stanza(message);
+}
+
+void XmppComponent::send_history_message(const std::string& muc_name, const std::string& nick, const std::string& body_txt, const std::string& jid_to, std::time_t timestamp)
+{
+  Stanza message("message");
+  message["to"] = jid_to;
+  if (!nick.empty())
+    message["from"] = muc_name + "@" + this->served_hostname + "/" + nick;
+  else
+    message["from"] = muc_name + "@" + this->served_hostname;
+  message["type"] = "groupchat";
+
+  XmlNode body("body");
+  body.set_inner(body_txt);
+  message.add_child(std::move(body));
+
+  XmlNode delay("delay");
+  delay["xmlns"] = DELAY_NS;
+  delay["from"] = muc_name + "@" + this->served_hostname;
+  delay["stamp"] = utils::to_string(timestamp);
+
+  message.add_child(std::move(delay));
   this->send_stanza(message);
 }
 
@@ -483,11 +485,8 @@ void XmppComponent::send_nick_change(const std::string& muc_name,
   this->send_user_join(muc_name, new_nick, "", affiliation, role, jid_to, self);
 }
 
-void XmppComponent::kick_user(const std::string& muc_name,
-                                  const std::string& target,
-                                  const std::string& txt,
-                                  const std::string& author,
-                                  const std::string& jid_to)
+void XmppComponent::kick_user(const std::string& muc_name, const std::string& target, const std::string& txt,
+                              const std::string& author, const std::string& jid_to, const bool self)
 {
   Stanza presence("presence");
   presence["from"] = muc_name + "@" + this->served_hostname + "/" + target;
@@ -509,6 +508,12 @@ void XmppComponent::kick_user(const std::string& muc_name,
   XmlNode status("status");
   status["code"] = "307";
   x.add_child(std::move(status));
+  if (self)
+    {
+      XmlNode status("status");
+      status["code"] = "110";
+      x.add_child(std::move(status));
+    }
   presence.add_child(std::move(x));
   this->send_stanza(presence);
 }

@@ -1,9 +1,14 @@
 #include "catch.hpp"
+#include "io_tester.hpp"
+
+#include <iostream>
 
 #include <config/config.hpp>
 
 TEST_CASE("Config basic")
 {
+  // Disable all output for this test
+  IoTester<std::ostream> out(std::cout);
   // Write a value in the config file
   Config::read_conf("test.cfg");
   Config::set("coucou", "bonjour", true);

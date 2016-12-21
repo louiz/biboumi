@@ -15,9 +15,12 @@ const std::map<const std::string, const AdhocCommand>& AdhocCommandsHandler::get
   return this->commands;
 }
 
-std::map<const std::string, const AdhocCommand>& AdhocCommandsHandler::get_commands()
+void AdhocCommandsHandler::add_command(std::string name, AdhocCommand command)
 {
-  return this->commands;
+  const auto found = this->commands.find(name);
+  if (found != this->commands.end())
+    throw std::runtime_error("Trying to add an ad-hoc command that already exist: "s + name);
+  this->commands.emplace(std::make_pair(std::move(name), std::move(command)));
 }
 
 XmlNode AdhocCommandsHandler::handle_request(const std::string& executor_jid, const std::string& to, XmlNode command_node)

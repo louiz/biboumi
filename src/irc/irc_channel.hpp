@@ -14,16 +14,19 @@
 class IrcChannel
 {
 public:
-  explicit IrcChannel();
+  IrcChannel() = default;
 
   IrcChannel(const IrcChannel&) = delete;
   IrcChannel(IrcChannel&&) = delete;
   IrcChannel& operator=(const IrcChannel&) = delete;
   IrcChannel& operator=(IrcChannel&&) = delete;
 
-  bool joined;
-  std::string topic;
-  std::string topic_author;
+  bool joined{false};
+  // Set to true if we sent a PART but didn’t yet receive the PART ack from
+  // the server
+  bool parting{false};
+  std::string topic{};
+  std::string topic_author{};
   void set_self(const std::string& name);
   IrcUser* get_self() const;
   IrcUser* add_user(const std::string& name,
@@ -35,8 +38,8 @@ public:
   { return this->users; }
 
 protected:
-  std::unique_ptr<IrcUser> self;
-  std::vector<std::unique_ptr<IrcUser>> users;
+  std::unique_ptr<IrcUser> self{};
+  std::vector<std::unique_ptr<IrcUser>> users{};
 };
 
 /**

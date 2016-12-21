@@ -75,13 +75,12 @@ namespace utils
   std::string remove_invalid_xml_chars(const std::string& original)
   {
     // The given string MUST be a valid utf-8 string
-    unsigned char* res = new unsigned char[original.size()];
-    ScopeGuard sg([&res]() { delete[] res;});
+    std::vector<char> res(original.size(), '\0');
 
     // pointer where we write valid chars
-    unsigned char* r = res;
+    char* r = res.data();
 
-    const unsigned char* str = reinterpret_cast<const unsigned char*>(original.c_str());
+    const char* str = original.c_str();
     std::bitset<20> codepoint;
 
     while (*str)
@@ -140,7 +139,7 @@ namespace utils
         else
           throw std::runtime_error("Invalid UTF-8 passed to remove_invalid_xml_chars");
       }
-    return std::string(reinterpret_cast<char*>(res), r-res);
+    return {res.data(), static_cast<size_t>(r - res.data())};
   }
 
   std::string convert_to_utf8(const std::string& str, const char* charset)
@@ -152,7 +151,7 @@ namespace utils
       throw std::runtime_error("Cannot convert into UTF-8");
 
     // Make sure cd is always closed when we leave this function
-    ScopeGuard sg([&]{ iconv_close(cd); });
+    const auto sg = utils::make_scope_guard([&cd](auto&&){ iconv_close(cd); });
 
     size_t inbytesleft = str.size();
 
@@ -169,7 +168,7 @@ namespace utils
     char* outbuf_ptr = outbuf;
 
     // Make sure outbuf is always deleted when we leave this function
-    sg.add_callback([&]{ delete[] outbuf; });
+    const auto sg2 = utils::make_scope_guard([outbuf](auto&&){ delete[] outbuf; });
 
     bool done = false;
     while (done == false)
@@ -197,12 +196,8 @@ namespace utils
                 outbuf_ptr++;
                 done = true;
                 break;
-              case E2BIG:
-                // This should never happen
-                done = true;
-                break;
-              default:
-                // This should happen even neverer
+              case E2BIG:  // This should never happen
+              default:     // This should happen even neverer
                 done = true;
                 break;
               }
