@@ -5,6 +5,9 @@ Source: https://lab.louiz.org/louiz/biboumi
 
 Files: *
 Copyright: 2015, Florent Le Coz
+License-Grant:
+ Biboumi is released under the zlib license.
+ Please read the COPYING file for details.
 License: Zlib
 
 Files: cmake/Modules/CodeCoverage.cmake
@@ -25,6 +28,11 @@ License: public-domain
 Files: debian/*
 Copyright: 2016, Vasudev Kamath <vasudev@copyninja.info>
  2016, Jonas Smedegaard <dr@jones.dk>
+License-Grant:
+ This program is free software; you can redistribute it and/or modify it
+ under the terms of the GNU General Public License as published by the
+ Free Software Foundation; either version 3, or (at your option) any
+ later version.
 License: GPL-3+
 
 License: Zlib
