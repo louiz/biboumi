@@ -4,7 +4,7 @@ Upstream-Contact: https://lab.louiz.org/louiz/biboumi/issues
 Source: https://lab.louiz.org/louiz/biboumi
 
 Files: *
-Copyright: 2015, Florent Le Coz
+Copyright: 2015, Florent Le Coz (louiz’) <louiz@louiz.org>
 License-Grant:
  Biboumi is released under the zlib license.
  Please read the COPYING file for details.
