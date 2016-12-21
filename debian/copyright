@@ -20,6 +20,7 @@ Files: cmake/Modules/FindLITESQL.cmake
  louloulibs/cmake/Modules/FindSYSTEMD.cmake
 Copyright: NONE
 License: public-domain
+ This file is in the public domain
 
 Files: debian/*
 Copyright: 2016, Vasudev Kamath <vasudev@copyninja.info>
