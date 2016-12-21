@@ -1,6 +1,7 @@
-biboumi (3.0-1) unstable; urgency=medium
+biboumi (4.0-1) unstable; urgency=medium
 
+  [ Vasudev Kamath & Jonas Smedegaard ]
   * Initial Release.
     Closes: bug#841773.
 
- -- Vasudev Kamath <vasudev@copyninja.info>  Sun, 23 Oct 2016 20:36:23 +0530
+ -- Jonas Smedegaard <dr@jones.dk>  Thu, 22 Dec 2016 00:58:37 +0100
