@@ -12,11 +12,12 @@
 
 #include <atomic>
 #include <signal.h>
+#include <litesql.hpp>
 
 // A flag set by the SIGINT signal handler.
-static volatile std::atomic<bool> stop(false);
+static std::atomic<bool> stop(false);
 // Flag set by the SIGUSR1/2 signal handler.
-static volatile std::atomic<bool> reload(false);
+static std::atomic<bool> reload(false);
 // A flag indicating that we are wanting to exit the process. i.e: if this
 // flag is set and all connections are closed, we can exit properly.
 static bool exiting = false;
@@ -84,7 +85,7 @@ int main(int ac, char** av)
 
   try {
       open_database();
-    } catch (...) {
+    } catch (const litesql::DatabaseError&) {
       return 1;
     }
 

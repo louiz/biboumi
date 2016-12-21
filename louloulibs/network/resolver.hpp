@@ -11,8 +11,9 @@
 #include <sys/socket.h>
 #include <netdb.h>
 
-struct AddrinfoDeleter
+class AddrinfoDeleter
 {
+ public:
   void operator()(struct addrinfo* addr)
   {
 #ifdef CARES_FOUND

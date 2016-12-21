@@ -14,7 +14,7 @@ public:
     poller(poller),
     socket(socket)
   {}
-  virtual ~SocketHandler() {}
+  virtual ~SocketHandler() = default;
   SocketHandler(const SocketHandler&) = delete;
   SocketHandler(SocketHandler&&) = delete;
   SocketHandler& operator=(const SocketHandler&) = delete;

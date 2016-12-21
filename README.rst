@@ -1,6 +1,21 @@
 Biboumi
 =======
 
+.. image:: https://lab.louiz.org/louiz/biboumi/badges/master/build.svg
+   :target: https://lab.louiz.org/louiz/biboumi/commits/master
+
+.. image:: https://lab.louiz.org/louiz/biboumi/badges/master/coverage.svg
+   :target: https://lab.louiz.org/louiz/biboumi/commits/master
+
+.. image:: https://sonarqube.com/api/badges/gate?key=biboumi
+   :target: https://sonarqube.com/component_issues/index?id=biboumi
+
+.. image:: https://scan.coverity.com/projects/3726/badge.svg
+   :target: https://scan.coverity.com/projects/louiz-biboumi
+
+.. image:: https://bestpractices.coreinfrastructure.org/projects/450/badge
+   :target: https://bestpractices.coreinfrastructure.org/projects/450
+
 Biboumi is an XMPP gateway that connects to IRC servers and translates
 between the two protocols. It can be used to access IRC channels using any
 XMPP client as if these channels were XMPP MUCs.
@@ -29,6 +44,7 @@ Usage
 -----
 Read `the documentation`_.
 
+
 Authors
 -------
 Florent Le Coz (louiz’) <louiz@louiz.org>
@@ -37,17 +53,9 @@ Florent Le Coz (louiz’) <louiz@louiz.org>
 Contact/Support
 ---------------
 * XMPP ChatRoom: biboumi@muc.poez.io
-* Report a bug:  https://dev.louiz.org/projects/biboumi/issues/new
+* Report a bug:  https://lab.louiz.org/louiz/biboumi/issues/new
 
-To contribute, the preferred way is to commit your changes on some
-publicly-available git repository (your own, or github
-(https://github.com/louiz/biboumi), or a fork on https://lab.louiz.org) and
-to notify the developers with a ticket on the bug tracker
-(https://dev.louiz.org/projects/biboumi/issues/new), a pull request on
-github or a merge request on gitlab.
-
-Optionally you can come discuss your changes on the XMPP chat room,
-beforehand.
+Also, see the `contributing`_ page.
 
 
 Licence
@@ -60,3 +68,4 @@ Please read the COPYING file for details.
 
 .. _INSTALL: INSTALL.rst
 .. _the documentation: doc/biboumi.1.rst
+.. _contributing: CONTRIBUTING.rst

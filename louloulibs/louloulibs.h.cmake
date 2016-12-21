@@ -7,3 +7,5 @@
 #cmakedefine CARES_FOUND
 #cmakedefine SOFTWARE_VERSION "${SOFTWARE_VERSION}"
 #cmakedefine PROJECT_NAME "${PROJECT_NAME}"
+#cmakedefine HAS_GET_TIME
+#cmakedefine HAS_PUT_TIME

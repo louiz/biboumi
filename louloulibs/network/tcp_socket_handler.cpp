@@ -80,7 +80,7 @@ void TCPSocketHandler::init_socket(const struct addrinfo* rp)
             }
           if (!rp)
             log_error("Failed to bind socket to ", this->bind_addr, ": ",
-                      strerror(bind_error));
+                      strerror(errno));
           else
             log_info("Socket successfully bound to ", this->bind_addr);
         }
@@ -102,8 +102,6 @@ void TCPSocketHandler::connect(const std::string& address, const std::string& po
   this->address = address;
   this->port = port;
   this->use_tls = tls;
-
-  utils::ScopeGuard sg;
 
   struct addrinfo* addr_res;
 
@@ -181,6 +179,8 @@ void TCPSocketHandler::connect(const std::string& address, const std::string& po
           if (this->use_tls)
             this->start_tls();
 #endif
+          this->connection_date = std::chrono::system_clock::now();
+
           this->on_connected();
           return ;
         }
@@ -294,7 +294,8 @@ void TCPSocketHandler::on_send()
       // unconsting the content of s is ok, sendmsg will never modify it
       msg_iov[msg.msg_iovlen].iov_base = const_cast<char*>(s.data());
       msg_iov[msg.msg_iovlen].iov_len = s.size();
-      if (++msg.msg_iovlen == UIO_FASTIOV)
+      msg.msg_iovlen++;
+      if (msg.msg_iovlen == UIO_FASTIOV)
         break;
     }
   ssize_t res = ::sendmsg(this->socket, &msg, MSG_NOSIGNAL);
@@ -307,23 +308,24 @@ void TCPSocketHandler::on_send()
   else
     {
       // remove all the strings that were successfully sent.
-      for (auto it = this->out_buf.begin();
-           it != this->out_buf.end();)
+      auto it = this->out_buf.begin();
+      while (it != this->out_buf.end())
         {
-          if (static_cast<size_t>(res) >= (*it).size())
+          if (static_cast<size_t>(res) >= it->size())
             {
-              res -= (*it).size();
-              it = this->out_buf.erase(it);
+              res -= it->size();
+              ++it;
             }
           else
             {
               // If one string has partially been sent, we use substr to
               // crop it
               if (res > 0)
-                (*it) = (*it).substr(res, std::string::npos);
+                *it = it->substr(res, std::string::npos);
               break;
             }
         }
+      this->out_buf.erase(this->out_buf.begin(), it);
       if (this->out_buf.empty())
         this->poller->stop_watching_send_events(this);
     }
@@ -397,6 +399,16 @@ bool TCPSocketHandler::is_connecting() const
   return this->connecting || this->resolver.is_resolving();
 }
 
+bool TCPSocketHandler::is_using_tls() const
+{
+  return this->use_tls;
+}
+
+std::string TCPSocketHandler::get_port() const
+{
+  return this->port;
+}
+
 void* TCPSocketHandler::get_receive_buffer(const size_t) const
 {
   return nullptr;
@@ -418,15 +430,14 @@ void TCPSocketHandler::start_tls()
 void TCPSocketHandler::tls_recv()
 {
   static constexpr size_t buf_size = 4096;
-  char recv_buf[buf_size];
+  Botan::byte recv_buf[buf_size];
 
   const ssize_t size = this->do_recv(recv_buf, buf_size);
   if (size > 0)
     {
       const bool was_active = this->tls->is_active();
       try {
-        this->tls->received_data(reinterpret_cast<const Botan::byte*>(recv_buf),
-                                 static_cast<size_t>(size));
+        this->tls->received_data(recv_buf, static_cast<size_t>(size));
       } catch (const Botan::TLS::TLS_Exception& e) {
         // May happen if the server sends malformed TLS data (buggy server,
         // or more probably we are just connected to a server that sends
@@ -449,9 +460,8 @@ void TCPSocketHandler::tls_send(std::string&& data)
       const bool was_active = this->tls->is_active();
       if (!this->pre_buf.empty())
         {
-          this->tls->send(reinterpret_cast<const Botan::byte*>(this->pre_buf.data()),
-                          this->pre_buf.size());
-          this->pre_buf = "";
+          this->tls->send(this->pre_buf.data(), this->pre_buf.size());
+          this->pre_buf.clear();
         }
       if (!data.empty())
         this->tls->send(reinterpret_cast<const Botan::byte*>(data.data()),
@@ -460,7 +470,9 @@ void TCPSocketHandler::tls_send(std::string&& data)
         this->on_tls_activated();
     }
   else
-    this->pre_buf += data;
+    this->pre_buf.insert(this->pre_buf.end(),
+                         std::make_move_iterator(data.begin()),
+                         std::make_move_iterator(data.end()));
 }
 
 void TCPSocketHandler::tls_data_cb(const Botan::byte* data, size_t size)

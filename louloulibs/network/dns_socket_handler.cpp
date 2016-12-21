@@ -42,7 +42,8 @@ bool DNSSocketHandler::is_connected() const
 
 void DNSSocketHandler::remove_from_poller()
 {
-  this->poller->remove_socket_handler(this->socket);
+  if (this->poller->is_managing_socket(this->socket))
+    this->poller->remove_socket_handler(this->socket);
 }
 
 #endif /* CARES_FOUND */

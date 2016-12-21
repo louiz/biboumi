@@ -13,6 +13,7 @@
 #include <netinet/in.h>
 #include <netdb.h>
 
+#include <chrono>
 #include <vector>
 #include <memory>
 #include <string>
@@ -106,6 +107,9 @@ public:
 #endif
   bool is_connected() const override final;
   bool is_connecting() const;
+  bool is_using_tls() const;
+  std::string get_port() const;
+  std::chrono::system_clock::time_point connection_date;
 
 private:
   /**
@@ -266,9 +270,6 @@ private:
    * An additional buffer to keep data that the user wants to send, but
    * cannot because the handshake is not done.
    */
-  std::string pre_buf;
+  std::vector<Botan::byte> pre_buf;
 #endif // BOTAN_FOUND
 };
-
-
-

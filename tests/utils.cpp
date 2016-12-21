@@ -6,6 +6,10 @@
 #include <utils/split.hpp>
 #include <utils/xdg.hpp>
 #include <utils/empty_if_fixed_server.hpp>
+#include <utils/get_first_non_empty.hpp>
+#include <utils/time.hpp>
+
+using namespace std::string_literals;
 
 TEST_CASE("String split")
 {
@@ -99,4 +103,40 @@ TEST_CASE("string cut")
   CHECK(res.size() == 2);
   CHECK(res[0] == "rhello, ");
   CHECK(res[1] == "♥");
+}
+
+TEST_CASE("first non-empty string")
+{
+  CHECK(get_first_non_empty(""s, ""s, "hello"s, "world"s) == "hello"s);
+  CHECK(get_first_non_empty(""s, ""s, ""s, ""s) == ""s);
+  CHECK(get_first_non_empty("first"s) == "first"s);
+  CHECK(get_first_non_empty(0, 1, 2, 3) == 1);
+}
+
+TEST_CASE("time_to_string")
+{
+  const std::time_t stamp = 1472480968;
+  const std::string result = "2016-08-29T14:29:28Z";
+  CHECK(utils::to_string(stamp) == result);
+  CHECK(utils::to_string(stamp).size() == result.size());
+  CHECK(utils::to_string(0) == "1970-01-01T00:00:00Z");
+}
+
+TEST_CASE("parse_datetime")
+{
+  CHECK(utils::parse_datetime("1970-01-01T00:00:00Z") == 0);
+
+  const int twenty_three_hours = 82800;
+  CHECK(utils::parse_datetime("1970-01-01T23:00:12Z") == twenty_three_hours + 12);
+  CHECK(utils::parse_datetime("1970-01-01T23:00:12Z") == utils::parse_datetime("1970-01-01T23:00:12+00:00"));
+  CHECK(utils::parse_datetime("1970-01-01T23:00:12Z") == utils::parse_datetime("1970-01-01T23:00:12-00:00"));
+  CHECK(utils::parse_datetime("1970-01-02T00:00:12Z") == utils::parse_datetime("1970-01-01T23:00:12-01:00"));
+  CHECK(utils::parse_datetime("1970-01-02T00:00:12Z") == utils::parse_datetime("1970-01-02T01:00:12+01:00"));
+
+  CHECK(utils::parse_datetime("2016-08-29T14:29:29Z") == 1472480969);
+
+  CHECK(utils::parse_datetime("blah") == -1);
+  CHECK(utils::parse_datetime("1970-01-02T00:00:12B") == -1);
+  CHECK(utils::parse_datetime("1970-01-02T00:00:12*00:00") == -1);
+  CHECK(utils::parse_datetime("1970-01-02T00:00:12+0000") == -1);
 }

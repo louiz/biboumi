@@ -19,7 +19,7 @@ XMPP client as if these channels were XMPP MUCs.
 Synopsis
 ========
 
-biboumi [*config_filename*\ ]
+biboumi [*config_filename*]
 
 Options
 =======
@@ -86,16 +86,13 @@ irc.example.org), then biboumi will enforce the connexion to that IRC
 server only.  This means that a JID like "#chan@biboumi.example.com" must
 be used instead of "#chan%irc.example.org@biboumi.example.com".  In that
 mode, the virtual channel (see `Connect to an IRC server`_) is not
-available and you still need to use the ! separator to send message to an
-IRC user (for example "foo!@biboumi.example.com" to send a message to
-foo), although the in-room JID still work as expected
-("#channel@biboumi.example.com/Nick").  On the other hand, the '%' lose
-any meaning.  It can appear in the JID but will not be interpreted as a
-separator (thus the JID "#channel%hello@biboumi.example.com" points to the
-channel named "#channel%hello" on the configured IRC server) This option
-can for example be used by an administrator that just wants to let their
-users join their own IRC server using an XMPP client, while forbidding
-access to any other IRC server.
+available. The '%' character loses any meaning in the JIDs.  It can appear
+in the JID but will not be interpreted as a separator (thus the JID
+"#channel%hello@biboumi.example.com" points to the channel named
+"#channel%hello" on the configured IRC server) This option can for example
+be used by an administrator that just wants to let their users join their own
+IRC server using an XMPP client, while forbidding access to any other IRC
+server.
 
 realname_customization
 ----------------------
@@ -142,7 +139,7 @@ default is 0, but a more practical value for production use is 1.
 ca_file
 -------
 
-Specifies which file should be use as the list of trusted CA when
+Specifies which file should be used as the list of trusted CA when
 negociating a TLS session. By default this value is unset and biboumi
 tries a list of well-known paths.
 
@@ -201,26 +198,21 @@ the domain served by biboumi (the part after the ``@``, biboumi.example.com in
 the examples), and the local part (the part before the ``@``) depends on the
 concerned entity.
 
-IRC channels have a local part formed like this:
-``channel_name`` % ``irc_server``.
+IRC channels and IRC users have a local part formed like this:
+``name`` % ``irc_server``.
 
-If the IRC channel you want to adress starts with the ``'#'`` character (or an
-other character, announced by the IRC server, like ``'&'``, ``'+'`` or ``'!'``),
-then you must include it in the JID.  Some other gateway implementations, as
-well as some IRC clients, do not require them to be started by one of these
-characters, adding an implicit ``'#'`` in that case.  Biboumi does not do that
-because this gets confusing when trying to understand the difference between
-the channels *#foo*, and *##foo*. Note that biboumi does not use the
-presence of these special characters to identify an IRC channel, only the
-presence of the separator `%` is used for that.
+``name`` can be a channel name or an user nickname. The distinction between
+the two is based on the first character: by default, if the name starts with
+``'#'`` or ``'&'`` (but this can be overridden by the server, using the
+ISUPPORT extension) then it’s a channel name, otherwise this is a nickname.
 
-The channel name can also be empty (for example ``%irc.example.com``), in that
-case this represents the virtual channel provided by biboumi.  See *Connect
-to an IRC server* for more details.
+As a special case, the channel name can also be empty (for example
+``%irc.example.com``), in that case this represents the virtual channel
+provided by biboumi.  See *Connect to an IRC server* for more details.
 
 There is two ways to address an IRC user, using a local part like this:
-``nickname`` ! ``irc_server``
-or by using the in-room address of the participant, like this:
+``nickname`` % ``irc_server`` or by using the in-room address of the
+participant, like this:
 ``channel_name`` % ``irc_server`` @ ``biboumi.example.com`` / ``Nickname``
 
 The second JID is available only to be compatible with XMPP clients when the
@@ -232,11 +224,17 @@ IRC nicknames are case-insensitive, this means that the nicknames toto,
 Toto, tOtO and TOTO all represent the same IRC user.  This means you can
 talk to the user toto, and this will work.
 
-Also note that some IRC nicknames may contain characters that are not
-allowed in the local part of a JID (for example '@').  If you need to send a
-message to a nick containing such a character, you have to use a jid like
+Also note that some IRC nicknames or channels may contain characters that are
+not allowed in the local part of a JID (for example '@').  If you need to send a
+message to a nick containing such a character, you can use a jid like
 ``%irc.example.com@biboumi.example.com/AnnoyingNickn@me``, because the JID
-``AnnoyingNickn@me!irc.example.com@biboumi.example.com`` would not work.
+``AnnoyingNickn@me%irc.example.com@biboumi.example.com`` would not work.
+And if you need to address a channel that contains such invalid characters, you
+have to use `jid-escaping <http://www.xmpp.org/extensions/xep-0106.html#escaping>`_,
+and replace each of these characters with their escaped version, for example to
+join the channel ``#b@byfoot``, you need to use the following JID:
+``#b\40byfoot%irc.example.com@biboumi.example.com``.
+
 
 Examples:
 
@@ -244,7 +242,7 @@ Examples:
   irc.example.com IRC server, and this is served by the biboumi instance on
   biboumi.example.com
 
-* ``toto!irc.example.com@biboumi.example.com`` is the IRC user named toto, or
+* ``toto%irc.example.com@biboumi.example.com`` is the IRC user named toto, or
   TotO, etc.
 
 * ``irc.example.com@biboumi.example.com`` is the IRC server irc.example.com.
@@ -254,9 +252,6 @@ Examples:
 
 Note: Some JIDs are valid but make no sense in the context of
 biboumi:
-
-* ``!irc.example.com@biboumi.example.com`` is the empty-string nick on the
-  irc.example.com server. It makes no sense to try to send messages to it.
 
 * ``#test%@biboumi.example.com``, or any other JID that does not contain an
   IRC server is invalid. Any message to that kind of JID will trigger an
@@ -286,7 +281,7 @@ channel ``#foo`` on the server ``irc.example.com``, but you need to authenticate
 to a bot of the server before you’re allowed to join it, you can first join
 the room ``%irc.example.com@biboumi.example.com`` (this will effectively
 connect you to the IRC server without joining any room), then send your
-authentication message to the user ``bot!irc.example.com@biboumi.example.com``
+authentication message to the user ``bot%irc.example.com@biboumi.example.com``
 and finally join the room ``#foo%irc.example.com@biboumi.example.com``.
 
 Channel messages
@@ -298,6 +293,29 @@ it cannot know whether the IRC server has received and forwarded the
 messages to other users.  This means that the order of the messages
 displayed in your XMPP client may not be the same than the order on other
 IRC users’.
+
+History
+-------
+
+Public channel messages are saved into archives, inside the database, unless
+the `record_history` option is set to false for that user `Ad-hoc commands`.
+Private messages (messages that are sent directly to a nickname, not a
+channel) are never stored in the database. When a channel is joined, biboumi
+sends the `max_history_length` messages found in the database as the MUC
+history.
+
+A channel history can be retrieved by using `Message archive management (MAM)
+<https://xmpp.org/extensions/xep-0313.htm>`_ on the channel JID.  The results
+can be filtered by start and end dates.
+
+For a given channel, each user has her or his own archive.  The content of
+the archives are never shared, and thus a user can not use someone else’s
+archive to get the messages that they didn’t receive when they were offline.
+Although this feature would be very convenient, this would introduce a very
+important privacy issue: for example if a biboumi gateway is used by two
+users, by querying the archive one user would be able to know whether or not
+the other user was in a room at a given time.
+
 
 List channels
 -------------
@@ -333,7 +351,7 @@ Private messages are handled differently on IRC and on XMPP.  On IRC, you
 talk directly to one server-user: toto on the channel #foo is the same user
 as toto on the channel #bar (as long as these two channels are on the same
 IRC server).  By default you will receive private messages from the “global”
-user (aka nickname!irc.example.com@biboumi.example.com), unless you
+user (aka nickname%irc.example.com@biboumi.example.com), unless you
 previously sent a message to an in-room participant (something like
 \#test%irc.example.com@biboumi.example.com/nickname), in which case future
 messages from that same user will be received from that same “in-room” JID.
@@ -343,6 +361,21 @@ Notices
 
 Notices are received exactly like private messages.  It is not possible to
 send a notice.
+
+Invitations
+-----------
+
+Biboumi forwards the mediated invitations to the target nick.  If the user
+wishes to invite the user “FooBar” into a room, they can invite one of the
+following “JIDs” (one of them is not a JID, actually):
+
+- foobar%anything@anything
+- anything@anything/FooBar
+- FooBar
+
+Note that the “anything” part are simply ignored because they have no
+meaning for the IRC server: we already know which IRC server is targeted
+using the JID of the target channel.
 
 Kicks and bans
 --------------
@@ -405,7 +438,7 @@ between IRC modes and XMPP features is as follow:
   Sets the participant’s role to ``moderator`` and its affiliation to  ``member``.
 
 ``+v``
-  Sets the participant’s role to `participant` and its affiliation to ``member``.
+  Sets the participant’s role to ``participant`` and its affiliation to ``member``.
 
 Similarly, when a biboumi user changes some participant's affiliation or role, biboumi translates that in an IRC mode change.
 
@@ -455,13 +488,18 @@ On the gateway itself (e.g on the JID biboumi.example.com):
 On a server JID (e.g on the JID chat.freenode.org@biboumi.example.com)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-- Configure: Lets each user configure some options that applies to the
+- configure: Lets each user configure some options that applies to the
   concerned IRC server.
+- get-irc-connection-info: Returns some information about the IRC server,
+  for the executing user. It lets the user know if they are connected to
+  this server, from what port, with or without TLS, and it gives the list
+  of joined IRC channel, with a detailed list of which resource is in which
+  channel.
 
 On a channel JID (e.g on the JID #test%chat.freenode.org@biboumi.example.com)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-- Configure: Lets each user configure some options that applies to the
+- configure: Lets each user configure some options that applies to the
   concerned IRC channel.  Some of these options, if not configured for a
   specific channel, defaults to the value configured at the IRC server
   level.  For example the encoding can be specified for both the channel
@@ -492,7 +530,7 @@ Thus, encryption is not used to connect to the local XMPP server because it
 is useless.
 
 If compiled with the Botan library, biboumi can use TLS when communicating
-with the IRC serveres.  It will first try ports 6697 and 6670 and use TLS if
+with the IRC servers.  It will first try ports 6697 and 6670 and use TLS if
 it succeeds, if connection fails on both these ports, the connection is
 established on port 6667 without any encryption.
 

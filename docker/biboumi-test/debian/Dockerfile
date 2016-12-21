@@ -39,6 +39,8 @@ RUN rm -rf /litesql
 RUN ldconfig
 
 # Install slixmpp, for e2e tests
+RUN git clone https://github.com/saghul/aiodns.git
+RUN cd aiodns &&  python3 setup.py build && python3 setup.py install
 RUN apt install -y python3-pip
 RUN git clone git://git.louiz.org/slixmpp
 RUN pip3 install pyasn1
@@ -48,10 +50,10 @@ RUN cd slixmpp && python3 setup.py build && python3 setup.py install
 RUN useradd tester -m
 
 # Install charybdis, for e2e tests
-RUN apt install -y automake autoconf flex bison libltdl-dev openssl
+RUN apt install -y automake autoconf flex bison libltdl-dev openssl zlib1g-dev
 RUN apt install -y libtool
 RUN git clone https://github.com/charybdis-ircd/charybdis.git && cd charybdis
-RUN cd /charybdis && ./autogen.sh && ./configure --prefix=/home/tester/ircd --bindir=/usr/bin && make -j8 && make install
+RUN cd /charybdis && git checkout 4f2b9a4 && ./autogen.sh && ./configure --prefix=/home/tester/ircd --bindir=/usr/bin && make -j8 && make install
 RUN chown -R tester:tester /home/tester/ircd
 RUN rm -rf /charybdis
 

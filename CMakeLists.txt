@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.0)
 
 project(biboumi)
 
-set(${PROJECT_NAME}_VERSION_MAJOR 3)
+set(${PROJECT_NAME}_VERSION_MAJOR 4)
 set(${PROJECT_NAME}_VERSION_MINOR 0)
 set(${PROJECT_NAME}_VERSION_SUFFIX "")
 
@@ -96,7 +96,7 @@ if(LITESQL_FOUND)
 
   add_library(database STATIC src/database/database.cpp
     ${LITESQL_GENERATED_SOURCES})
-  target_link_libraries(database ${LITESQL_LIBRARIES})
+  target_link_libraries(database ${LITESQL_LIBRARIES} utils)
   if(BOTAN_FOUND)
     target_link_libraries(database ${BOTAN_LIBRARIES})
   endif()
@@ -215,7 +215,7 @@ if(NOT EXISTS ${CMAKE_SOURCE_DIR}/tests/catch.hpp)
     )
   add_dependencies(test_suite catch)
 endif()
-add_custom_target(check COMMAND "test_suite" "-s"
+add_custom_target(check COMMAND "test_suite"
   DEPENDS test_suite biboumi)
 add_custom_target(e2e COMMAND "python3" "${CMAKE_CURRENT_SOURCE_DIR}/tests/end_to_end/"
   DEPENDS biboumi)
@@ -232,6 +232,10 @@ if(CMAKE_BUILD_TYPE MATCHES Debug)
     test_suite
     coverage
     )
+  SETUP_TARGET_FOR_COVERAGE(coverage_e2e
+    make
+    coverage_e2e
+    e2e)
 endif()
 
 #
@@ -246,8 +250,8 @@ install(FILES   conf/biboumi.cfg                            DESTINATION /etc/bib
 ## Dist target
 ## Generate a release tarball from the git sources
 #
-add_custom_target(dist
-  COMMAND git archive --prefix=${ARCHIVE_NAME}/ --format=tar HEAD
+add_custom_command(OUTPUT ${ARCHIVE_NAME}.tar.xz
+  COMMAND git archive --prefix=${ARCHIVE_NAME}/ --format=tar HEAD^{tree}
           > ${CMAKE_CURRENT_BINARY_DIR}/${ARCHIVE_NAME}.tar
   # Append this specific file that is not part of the git repo
   COMMAND tar -rf ${CMAKE_CURRENT_BINARY_DIR}/${ARCHIVE_NAME}.tar -P ${SOURCE_DIR}/single_include/catch.hpp --xform 's|/.*/|${ARCHIVE_NAME}/tests/|g'
@@ -258,13 +262,15 @@ add_custom_target(dist
   COMMAND ${CMAKE_COMMAND} -E cmake_echo_color --cyan "${ARCHIVE_NAME}.tar.xz created."
   WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
   )
-add_dependencies(dist catch)
+add_custom_target(dist
+  DEPENDS ${ARCHIVE_NAME}.tar.xz
+  DEPENDS catch)
 
 add_custom_target(rpm
+  DEPENDS dist
   COMMAND mkdir -p rpmbuild/{BUILD,RPMS,SOURCES,SPECS,SRPMS}
   COMMAND rpmbuild --define "_topdir `pwd`/rpmbuild/" --define "_sourcedir `pwd`" -ba biboumi.spec
   )
-add_dependencies(rpm dist)
 
 if(BOTAN_FOUND)
   set(STR_WITH_BOTAN "Botan: yes")

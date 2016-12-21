@@ -9,6 +9,7 @@
 #include <unordered_map>
 #include <memory>
 #include <string>
+#include <ctime>
 #include <map>
 
 #define STREAM_NS        "http://etherx.jabber.org/streams"
@@ -25,6 +26,13 @@
 #define VERSION_NS       "jabber:iq:version"
 #define ADHOC_NS         "http://jabber.org/protocol/commands"
 #define PING_NS          "urn:xmpp:ping"
+#define DELAY_NS         "urn:xmpp:delay"
+#define MAM_NS           "urn:xmpp:mam:1"
+#define FORWARD_NS       "urn:xmpp:forward:0"
+#define CLIENT_NS        "jabber:client"
+#define DATAFORM_NS      "jabber:x:data"
+#define RSM_NS           "http://jabber.org/protocol/rsm"
+#define MUC_TRAFFIC_NS   "http://jabber.org/protocol/muc#traffic"
 
 /**
  * An XMPP component, communicating with an XMPP server using the protocole
@@ -101,9 +109,8 @@ public:
    * If fulljid is false, the provided 'from' doesn't contain the
    * server-part of the JID and must be added.
    */
-  void send_message(const std::string& from, Xmpp::body&& body,
-                    const std::string& to, const std::string& type,
-                    const bool fulljid=false);
+  void send_message(const std::string& from, Xmpp::body&& body, const std::string& to,
+                    const std::string& type, const bool fulljid, const bool nocopy=false);
   /**
    * Send a join from a new participant
    */
@@ -121,12 +128,6 @@ public:
                                const std::string& nick,
                                const std::string& to);
   /**
-   * Send an error to indicate that the user tried to send a message to an
-   * invalid user.
-   */
-  void send_invalid_user_error(const std::string& user_name,
-                               const std::string& to);
-  /**
    * Send the MUC topic to the user
    */
   void send_topic(const std::string& from, Xmpp::body&& xmpp_topic, const std::string& to, const std::string& who);
@@ -134,6 +135,11 @@ public:
    * Send a (non-private) message to the MUC
    */
   void send_muc_message(const std::string& muc_name, const std::string& nick, Xmpp::body&& body, const std::string& jid_to);
+  /**
+   * Send a message, with a <delay/> element, part of a MUC history
+   */
+  void send_history_message(const std::string& muc_name, const std::string& nick, const std::string& body,
+                            const std::string& jid_to, const std::time_t timestamp);
   /**
    * Send an unavailable presence for this nick
    */
@@ -151,11 +157,8 @@ public:
   /**
    * An user is kicked from a room
    */
-  void kick_user(const std::string& muc_name,
-                     const std::string& target,
-                     const std::string& reason,
-                     const std::string& author,
-                     const std::string& jid_to);
+  void kick_user(const std::string& muc_name, const std::string& target, const std::string& reason,
+                 const std::string& author, const std::string& jid_to, const bool self);
   /**
    * Send a generic presence error
    */
@@ -207,6 +210,9 @@ public:
   void handle_error(const Stanza& stanza);
 
   virtual void after_handshake() {}
+
+  const std::string& get_served_hostname() const
+  { return this->served_hostname; }
 
   /**
    * Whether or not we ever succeeded our authentication to the XMPP server

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <functional>
+#include <memory>
 #include <vector>
 
 /**
@@ -84,6 +85,12 @@ private:
   std::vector<std::function<void()>> callbacks;
 
 };
+
+template<typename F>
+auto make_scope_guard(F&& f)
+{
+  return std::unique_ptr<void, std::decay_t<F>>{(void*)1, std::forward<F>(f)};
+}
 
 }
 

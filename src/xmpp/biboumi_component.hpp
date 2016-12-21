@@ -9,6 +9,10 @@
 #include <string>
 #include <map>
 
+namespace db
+{
+class MucLogLine;
+}
 struct ListElement;
 
 /**
@@ -58,6 +62,15 @@ public:
    */
   void send_self_disco_info(const std::string& id, const std::string& jid_to);
   /**
+   * Send a result IQ with the disco informations regarding IRC server JIDs.
+   */
+  void send_irc_server_disco_info(const std::string& id, const std::string& jid_to, const std::string& jid_from);
+  /**
+   * Sends the allowed namespaces in MUC message, according to
+   * http://xmpp.org/extensions/xep-0045.html#impl-service-traffic
+   */
+   void send_irc_channel_muc_traffic_info(const std::string id, const std::string& jid_from, const std::string& jid_to);
+  /**
    * Send an iq version request
    */
   void send_iq_version_request(const std::string& from,
@@ -71,9 +84,10 @@ public:
   /**
    * Send the channels list in one big stanza
    */
-  void send_iq_room_list_result(const std::string& id, const std::string& to_jid,
-                                const std::string& from,
-                                const std::vector<ListElement>& rooms_list);
+  void send_iq_room_list_result(const std::string& id, const std::string& to_jid, const std::string& from,
+                                const ChannelList& channel_list, std::vector<ListElement>::const_iterator begin,
+                                std::vector<ListElement>::const_iterator end, const ResultSetInfo& rs_info);
+  void send_invitation(const std::string& room_target, const std::string& jid_to, const std::string& author_nick);
   /**
    * Handle the various stanza types
    */
@@ -81,13 +95,19 @@ public:
   void handle_message(const Stanza& stanza);
   void handle_iq(const Stanza& stanza);
 
-private:
+#ifdef USE_DATABASE
+  bool handle_mam_request(const Stanza& stanza);
+  void send_archived_message(const db::MucLogLine& log_line, const std::string& from, const std::string& to,
+                             const std::string& queryid);
+#endif
+
   /**
    * Return the bridge associated with the bare JID. Create a new one
    * if none already exist.
    */
   Bridge* get_user_bridge(const std::string& user_jid);
 
+private:
   /**
    * A map of id -> callback.  When we want to wait for an iq result, we add
    * the callback to this map, with the iq id as the key. When an iq result

@@ -46,11 +46,7 @@ void DNSHandler::destroy()
 void DNSHandler::gethostbyname(const std::string& name, ares_host_callback callback,
                                void* data, int family)
 {
-  if (family == AF_INET)
-    ::ares_gethostbyname(this->channel, name.data(), family,
-                         callback, data);
-  else
-    ::ares_gethostbyname(this->channel, name.data(), family,
+  ::ares_gethostbyname(this->channel, name.data(), family,
                          callback, data);
 }
 

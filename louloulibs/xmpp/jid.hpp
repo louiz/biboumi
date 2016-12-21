@@ -26,7 +26,12 @@ public:
   }
   std::string full() const
   {
-    return this->local + "@" + this->domain + "/" + this->resource;
+    std::string res = this->domain;
+    if (!this->local.empty())
+      res = this->local + "@" + this->domain;
+    if (!this->resource.empty())
+      res += "/" + this->resource;
+    return res;
   }
 };
 

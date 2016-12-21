@@ -2,6 +2,16 @@
 <!DOCTYPE database SYSTEM "litesql.dtd">
 
 <database name="BibouDB" namespace="db">
+    <object name="GlobalOptions">
+        <field name="owner" type="string" length="3071"/>
+
+        <field name="maxHistoryLength" type="integer" default="20"/>
+        <field name="recordHistory" type="boolean" default="true"/>
+        <index unique="true">
+            <indexfield name="owner"/>
+        </index>
+    </object>
+
     <object name="IrcServerOptions">
         <field name="owner" type="string" length="3071"/>
         <field name="server" type="string" length="3071"/>
@@ -18,6 +28,7 @@
         <field name="encodingOut" type="string" default="ISO-8859-1"/>
         <field name="encodingIn"  type="string" default="ISO-8859-1"/>
 
+        <field name="maxHistoryLength" type="integer" default="20"/>
         <index unique="true">
             <indexfield name="owner"/>
             <indexfield name="server"/>
@@ -32,6 +43,8 @@
         <field name="encodingOut" type="string"/>
         <field name="encodingIn"  type="string"/>
 
+        <field name="maxHistoryLength" type="integer" default="20"/>
+
         <index unique="true">
             <indexfield name="owner"/>
             <indexfield name="server"/>
@@ -39,8 +52,17 @@
         </index>
     </object>
 
-    <object name="LogLine">
-        <field name="date" type="date" />
-        <field name="body" type="string" length="4096"/>
+    <object name="MucLogLine">
+        <field name="uuid" type="string" length="36" />
+        <!-- The bare JID of the user for which we stored the line. It's
+        the JID associated with the Bridge -->
+        <field name="owner" type="string" length="4096" />
+        <!-- The room IID -->
+        <field name="ircChanName" type="string" length="4096" />
+        <field name="ircServerName" type="string" length="4096" />
+
+        <field name="date" type="datetime" />
+        <field name="body" type="string" length="65536"/>
+        <field name="nick" type="string" length="4096" />
     </object>
 </database>

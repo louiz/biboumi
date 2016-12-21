@@ -143,4 +143,25 @@ if(SYSTEMD_FOUND)
   target_link_libraries(xmpplib ${SYSTEMD_LIBRARIES})
 endif()
 
+#
+## Check if we have std::get_time
+#
+include(CheckCXXSourceCompiles)
+
+check_cxx_source_compiles("
+  #include <iomanip>
+  int main()
+  { std::get_time(nullptr, \"\"); }"
+  HAS_GET_TIME)
+
+mark_as_advanced(HAS_GET_TIME)
+
+check_cxx_source_compiles("
+  #include <iomanip>
+  int main()
+  { std::put_time(nullptr, \"\"); }"
+  HAS_PUT_TIME)
+
+mark_as_advanced(HAS_PUT_TIME)
+
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/louloulibs.h.cmake ${CMAKE_BINARY_DIR}/src/louloulibs.h)

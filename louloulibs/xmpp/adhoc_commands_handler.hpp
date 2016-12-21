@@ -31,9 +31,9 @@ public:
    */
   const std::map<const std::string, const AdhocCommand>& get_commands() const;
   /**
-   * This one can be used to add new commands.
+   * Add a command into the list, associated with the given name
    */
-  std::map<const std::string, const AdhocCommand>& get_commands();
+  void add_command(std::string name, AdhocCommand command);
   /**
    * Find the requested command, create a new session or use an existing
    * one, and process the request (provide a new form, an error, or a

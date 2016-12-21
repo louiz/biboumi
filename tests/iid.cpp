@@ -47,66 +47,60 @@ namespace Catch
 
 TEST_CASE("Iid creation")
 {
-    Iid iid1("foo!irc.example.org");
-    CHECK(std::to_string(iid1) == "foo!irc.example.org");
+    const std::set<char> chantypes {'#', '&'};
+    Iid iid1("foo%irc.example.org", chantypes);
+    CHECK(std::to_string(iid1) == "foo%irc.example.org");
     CHECK(iid1.get_local() == "foo");
     CHECK(iid1.get_server() == "irc.example.org");
-    CHECK(!iid1.is_channel);
-    CHECK(iid1.is_user);
+    CHECK(iid1.type == Iid::Type::User);
 
-    Iid iid2("#test%irc.example.org");
+    Iid iid2("#test%irc.example.org", chantypes);
     CHECK(std::to_string(iid2) == "#test%irc.example.org");
     CHECK(iid2.get_local() == "#test");
     CHECK(iid2.get_server() == "irc.example.org");
-    CHECK(iid2.is_channel);
-    CHECK(!iid2.is_user);
+    CHECK(iid2.type == Iid::Type::Channel);
 
-    Iid iid3("%irc.example.org");
+    Iid iid3("%irc.example.org", chantypes);
     CHECK(std::to_string(iid3) == "%irc.example.org");
-    CHECK(iid3.get_local() == "");
+    CHECK(iid3.get_local().empty());
     CHECK(iid3.get_server() == "irc.example.org");
-    CHECK(iid3.is_channel);
-    CHECK(!iid3.is_user);
+    CHECK(iid3.type == Iid::Type::Channel);
 
-    Iid iid4("irc.example.org");
+    Iid iid4("irc.example.org", chantypes);
     CHECK(std::to_string(iid4) == "irc.example.org");
     CHECK(iid4.get_local() == "");
     CHECK(iid4.get_server() == "irc.example.org");
-    CHECK(!iid4.is_channel);
-    CHECK(!iid4.is_user);
+    CHECK(iid4.type == Iid::Type::Server);
 
-    Iid iid5("nick!");
-    CHECK(std::to_string(iid5) == "nick!");
+    Iid iid5("nick%", chantypes);
+    CHECK(std::to_string(iid5) == "nick%");
     CHECK(iid5.get_local() == "nick");
     CHECK(iid5.get_server() == "");
-    CHECK(!iid5.is_channel);
-    CHECK(iid5.is_user);
+    CHECK(iid5.type == Iid::Type::User);
 
-    Iid iid6("##channel%");
+    Iid iid6("##channel%", chantypes);
     CHECK(std::to_string(iid6) == "##channel%");
     CHECK(iid6.get_local() == "##channel");
     CHECK(iid6.get_server() == "");
-    CHECK(iid6.is_channel);
-    CHECK(!iid6.is_user);
+    CHECK(iid6.type == Iid::Type::Channel);
 }
 
 TEST_CASE("Iid creation in fixed_server mode")
 {
     Config::set("fixed_irc_server", "fixed.example.com", false);
 
-    Iid iid1("foo!irc.example.org");
-    CHECK(std::to_string(iid1) == "foo!");
-    CHECK(iid1.get_local() == "foo");
+    const std::set<char> chantypes {'#', '&'};
+    Iid iid1("foo%irc.example.org", chantypes);
+    CHECK(std::to_string(iid1) == "foo%irc.example.org");
+    CHECK(iid1.get_local() == "foo%irc.example.org");
     CHECK(iid1.get_server() == "fixed.example.com");
-    CHECK(!iid1.is_channel);
-    CHECK(iid1.is_user);
+    CHECK(iid1.type == Iid::Type::User);
 
-    Iid iid2("#test%irc.example.org");
+    Iid iid2("#test%irc.example.org", chantypes);
     CHECK(std::to_string(iid2) == "#test%irc.example.org");
     CHECK(iid2.get_local() == "#test%irc.example.org");
     CHECK(iid2.get_server() == "fixed.example.com");
-    CHECK(iid2.is_channel);
-    CHECK(!iid2.is_user);
+    CHECK(iid2.type == Iid::Type::Channel);
 
     // Note that it is impossible to adress the IRC server directly, or to
     // use the virtual channel, in that mode
@@ -114,17 +108,15 @@ TEST_CASE("Iid creation in fixed_server mode")
     // Iid iid3("%irc.example.org");
     // Iid iid4("irc.example.org");
 
-    Iid iid5("nick!");
-    CHECK(std::to_string(iid5) == "nick!");
+    Iid iid5("nick", chantypes);
+    CHECK(std::to_string(iid5) == "nick");
     CHECK(iid5.get_local() == "nick");
     CHECK(iid5.get_server() == "fixed.example.com");
-    CHECK(!iid5.is_channel);
-    CHECK(iid5.is_user);
+    CHECK(iid5.type == Iid::Type::User);
 
-    Iid iid6("##channel%");
+    Iid iid6("##channel%", chantypes);
     CHECK(std::to_string(iid6) == "##channel%");
     CHECK(iid6.get_local() == "##channel%");
     CHECK(iid6.get_server() == "fixed.example.com");
-    CHECK(iid6.is_channel);
-    CHECK(!iid6.is_user);
+    CHECK(iid6.type == Iid::Type::Channel);
 }
