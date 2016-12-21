@@ -37,3 +37,7 @@ DEB_MAKE_CHECK_TARGET = check
 DEB_INSTALL_CHANGELOGS_ALL += CHANGELOG.rst
 DEB_INSTALL_DOCS_$(pkg) += README.rst CONTRIBUTING.rst
 DEB_INSTALL_EXAMPLES_$(pkg) = doc/example.conf
+
+binary-post-install/$(pkg)::
+	mkdir -p $(cdbs_curdestdir)/lib
+	mv $(cdbs_curdestdir)/usr/lib/systemd $(cdbs_curdestdir)/lib
