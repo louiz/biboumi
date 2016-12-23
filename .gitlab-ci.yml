@@ -18,7 +18,7 @@ variables:
   stage: build
   tags:
     - docker
-  image: biboumi-test-fedora:latest
+  image: docker.louiz.org/biboumi-test-fedora:latest
   script:
     - "echo Running cmake with the following parameters: -DCMAKE_CXX_COMPILER=${COMPILER} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ${BOTAN} ${CARES} ${SYSTEMD} ${LIBIDN} ${LITESQL}"
     - cmake .. -DCMAKE_CXX_COMPILER=${COMPILER} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ${BOTAN} ${CARES} ${SYSTEMD} ${LIBIDN} ${LITESQL}
@@ -70,7 +70,7 @@ build:rpm:
     - master@louiz/biboumi
   tags:
     - docker
-  image: biboumi-test-fedora:latest
+  image: docker.louiz.org/biboumi-test-fedora:latest
   script:
     - cmake .. -DCMAKE_CXX_COMPILER=${COMPILER} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ${BOTAN} ${CARES} ${SYSTEMD} ${LIBIDN} ${LITESQL}
     - make rpm -j$(nproc || echo 1)
@@ -103,11 +103,11 @@ build:rpm:
     name: $CI_PROJECT_NAME-test-$CI_BUILD_ID
 
 test:debian:
-  image: biboumi-test-debian:latest
+  image: docker.louiz.org/biboumi-test-debian:latest
   <<: *basic_test
 
 test:fedora:
-  image: biboumi-test-fedora:latest
+  image: docker.louiz.org/biboumi-test-fedora:latest
   <<: *basic_test
 
 test:freebsd:
@@ -130,7 +130,7 @@ test:coverity:
     - master@louiz/biboumi
   tags:
     - docker
-  image: biboumi-test-fedora:latest
+  image: docker.louiz.org/biboumi-test-fedora:latest
   allow_failure: true
   when: manual
   script:
@@ -146,7 +146,7 @@ test:sonar-qube:
     - master@louiz/biboumi
   tags:
     - docker
-  image: biboumi-test-fedora:latest
+  image: docker.louiz.org/biboumi-test-fedora:latest
   allow_failure: true
   script:
     - cmake ..
