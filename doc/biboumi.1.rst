@@ -83,13 +83,13 @@ fixed_irc_server
 
 If this option contains the hostname of an IRC server (for example
 irc.example.org), then biboumi will enforce the connexion to that IRC
-server only.  This means that a JID like "#chan@biboumi.example.com" must
-be used instead of "#chan%irc.example.org@biboumi.example.com".  In that
+server only.  This means that a JID like ``#chan@biboumi.example.com`` must
+be used instead of ``#chan%irc.example.org@biboumi.example.com``.  In that
 mode, the virtual channel (see `Connect to an IRC server`_) is not
-available. The '%' character loses any meaning in the JIDs.  It can appear
+available. The `%` character loses any meaning in the JIDs.  It can appear
 in the JID but will not be interpreted as a separator (thus the JID
-"#channel%hello@biboumi.example.com" points to the channel named
-"#channel%hello" on the configured IRC server) This option can for example
+``#channel%hello@biboumi.example.com`` points to the channel named
+``#channel%hello`` on the configured IRC server) This option can for example
 be used by an administrator that just wants to let their users join their own
 IRC server using an XMPP client, while forbidding access to any other IRC
 server.
@@ -200,8 +200,8 @@ Addressing
 ----------
 
 IRC entities are represented by XMPP JIDs.  The domain part of the JID is
-the domain served by biboumi (the part after the ``@``, biboumi.example.com in
-the examples), and the local part (the part before the ``@``) depends on the
+the domain served by biboumi (the part after the `@`, biboumi.example.com in
+the examples), and the local part (the part before the `@`) depends on the
 concerned entity.
 
 IRC channels and IRC users have a local part formed like this:
@@ -521,11 +521,11 @@ arbitrary IRC message, biboumi forwards any XMPP message received on an IRC
 Server JID (see *ADDRESSING*) as a raw command to that IRC server.
 
 For example, to WHOIS the user Foo on the server irc.example.com, a user can
-send the message “WHOIS Foo” to “irc.example.com@biboumi.example.com”.
+send the message “WHOIS Foo” to ``irc.example.com@biboumi.example.com``.
 
 The message will be forwarded as is, without any modification appart from
-adding "\r\n" at the end (to make it a valid IRC message).  You need to have
-a little bit of understanding of the IRC protocol to use this feature.
+adding ``\r\n`` at the end (to make it a valid IRC message).  You need to
+have a little bit of understanding of the IRC protocol to use this feature.
 
 Security
 ========
