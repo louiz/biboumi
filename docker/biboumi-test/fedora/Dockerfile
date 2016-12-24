@@ -57,15 +57,14 @@ RUN cd /charybdis && git checkout 4f2b9a4 && sed s/113/1113/ -i /charybdis/authd
 RUN chown -R tester:tester /home/tester/ircd
 RUN rm -rf /charybdis
 
-RUN su - tester -c "echo export LANG=en_GB.utf-8 >> /home/tester/.bashrc"
-
 COPY coverity /home/tester/coverity
 COPY sonar-scanner-2.8 /home/tester/sonar-scanner
 
 RUN dnf install -y which java-1.8.0-openjdk
 
+RUN yes "" | openssl req -nodes -x509 -newkey rsa:4096 -keyout /home/tester/ircd/etc/ssl.key -out /home/tester/ircd/etc/ssl.pem
+
 ENV LC_ALL C.UTF-8
 
 WORKDIR /home/tester
 USER tester
-
