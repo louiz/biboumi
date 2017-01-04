@@ -6,10 +6,26 @@ set(${PROJECT_NAME}_VERSION_MAJOR 5)
 set(${PROJECT_NAME}_VERSION_MINOR 0)
 set(${PROJECT_NAME}_VERSION_SUFFIX "~dev")
 
+find_library(LIBASAN NAMES asan libasan.so.3 libasan.so.2 libasan.so.1)
+find_library(LIBUBSAN NAMES ubsan libubsan.so.0)
+
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++1y -pedantic -Wall -Wextra")
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
   set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fprofile-arcs -ftest-coverage --coverage")
 endif()
+if(LIBASAN)
+  message(STATUS "Libasan found.")
+  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fsanitize=address")
+else()
+  message(STATUS "Libasan NOT found.")
+endif()
+if(LIBUBSAN)
+  message(STATUS "Libubsan found.")
+  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fsanitize=undefined")
+else()
+  message(STATUS "Libubsan NOT found.")
+endif()
+
 
 #
 ## Look for external libraries
