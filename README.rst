@@ -2,7 +2,7 @@ Biboumi
 =======
 
 .. image:: https://lab.louiz.org/louiz/biboumi/badges/master/build.svg
-   :target: https://lab.louiz.org/louiz/biboumi/commits/master
+   :target: https://lab.louiz.org/louiz/biboumi/pipelines
 
 .. image:: https://codecov.io/gh/louiz/biboumi/branch/master/graph/badge.svg
   :target: https://codecov.io/gh/louiz/biboumi
