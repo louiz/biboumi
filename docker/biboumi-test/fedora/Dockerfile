@@ -19,6 +19,8 @@ RUN dnf install -y libidn-devel
 RUN dnf install -y uuid-devel
 RUN dnf install -y systemd-devel
 RUN dnf install -y pandoc
+RUN dnf install -y libasan
+RUN dnf install -y libubsan
 
 # Needed to run tests
 RUN dnf install -y git

@@ -19,6 +19,8 @@ RUN apt install -y libidn11-dev
 RUN apt install -y uuid-dev
 RUN apt install -y libsystemd-dev
 RUN apt install -y pandoc
+RUN apt install -y libasan2
+RUN apt install -y libubsan0
 
 # Needed to run tests
 RUN apt install -y git
