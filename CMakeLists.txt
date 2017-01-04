@@ -310,19 +310,6 @@ add_custom_target(rpm
   COMMAND rpmbuild --define "_topdir `pwd`/rpmbuild/" --define "_sourcedir `pwd`" -ba biboumi.spec
   )
 
-if(BOTAN_FOUND)
-  set(STR_WITH_BOTAN "Botan: yes")
-else()
-  set(STR_WITH_BOTAN "Botan: no")
-endif()
-if(CARES_FOUND)
-  set(STR_WITH_CARES "c-ares: yes")
-else()
-  set(STR_WITH_CARES "c-ares: no")
-endif()
-add_custom_target(PrintBuildParameters ALL
-  ${CMAKE_COMMAND} -E cmake_echo_color --cyan "Compiling ${PROJECT_NAME} with ${STR_WITH_BOTAN}, ${STR_WITH_CARES}")
-
 configure_file(biboumi.h.cmake src/biboumi.h)
 
 set(SYSTEMD_SERVICE_TYPE_DOCSTRING "The value used as the Type= in the systemd unit file.")
