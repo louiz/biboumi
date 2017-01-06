@@ -9,7 +9,7 @@ RUN dnf update -y
 RUN dnf install -y gcc-c++
 RUN dnf install -y clang
 RUN dnf install -y valgrind
-RUN dnf install -y c-ares-devel
+RUN dnf install -y udns-devel
 RUN dnf install -y sqlite-devel
 RUN dnf install -y libuuid-devel
 RUN dnf install -y cmake

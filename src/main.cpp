@@ -6,7 +6,7 @@
 #include <utils/xdg.hpp>
 #include <utils/reload.hpp>
 
-#ifdef CARES_FOUND
+#ifdef UDNS_FOUND
 # include <network/dns_handler.hpp>
 #endif
 
@@ -129,15 +129,16 @@ int main(int ac, char** av)
 
   auto p = std::make_shared<Poller>();
 
+#ifdef UDNS_FOUND
+  DNSHandler dns_handler(p);
+#endif
+
   auto xmpp_component =
     std::make_shared<BiboumiComponent>(p, hostname, password);
   xmpp_component->start();
 
   IdentdServer identd(*xmpp_component, p, static_cast<uint16_t>(Config::get_int("identd_port", 113)));
 
-#ifdef CARES_FOUND
-  DNSHandler::instance.watch_dns_sockets(p);
-#endif
   auto timeout = TimedEventsManager::instance().get_timeout();
   while (p->poll(timeout) != -1)
   {
@@ -155,6 +156,9 @@ int main(int ac, char** av)
       exiting = true;
       stop.store(false);
       xmpp_component->shutdown();
+#ifdef UDNS_FOUND
+      dns_handler.destroy();
+#endif
       identd.shutdown();
       // Cancel the timer for a potential reconnection
       TimedEventsManager::instance().cancel("XMPP reconnection");
@@ -200,18 +204,11 @@ int main(int ac, char** av)
       xmpp_component->close();
     if (exiting && p->size() == 1 && xmpp_component->is_document_open())
       xmpp_component->close_document();
-#ifdef CARES_FOUND
-    if (!exiting)
-      DNSHandler::instance.watch_dns_sockets(p);
-#endif
     if (exiting) // If we are exiting, do not wait for any timed event
       timeout = utils::no_timeout;
     else
       timeout = TimedEventsManager::instance().get_timeout();
   }
-#ifdef CARES_FOUND
-  DNSHandler::instance.destroy();
-#endif
   if (!xmpp_component->ever_auth)
     return 1; // To signal that the process did not properly start
   log_info("All connections cleanly closed, have a nice day.");

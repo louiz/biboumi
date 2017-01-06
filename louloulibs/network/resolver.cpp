@@ -1,19 +1,32 @@
 #include <network/dns_handler.hpp>
+#include <utils/timed_events.hpp>
 #include <network/resolver.hpp>
 #include <string.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
+#include <udns.h>
 
+#include <fstream>
 #include <cstdlib>
+#include <sstream>
+#include <chrono>
+#include <map>
 
 using namespace std::string_literals;
 
+static std::map<int, std::string> dns_error_messages {
+    {DNS_E_TEMPFAIL, "Timeout while contacting DNS servers"},
+    {DNS_E_PROTOCOL, "Misformatted DNS reply"},
+    {DNS_E_NXDOMAIN, "Domain name not found"},
+    {DNS_E_NOMEM, "Out of memory"},
+    {DNS_E_BADQUERY, "Misformatted domain name"}
+};
+
 Resolver::Resolver():
-#ifdef CARES_FOUND
+#ifdef UDNS_FOUND
   resolved4(false),
   resolved6(false),
   resolving(false),
-  cares_addrinfo(nullptr),
   port{},
 #endif
   resolved(false),
@@ -26,15 +39,44 @@ void Resolver::resolve(const std::string& hostname, const std::string& port,
 {
   this->error_cb = error_cb;
   this->success_cb = success_cb;
-#ifdef CARES_FOUND
+#ifdef UDNS_FOUND
   this->port = port;
 #endif
 
   this->start_resolving(hostname, port);
 }
 
-#ifdef CARES_FOUND
-void Resolver::start_resolving(const std::string& hostname, const std::string&)
+int Resolver::call_getaddrinfo(const char *name, const char* port, int flags)
+{
+  struct addrinfo hints;
+  memset(&hints, 0, sizeof(struct addrinfo));
+  hints.ai_flags = flags;
+  hints.ai_family = AF_UNSPEC;
+  hints.ai_socktype = SOCK_STREAM;
+  hints.ai_protocol = 0;
+
+  struct addrinfo* addr_res = nullptr;
+  const int res = ::getaddrinfo(name, port,
+                                &hints, &addr_res);
+
+  if (res == 0 && addr_res)
+    {
+      if (!this->addr)
+        this->addr.reset(addr_res);
+      else
+        { // Append this result at the end of the linked list
+          struct addrinfo *rp = this->addr.get();
+          while (rp->ai_next)
+            rp = rp->ai_next;
+          rp->ai_next = addr_res;
+        }
+    }
+
+  return res;
+}
+
+#ifdef UDNS_FOUND
+void Resolver::start_resolving(const std::string& hostname, const std::string& port)
 {
   this->resolving = true;
   this->resolved = false;
@@ -42,48 +84,139 @@ void Resolver::start_resolving(const std::string& hostname, const std::string&)
   this->resolved6 = false;
 
   this->error_msg.clear();
-  this->cares_addrinfo = nullptr;
+  this->addr.reset(nullptr);
 
-  auto hostname4_resolved = [](void* arg, int status, int,
-                                  struct hostent* hostent)
+  // We first try to use it as an IP address directly. We tell getaddrinfo
+  // to NOT use any DNS resolution.
+  if (this->call_getaddrinfo(hostname.data(), port.data(), AI_NUMERICHOST) == 0)
     {
-      Resolver* resolver = static_cast<Resolver*>(arg);
-      resolver->on_hostname4_resolved(status, hostent);
-    };
-  auto hostname6_resolved = [](void* arg, int status, int,
-                                  struct hostent* hostent)
-    {
-      Resolver* resolver = static_cast<Resolver*>(arg);
-      resolver->on_hostname6_resolved(status, hostent);
-    };
+      this->on_resolved();
+      return;
+    }
 
-  DNSHandler::instance.gethostbyname(hostname, hostname6_resolved,
-                                     this, AF_INET6);
-  DNSHandler::instance.gethostbyname(hostname, hostname4_resolved,
-                                     this, AF_INET);
+  // Then we look into /etc/hosts to translate the given hostname
+  const auto hosts = this->look_in_etc_hosts(hostname);
+  if (!hosts.empty())
+    {
+      for (const auto &host: hosts)
+        this->call_getaddrinfo(host.data(), port.data(), AI_NUMERICHOST);
+      this->on_resolved();
+      return;
+    }
+
+  // And finally, we try a DNS resolution
+  auto hostname6_resolved = [](dns_ctx*, dns_rr_a6* result, void* data)
+  {
+    Resolver* resolver = static_cast<Resolver*>(data);
+    resolver->on_hostname6_resolved(result);
+  };
+
+  auto hostname4_resolved = [](dns_ctx*, dns_rr_a4* result, void* data)
+  {
+    Resolver* resolver = static_cast<Resolver*>(data);
+    resolver->on_hostname4_resolved(result);
+  };
+
+  DNSHandler::watch();
+  auto res = dns_submit_a4(nullptr, hostname.data(), 0, hostname4_resolved, this);
+  if (!res)
+    this->on_hostname4_resolved(nullptr);
+  res = dns_submit_a6(nullptr, hostname.data(), 0, hostname6_resolved, this);
+  if (!res)
+    this->on_hostname6_resolved(nullptr);
+
+  this->start_timer();
 }
 
-void Resolver::on_hostname4_resolved(int status, struct hostent* hostent)
+void Resolver::start_timer()
 {
-  this->resolved4 = true;
-  if (status == ARES_SUCCESS)
-    this->fill_ares_addrinfo4(hostent);
-  else
-    this->error_msg = ::ares_strerror(status);
+  const auto timeout = dns_timeouts(nullptr, -1, 0);
+  if (timeout < 0)
+    return;
+  TimedEvent event(std::chrono::steady_clock::now() + std::chrono::seconds(timeout), [this]() { this->start_timer(); }, "DNS");
+  TimedEventsManager::instance().add_event(std::move(event));
+}
 
-  if (this->resolved4 && this->resolved6)
+std::vector<std::string> Resolver::look_in_etc_hosts(const std::string &hostname)
+{
+  std::ifstream hosts("/etc/hosts");
+  std::string line;
+
+  std::vector<std::string> results;
+  while (std::getline(hosts, line))
+    {
+      if (line.empty())
+        continue;
+
+      std::string ip;
+      std::istringstream line_stream(line);
+      line_stream >> ip;
+      if (ip.empty() || ip[0] == '#')
+        continue;
+
+      std::string host;
+      while (line_stream >> host && !host.empty() && host[0] != '#')
+        {
+          if (hostname == host)
+            {
+              results.push_back(ip);
+              break;
+            }
+        }
+    }
+  return results;
+}
+
+void Resolver::on_hostname4_resolved(dns_rr_a4 *result)
+{
+  if (dns_active(nullptr) == 0)
+    DNSHandler::unwatch();
+
+  this->resolved4 = true;
+
+  const auto status = dns_status(nullptr);
+
+  if (status >= 0 && result)
+    {
+      char buf[INET6_ADDRSTRLEN];
+
+      for (auto i = 0; i < result->dnsa4_nrr; ++i)
+        {
+          inet_ntop(AF_INET, &result->dnsa4_addr[i], buf, sizeof(buf));
+          this->call_getaddrinfo(buf, this->port.data(), AI_NUMERICHOST);
+        }
+    }
+  else
+    {
+      const auto error = dns_error_messages.find(status);
+      if (error != end(dns_error_messages))
+        this->error_msg = error->second;
+    }
+
+  if (this->resolved6 && this->resolved4)
     this->on_resolved();
 }
 
-void Resolver::on_hostname6_resolved(int status, struct hostent* hostent)
+void Resolver::on_hostname6_resolved(dns_rr_a6 *result)
 {
-  this->resolved6 = true;
-  if (status == ARES_SUCCESS)
-    this->fill_ares_addrinfo6(hostent);
-  else
-    this->error_msg = ::ares_strerror(status);
+  if (dns_active(nullptr) == 0)
+    DNSHandler::unwatch();
 
-  if (this->resolved4 && this->resolved6)
+  this->resolved6 = true;
+  char buf[INET6_ADDRSTRLEN];
+
+  const auto status = dns_status(nullptr);
+
+  if (status >= 0 && result)
+    {
+      for (auto i = 0; i < result->dnsa6_nrr; ++i)
+        {
+          inet_ntop(AF_INET6, &result->dnsa6_addr[i], buf, sizeof(buf));
+          this->call_getaddrinfo(buf, this->port.data(), AI_NUMERICHOST);
+        }
+    }
+
+  if (this->resolved6 && this->resolved4)
     this->on_resolved();
 }
 
@@ -91,100 +224,26 @@ void Resolver::on_resolved()
 {
   this->resolved = true;
   this->resolving = false;
-  if (!this->cares_addrinfo)
+  if (!this->addr)
     {
       if (this->error_cb)
         this->error_cb(this->error_msg.data());
     }
   else
     {
-      this->addr.reset(this->cares_addrinfo);
       if (this->success_cb)
         this->success_cb(this->addr.get());
     }
 }
 
-void Resolver::fill_ares_addrinfo4(const struct hostent* hostent)
-{
-  struct addrinfo* prev = this->cares_addrinfo;
-  struct in_addr** address = reinterpret_cast<struct in_addr**>(hostent->h_addr_list);
-
-  while (*address)
-    {
-      // Create a new addrinfo list element, and fill it
-      struct addrinfo* current = new struct addrinfo;
-      current->ai_flags = 0;
-      current->ai_family = hostent->h_addrtype;
-      current->ai_socktype = SOCK_STREAM;
-      current->ai_protocol = 0;
-      current->ai_addrlen = sizeof(struct sockaddr_in);
-
-      struct sockaddr_in* ai_addr = new struct sockaddr_in;
-      
-      ai_addr->sin_family = hostent->h_addrtype;
-      ai_addr->sin_port = htons(std::strtoul(this->port.data(), nullptr, 10));
-      ai_addr->sin_addr.s_addr = (*address)->s_addr;
-
-      current->ai_addr = reinterpret_cast<struct sockaddr*>(ai_addr);
-      current->ai_next = nullptr;
-      current->ai_canonname = nullptr;
-
-      current->ai_next = prev;
-      this->cares_addrinfo = current;
-      prev = current;
-      ++address;
-    }
-}
-
-void Resolver::fill_ares_addrinfo6(const struct hostent* hostent)
-{
-  struct addrinfo* prev = this->cares_addrinfo;
-  struct in6_addr** address = reinterpret_cast<struct in6_addr**>(hostent->h_addr_list);
-
-  while (*address)
-    {
-      // Create a new addrinfo list element, and fill it
-      struct addrinfo* current = new struct addrinfo;
-      current->ai_flags = 0;
-      current->ai_family = hostent->h_addrtype;
-      current->ai_socktype = SOCK_STREAM;
-      current->ai_protocol = 0;
-      current->ai_addrlen = sizeof(struct sockaddr_in6);
-
-      struct sockaddr_in6* ai_addr = new struct sockaddr_in6;
-      ai_addr->sin6_family = hostent->h_addrtype;
-      ai_addr->sin6_port = htons(std::strtoul(this->port.data(), nullptr, 10));
-      ::memcpy(ai_addr->sin6_addr.s6_addr, (*address)->s6_addr, sizeof(ai_addr->sin6_addr.s6_addr));
-      ai_addr->sin6_flowinfo = 0;
-      ai_addr->sin6_scope_id = 0;
-
-      current->ai_addr = reinterpret_cast<struct sockaddr*>(ai_addr);
-      current->ai_canonname = nullptr;
-
-      current->ai_next = prev;
-      this->cares_addrinfo = current;
-      prev = current;
-      ++address;
-    }
-}
-
-#else  // ifdef CARES_FOUND
+#else  // ifdef UDNS_FOUND
 
 void Resolver::start_resolving(const std::string& hostname, const std::string& port)
 {
   // If the resolution fails, the addr will be unset
   this->addr.reset(nullptr);
 
-  struct addrinfo hints;
-  memset(&hints, 0, sizeof(struct addrinfo));
-  hints.ai_flags = 0;
-  hints.ai_family = AF_UNSPEC;
-  hints.ai_socktype = SOCK_STREAM;
-  hints.ai_protocol = 0;
-
-  struct addrinfo* addr_res = nullptr;
-  const int res = ::getaddrinfo(hostname.data(), port.data(),
-                                &hints, &addr_res);
+  const auto res = this->call_getaddrinfo(hostname.data(), port.data(), 0);
 
   this->resolved = true;
 
@@ -196,12 +255,11 @@ void Resolver::start_resolving(const std::string& hostname, const std::string& p
     }
   else
     {
-      this->addr.reset(addr_res);
       if (this->success_cb)
         this->success_cb(this->addr.get());
     }
 }
-#endif  // ifdef CARES_FOUND
+#endif  // ifdef UDNS_FOUND
 
 std::string addr_to_string(const struct addrinfo* rp)
 {

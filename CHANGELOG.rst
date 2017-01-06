@@ -2,6 +2,8 @@ Version 5.0
 ===========
 
  - An identd server has been added
+ - Use the udns library instead of c-ares, for asynchronous DNS resolution.
+   It’s still fully optional.
 
 Version 4.0 - 2016-11-09
 ========================

@@ -1,38 +1,31 @@
 #pragma once
 
-
 #include "louloulibs.h"
 
 #include <functional>
+#include <vector>
 #include <memory>
 #include <string>
 
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netdb.h>
+#include <udns.h>
 
 class AddrinfoDeleter
 {
  public:
   void operator()(struct addrinfo* addr)
   {
-#ifdef CARES_FOUND
-    while (addr)
-      {
-        delete addr->ai_addr;
-        auto next = addr->ai_next;
-        delete addr;
-        addr = next;
-      }
-#else
     freeaddrinfo(addr);
-#endif
   }
 };
+
 
 class Resolver
 {
 public:
+
   using ErrorCallbackType = std::function<void(const char*)>;
   using SuccessCallbackType = std::function<void(const struct addrinfo*)>;
 
@@ -45,7 +38,7 @@ public:
 
   bool is_resolving() const
   {
-#ifdef CARES_FOUND
+#ifdef UDNS_FOUND
     return this->resolving;
 #else
     return false;
@@ -68,11 +61,10 @@ public:
 
   void clear()
   {
-#ifdef CARES_FOUND
+#ifdef UDNS_FOUND
     this->resolved6 = false;
     this->resolved4 = false;
     this->resolving = false;
-    this->cares_addrinfo = nullptr;
     this->port.clear();
 #endif
     this->resolved = false;
@@ -85,12 +77,18 @@ public:
 
 private:
   void start_resolving(const std::string& hostname, const std::string& port);
-#ifdef CARES_FOUND
-  void on_hostname4_resolved(int status, struct hostent* hostent);
-  void on_hostname6_resolved(int status, struct hostent* hostent);
+  std::vector<std::string> look_in_etc_hosts(const std::string& hostname);
+  /**
+   * Call getaddrinfo() on the given hostname or IP, and append the result
+   * to our internal addrinfo list. Return getaddrinfo()’s return value.
+   */
+  int call_getaddrinfo(const char* name, const char* port, int flags);
 
-  void fill_ares_addrinfo4(const struct hostent* hostent);
-  void fill_ares_addrinfo6(const struct hostent* hostent);
+#ifdef UDNS_FOUND
+  void on_hostname4_resolved(dns_rr_a4 *result);
+  void on_hostname6_resolved(dns_rr_a6 *result);
+
+  void start_timer();
 
   void on_resolved();
 
@@ -99,14 +97,6 @@ private:
 
   bool resolving;
 
-  /**
-   * When using c-ares to resolve the host asynchronously, we need the
-   * c-ares callbacks to fill a structure (a struct addrinfo, for
-   * compatibility with getaddrinfo and the rest of the code that works when
-   * c-ares is not used) with all returned values (for example an IPv6 and
-   * an IPv4). The pointer is given to the unique_ptr to manage its lifetime.
-   */
-  struct addrinfo* cares_addrinfo;
   std::string port;
 
 #endif
@@ -116,7 +106,6 @@ private:
   */
   bool resolved;
   std::string error_msg;
-
 
   std::unique_ptr<struct addrinfo, AddrinfoDeleter> addr;
 

@@ -4,7 +4,7 @@
 #cmakedefine SYSTEMD_FOUND
 #cmakedefine POLLER ${POLLER}
 #cmakedefine BOTAN_FOUND
-#cmakedefine CARES_FOUND
+#cmakedefine UDNS_FOUND
 #cmakedefine SOFTWARE_VERSION "${SOFTWARE_VERSION}"
 #cmakedefine PROJECT_NAME "${PROJECT_NAME}"
 #cmakedefine HAS_GET_TIME

@@ -79,7 +79,7 @@ void TCPClientSocketHandler::connect(const std::string& address, const std::stri
 
   if (!this->connecting)
     {
-      // Get the addrinfo from getaddrinfo (or ares_gethostbyname), only if
+      // Get the addrinfo from getaddrinfo (or using udns), only if
       // this is the first call of this function.
       if (!this->resolver.is_resolved())
         {
@@ -103,8 +103,8 @@ void TCPClientSocketHandler::connect(const std::string& address, const std::stri
         }
       else
         {
-          // The c-ares resolved the hostname and the available addresses
-          // where saved in the cares_addrinfo linked list. Now, just use
+          // The DNS resolver resolved the hostname and the available addresses
+          // where saved in the addrinfo linked list. Now, just use
           // this list to try to connect.
           addr_res = this->resolver.get_result().get();
           if (!addr_res)

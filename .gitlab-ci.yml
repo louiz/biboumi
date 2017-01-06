@@ -10,7 +10,7 @@ variables:
   COMPILER: "g++"
   BUILD_TYPE: "Debug"
   BOTAN: "-DWITH_BOTAN=1"
-  CARES: "-DWITH_CARES=1"
+  UDNS: "-DWITH_UDNS=1"
   SYSTEMD: "-DWITH_SYSTEMD=1"
   LIBIDN: "-DWITH_LIBIDN=1"
   LITESQL: "-DWITH_LITESQL=1"
@@ -20,8 +20,8 @@ variables:
     - docker
   image: docker.louiz.org/biboumi-test-fedora:latest
   script:
-    - "echo Running cmake with the following parameters: -DCMAKE_CXX_COMPILER=${COMPILER} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ${BOTAN} ${CARES} ${SYSTEMD} ${LIBIDN} ${LITESQL}"
-    - cmake .. -DCMAKE_CXX_COMPILER=${COMPILER} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ${BOTAN} ${CARES} ${SYSTEMD} ${LIBIDN} ${LITESQL}
+    - "echo Running cmake with the following parameters: -DCMAKE_CXX_COMPILER=${COMPILER} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ${BOTAN} ${UDNS} ${SYSTEMD} ${LIBIDN} ${LITESQL}"
+    - cmake .. -DCMAKE_CXX_COMPILER=${COMPILER} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ${BOTAN} ${UDNS} ${SYSTEMD} ${LIBIDN} ${LITESQL}
     - make biboumi -j$(nproc || echo 1)
     - make check -j$(nproc || echo 1)
 
@@ -32,7 +32,7 @@ build:1:
 
 build:2:
   variables:
-    CARES: "-DWITHOUT_CARES=1"
+    UDNS: "-DWITHOUT_UDNS=1"
   <<: *basic_build
 
 build:3:
@@ -49,19 +49,19 @@ build:4:
 build:5:
   variables:
     LITESQL: "-DWITHOUT_LITESQL=1"
-    CARES: "-DWITHOUT_CARES=1"
+    UDNS: "-DWITHOUT_UDNS=1"
   <<: *basic_build
 
 build:6:
   variables:
     BOTAN: "-DWITHOUT_BOTAN=1"
-    CARES: "-DWITHOUT_CARES=1"
+    UDNS: "-DWITHOUT_UDNS=1"
   <<: *basic_build
 
 build:6:
   variables:
     LIBIDN: "-DWITHOUT_LIBIDN=1"
-    CARES: "-DWITHOUT_CARES=1"
+    UDNS: "-DWITHOUT_UDNS=1"
   <<: *basic_build
 
 build:rpm:
@@ -72,7 +72,7 @@ build:rpm:
     - docker
   image: docker.louiz.org/biboumi-test-fedora:latest
   script:
-    - cmake .. -DCMAKE_CXX_COMPILER=${COMPILER} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ${BOTAN} ${CARES} ${SYSTEMD} ${LIBIDN} ${LITESQL}
+    - cmake .. -DCMAKE_CXX_COMPILER=${COMPILER} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ${BOTAN} ${UDNS} ${SYSTEMD} ${LIBIDN} ${LITESQL}
     - make rpm -j$(nproc || echo 1)
   artifacts:
     paths:
@@ -87,7 +87,7 @@ build:rpm:
   tags:
     - docker
   script:
-    - cmake .. -DCMAKE_CXX_COMPILER=${COMPILER} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ${BOTAN} ${CARES} ${SYSTEMD} ${LIBIDN} ${LITESQL}
+    - cmake .. -DCMAKE_CXX_COMPILER=${COMPILER} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ${BOTAN} ${UDNS} ${SYSTEMD} ${LIBIDN} ${LITESQL}
     - make biboumi -j$(nproc || echo 1)
     - make coverage_check -j$(nproc || echo 1)
     - make coverage_e2e -j$(nproc || echo 1)
@@ -119,7 +119,7 @@ test:freebsd:
     SYSTEMD: "-DWITHOUT_SYSTEMD=1"
   stage: test
   script:
-    - cmake .. -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ${BOTAN} ${CARES} ${SYSTEMD} ${LIBIDN} ${LITESQL}
+    - cmake .. -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ${BOTAN} ${UDNS} ${SYSTEMD} ${LIBIDN} ${LITESQL}
     - make biboumi
     - make check
     - make e2e

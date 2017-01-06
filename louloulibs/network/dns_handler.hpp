@@ -1,59 +1,37 @@
 #pragma once
 
 #include <louloulibs.h>
-#ifdef CARES_FOUND
+#ifdef UDNS_FOUND
 
-class TCPSocketHandler;
 class Poller;
-class DNSSocketHandler;
 
-# include <ares.h>
-# include <memory>
-# include <string>
-# include <vector>
+#include <network/dns_socket_handler.hpp>
 
-/**
- * Class managing DNS resolution.  It should only be statically instanciated
- * once in SocketHandler.  It manages ares channel and calls various
- * functions of that library.
- */
+#include <string>
+#include <vector>
+#include <memory>
 
 class DNSHandler
 {
-private:
-  DNSHandler();
 public:
+  DNSHandler(std::shared_ptr<Poller> poller);
   ~DNSHandler() = default;
+
   DNSHandler(const DNSHandler&) = delete;
   DNSHandler(DNSHandler&&) = delete;
   DNSHandler& operator=(const DNSHandler&) = delete;
   DNSHandler& operator=(DNSHandler&&) = delete;
 
-  void gethostbyname(const std::string& name, ares_host_callback callback,
-                     void* socket_handler, int family);
-  /**
-   * Call ares_fds to know what fd needs to be watched by the poller, create
-   * or destroy DNSSocketHandlers depending on the result.
-   */
-  void watch_dns_sockets(std::shared_ptr<Poller>& poller);
-  /**
-   * Destroy and stop watching all the DNS sockets. Then de-init the channel
-   * and library.
-   */
   void destroy();
-  void remove_all_sockets_from_poller();
-  ares_channel& get_channel();
 
-  static DNSHandler instance;
+  static void watch();
+  static void unwatch();
 
 private:
   /**
-   * The list of sockets that needs to be watched, according to the last
-   * call to ares_fds.  DNSSocketHandlers are added to it or removed from it
-   * in the watch_dns_sockets() method
+   * Manager for the socket returned by udns, that we need to watch with the poller
    */
-  std::vector<std::unique_ptr<DNSSocketHandler>> socket_handlers;
-  ares_channel channel;
+  static std::unique_ptr<DNSSocketHandler> socket_handler;
 };
 
-#endif /* CARES_FOUND */
+#endif /* UDNS_FOUND */

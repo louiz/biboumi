@@ -36,7 +36,7 @@ libidn_ (optional, but recommended)
  Provides the stringprep functionality. Without it, JIDs for IRC users are
  not provided.
 
-c-ares_ (optional, but recommended)
+udns_ (optional, but recommended)
  Asynchronously resolve domain names. This offers better reactivity and
  performances when connecting to a big number of IRC servers at the same
  time.
@@ -155,7 +155,7 @@ to use biboumi.
 .. _libuuid: http://sourceforge.net/projects/libuuid/
 .. _libidn: http://www.gnu.org/software/libidn/
 .. _libbotan: http://botan.randombit.net/
-.. _c-ares: http://c-ares.haxx.se/
+.. _udns: http://www.corpit.ru/mjt/udns.html
 .. _litesql: http://git.louiz.org/litesql
 .. _systemd: https://www.freedesktop.org/wiki/Software/systemd/
 .. _biboumi.1.rst: doc/biboumi.1.rst

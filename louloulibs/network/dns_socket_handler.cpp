@@ -1,34 +1,27 @@
 #include <louloulibs.h>
-#ifdef CARES_FOUND
+#ifdef UDNS_FOUND
 
 #include <network/dns_socket_handler.hpp>
 #include <network/dns_handler.hpp>
 #include <network/poller.hpp>
 
-#include <ares.h>
+#include <udns.h>
 
 DNSSocketHandler::DNSSocketHandler(std::shared_ptr<Poller> poller,
-                                   DNSHandler& handler,
                                    const socket_t socket):
-  SocketHandler(poller, socket),
-  handler(handler)
+  SocketHandler(poller, socket)
 {
+  poller->add_socket_handler(this);
+}
+
+DNSSocketHandler::~DNSSocketHandler()
+{
+  this->unwatch();
 }
 
 void DNSSocketHandler::on_recv()
 {
-  // always stop watching send and read events. We will re-watch them if the
-  // next call to ares_fds tell us to
-  this->handler.remove_all_sockets_from_poller();
-  ::ares_process_fd(DNSHandler::instance.get_channel(), this->socket, ARES_SOCKET_BAD);
-}
-
-void DNSSocketHandler::on_send()
-{
-  // always stop watching send and read events. We will re-watch them if the
-  // next call to ares_fds tell us to
-  this->handler.remove_all_sockets_from_poller();
-  ::ares_process_fd(DNSHandler::instance.get_channel(), ARES_SOCKET_BAD, this->socket);
+  dns_ioevent(nullptr, 0);
 }
 
 bool DNSSocketHandler::is_connected() const
@@ -36,10 +29,15 @@ bool DNSSocketHandler::is_connected() const
   return true;
 }
 
-void DNSSocketHandler::remove_from_poller()
+void DNSSocketHandler::unwatch()
 {
   if (this->poller->is_managing_socket(this->socket))
     this->poller->remove_socket_handler(this->socket);
 }
 
-#endif /* CARES_FOUND */
+void DNSSocketHandler::watch()
+{
+  this->poller->add_socket_handler(this);
+}
+
+#endif /* UDNS_FOUND */

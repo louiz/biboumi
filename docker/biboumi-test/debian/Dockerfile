@@ -9,7 +9,7 @@ RUN apt update
 RUN apt install -y g++
 RUN apt install -y clang
 RUN apt install -y valgrind
-RUN apt install -y libc-ares-dev
+RUN apt install -y libudns-dev
 RUN apt install -y libsqlite3-dev
 RUN apt install -y libuuid1
 RUN apt install -y cmake

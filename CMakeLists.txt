@@ -129,8 +129,8 @@ endif()
 if(BOTAN_FOUND)
   include_directories(SYSTEM ${BOTAN_INCLUDE_DIRS})
 endif()
-if(CARES_FOUND)
-  include_directories(${CARES_INCLUDE_DIRS})
+if(UDNS_FOUND)
+  include_directories(${UDNS_INCLUDE_DIRS})
 endif()
 
 #
