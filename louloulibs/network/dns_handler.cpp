@@ -8,7 +8,7 @@
 #include <utils/timed_events.hpp>
 
 #include <udns.h>
-
+#include <cerrno>
 #include <cstring>
 
 class Resolver;
