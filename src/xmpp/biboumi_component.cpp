@@ -136,7 +136,7 @@ void BiboumiComponent::handle_presence(const Stanza& stanza)
   // stanza_error.disable() call at the end of the function.
   std::string error_type("cancel");
   std::string error_name("internal-server-error");
-  utils::ScopeGuard stanza_error([&](){
+  utils::ScopeGuard stanza_error([this, &from_str, &to_str, &id, &error_type, &error_name](){
       this->send_stanza_error("presence", from_str, to_str, id,
                               error_type, error_name, "");
         });
@@ -205,7 +205,7 @@ void BiboumiComponent::handle_message(const Stanza& stanza)
 
   std::string error_type("cancel");
   std::string error_name("internal-server-error");
-  utils::ScopeGuard stanza_error([&](){
+  utils::ScopeGuard stanza_error([this, &from_str, &to_str, &id, &error_type, &error_name](){
       this->send_stanza_error("message", from_str, to_str, id,
                               error_type, error_name, "");
     });
@@ -324,7 +324,7 @@ void BiboumiComponent::handle_iq(const Stanza& stanza)
   // the scopeguard.
   std::string error_type("cancel");
   std::string error_name("internal-server-error");
-  utils::ScopeGuard stanza_error([&](){
+  utils::ScopeGuard stanza_error([this, &from, &to_str, &id, &error_type, &error_name](){
       this->send_stanza_error("iq", from, to_str, id,
                               error_type, error_name, "");
     });

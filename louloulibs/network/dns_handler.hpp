@@ -14,7 +14,7 @@ class Poller;
 class DNSHandler
 {
 public:
-  DNSHandler(std::shared_ptr<Poller> poller);
+  explicit DNSHandler(std::shared_ptr<Poller> poller);
   ~DNSHandler() = default;
 
   DNSHandler(const DNSHandler&) = delete;

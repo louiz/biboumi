@@ -62,13 +62,8 @@ XmlNode AdhocCommandsHandler::handle_request(const std::string& executor_jid, co
                                                               "adhocsession"s + sessionid + executor_jid));
         }
       auto session_it = this->sessions.find(std::make_pair(sessionid, executor_jid));
-      if (session_it == this->sessions.end())
-        {
-          XmlSubNode error(command_node, ADHOC_NS":error");
-          error["type"] = "modify";
-          XmlSubNode condition(error, STANZA_NS":bad-request");
-        }
-      else if (action == "execute" || action == "next" || action == "complete")
+      if ((session_it != this->sessions.end()) &&
+          (action == "execute" || action == "next" || action == "complete"))
         {
           // execute the step
           AdhocSession& session = session_it->second;
