@@ -54,10 +54,11 @@ void HelloStep2(XmppComponent&, AdhocSession& session, XmlNode& command_node)
         {
           if (const XmlNode* value = name_field->get_child("value", "jabber:x:data"))
             {
+              const std::string value_str = value->get_inner();
               command_node.delete_all_children();
               XmlSubNode note(command_node, "note");
               note["type"] = "info";
-              note.set_inner("Hello "s + value->get_inner() + "!"s);
+              note.set_inner("Hello "s + value_str + "!"s);
               return;
             }
         }
