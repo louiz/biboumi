@@ -41,10 +41,9 @@ udns_ (optional, but recommended)
  performances when connecting to a big number of IRC servers at the same
  time.
 
-libbotan_ 1.11 (optional)
+libbotan_ 1.11 or 2.0 (optional)
  Provides TLS support. Without it, IRC connections are all made in
  plain-text mode.
- Other branches than the 1.11 are not supported.
 
 litesql_ (optional)
  Provides a way to store various options in a (sqlite3) database. Each user
