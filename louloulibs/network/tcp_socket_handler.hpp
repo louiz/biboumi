@@ -32,6 +32,10 @@ public:
   {
     return true;
   }
+  bool require_cert_revocation_info() const override
+  {
+    return false;
+  }
 # endif
 };
 
