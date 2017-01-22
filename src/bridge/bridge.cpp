@@ -1029,7 +1029,7 @@ void Bridge::send_xmpp_ping_request(const std::string& nick, const std::string& 
                                     const std::string& id)
 {
   // Use revstr because the forwarded ping to target XMPP user must not be
-  // the same that the request iq, but we also need to get it back easily
+  // the same as the request iq, but we also need to get it back easily
   // (revstr again)
   // Forward to the first resource (arbitrary, based on the “order” of the std::set) only
   const auto resources = this->resources_in_server[hostname];

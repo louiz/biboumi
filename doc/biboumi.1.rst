@@ -297,7 +297,7 @@ On XMPP, unlike on IRC, the displayed order of the messages is the same for
 all participants of a MUC.  Biboumi can not however provide this feature, as
 it cannot know whether the IRC server has received and forwarded the
 messages to other users.  This means that the order of the messages
-displayed in your XMPP client may not be the same than the order on other
+displayed in your XMPP client may not be the same as the order on other
 IRC users’.
 
 History
