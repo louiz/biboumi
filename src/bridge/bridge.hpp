@@ -236,6 +236,11 @@ public:
 #ifdef USE_DATABASE
   void set_record_history(const bool val);
 #endif
+  /**
+   * Start a timer that will send a QUIT command after the
+   * configured linger time is expired.
+   */
+  void quit_or_start_linger_timer(const std::string& irc_hostname);
 
 private:
   /**

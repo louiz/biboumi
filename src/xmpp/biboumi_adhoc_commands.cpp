@@ -329,6 +329,17 @@ void ConfigureIrcServerStep1(XmppComponent&, AdhocSession& session, XmlNode& com
       encoding_in_value.set_inner(options.encodingIn.value());
     }
   encoding_in.add_child(required);
+
+  XmlSubNode linger_time(x, "field");
+  linger_time["var"] = "linger_time";
+  linger_time["type"] = "text-single";
+  linger_time["desc"] = "The number of seconds to wait before sending a QUIT command, after the last channel on that server has been left.";
+  linger_time["label"] = "Linger time";
+  {
+    XmlSubNode linger_time_value(linger_time, "value");
+    linger_time_value.set_inner(std::to_string(options.lingerTime.value()));
+  }
+  encoding_in.add_child(required);
 }
 
 void ConfigureIrcServerStep2(XmppComponent&, AdhocSession& session, XmlNode& command_node)
@@ -407,6 +418,10 @@ void ConfigureIrcServerStep2(XmppComponent&, AdhocSession& session, XmlNode& com
           else if (field->get_tag("var") == "encoding_in" &&
                    value && !value->get_inner().empty())
             options.encodingIn = value->get_inner();
+
+          else if (field->get_tag("var") == "linger_time" &&
+                   value && !value->get_inner().empty())
+            options.lingerTime = value->get_inner();
 
         }
 

@@ -24,6 +24,7 @@
         <field name="realname" type="string" length="1024" default=""/>
         <field name="verifyCert" type="boolean" default="true"/>
         <field name="trustedFingerprint" type="string"/>
+        <field name="lingerTime" type="integer" default="0"/>
 
         <field name="encodingOut" type="string" default="ISO-8859-1"/>
         <field name="encodingIn"  type="string" default="ISO-8859-1"/>

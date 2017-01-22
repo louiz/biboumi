@@ -11,6 +11,7 @@
 #include <database/database.hpp>
 #include "result_set_management.hpp"
 #include <algorithm>
+#include <utils/timed_events.hpp>
 
 using namespace std::string_literals;
 
@@ -865,7 +866,7 @@ void Bridge::send_muc_leave(Iid&& iid, std::string&& nick, const std::string& me
                                 this->user_jid + "/" + res, self);
   IrcClient* irc = this->find_irc_client(iid.get_server());
   if (irc && irc->number_of_joined_channels() == 0)
-    irc->send_quit_command("");
+    this->quit_or_start_linger_timer(iid.get_server());
 }
 
 void Bridge::send_nick_change(Iid&& iid,
@@ -1212,3 +1213,22 @@ void Bridge::set_record_history(const bool val)
   this->record_history = val;
 }
 #endif
+
+void Bridge::quit_or_start_linger_timer(const std::string& irc_hostname)
+{
+#ifdef USE_DATABASE
+  auto options = Database::get_irc_server_options(this->get_bare_jid(),
+                                                  irc_hostname);
+  const auto timeout = std::chrono::seconds(options.lingerTime.value());
+#else
+  const auto timeout = 0s;
+#endif
+
+  const auto event_name = "IRCLINGER:" + irc_hostname + ".." + this->get_bare_jid();
+  TimedEvent event(std::chrono::steady_clock::now() + timeout, [this, irc_hostname]() {
+    IrcClient* irc = this->find_irc_client(irc_hostname);
+    if (irc)
+      irc->send_quit_command("");
+  }, event_name);
+  TimedEventsManager::instance().add_event(std::move(event));
+}
