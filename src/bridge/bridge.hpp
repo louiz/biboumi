@@ -241,6 +241,7 @@ public:
    * configured linger time is expired.
    */
   void quit_or_start_linger_timer(const std::string& irc_hostname);
+  void cancel_linger_timer(const std::string& irc_hostname);
 
 private:
   /**
