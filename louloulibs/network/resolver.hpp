@@ -10,7 +10,9 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netdb.h>
-#include <udns.h>
+#ifdef UDNS_FOUND
+# include <udns.h>
+#endif
 
 class AddrinfoDeleter
 {
