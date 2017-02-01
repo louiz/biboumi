@@ -12,8 +12,7 @@ Build-Depends: cdbs,
  libexpat1-dev,
  libidn11-dev,
  libsystemd-dev,
- libc-ares-dev,
- libbotan1.10-dev
+ libc-ares-dev
 Maintainer: Debian VoIP Team <pkg-voip-maintainers@lists.alioth.debian.org>
 Uploaders: Jonas Smedegaard <dr@jones.dk>,
  Vasudev Kamath <vasudev@copyninja.info>
