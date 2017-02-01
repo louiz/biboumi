@@ -332,7 +332,7 @@ endif()
 configure_file(unit/biboumi.service.cmake biboumi.service)
 
 # Force the format of the date output
-set(ENV{LANG} "C.UTF-8")
+set(ENV{LANG} "C")
 execute_process(COMMAND "date" "+%a %b %d %Y" OUTPUT_VARIABLE RPM_DATE
                 OUTPUT_STRIP_TRAILING_WHITESPACE)
 unset(ENV{LANG})
