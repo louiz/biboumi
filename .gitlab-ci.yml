@@ -173,7 +173,9 @@ packaging:deb:
     - mk-build-deps
     - apt install -y ./biboumi-build-deps*.deb
     - debuild -b -us -uc
+    - mv ../*.deb .
+    - mv ../*.build .
+    - mv ../*.buildinfo .
   artifacts:
-    paths:
-      - ../*.deb
+    untracked: true
     name: $CI_PROJECT_NAME-deb-$CI_BUILD_ID
