@@ -196,7 +196,12 @@ int main(int ac, char** av)
             }
         }
       else
-        identd.shutdown();
+        {
+#ifdef UDNS_FOUND
+          dns_handler.destroy();
+#endif
+          identd.shutdown();
+        }
     }
     // If the only existing connection is the one to the XMPP component:
     // close the XMPP stream.
