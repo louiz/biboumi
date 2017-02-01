@@ -331,8 +331,8 @@ if(NOT DEFINED SERVICE_GROUP)
 endif()
 configure_file(unit/biboumi.service.cmake biboumi.service)
 
-# The date MUST be in english format
-set(ENV{LANG} "en_US.utf-8")
+# Force the format of the date output
+set(ENV{LANG} "C.UTF-8")
 execute_process(COMMAND "date" "+%a %b %d %Y" OUTPUT_VARIABLE RPM_DATE
                 OUTPUT_STRIP_TRAILING_WHITESPACE)
 unset(ENV{LANG})
