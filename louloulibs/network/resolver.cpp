@@ -4,7 +4,9 @@
 #include <string.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
-#include <udns.h>
+#ifdef UDNS_FOUND
+# include <udns.h>
+#endif
 
 #include <fstream>
 #include <cstdlib>
@@ -14,6 +16,7 @@
 
 using namespace std::string_literals;
 
+#ifdef UDNS_FOUND
 static std::map<int, std::string> dns_error_messages {
     {DNS_E_TEMPFAIL, "Timeout while contacting DNS servers"},
     {DNS_E_PROTOCOL, "Misformatted DNS reply"},
@@ -21,6 +24,7 @@ static std::map<int, std::string> dns_error_messages {
     {DNS_E_NOMEM, "Out of memory"},
     {DNS_E_BADQUERY, "Misformatted domain name"}
 };
+#endif
 
 Resolver::Resolver():
 #ifdef UDNS_FOUND
