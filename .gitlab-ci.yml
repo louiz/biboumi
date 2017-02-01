@@ -1,3 +1,8 @@
+stages:
+  - build
+  - test
+  - packaging
+
 before_script:
   - uname -a
   - locale
@@ -63,24 +68,6 @@ build:6:
     LIBIDN: "-DWITHOUT_LIBIDN=1"
     UDNS: "-DWITHOUT_UDNS=1"
   <<: *basic_build
-
-build:rpm:
-  stage: build
-  only:
-    - master@louiz/biboumi
-  tags:
-    - docker
-  image: docker.louiz.org/biboumi-test-fedora:latest
-  script:
-    - cmake .. -DCMAKE_CXX_COMPILER=${COMPILER} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ${BOTAN} ${UDNS} ${SYSTEMD} ${LIBIDN} ${LITESQL}
-    - make rpm -j$(nproc || echo 1)
-  artifacts:
-    paths:
-      - build/rpmbuild/RPMS
-      - build/rpmbuild/SRPMS
-    when: always
-    name: $CI_PROJECT_NAME-rpm-$CI_BUILD_ID
-
 
 .template:basic_test: &basic_test
   stage: test
@@ -153,3 +140,38 @@ test:sonar-qube:
     - ~/sonar-scanner/bin/build-wrapper-linux-x86/build-wrapper-linux-x86-64 --out-dir ./bw-outputs make biboumi test_suite
     - cd ..
     - ~/sonar-scanner/bin/sonar-scanner -Dsonar.host.url=https://sonarqube.com -Dsonar.login=$SONAR_LOGIN -Dsonar.language=cpp -Dsonar.cfamily.build-wrapper-output=build/bw-outputs -Dsonar.sourceEncoding=UTF-8 -Dsonar.sources=src/,louloulibs/,tests/ -Dsonar.projectKey=biboumi -Dsonar.projectName=Biboumi -Dsonar.projectVersion=3.0
+
+packaging:rpm:
+  stage: packaging
+  only:
+    - master@louiz/biboumi
+  tags:
+    - docker
+  image: docker.louiz.org/biboumi-test-fedora:latest
+  script:
+    - cmake .. -DCMAKE_CXX_COMPILER=${COMPILER} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ${BOTAN} ${UDNS} ${SYSTEMD} ${LIBIDN} ${LITESQL}
+    - make rpm -j$(nproc || echo 1)
+  artifacts:
+    paths:
+      - build/rpmbuild/RPMS
+      - build/rpmbuild/SRPMS
+    when: always
+    name: $CI_PROJECT_NAME-rpm-$CI_BUILD_ID
+
+packaging:deb:
+  stage: packaging
+  only:
+    - master@louiz/biboumi
+  tags:
+    - docker
+  image: docker.louiz.org/packaging-debian:latest
+  script:
+    - git checkout debian
+    - git merge --no-commit --no-ff master
+    - mk-build-deps
+    - apt install -y ./biboumi-build-deps*.deb
+    - debuild -b -us -uc
+  artifacts:
+    untracked: true
+    when: always
+    name: $CI_PROJECT_NAME-deb-$CI_BUILD_ID
