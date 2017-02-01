@@ -1,0 +1,4 @@
+# run "uscan --report" to check or "gpb import-orig --uscan" to update
+version=4
+https://lab.louiz.org/louiz/biboumi/tags \
+ .*/archive@ARCHIVE_EXT@\?ref=@ANY_VERSION@

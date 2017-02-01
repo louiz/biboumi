@@ -1,0 +1,47 @@
+Source: biboumi
+Section: net
+Priority: optional
+Build-Depends: cdbs,
+ debhelper,
+ dh-buildinfo,
+ licensecheck,
+ cmake,
+ catch,
+ uuid-dev,
+ pandoc,
+ libexpat1-dev,
+ libidn11-dev,
+ libsystemd-dev,
+ libc-ares-dev,
+ libbotan1.10-dev
+Maintainer: Debian VoIP Team <pkg-voip-maintainers@lists.alioth.debian.org>
+Uploaders: Jonas Smedegaard <dr@jones.dk>,
+ Vasudev Kamath <vasudev@copyninja.info>
+Standards-Version: 3.9.8
+Vcs-Git: https://anonscm.debian.org/git/pkg-voip/biboumi.git
+Vcs-Browser: https://anonscm.debian.org/cgit/pkg-voip/biboumi.git
+Homepage: https://lab.louiz.org/louiz/biboumi/
+
+Package: biboumi
+Architecture: any
+Depends: ${misc:Depends},
+ ${shlibs:Depends}
+Description: XMPP gateway to connect to IRC servers
+ Biboumi is an XMPP gateway that connects to IRC servers and translates
+ between the two protocols. It can be used to access IRC channels using
+ any XMPP client as if these channels were XMPP MUCs.
+ .
+ It is written in modern C++14 and makes great efforts to have as little
+ dependencies and to be as simple as possible.
+ .
+ The goal is to provide a way to access most of IRC features using any
+ XMPP client.  It doesn’t however try to provide a complete mapping of
+ the features of both worlds simply because this is not useful and most
+ probably impossible.  For example all IRC modes are not all
+ translatable into an XMPP features.  Some of them are (like +m (mute)
+ or +o (operator) modes), but some others are IRC-specific.  If IRC is
+ the limiting factor (for example you cannot have a non-ASCII nickname
+ on IRC) then biboumi doesn’t try to work around this issue: it just
+ enforces the rules of the IRC server by telling the user that he/she
+ must choose an ASCII-only nickname.  An important goal is to keep the
+ software (and its code) light and simple.

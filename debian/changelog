@@ -1,0 +1,7 @@
+biboumi (4.0-1) unstable; urgency=medium
+
+  [ Vasudev Kamath & Jonas Smedegaard ]
+  * Initial Release.
+    Closes: bug#841773.
+
+ -- Jonas Smedegaard <dr@jones.dk>  Sat, 07 Jan 2017 12:57:41 +0100
