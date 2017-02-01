@@ -162,6 +162,7 @@ packaging:deb:
   stage: packaging
   only:
     - master@louiz/biboumi
+    - debian@louiz/biboumi
   tags:
     - docker
   image: docker.louiz.org/packaging-debian:latest
@@ -173,6 +174,6 @@ packaging:deb:
     - apt install -y ./biboumi-build-deps*.deb
     - debuild -b -us -uc
   artifacts:
-    untracked: true
-    when: always
+    paths:
+      - ../*.deb
     name: $CI_PROJECT_NAME-deb-$CI_BUILD_ID
