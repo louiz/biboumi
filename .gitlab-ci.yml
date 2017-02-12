@@ -171,6 +171,7 @@ packaging:deb:
     - git checkout debian
     - git merge --no-commit --no-ff master
     - mk-build-deps
+    - apt update -y
     - apt install -y ./biboumi-build-deps*.deb
     - debuild -b -us -uc
     - mv ../*.deb .
