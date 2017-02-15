@@ -8,6 +8,7 @@
 #include <utils/empty_if_fixed_server.hpp>
 #include <utils/get_first_non_empty.hpp>
 #include <utils/time.hpp>
+#include <utils/scopeguard.hpp>
 
 using namespace std::string_literals;
 
@@ -139,4 +140,14 @@ TEST_CASE("parse_datetime")
   CHECK(utils::parse_datetime("1970-01-02T00:00:12B") == -1);
   CHECK(utils::parse_datetime("1970-01-02T00:00:12*00:00") == -1);
   CHECK(utils::parse_datetime("1970-01-02T00:00:12+0000") == -1);
+}
+
+TEST_CASE("scope_guard")
+{
+  bool res = false;
+  {
+    auto guard = utils::make_scope_guard([&res](){ res = true; });
+    CHECK(!res);
+  }
+  CHECK(res);
 }

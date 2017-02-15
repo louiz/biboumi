@@ -87,9 +87,11 @@ private:
 };
 
 template<typename F>
-auto make_scope_guard(F&& f)
+auto make_scope_guard(F f)
 {
-  return std::unique_ptr<void, std::decay_t<F>>{(void*)1, std::forward<F>(f)};
+  static struct Empty {} empty;
+  auto deleter = [f = std::move(f)](Empty*) { f(); };
+  return std::unique_ptr<Empty, decltype(deleter)>{&empty, std::move(deleter)};
 }
 
 }
