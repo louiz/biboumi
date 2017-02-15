@@ -75,7 +75,7 @@ std::string jidprep(const std::string& original)
 
     struct addrinfo* addr_res = nullptr;
     const auto ret = ::getaddrinfo(domain, nullptr, &hints, &addr_res);
-    auto addrinfo_deleter = utils::make_scope_guard([addr_res] { freeaddrinfo(addr_res); });
+    auto addrinfo_deleter = utils::make_scope_guard([addr_res] { if (addr_res) freeaddrinfo(addr_res); });
     if (ret || !addr_res || (addr_res->ai_family != AF_INET && addr_res->ai_family != AF_INET6))
       { // Not an IP, run nameprep on it
         rc = static_cast<Stringprep_rc>(::stringprep(domain, max_jid_part_len,
