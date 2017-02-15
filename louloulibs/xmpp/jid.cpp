@@ -6,6 +6,8 @@
 #include <louloulibs.h>
 #ifdef LIBIDN_FOUND
  #include <stringprep.h>
+ #include <sys/types.h>
+ #include <sys/socket.h>
  #include <netdb.h>
  #include <utils/scopeguard.hpp>
  #include <set>
