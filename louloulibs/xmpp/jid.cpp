@@ -71,10 +71,10 @@ std::string jidprep(const std::string& original)
     hints.ai_flags = AI_NUMERICHOST;
     hints.ai_family = AF_UNSPEC;
 
-    struct addrinfo* res = nullptr;
-    auto addrinfo_deleter = utils::make_scope_guard([res]() { if (res) freeaddrinfo(res); });
-    if (::getaddrinfo(domain, nullptr, &hints, &res) || !res ||
-        (res->ai_family != AF_INET && res->ai_family != AF_INET6))
+    struct addrinfo* addr_res = nullptr;
+    const auto ret = ::getaddrinfo(domain, nullptr, &hints, &addr_res);
+    auto addrinfo_deleter = utils::make_scope_guard([addr_res] { freeaddrinfo(addr_res); });
+    if (ret || !addr_res || (addr_res->ai_family != AF_INET && addr_res->ai_family != AF_INET6))
       { // Not an IP, run nameprep on it
         rc = static_cast<Stringprep_rc>(::stringprep(domain, max_jid_part_len,
                                                      static_cast<Stringprep_profile_flags>(0), stringprep_nameprep));
@@ -114,7 +114,7 @@ std::string jidprep(const std::string& original)
         else
           *domain_end = '\0';
       }
-    else if (res->ai_family == AF_INET6)
+    else if (addr_res->ai_family == AF_INET6)
       { // IPv6, surround it with []. The length is always enough:
         // the longest possible IPv6 is way shorter than max_jid_part_len
         ::memmove(domain + 1, domain, jid.domain.size());
