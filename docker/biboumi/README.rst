@@ -15,6 +15,7 @@ use the following command to start your biboumi container.
 
 ```
 docker run --link prosody:xmpp \
+    -v $PWD/database:/var/lib/biboumi \
     -e BIBOUMI_PASSWORD=P4SSW0RD \
     -e BIBOUMI_HOSTNAME=irc.example.com \
     -e BIBOUMI_ADMIN=blabla \
@@ -49,3 +50,10 @@ Linking with the XMPP server
 You can use the --link option to connect to any server, but it needs to be
 called *xmpp*. For example, if you are using a container named ejabberd, you
 would use the option *--link ejabberd:xmpp*.
+Volumes
+-------
+
+The database is stored in the /var/lib/biboumi/ directory. If you don’t bind
+a local directory to it, the database will be lost when the container is
+stopped. If you want to keep your database between each run, bind it with
+the -v option, like this: **-v /srv/biboumi/:/var/lib/biboumi**.
