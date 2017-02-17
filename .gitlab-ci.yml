@@ -187,6 +187,7 @@ packaging:docker:
     - master@louiz/biboumi
   tags:
     - docker-in-docker
+  before_script: []
   script:
     - docker login -p $DOCKER_PASSWORD -u louiz -e none@none docker.io
     - docker build -t docker.io/louiz/biboumi docker/biboumi
