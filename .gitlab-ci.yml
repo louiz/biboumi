@@ -180,3 +180,14 @@ packaging:deb:
   artifacts:
     untracked: true
     name: $CI_PROJECT_NAME-deb-$CI_BUILD_ID
+
+packaging:docker:
+  stage: packaging
+  only:
+    - master@louiz/biboumi
+  tags:
+    - docker-in-docker
+  script:
+    - docker login -p $DOCKER_PASSWORD -u louiz -e none@none docker.io
+    - docker build -t docker.io/louiz/biboumi docker/biboumi
+    - docker push docker.io/louiz/biboumi
