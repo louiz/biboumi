@@ -8,6 +8,7 @@
 #include <utils/empty_if_fixed_server.hpp>
 #include <utils/get_first_non_empty.hpp>
 #include <utils/time.hpp>
+#include <utils/system.hpp>
 #include <utils/scopeguard.hpp>
 
 using namespace std::string_literals;
@@ -150,4 +151,10 @@ TEST_CASE("scope_guard")
     CHECK(!res);
   }
   CHECK(res);
+}
+
+TEST_CASE("system_name")
+{
+  CHECK(utils::get_system_name() != "Unknown");
+  CHECK(!utils::get_system_name().empty());
 }
