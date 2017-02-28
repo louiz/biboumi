@@ -127,20 +127,6 @@ test:coverity:
     - tar czvf biboumi_coverity.tgz cov-int
     - curl --form token=$COVERITY_TOKEN   --form email=louiz@louiz.org   --form file=@biboumi_coverity.tgz  --form version="$(git rev-parse --short HEAD)" --form description="Automatic submission by gitlab-ci" https://scan.coverity.com/builds?project=louiz%2Fbiboumi
 
-test:sonar-qube:
-  stage: test
-  only:
-    - master@louiz/biboumi
-  tags:
-    - docker
-  image: docker.louiz.org/biboumi-test-fedora:latest
-  allow_failure: true
-  script:
-    - cmake ..
-    - ~/sonar-scanner/bin/build-wrapper-linux-x86/build-wrapper-linux-x86-64 --out-dir ./bw-outputs make biboumi test_suite
-    - cd ..
-    - ~/sonar-scanner/bin/sonar-scanner -Dsonar.host.url=https://sonarqube.com -Dsonar.login=$SONAR_LOGIN -Dsonar.language=cpp -Dsonar.cfamily.build-wrapper-output=build/bw-outputs -Dsonar.sourceEncoding=UTF-8 -Dsonar.sources=src/,louloulibs/,tests/ -Dsonar.projectKey=biboumi -Dsonar.projectName=Biboumi -Dsonar.projectVersion=3.0
-
 packaging:rpm:
   stage: packaging
   only:

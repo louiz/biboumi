@@ -7,9 +7,6 @@ Biboumi
 .. image:: https://codecov.io/gh/louiz/biboumi/branch/master/graph/badge.svg
   :target: https://codecov.io/gh/louiz/biboumi
 
-.. image:: https://sonarqube.com/api/badges/gate?key=biboumi
-   :target: https://sonarqube.com/component_issues/index?id=biboumi
-
 .. image:: https://scan.coverity.com/projects/3726/badge.svg
    :target: https://scan.coverity.com/projects/louiz-biboumi
 
