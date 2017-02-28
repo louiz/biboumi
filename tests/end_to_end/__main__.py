@@ -371,7 +371,9 @@ identd_port=1113
 
 common_replacements = {
     'irc_server_one': 'irc.localhost@biboumi.localhost',
+    'irc_server_two': 'localhost@biboumi.localhost',
     'irc_host_one': 'irc.localhost',
+    'irc_host_two': 'localhost',
     'biboumi_host': 'biboumi.localhost',
     'resource_one': 'resource1',
     'resource_two': 'resource2',
@@ -393,8 +395,8 @@ def handshake_sequence():
 
 def connection_begin_sequence(irc_host, jid):
     jid = jid.format_map(common_replacements)
-    xpath    = "/message[@to='" + jid + "'][@from='irc.localhost@biboumi.localhost']/body[text()='%s']"
-    xpath_re = "/message[@to='" + jid + "'][@from='irc.localhost@biboumi.localhost']/body[re:test(text(), '%s')]"
+    xpath    = "/message[@to='" + jid + "'][@from='" + irc_host + "@biboumi.localhost']/body[text()='%s']"
+    xpath_re = "/message[@to='" + jid + "'][@from='" + irc_host + "@biboumi.localhost']/body[re:test(text(), '%s')]"
     return (
     partial(expect_stanza,
             xpath % ('Connecting to %s:6697 (encrypted)' % irc_host)),
@@ -410,21 +412,22 @@ def connection_begin_sequence(irc_host, jid):
             xpath % 'Connected to IRC server.'),
     # These five messages can be receive in any order
     partial(expect_stanza,
-            xpath_re % (r'^%s: (\*\*\* Checking Ident|\*\*\* Looking up your hostname\.\.\.|\*\*\* Found your hostname: .*|ACK multi-prefix|\*\*\* Got Ident response)$' % irc_host)),
+            xpath_re % (r'^%s: (\*\*\* Checking Ident|\*\*\* Looking up your hostname\.\.\.|\*\*\* Found your hostname: .*|ACK multi-prefix|\*\*\* Got Ident response)$' % 'irc.localhost')),
     partial(expect_stanza,
-            xpath_re % (r'^%s: (\*\*\* Checking Ident|\*\*\* Looking up your hostname\.\.\.|\*\*\* Found your hostname: .*|ACK multi-prefix|\*\*\* Got Ident response)$' % irc_host)),
+            xpath_re % (r'^%s: (\*\*\* Checking Ident|\*\*\* Looking up your hostname\.\.\.|\*\*\* Found your hostname: .*|ACK multi-prefix|\*\*\* Got Ident response)$' % 'irc.localhost')),
     partial(expect_stanza,
-            xpath_re % (r'^%s: (\*\*\* Checking Ident|\*\*\* Looking up your hostname\.\.\.|\*\*\* Found your hostname: .*|ACK multi-prefix|\*\*\* Got Ident response)$' % irc_host)),
+            xpath_re % (r'^%s: (\*\*\* Checking Ident|\*\*\* Looking up your hostname\.\.\.|\*\*\* Found your hostname: .*|ACK multi-prefix|\*\*\* Got Ident response)$' % 'irc.localhost')),
     partial(expect_stanza,
-            xpath_re % (r'^%s: (\*\*\* Checking Ident|\*\*\* Looking up your hostname\.\.\.|\*\*\* Found your hostname: .*|ACK multi-prefix|\*\*\* Got Ident response)$' % irc_host)),
+            xpath_re % (r'^%s: (\*\*\* Checking Ident|\*\*\* Looking up your hostname\.\.\.|\*\*\* Found your hostname: .*|ACK multi-prefix|\*\*\* Got Ident response)$' % 'irc.localhost')),
     partial(expect_stanza,
-            xpath_re % (r'^%s: (\*\*\* Checking Ident|\*\*\* Looking up your hostname\.\.\.|\*\*\* Found your hostname: .*|ACK multi-prefix|\*\*\* Got Ident response)$' % irc_host)),
+            xpath_re % (r'^%s: (\*\*\* Checking Ident|\*\*\* Looking up your hostname\.\.\.|\*\*\* Found your hostname: .*|ACK multi-prefix|\*\*\* Got Ident response)$' % 'irc.localhost')),
     )
 
 def connection_tls_begin_sequence(irc_host, jid):
     jid = jid.format_map(common_replacements)
-    xpath    = "/message[@to='" + jid + "'][@from='irc.localhost@biboumi.localhost']/body[text()='%s']"
-    xpath_re = "/message[@to='" + jid + "'][@from='irc.localhost@biboumi.localhost']/body[re:test(text(), '%s')]"
+    xpath    = "/message[@to='" + jid + "'][@from='" + irc_host + "@biboumi.localhost']/body[text()='%s']"
+    xpath_re = "/message[@to='" + jid + "'][@from='" + irc_host + "@biboumi.localhost']/body[re:test(text(), '%s')]"
+    irc_host = 'irc.localhost'
     return (
         partial(expect_stanza,
                 xpath % ('Connecting to %s:7778 (encrypted)' % irc_host)),
@@ -445,8 +448,9 @@ def connection_tls_begin_sequence(irc_host, jid):
 
 def connection_end_sequence(irc_host, jid):
     jid = jid.format_map(common_replacements)
-    xpath    = "/message[@to='" + jid + "'][@from='irc.localhost@biboumi.localhost']/body[text()='%s']"
-    xpath_re = "/message[@to='" + jid + "'][@from='irc.localhost@biboumi.localhost']/body[re:test(text(), '%s')]"
+    xpath    = "/message[@to='" + jid + "'][@from='" + irc_host + "@biboumi.localhost']/body[text()='%s']"
+    xpath_re = "/message[@to='" + jid + "'][@from='" + irc_host + "@biboumi.localhost']/body[re:test(text(), '%s')]"
+    irc_host = 'irc.localhost'
     return (
     partial(expect_stanza,
             xpath_re % (r'^%s: Your host is .*$' % irc_host)),
@@ -744,8 +748,6 @@ if __name__ == '__main__':
                      partial(expect_stanza, ("/iq[@type='result']/disco_items:query[@node='http://jabber.org/protocol/commands']",
                                              "/iq/disco_items:query/disco_items:item[5]")),
                  ], conf='fixed_server'),
-
-
         Scenario("list_adhoc_irc",
                  [
                      handshake_sequence(),
@@ -811,6 +813,75 @@ if __name__ == '__main__':
                      partial(expect_stanza, "/iq[@type='result']/commands:command[@node='disconnect-user'][@status='completed']/commands:note[@type='info'][text()='1 user has been disconnected.']"),
                      # Note, charybdis ignores our QUIT message, so we can't test it
                      partial(expect_stanza, "/presence[@type='unavailable'][@to='{jid_admin}/{resource_one}'][@from='#foo%{irc_server_one}/{nick_one}']"),
+                 ]),
+        Scenario("execute_admin_disconnect_from_server_adhoc_command",
+                 [
+                     handshake_sequence(),
+
+                     # Admin connects to first server
+                     partial(send_stanza, "<presence from='{jid_admin}/{resource_one}' to='#bar%{irc_server_one}/{nick_one}' />"),
+                     connection_sequence("irc.localhost", '{jid_admin}/{resource_one}'),
+                     partial(expect_stanza, "/message/body[text()='Mode #bar [+nt] by {irc_host_one}']"),
+                     partial(expect_stanza, "/presence"),
+                     partial(expect_stanza, "/message"),
+
+                     # Non-Admin connects to first server
+                     partial(send_stanza, "<presence from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}/{nick_two}' />"),
+                     connection_sequence("irc.localhost", '{jid_one}/{resource_one}'),
+                     partial(expect_stanza, "/message/body[text()='Mode #foo [+nt] by {irc_host_one}']"),
+                     partial(expect_stanza, "/presence"),
+                     partial(expect_stanza, "/message"),
+
+                     # Non-admin connects to second server
+                     partial(send_stanza, "<presence from='{jid_one}/{resource_one}' to='#bon%{irc_server_two}/{nick_three}' />"),
+                     connection_sequence("localhost", '{jid_one}/{resource_one}'),
+                     partial(expect_stanza, "/message/body[text()='Mode #bon [+nt] by {irc_host_one}']"),
+                     partial(expect_stanza, "/presence"),
+                     partial(expect_stanza, "/message"),
+
+                     # Execute as admin
+                     partial(send_stanza, "<iq type='set' id='command1' from='{jid_admin}/{resource_one}' to='{biboumi_host}'><command xmlns='http://jabber.org/protocol/commands' node='disconnect-from-irc-server' action='execute' /></iq>"),
+                     partial(expect_stanza, ("/iq[@type='result']/commands:command[@node='disconnect-from-irc-server'][@sessionid][@status='executing']",
+                                             "/iq/commands:command/dataform:x[@type='form']/dataform:field[@var='jid'][@type='list-single']/dataform:option[@label='{jid_one}']/dataform:value[text()='{jid_one}']",
+                                             "/iq/commands:command/dataform:x[@type='form']/dataform:field[@var='jid'][@type='list-single']/dataform:option[@label='{jid_admin}']/dataform:value[text()='{jid_admin}']",
+                                             "/iq/commands:command/commands:actions/commands:next",
+                                             ),
+                             after = partial(save_value, "sessionid", partial(extract_attribute, "/iq/commands:command[@node='disconnect-from-irc-server']", "sessionid"))
+                             ),
+                     partial(send_stanza, "<iq type='set' id='command2' from='{jid_admin}/{resource_one}' to='{biboumi_host}'><command xmlns='http://jabber.org/protocol/commands' node='disconnect-from-irc-server' sessionid='{sessionid}' action='next'><x xmlns='jabber:x:data' type='submit'><field var='jid'><value>{jid_one}</value></field><field var='quit-message'><value>e2e test one</value></field></x></command></iq>"),
+
+                     partial(expect_stanza, ("/iq[@type='result']/commands:command[@node='disconnect-from-irc-server'][@sessionid][@status='executing']",
+                                             "/iq/commands:command/dataform:x[@type='form']/dataform:field[@var='quit-message'][@type='text-single']",
+                                             "/iq/commands:command/dataform:x[@type='form']/dataform:field[@var='irc-servers'][@type='list-multi']",
+                                             "/iq/commands:command/dataform:x[@type='form']/dataform:field[@var='irc-servers']/dataform:option[@label='localhost']/dataform:value[text()='localhost']",
+                                             "/iq/commands:command/dataform:x[@type='form']/dataform:field[@var='irc-servers']/dataform:option[@label='irc.localhost']/dataform:value[text()='irc.localhost']",
+                                             "/iq/commands:command/commands:actions/commands:next",
+                                             ),
+                             after = partial(save_value, "sessionid", partial(extract_attribute, "/iq/commands:command[@node='disconnect-from-irc-server']", "sessionid"))
+                             ),
+                     partial(send_stanza, "<iq type='set' id='command2' from='{jid_admin}/{resource_one}' to='{biboumi_host}'><command xmlns='http://jabber.org/protocol/commands' node='disconnect-from-irc-server' sessionid='{sessionid}' action='next'><x xmlns='jabber:x:data' type='submit'><field var='irc-servers'><value>localhost</value></field><field var='quit-message'><value>Disconnected by e2e</value></field></x></command></iq>"),
+                     partial(expect_unordered, [("/presence[@type='unavailable'][@to='{jid_one}/{resource_one}'][@from='#bon%{irc_server_two}/{nick_three}']",),
+                                                ("/iq[@type='result']/commands:command[@node='disconnect-from-irc-server'][@status='completed']/commands:note[@type='info'][text()='{jid_one} was disconnected from 1 IRC server.']",),
+                                                ("/message[@to='{jid_one}/{resource_one}']/body[text()='ERROR: Disconnected by e2e']",),
+                                                ]),
+
+
+                     # Execute as non-admin (this skips the first step)
+                     partial(send_stanza, "<iq type='set' id='command1' from='{jid_one}/{resource_one}' to='{biboumi_host}'><command xmlns='http://jabber.org/protocol/commands' node='disconnect-from-irc-server' action='execute' /></iq>"),
+
+                     partial(expect_stanza, ("/iq[@type='result']/commands:command[@node='disconnect-from-irc-server'][@sessionid][@status='executing']",
+                                             "/iq/commands:command/dataform:x[@type='form']/dataform:field[@var='quit-message'][@type='text-single']",
+                                             "/iq/commands:command/dataform:x[@type='form']/dataform:field[@var='irc-servers'][@type='list-multi']",
+                                             "/iq/commands:command/dataform:x[@type='form']/dataform:field[@var='irc-servers']/dataform:option[@label='irc.localhost']/dataform:value[text()='irc.localhost']",
+                                             "/iq/commands:command/commands:actions/commands:next",
+                                             ),
+                             after = partial(save_value, "sessionid", partial(extract_attribute, "/iq/commands:command[@node='disconnect-from-irc-server']", "sessionid"))
+                             ),
+                     partial(send_stanza, "<iq type='set' id='command2' from='{jid_one}/{resource_one}' to='{biboumi_host}'><command xmlns='http://jabber.org/protocol/commands' node='disconnect-from-irc-server' sessionid='{sessionid}' action='next'><x xmlns='jabber:x:data' type='submit'><field var='irc-servers'><value>irc.localhost</value></field><field var='quit-message'><value>Disconnected by e2e</value></field></x></command></iq>"),
+                     partial(expect_unordered, [("/presence[@type='unavailable'][@to='{jid_one}/{resource_one}'][@from='#foo%{irc_server_one}/{nick_two}']",),
+                                                ("/iq[@type='result']/commands:command[@node='disconnect-from-irc-server'][@status='completed']/commands:note[@type='info'][text()='{jid_one}/{resource_one} was disconnected from 1 IRC server.']",),
+                                                ("/message[@to='{jid_one}/{resource_one}']/body[text()='ERROR: Disconnected by e2e']",),
+                                                ]),
                  ]),
         Scenario("multisessionnick",
                  [
