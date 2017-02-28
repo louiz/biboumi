@@ -357,7 +357,8 @@ password=coucou
 db_name=e2e_test.sqlite
 port=8811
 admin=admin@example.com
-identd_port=1113""",
+identd_port=1113
+outgoing_bind=127.0.0.1""",
 
 'fixed_server':
 """hostname=biboumi.localhost
