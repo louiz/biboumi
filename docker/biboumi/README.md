@@ -7,11 +7,10 @@ Running
 This image does not embed any XMPP server. You need to have a running XMPP
 server first: as an other docker image, or running on the host machine.
 
-Assuming you have a running `prosody
-<https://hub.docker.com/r/prosody/prosody/>`_ container already running and
-`properly configured
-<https://prosody.im/doc/components#adding_an_external_component>`_ you can
-use the following command to start your biboumi container.
+Assuming you have a running [prosody](https://hub.docker.com/r/prosody/prosody/)
+container already running and
+[properly configured](https://prosody.im/doc/components#adding_an_external_component)
+you can use the following command to start your biboumi container.
 
 ```
 docker run --link prosody:xmpp \
