@@ -1,28 +1,8 @@
-# This Dockerfile creates a docker image running biboumi
+# This dockerfile uses the image built using Dockerfile.base, and installs
+# biboumi in it
 
-FROM docker.io/fedora:latest
+FROM biboumi-base
 
-RUN dnf --refresh install -y\
-    gcc-c++\
-    cmake\
-    make\
-    udns-devel\
-    sqlite-devel\
-    libuuid-devel\
-    expat-devel\
-    libidn-devel\
-    systemd-devel\
-    git\
-    python\
-    && dnf clean all
-
-# Install botan
-RUN git clone https://github.com/randombit/botan.git && cd botan && ./configure.py --prefix=/usr && make -j8 && make install && ldconfig && rm -rf /botan
-
-# Install litesql
-RUN git clone git://git.louiz.org/litesql && mkdir /litesql/build && cd /litesql/build && cmake .. -DCMAKE_INSTALL_PREFIX=/usr && make -j8 &&  cd /litesql/build && make install && ldconfig && rm -rf /litesql
-
-# Install biboumi
 RUN git clone git://git.louiz.org/biboumi && mkdir ./biboumi/build && cd ./biboumi/build &&\
    cmake .. -DCMAKE_INSTALL_PREFIX=/usr\
             -DCMAKE_BUILD_TYPE=Release\
