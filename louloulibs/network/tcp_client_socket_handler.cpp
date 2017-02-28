@@ -35,7 +35,11 @@ void TCPClientSocketHandler::init_socket(const struct addrinfo* rp)
       // Convert the address from string format to a sockaddr that can be
       // used in bind()
       struct addrinfo* result;
-      int err = ::getaddrinfo(this->bind_addr.data(), nullptr, nullptr, &result);
+      struct addrinfo hints;
+      memset(&hints, 0, sizeof(hints));
+      hints.ai_flags = AI_NUMERICHOST;
+      hints.ai_family = AF_UNSPEC;
+      int err = ::getaddrinfo(this->bind_addr.data(), nullptr, &hints, &result);
       if (err != 0 || !result)
         log_error("Failed to bind socket to ", this->bind_addr, ": ",
                   gai_strerror(err));
