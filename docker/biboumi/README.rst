@@ -76,23 +76,3 @@ The database is stored in the /var/lib/biboumi/ directory. If you don’t bind
 a local directory to it, the database will be lost when the container is
 stopped. If you want to keep your database between each run, bind it with
 the -v option, like this: **-v /srv/biboumi/:/var/lib/biboumi**.
-
-Building
---------
-
-This image is built from 2 Dockerfiles:
-- Dockerfile.base: builds and installs all the dependencies needed to build and run biboumi
-- Dockerfile: builds and installs biboumi itself
-
-The goal is to be able to force the rebuild of biboumi itself (by using
-the --no-cache option) without having to rebuild and install all its
-dependencies.
-
-The build does not require any file in the build context, everything is
-fetched during the build using git or dnf.
-
-To build a biboumi image named “foo/biboumi”, you can run the script:
-
-```
-./build-docker.sh foo/biboumi
-```

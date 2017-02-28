@@ -176,5 +176,5 @@ packaging:docker:
   before_script: []
   script:
     - docker login -p $DOCKER_PASSWORD -u louiz
-    - ./docker/biboumi/build-docker.sh louiz/biboumi
+    - docker build -t louiz/biboumi docker/biboumi
     - docker push louiz/biboumi
