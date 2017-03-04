@@ -1,3 +1,10 @@
+biboumi (4.0-2) unstable; urgency=medium
+
+  * Fix set proper group (and explicitly set user too, while at it).
+    Closes: Bug#854252. Thanks to Jonas Wielicki and Florent Le Coz.
+
+ -- Jonas Smedegaard <dr@jones.dk>  Sat, 04 Mar 2017 20:37:49 +0100
+
 biboumi (4.0-1) unstable; urgency=medium
 
   [ Vasudev Kamath & Jonas Smedegaard ]
