@@ -1864,7 +1864,7 @@ if __name__ == '__main__':
 
                      partial(send_stanza,
                              "<iq from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}' id='1' type='get'><query xmlns='http://jabber.org/protocol/disco#info' node='http://jabber.org/protocol/muc#traffic'/></iq>"),
-                     partial(expect_stanza, "/iq[@type='result']/disco_info:query[@node='http://jabber.org/protocol/muc#traffic']"),
+                     partial(expect_stanza, "/iq[@from='#foo%{irc_server_one}'][@to='{jid_one}/{resource_one}'][@type='result']/disco_info:query[@node='http://jabber.org/protocol/muc#traffic']"),
                 ]),
                 Scenario("raw_message",
                 [
