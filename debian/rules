@@ -29,6 +29,7 @@ CDBS_BUILD_DEPENDS += , cmake, catch, uuid-dev, pandoc
 CDBS_BUILD_DEPENDS += , $(patsubst %,$(comma) lib%-dev,$(dev-deps))
 
 DEB_CMAKE_EXTRA_FLAGS = \
+ -DSERVICE_USER=nobody -DSERVICE_GROUP=nogroup \
  -DBOTAN_LIBRARIES="$(shell pkg-config botan-1.10 --libs-only-L)" \
  -DBOTAN_INCLUDE_DIRS="$(shell pkg-config botan-1.10 --cflags-only-I)"
 
