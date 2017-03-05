@@ -38,14 +38,7 @@ void IdentdSocket::parse_in_buffer(const std::size_t)
 
 static std::string hash_jid(const std::string& jid)
 {
-  sha1nfo sha1;
-  sha1_init(&sha1);
-  sha1_write(&sha1, jid.data(), jid.size());
-  const uint8_t* res = sha1_result(&sha1);
-  std::ostringstream result;
-  for (int i = 0; i < HASH_LENGTH; i++)
-    result << std::hex << std::setfill('0') << std::setw(2) << static_cast<int>(res[i]);
-  return result.str();
+  return sha1(jid);
 }
 
 std::string IdentdSocket::generate_answer(const BiboumiComponent& biboumi, uint16_t local, uint16_t remote)
