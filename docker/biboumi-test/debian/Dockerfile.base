@@ -14,6 +14,7 @@ RUN apt install -y g++\
     libudns-dev\
     libsqlite3-dev\
     libuuid1\
+    libgcrypt20-dev\
     cmake\
     make\
     libexpat1-dev\
