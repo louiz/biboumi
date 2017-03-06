@@ -1,15 +1,15 @@
 stages:
-  - build
-  - test
-  - packaging
+  - build     # Build in various conf, keeps the artifacts
+  - test      # Use the build artifacts to run the tests
+  - packaging # Publish some packages (rpm, deb…)
+  - external  # Interact with some external service (codecov, coverity…)
 
 before_script:
   - uname -a
   - locale
   - whoami
-  - rm -rf build/
-  - mkdir build/
-  - cd build
+  - mkdir -p build/
+  - cd build/
 
 variables:
   COMPILER: "g++"
@@ -19,83 +19,110 @@ variables:
   SYSTEMD: "-DWITH_SYSTEMD=1"
   LIBIDN: "-DWITH_LIBIDN=1"
   LITESQL: "-DWITH_LITESQL=1"
+
+#
+## Build jobs
+#
+
 .template:basic_build: &basic_build
   stage: build
   tags:
     - docker
-  image: docker.louiz.org/biboumi-test-fedora:latest
   script:
     - "echo Running cmake with the following parameters: -DCMAKE_CXX_COMPILER=${COMPILER} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ${BOTAN} ${UDNS} ${SYSTEMD} ${LIBIDN} ${LITESQL}"
     - cmake .. -DCMAKE_CXX_COMPILER=${COMPILER} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ${BOTAN} ${UDNS} ${SYSTEMD} ${LIBIDN} ${LITESQL}
     - make biboumi -j$(nproc || echo 1)
-    - make check -j$(nproc || echo 1)
+    - make coverage_check -j$(nproc || echo 1)
+  artifacts:
+    expire_in: 8 hours
+    paths:
+      - build/
+
+.template:fedora_build: &fedora_build
+  <<: *basic_build
+  image: docker.louiz.org/biboumi-test-fedora:latest
+
+.template:debian_build: &debian_build
+  <<: *basic_build
+  image: docker.louiz.org/biboumi-test-debian:latest
+
+build:fedora:
+  <<: *fedora_build
+
+build:debian:
+  <<: *debian_build
 
 build:1:
   variables:
     BOTAN: "-DWITHOUT_BOTAN=1"
-  <<: *basic_build
+  <<: *fedora_build
 
 build:2:
   variables:
     UDNS: "-DWITHOUT_UDNS=1"
-  <<: *basic_build
+  <<: *fedora_build
 
 build:3:
   variables:
     LITESQL: "-DWITHOUT_LITESQL=1"
-  <<: *basic_build
+  <<: *fedora_build
 
 build:4:
   variables:
     LITESQL: "-DWITHOUT_LITESQL=1"
     BOTAN: "-DWITHOUT_BOTAN=1"
-  <<: *basic_build
+  <<: *fedora_build
 
 build:5:
   variables:
     LITESQL: "-DWITHOUT_LITESQL=1"
     UDNS: "-DWITHOUT_UDNS=1"
-  <<: *basic_build
+  <<: *fedora_build
 
 build:6:
   variables:
     BOTAN: "-DWITHOUT_BOTAN=1"
     UDNS: "-DWITHOUT_UDNS=1"
-  <<: *basic_build
+  <<: *fedora_build
 
-build:6:
+build:7:
   variables:
     LIBIDN: "-DWITHOUT_LIBIDN=1"
     UDNS: "-DWITHOUT_UDNS=1"
-  <<: *basic_build
+  <<: *fedora_build
+
+
+#
+## Test jobs
+#
 
 .template:basic_test: &basic_test
   stage: test
   tags:
     - docker
   script:
-    - cmake .. -DCMAKE_CXX_COMPILER=${COMPILER} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ${BOTAN} ${UDNS} ${SYSTEMD} ${LIBIDN} ${LITESQL}
-    - make biboumi -j$(nproc || echo 1)
-    - make coverage_check -j$(nproc || echo 1)
     - make coverage_e2e -j$(nproc || echo 1)
     - make coverage
-    - bash <(curl -s https://codecov.io/bash) -X gcov -X coveragepy -f ./coverage_e2e.info -F integration
-    - bash <(curl -s https://codecov.io/bash) -X gcov -X coveragepy -f ./coverage_test_suite.info -F unittests
   artifacts:
     paths:
       - build/coverage_test_suite/
       - build/coverage_e2e/
       - build/coverage_total/
+      - build/coverage_e2e.info
     when: always
     name: $CI_PROJECT_NAME-test-$CI_BUILD_ID
 
 test:debian:
   image: docker.louiz.org/biboumi-test-debian:latest
   <<: *basic_test
+  dependencies:
+    - build:debian
 
 test:fedora:
   image: docker.louiz.org/biboumi-test-fedora:latest
   <<: *basic_test
+  dependencies:
+    - build:fedora
 
 test:freebsd:
   only:
@@ -111,8 +138,73 @@ test:freebsd:
     - make check
     - make e2e
 
-test:coverity:
-  stage: test
+#
+## External jobs
+#
+
+.template:codecov: &codecov
+  stage: external
+  tags:
+    - docker
+  image: docker.louiz.org/biboumi-test-fedora:latest
+
+.template:codecov_unittests: &codecov_unittests
+  <<: *codecov
+  script:
+    - bash <(curl -s https://codecov.io/bash) -X gcov -X coveragepy -f ./coverage_test_suite.info -F unittests
+
+.template:codecov_e2e: &codecov_e2e
+  <<: *codecov
+  script:
+    - bash <(curl -s https://codecov.io/bash) -X gcov -X coveragepy -f ./coverage_e2e.info -F integration
+
+codecov:fedora:
+  <<: *codecov_e2e
+  dependencies:
+    - test:fedora
+
+codecov:debian:
+  <<: *codecov_e2e
+  dependencies:
+    - test:debian
+
+codecov:build:1:
+  <<: *codecov_unittests
+  dependencies:
+    - build:1
+
+codecov:build:2:
+  <<: *codecov_unittests
+  dependencies:
+    - build:2
+
+codecov:build:3:
+  <<: *codecov_unittests
+  dependencies:
+    - build:3
+
+codecov:build:4:
+  <<: *codecov_unittests
+  dependencies:
+    - build:4
+
+codecov:build:5:
+  <<: *codecov_unittests
+  dependencies:
+    - build:5
+
+codecov:build:6:
+  <<: *codecov_unittests
+  dependencies:
+    - build:6
+
+codecov:build:7:
+  <<: *codecov_unittests
+  dependencies:
+    - build:7
+
+coverity:
+  stage: external
   only:
     - master@louiz/biboumi
   tags:
@@ -127,6 +219,7 @@ test:coverity:
     - tar czvf biboumi_coverity.tgz cov-int
     - curl --form token=$COVERITY_TOKEN   --form email=louiz@louiz.org   --form file=@biboumi_coverity.tgz  --form version="$(git rev-parse --short HEAD)" --form description="Automatic submission by gitlab-ci" https://scan.coverity.com/builds?project=louiz%2Fbiboumi
 
+
 packaging:rpm:
   stage: packaging
   only:
@@ -135,7 +228,6 @@ packaging:rpm:
     - docker
   image: docker.louiz.org/biboumi-test-fedora:latest
   script:
-    - cmake .. -DCMAKE_CXX_COMPILER=${COMPILER} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ${BOTAN} ${UDNS} ${SYSTEMD} ${LIBIDN} ${LITESQL}
     - make rpm -j$(nproc || echo 1)
   artifacts:
     paths:
@@ -143,6 +235,8 @@ packaging:rpm:
       - build/rpmbuild/SRPMS
     when: always
     name: $CI_PROJECT_NAME-rpm-$CI_BUILD_ID
+  dependencies:
+    - build:fedora
 
 packaging:deb:
   stage: packaging
