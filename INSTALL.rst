@@ -45,6 +45,9 @@ libbotan_ 1.11 or 2.0 (optional)
  Provides TLS support. Without it, IRC connections are all made in
  plain-text mode.
 
+gcrypt_ (mandatory only if botan is absent)
+ Provides the SHA-1 hash function, for the case where Botan is absent.
+
 litesql_ (optional)
  Provides a way to store various options in a (sqlite3) database. Each user
  of the gateway can store their own values (for example their prefered port,
@@ -158,3 +161,4 @@ to use biboumi.
 .. _litesql: http://git.louiz.org/litesql
 .. _systemd: https://www.freedesktop.org/wiki/Software/systemd/
 .. _biboumi.1.rst: doc/biboumi.1.rst
+.. _gcrypt: https://www.gnu.org/software/libgcrypt/

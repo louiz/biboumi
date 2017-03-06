@@ -12,6 +12,7 @@ RUN dnf --refresh install -y\
     udns-devel\
     sqlite-devel\
     libuuid-devel\
+    libgcrypt-devel\
     cmake\
     make\
     expat-devel\

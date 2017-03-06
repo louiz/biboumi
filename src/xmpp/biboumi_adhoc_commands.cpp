@@ -206,8 +206,6 @@ void ConfigureIrcServerStep1(XmppComponent&, AdhocSession& session, XmlNode& com
   XmlSubNode instructions(x, "instructions");
   instructions.set_inner("Edit the form, to configure the settings of the IRC server "s + server_domain);
 
-  XmlNode required("required");
-
   XmlSubNode ports(x, "field");
   ports["var"] = "ports";
   ports["type"] = "text-multi";
@@ -219,7 +217,6 @@ void ConfigureIrcServerStep1(XmppComponent&, AdhocSession& session, XmlNode& com
       XmlSubNode ports_value(ports, "value");
       ports_value.set_inner(val);
     }
-  ports.add_child(required);
 
 #ifdef BOTAN_FOUND
   XmlSubNode tls_ports(x, "field");
@@ -233,7 +230,6 @@ void ConfigureIrcServerStep1(XmppComponent&, AdhocSession& session, XmlNode& com
       XmlSubNode tls_ports_value(tls_ports, "value");
       tls_ports_value.set_inner(val);
     }
-  tls_ports.add_child(required);
 
   XmlSubNode verify_cert(x, "field");
   verify_cert["var"] = "verify_cert";
@@ -255,7 +251,6 @@ void ConfigureIrcServerStep1(XmppComponent&, AdhocSession& session, XmlNode& com
       XmlSubNode fingerprint_value(fingerprint, "value");
       fingerprint_value.set_inner(options.trustedFingerprint.value());
     }
-  fingerprint.add_child(required);
 #endif
 
   XmlSubNode pass(x, "field");
@@ -267,7 +262,6 @@ void ConfigureIrcServerStep1(XmppComponent&, AdhocSession& session, XmlNode& com
       XmlSubNode pass_value(pass, "value");
       pass_value.set_inner(options.pass.value());
     }
-  pass.add_child(required);
 
   XmlSubNode after_cnt_cmd(x, "field");
   after_cnt_cmd["var"] = "after_connect_command";
@@ -279,7 +273,6 @@ void ConfigureIrcServerStep1(XmppComponent&, AdhocSession& session, XmlNode& com
       XmlSubNode after_cnt_cmd_value(after_cnt_cmd, "value");
       after_cnt_cmd_value.set_inner(options.afterConnectionCommand.value());
     }
-  after_cnt_cmd.add_child(required);
 
   if (Config::get("realname_customization", "true") == "true")
     {
@@ -292,7 +285,6 @@ void ConfigureIrcServerStep1(XmppComponent&, AdhocSession& session, XmlNode& com
           XmlSubNode username_value(username, "value");
           username_value.set_inner(options.username.value());
         }
-      username.add_child(required);
 
       XmlSubNode realname(x, "field");
       realname["var"] = "realname";
@@ -303,7 +295,6 @@ void ConfigureIrcServerStep1(XmppComponent&, AdhocSession& session, XmlNode& com
           XmlSubNode realname_value(realname, "value");
           realname_value.set_inner(options.realname.value());
         }
-      realname.add_child(required);
     }
 
   XmlSubNode encoding_out(x, "field");
@@ -316,7 +307,6 @@ void ConfigureIrcServerStep1(XmppComponent&, AdhocSession& session, XmlNode& com
       XmlSubNode encoding_out_value(encoding_out, "value");
       encoding_out_value.set_inner(options.encodingOut.value());
     }
-  encoding_out.add_child(required);
 
   XmlSubNode encoding_in(x, "field");
   encoding_in["var"] = "encoding_in";
@@ -328,7 +318,6 @@ void ConfigureIrcServerStep1(XmppComponent&, AdhocSession& session, XmlNode& com
       XmlSubNode encoding_in_value(encoding_in, "value");
       encoding_in_value.set_inner(options.encodingIn.value());
     }
-  encoding_in.add_child(required);
 
   XmlSubNode linger_time(x, "field");
   linger_time["var"] = "linger_time";
@@ -339,7 +328,6 @@ void ConfigureIrcServerStep1(XmppComponent&, AdhocSession& session, XmlNode& com
     XmlSubNode linger_time_value(linger_time, "value");
     linger_time_value.set_inner(std::to_string(options.lingerTime.value()));
   }
-  encoding_in.add_child(required);
 }
 
 void ConfigureIrcServerStep2(XmppComponent&, AdhocSession& session, XmlNode& command_node)
@@ -454,8 +442,6 @@ void ConfigureIrcChannelStep1(XmppComponent&, AdhocSession& session, XmlNode& co
   XmlSubNode instructions(x, "instructions");
   instructions.set_inner("Edit the form, to configure the settings of the IRC channel "s + iid.get_local());
 
-  XmlNode required("required");
-
   XmlSubNode encoding_out(x, "field");
   encoding_out["var"] = "encoding_out";
   encoding_out["type"] = "text-single";
@@ -466,7 +452,6 @@ void ConfigureIrcChannelStep1(XmppComponent&, AdhocSession& session, XmlNode& co
       XmlSubNode encoding_out_value(encoding_out, "value");
       encoding_out_value.set_inner(options.encodingOut.value());
     }
-  encoding_out.add_child(required);
 
   XmlSubNode encoding_in(x, "field");
   encoding_in["var"] = "encoding_in";
@@ -478,7 +463,6 @@ void ConfigureIrcChannelStep1(XmppComponent&, AdhocSession& session, XmlNode& co
       XmlSubNode encoding_in_value(encoding_in, "value");
       encoding_in_value.set_inner(options.encodingIn.value());
     }
-  encoding_in.add_child(required);
 }
 
 void ConfigureIrcChannelStep2(XmppComponent&, AdhocSession& session, XmlNode& command_node)

@@ -5,6 +5,7 @@
 
 #include <xmpp/xmpp_component.hpp>
 #include <config/config.hpp>
+#include <utils/system.hpp>
 #include <utils/time.hpp>
 #include <xmpp/auth.hpp>
 #include <xmpp/jid.hpp>
@@ -585,7 +586,7 @@ void XmppComponent::send_version(const std::string& id, const std::string& jid_t
         }
         {
           XmlSubNode os(query, "os");
-          os.set_inner(SYSTEM_NAME);
+          os.set_inner(utils::get_system_name());
         }
     }
     else

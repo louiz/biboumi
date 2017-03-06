@@ -152,7 +152,7 @@ namespace utils
       throw std::runtime_error("Cannot convert into UTF-8");
 
     // Make sure cd is always closed when we leave this function
-    const auto sg = utils::make_scope_guard([&cd](auto&&){ iconv_close(cd); });
+    const auto sg = utils::make_scope_guard([&cd](){ iconv_close(cd); });
 
     size_t inbytesleft = str.size();
 
@@ -169,7 +169,7 @@ namespace utils
     char* outbuf_ptr = outbuf;
 
     // Make sure outbuf is always deleted when we leave this function
-    const auto sg2 = utils::make_scope_guard([outbuf](auto&&){ delete[] outbuf; });
+    const auto sg2 = utils::make_scope_guard([outbuf](){ delete[] outbuf; });
 
     bool done = false;
     while (done == false)
