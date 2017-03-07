@@ -113,12 +113,14 @@ void Resolver::start_resolving(const std::string& hostname, const std::string& p
   {
     Resolver* resolver = static_cast<Resolver*>(data);
     resolver->on_hostname6_resolved(result);
+    resolver->after_resolved();
   };
 
   auto hostname4_resolved = [](dns_ctx*, dns_rr_a4* result, void* data)
   {
     Resolver* resolver = static_cast<Resolver*>(data);
     resolver->on_hostname4_resolved(result);
+    resolver->after_resolved();
   };
 
   DNSHandler::watch();
@@ -173,9 +175,6 @@ std::vector<std::string> Resolver::look_in_etc_hosts(const std::string &hostname
 
 void Resolver::on_hostname4_resolved(dns_rr_a4 *result)
 {
-  if (dns_active(nullptr) == 0)
-    DNSHandler::unwatch();
-
   this->resolved4 = true;
 
   const auto status = dns_status(nullptr);
@@ -196,16 +195,10 @@ void Resolver::on_hostname4_resolved(dns_rr_a4 *result)
       if (error != end(dns_error_messages))
         this->error_msg = error->second;
     }
-
-  if (this->resolved6 && this->resolved4)
-    this->on_resolved();
 }
 
 void Resolver::on_hostname6_resolved(dns_rr_a6 *result)
 {
-  if (dns_active(nullptr) == 0)
-    DNSHandler::unwatch();
-
   this->resolved6 = true;
   char buf[INET6_ADDRSTRLEN];
 
@@ -219,6 +212,12 @@ void Resolver::on_hostname6_resolved(dns_rr_a6 *result)
           this->call_getaddrinfo(buf, this->port.data(), AI_NUMERICHOST);
         }
     }
+}
+
+void Resolver::after_resolved()
+{
+  if (dns_active(nullptr) == 0)
+    DNSHandler::unwatch();
 
   if (this->resolved6 && this->resolved4)
     this->on_resolved();

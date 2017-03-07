@@ -89,6 +89,10 @@ private:
 #ifdef UDNS_FOUND
   void on_hostname4_resolved(dns_rr_a4 *result);
   void on_hostname6_resolved(dns_rr_a6 *result);
+  /**
+   * Called after one record (4 or 6) has been resolved.
+   */
+  void after_resolved();
 
   void start_timer();
 
