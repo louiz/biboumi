@@ -32,10 +32,8 @@ bool TimedEvent::is_after(const std::chrono::steady_clock::time_point& time_poin
 
 std::chrono::milliseconds TimedEvent::get_timeout() const
 {
-  auto now = std::chrono::steady_clock::now();
-  if (now > this->time_point)
-    return std::chrono::milliseconds(0);
-  return std::chrono::duration_cast<std::chrono::milliseconds>(this->time_point - now);
+  auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(this->time_point - std::chrono::steady_clock::now());
+  return std::max(diff, 0ms);
 }
 
 void TimedEvent::execute() const
