@@ -258,13 +258,15 @@ add_custom_target(e2e_valgrind COMMAND "E2E_BIBOUMI_SUPP_DIR=${CMAKE_CURRENT_SOU
 if(CMAKE_BUILD_TYPE MATCHES Debug)
   include(CodeCoverage)
   SETUP_TARGET_FOR_COVERAGE(coverage_check
-    make
-    coverage_test_suite
-    check)
+    ./test_suite
+    coverage_test_suite)
+  add_dependencies(coverage_check test_suite)
+
   SETUP_TARGET_FOR_COVERAGE(coverage_e2e
-    make
+    python3
     coverage_e2e
-    e2e)
+    ${CMAKE_CURRENT_SOURCE_DIR}/tests/end_to_end/)
+  add_dependencies(coverage_e2e biboumi)
 
   ADD_CUSTOM_TARGET(coverage
     COMMAND ${LCOV_PATH} -a coverage_e2e.info -a coverage_test_suite.info -o coverage_total.info
