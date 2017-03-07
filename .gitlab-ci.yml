@@ -257,6 +257,7 @@ packaging:deb:
     - mv ../*.deb .
     - mv ../*.build .
     - mv ../*.buildinfo .
+  dependencies: []
   artifacts:
     untracked: true
     name: $CI_PROJECT_NAME-deb-$CI_BUILD_ID
