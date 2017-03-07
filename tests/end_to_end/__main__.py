@@ -519,11 +519,11 @@ if __name__ == '__main__':
                      partial(expect_stanza,
                              "/message/body[text()='Connecting to doesnotexist:6697 (encrypted)']"),
                      partial(expect_stanza,
-                             "/message/body[text()='Connection failed: Domain name not found']"),
+                             "/message/body[re:test(text(), 'Connection failed: (Domain name not found|Name or service not known)')]"),
                      partial(expect_stanza,
                              ("/presence[@from='#foo%doesnotexist@{biboumi_host}/{nick_one}']/muc:x",
                               "/presence/error[@type='cancel']/stanza:item-not-found",
-                              "/presence/error[@type='cancel']/stanza:text[text()='Domain name not found']")),
+                              "/presence/error[@type='cancel']/stanza:text[re:test(text(), '(Domain name not found|Name or service not known)')]")),
                  ]),
         Scenario("simple_channel_join",
                  [
