@@ -71,6 +71,7 @@ build:4:
   variables:
     LITESQL: "-DWITHOUT_LITESQL=1"
     BOTAN: "-DWITHOUT_BOTAN=1"
+    LIBIDN: "-DWITHOUT_LIBIDN=1"
   <<: *fedora_build
 
 build:5:
@@ -87,7 +88,6 @@ build:6:
 
 build:7:
   variables:
-    LIBIDN: "-DWITHOUT_LIBIDN=1"
     UDNS: "-DWITHOUT_UDNS=1"
   <<: *fedora_build
 
@@ -125,12 +125,10 @@ test:fedora:
     - build:fedora
 
 test:without_udns:
-  variables:
-    UDNS: "-DWITHOUT_UDNS=1"
   image: docker.louiz.org/biboumi-test-fedora:latest
   <<: *basic_test
   dependencies:
-    - build:fedora
+    - build:7
 
 test:freebsd:
   only:
