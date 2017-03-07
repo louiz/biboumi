@@ -157,12 +157,12 @@ test:freebsd:
 .template:codecov_unittests: &codecov_unittests
   <<: *codecov
   script:
-    - bash <(curl -s https://codecov.io/bash) -X gcov -X coveragepy -f ./coverage_test_suite.info -F unittests
+    - bash <(curl -s https://codecov.io/bash) -X gcov -X coveragepy -f ./coverage_test_suite.info -F $CI_BUILD_NAME
 
 .template:codecov_e2e: &codecov_e2e
   <<: *codecov
   script:
-    - bash <(curl -s https://codecov.io/bash) -X gcov -X coveragepy -f ./coverage_e2e.info -F integration
+    - bash <(curl -s https://codecov.io/bash) -X gcov -X coveragepy -f ./coverage_e2e.info -F $CI_BUILD_NAME
 
 codecov:fedora:
   <<: *codecov_e2e
