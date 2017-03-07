@@ -124,6 +124,14 @@ test:fedora:
   dependencies:
     - build:fedora
 
+test:without_udns:
+  variables:
+    UDNS: "-DWITHOUT_UDNS=1"
+  image: docker.louiz.org/biboumi-test-fedora:latest
+  <<: *basic_test
+  dependencies:
+    - build:fedora
+
 test:freebsd:
   only:
     - master@louiz/biboumi
@@ -162,6 +170,11 @@ codecov:fedora:
   <<: *codecov_e2e
   dependencies:
     - test:fedora
+
+codecov:without_udns:
+  <<: *codecov_e2e
+  dependencies:
+    - test:without_udns
 
 codecov:debian:
   <<: *codecov_e2e
