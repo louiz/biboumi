@@ -200,12 +200,12 @@ void Resolver::on_hostname4_resolved(dns_rr_a4 *result)
 void Resolver::on_hostname6_resolved(dns_rr_a6 *result)
 {
   this->resolved6 = true;
-  char buf[INET6_ADDRSTRLEN];
 
   const auto status = dns_status(nullptr);
 
   if (status >= 0 && result)
     {
+      char buf[INET6_ADDRSTRLEN];
       for (auto i = 0; i < result->dnsa6_nrr; ++i)
         {
           inet_ntop(AF_INET6, &result->dnsa6_addr[i], buf, sizeof(buf));
