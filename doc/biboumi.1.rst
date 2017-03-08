@@ -491,11 +491,59 @@ On the gateway itself (e.g on the JID biboumi.example.com):
   with an XMPP message.  The administrator can disconnect any user, while
   the other users can only disconnect themselves.
 
+- configure: Lets each user configure some options that applies globally.
+  The provided configuration form contains these fields:
+    * Record History: whether or not history messages should be saved in
+      the database.
+    * Max history length: The maximum number of lines in the history
+      that the server is allowed to send when joining a channel.
+
 On a server JID (e.g on the JID chat.freenode.org@biboumi.example.com)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 - configure: Lets each user configure some options that applies to the
-  concerned IRC server.
+  concerned IRC server.  The provided configuration form contains these
+  fields:
+    * Realname: The customized “real name” as it will appear on the
+      user’s whois. This option is not available if biboumi is configured
+      with realname_customization to false.
+    * Username: The “user” part in your `user@host`. This option is not
+      available if biboumi is configured with realname_customization to
+      false.
+    * In encoding: The incoming encoding. Any received message that is not
+      proper UTF-8 will be converted will be converted from the configured
+      In encoding into UTF-8. If the conversion fails at some point, some
+      characters will be replaced by the placeholders.
+    * Out encoding: Currently ignored.
+    * After-connection IRC command: A raw IRC command that will be sent to
+      the server immediately after the connection has been successful. It
+      can for example be used to identify yourself using NickServ, with a
+      command like this: `PRIVMSG NickServ :identify PASSWORD`.
+    * Ports: The list of TCP ports to use when connecting to this IRC server.
+      This list will be tried in sequence, until the connection succeeds for
+      one of them. The connection made on these ports will not use TLS, the
+      communication will be insecure. The default list contains 6697 and 6670.
+    * TLS ports: A second list of ports to try when connecting to the IRC
+      server. The only difference is that TLS will be used if the connection
+      is established on one of these ports. All the ports in this list will
+      be tried before using the other plain-text ports list. To entirely
+      disable any non-TLS connection, just remove all the values from the
+      “normal” ports list. The default list contains 6697.
+    * Verify certificate: If set to true (the default value), when connecting
+      on a TLS port, the connection will be aborted if the certificate is
+      not valid (for example if it’s not signed by a known authority, or if
+      the domain name doesn’t match, etc). Set it to false if you want to
+      connect on a server with a self-signed certificate.
+    * SHA-1 fingerprint of the TLS certificate to trust: if you know the hash
+      of the certificate that the server is supposed to use, and you only want
+      to accept this one, set its SHA-1 hash in this field.
+    * Server password: A password that will be sent just after the connection,
+      in a PASS command. This is usually used in private servers, where you’re
+      only allowed to connect if you have the password. Note that, although
+      this is NOT a password that will be sent to NickServ (or some author
+      authentication service), some server (notably Freenode) use it as if it
+      was sent to NickServ to identify your nickname.
+
 - get-irc-connection-info: Returns some information about the IRC server,
   for the executing user. It lets the user know if they are connected to
   this server, from what port, with or without TLS, and it gives the list
@@ -510,7 +558,11 @@ On a channel JID (e.g on the JID #test%chat.freenode.org@biboumi.example.com)
   specific channel, defaults to the value configured at the IRC server
   level.  For example the encoding can be specified for both the channel
   and the server.  If an encoding is not specified for a channel, the
-  encoding configured in the server applies.
+  encoding configured in the server applies. The provided configuration
+  form contains these fields:
+    * In encoding: see the option with the same name in the server configuration
+      form.
+    * Out encoding: Currently ignored.
 
 Raw IRC messages
 ----------------
