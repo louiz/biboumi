@@ -564,6 +564,13 @@ On a channel JID (e.g on the JID #test%chat.freenode.org@biboumi.example.com)
     * In encoding: see the option with the same name in the server configuration
       form.
     * Out encoding: Currently ignored.
+    * Persistent: If set to true, biboumi will stay in this channel even when
+      all the XMPP resources have left the room. I.e. it will not send a PART
+      command, and will stay idle in the channel until the connection is
+      forcibly closed. If a resource comes back in the room again, and if
+      the archiving of messages is enabled for this room, the client will
+      receive the messages that where sent in this channel. This option can be
+      used to make biboumi act as an IRC bouncer.
 
 Raw IRC messages
 ----------------

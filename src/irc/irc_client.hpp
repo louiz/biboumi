@@ -283,7 +283,7 @@ public:
    * Leave the dummy channel: forward a message to the user to indicate that
    * he left it, and mark it as not joined.
    */
-  void leave_dummy_channel(const std::string& exit_message);
+  void leave_dummy_channel(const std::string& exit_message, const std::string& resource);
 
   const std::string& get_hostname() const { return this->hostname; }
   std::string get_nick() const { return this->current_nick; }

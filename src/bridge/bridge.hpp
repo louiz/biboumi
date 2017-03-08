@@ -312,6 +312,7 @@ private:
   void add_resource_to_chan(const ChannelKey& channel_key, const std::string& resource);
   void remove_resource_from_chan(const ChannelKey& channel_key, const std::string& resource);
   bool is_resource_in_chan(const ChannelKey& channel_key, const std::string& resource) const;
+  void remove_all_resources_from_chan(const ChannelKey& channel_key);
   std::size_t number_of_resources_in_chan(const ChannelKey& channel_key) const;
 
   void add_resource_to_server(const IrcHostname& irc_hostname, const std::string& resource);
