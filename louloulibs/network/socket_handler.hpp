@@ -10,7 +10,7 @@ using socket_t = int;
 class SocketHandler
 {
 public:
-  explicit SocketHandler(std::shared_ptr<Poller> poller, const socket_t socket):
+  explicit SocketHandler(std::shared_ptr<Poller>& poller, const socket_t socket):
     poller(poller),
     socket(socket)
   {}

@@ -18,7 +18,7 @@ template <typename RemoteSocketType>
 class TcpSocketServer: public SocketHandler
 {
  public:
-  TcpSocketServer(std::shared_ptr<Poller> poller, const uint16_t port):
+  TcpSocketServer(std::shared_ptr<Poller>& poller, const uint16_t port):
       SocketHandler(poller, -1)
   {
     if ((this->socket = ::socket(AF_INET6, SOCK_STREAM, 0)) == -1)

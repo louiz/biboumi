@@ -11,7 +11,7 @@
 
 using namespace std::string_literals;
 
-TCPClientSocketHandler::TCPClientSocketHandler(std::shared_ptr<Poller> poller):
+TCPClientSocketHandler::TCPClientSocketHandler(std::shared_ptr<Poller>& poller):
    TCPSocketHandler(poller),
    hostname_resolution_failed(false),
    connected(false),

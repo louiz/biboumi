@@ -7,7 +7,7 @@
 
 #include <udns.h>
 
-DNSSocketHandler::DNSSocketHandler(std::shared_ptr<Poller> poller,
+DNSSocketHandler::DNSSocketHandler(std::shared_ptr<Poller>& poller,
                                    const socket_t socket):
   SocketHandler(poller, socket)
 {

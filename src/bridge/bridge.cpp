@@ -29,7 +29,7 @@ static std::string in_encoding_for(const Bridge& bridge, const Iid& iid)
 #endif
 }
 
-Bridge::Bridge(const std::string& user_jid, BiboumiComponent& xmpp, std::shared_ptr<Poller> poller):
+Bridge::Bridge(const std::string& user_jid, BiboumiComponent& xmpp, std::shared_ptr<Poller>& poller):
   user_jid(user_jid),
   xmpp(xmpp),
   poller(poller)

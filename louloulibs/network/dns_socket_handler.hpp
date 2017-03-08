@@ -12,7 +12,7 @@
 class DNSSocketHandler: public SocketHandler
 {
 public:
-  explicit DNSSocketHandler(std::shared_ptr<Poller> poller, const socket_t socket);
+  explicit DNSSocketHandler(std::shared_ptr<Poller>& poller, const socket_t socket);
   ~DNSSocketHandler();
   DNSSocketHandler(const DNSSocketHandler&) = delete;
   DNSSocketHandler(DNSSocketHandler&&) = delete;

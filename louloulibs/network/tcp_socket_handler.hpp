@@ -60,7 +60,7 @@ class TCPSocketHandler: public SocketHandler
 protected:
   ~TCPSocketHandler();
 public:
-  explicit TCPSocketHandler(std::shared_ptr<Poller> poller);
+  explicit TCPSocketHandler(std::shared_ptr<Poller>& poller);
   TCPSocketHandler(const TCPSocketHandler&) = delete;
   TCPSocketHandler(TCPSocketHandler&&) = delete;
   TCPSocketHandler& operator=(const TCPSocketHandler&) = delete;

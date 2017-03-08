@@ -44,7 +44,7 @@ static std::set<std::string> kickable_errors{
     };
 
 
-BiboumiComponent::BiboumiComponent(std::shared_ptr<Poller> poller, const std::string& hostname, const std::string& secret):
+BiboumiComponent::BiboumiComponent(std::shared_ptr<Poller>& poller, const std::string& hostname, const std::string& secret):
   XmppComponent(poller, hostname, secret),
   irc_server_adhoc_commands_handler(*this),
   irc_channel_adhoc_commands_handler(*this)

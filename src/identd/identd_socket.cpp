@@ -8,7 +8,7 @@
 
 #include <logger/logger.hpp>
 
-IdentdSocket::IdentdSocket(std::shared_ptr<Poller> poller, const socket_t socket, TcpSocketServer<IdentdSocket>& server):
+IdentdSocket::IdentdSocket(std::shared_ptr<Poller>& poller, const socket_t socket, TcpSocketServer<IdentdSocket>& server):
   TCPSocketHandler(poller),
   server(dynamic_cast<IdentdServer&>(server))
 {

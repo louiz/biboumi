@@ -44,7 +44,7 @@ using namespace std::chrono_literals;
 
 namespace ph = std::placeholders;
 
-TCPSocketHandler::TCPSocketHandler(std::shared_ptr<Poller> poller):
+TCPSocketHandler::TCPSocketHandler(std::shared_ptr<Poller>& poller):
   SocketHandler(poller, -1),
   use_tls(false)
 #ifdef BOTAN_FOUND

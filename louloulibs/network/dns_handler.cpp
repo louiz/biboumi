@@ -17,7 +17,7 @@ using namespace std::string_literals;
 
 std::unique_ptr<DNSSocketHandler> DNSHandler::socket_handler{};
 
-DNSHandler::DNSHandler(std::shared_ptr<Poller> poller)
+DNSHandler::DNSHandler(std::shared_ptr<Poller>& poller)
 {
   dns_init(nullptr, 0);
   const auto socket = dns_open(nullptr);

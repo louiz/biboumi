@@ -10,7 +10,7 @@ class BiboumiComponent;
 class IdentdServer: public TcpSocketServer<IdentdSocket>
 {
  public:
-  IdentdServer(const BiboumiComponent& biboumi_component, std::shared_ptr<Poller> poller, const uint16_t port):
+  IdentdServer(const BiboumiComponent& biboumi_component, std::shared_ptr<Poller>& poller, const uint16_t port):
       TcpSocketServer<IdentdSocket>(poller, port),
       biboumi_component(biboumi_component)
   {}

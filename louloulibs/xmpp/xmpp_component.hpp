@@ -43,7 +43,7 @@
 class XmppComponent: public TCPClientSocketHandler
 {
 public:
-  explicit XmppComponent(std::shared_ptr<Poller> poller, const std::string& hostname, const std::string& secret);
+  explicit XmppComponent(std::shared_ptr<Poller>& poller, const std::string& hostname, const std::string& secret);
   virtual ~XmppComponent() = default;
 
   XmppComponent(const XmppComponent&) = delete;

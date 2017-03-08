@@ -38,7 +38,7 @@ using irc_responder_callback_t = std::function<bool(const std::string& irc_hostn
 class Bridge
 {
 public:
-  explicit Bridge(const std::string& user_jid, BiboumiComponent& xmpp, std::shared_ptr<Poller> poller);
+  explicit Bridge(const std::string& user_jid, BiboumiComponent& xmpp, std::shared_ptr<Poller>& poller);
   ~Bridge() = default;
 
   Bridge(const Bridge&) = delete;

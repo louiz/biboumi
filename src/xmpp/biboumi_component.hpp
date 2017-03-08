@@ -27,7 +27,7 @@ using iq_responder_callback_t = std::function<void(Bridge* bridge, const Stanza&
 class BiboumiComponent: public XmppComponent
 {
 public:
-  explicit BiboumiComponent(std::shared_ptr<Poller> poller, const std::string& hostname, const std::string& secret);
+  explicit BiboumiComponent(std::shared_ptr<Poller>& poller, const std::string& hostname, const std::string& secret);
   ~BiboumiComponent() = default;
 
   BiboumiComponent(const BiboumiComponent&) = delete;

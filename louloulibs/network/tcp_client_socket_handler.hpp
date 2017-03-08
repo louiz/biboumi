@@ -5,7 +5,7 @@
 class TCPClientSocketHandler: public TCPSocketHandler
 {
  public:
-  TCPClientSocketHandler(std::shared_ptr<Poller> poller);
+  TCPClientSocketHandler(std::shared_ptr<Poller>& poller);
   ~TCPClientSocketHandler();
   /**
    * Connect to the remote server, and call on_connected() if this
