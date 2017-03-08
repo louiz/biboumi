@@ -62,7 +62,7 @@ void Bridge::shutdown(const std::string& exit_message)
   for (auto it = this->irc_clients.begin(); it != this->irc_clients.end(); ++it)
   {
     it->second->send_quit_command(exit_message);
-    it->second->leave_dummy_channel(exit_message);
+    it->second->leave_dummy_channel(exit_message, "");
   }
 }
 
