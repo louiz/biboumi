@@ -1161,14 +1161,14 @@ DummyIrcChannel& IrcClient::get_dummy_channel()
   return this->dummy_channel;
 }
 
-void IrcClient::leave_dummy_channel(const std::string& exit_message, const std::string& resource)
+void IrcClient::leave_dummy_channel(const std::string& exit_message)
 {
   if (!this->dummy_channel.joined)
     return;
   this->dummy_channel.joined = false;
   this->dummy_channel.joining = false;
   this->dummy_channel.remove_all_users();
-  this->bridge.send_muc_leave(Iid("%"s + this->hostname, this->chantypes), std::string(this->current_nick), exit_message, true, resource);
+  this->bridge.send_muc_leave(Iid("%"s + this->hostname, this->chantypes), std::string(this->current_nick), exit_message, true);
 }
 
 #ifdef BOTAN_FOUND
