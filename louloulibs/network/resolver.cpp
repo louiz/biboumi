@@ -114,6 +114,7 @@ void Resolver::start_resolving(const std::string& hostname, const std::string& p
     Resolver* resolver = static_cast<Resolver*>(data);
     resolver->on_hostname6_resolved(result);
     resolver->after_resolved();
+    std::free(result);
   };
 
   auto hostname4_resolved = [](dns_ctx*, dns_rr_a4* result, void* data)
@@ -121,6 +122,7 @@ void Resolver::start_resolving(const std::string& hostname, const std::string& p
     Resolver* resolver = static_cast<Resolver*>(data);
     resolver->on_hostname4_resolved(result);
     resolver->after_resolved();
+    std::free(result);
   };
 
   DNSHandler::watch();
