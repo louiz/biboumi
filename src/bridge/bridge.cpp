@@ -881,11 +881,12 @@ void Bridge::send_muc_leave(Iid&& iid, std::string&& nick, const std::string& me
       for (const auto &res: this->resources_in_chan[iid.to_tuple()])
         this->xmpp.send_muc_leave(std::to_string(iid), std::move(nick), this->make_xmpp_body(message),
                                   this->user_jid + "/" + res, self);
-      this->remove_all_resources_from_chan(iid.to_tuple());
+      if (self)
+        this->remove_all_resources_from_chan(iid.to_tuple());
 
     }
   IrcClient* irc = this->find_irc_client(iid.get_server());
-  if (irc && irc->number_of_joined_channels() == 0)
+  if (self && irc && irc->number_of_joined_channels() == 0)
     this->quit_or_start_linger_timer(iid.get_server());
 }
 
