@@ -106,21 +106,13 @@ if(LITESQL_FOUND)
     "biboudb"
     LITESQL_GENERATED_SOURCES)
 
-  add_library(database STATIC src/database/database.cpp
+  add_library(database OBJECT src/database/database.cpp
     ${LITESQL_GENERATED_SOURCES})
-  target_link_libraries(database ${LITESQL_LIBRARIES} utils)
-  if(BOTAN_FOUND)
-    target_link_libraries(database ${BOTAN_LIBRARIES})
-  endif()
   set(USE_DATABASE TRUE)
 endif()
 
 add_subdirectory("louloulibs")
 include_directories("louloulibs")
-
-include_directories(${EXPAT_INCLUDE_DIRS})
-include_directories(${ICONV_INCLUDE_DIRS})
-include_directories(${LIBUUID_INCLUDE_DIRS})
 
 # If they are found in louloulibs CMakeLists.txt, we inherite these values
 if(SYSTEMD_FOUND)
@@ -138,85 +130,100 @@ endif()
 #
 file(GLOB source_src_utils
     src/utils/*.[hc]pp)
-# Todo, switch to target_sources(utils) when we go cmake >=3.1 only
-add_library(src_utils STATIC ${source_src_utils})
-target_link_libraries(src_utils logger config)
-if(USE_DATABASE)
-  target_link_libraries(src_utils database)
-endif()
+add_library(src_utils OBJECT ${source_src_utils})
 
 #
 ## irclib
 #
 file(GLOB source_irc
   src/irc/*.[hc]pp)
-add_library(irc STATIC ${source_irc})
-target_link_libraries(irc network utils logger)
+add_library(irc OBJECT ${source_irc})
 
 #
 ## xmpp
 #
 file(GLOB source_xmpp
   src/xmpp/*.[hc]pp)
-add_library(xmpp STATIC ${source_xmpp})
-target_link_libraries(xmpp xmpplib bridge network utils src_utils logger)
-
-if(USE_DATABASE)
-  target_link_libraries(xmpp database)
-  target_link_libraries(irc database)
-endif()
+add_library(xmpp OBJECT ${source_xmpp})
 
 #
 ## identd
 #
 file(GLOB source_identd
   src/identd/*.[hc]pp)
-add_library(identd STATIC ${source_identd})
-target_link_libraries(identd bridge network utils src_utils logger)
+add_library(identd OBJECT ${source_identd})
 
 #
 ## bridge
 #
 file(GLOB source_bridge
   src/bridge/*.[hc]pp)
-add_library(bridge STATIC ${source_bridge})
-target_link_libraries(bridge xmpp irc utils logger)
+add_library(bridge OBJECT ${source_bridge})
 
 #
 ## Main executable
 #
-add_executable(${PROJECT_NAME} src/main.cpp)
-target_link_libraries(${PROJECT_NAME}
-  xmpp
-  irc
-  bridge
-  utils
-  src_utils
-  identd
-  config)
-if(SYSTEMD_FOUND)
-  target_link_libraries(xmpp ${SYSTEMD_LIBRARIES})
-endif()
+add_executable(${PROJECT_NAME} src/main.cpp
+        $<TARGET_OBJECTS:utils>
+        $<TARGET_OBJECTS:config>
+        $<TARGET_OBJECTS:logger>
+        $<TARGET_OBJECTS:network>
+        $<TARGET_OBJECTS:xmpplib>
+        $<TARGET_OBJECTS:xmpp>
+        $<TARGET_OBJECTS:src_utils>
+        $<TARGET_OBJECTS:bridge>
+        $<TARGET_OBJECTS:irc>
+        $<TARGET_OBJECTS:identd>
+        $<$<BOOL:${USE_DATABASE}>:$<TARGET_OBJECTS:database>>)
 
 #
 ## Tests
 #
 file(GLOB source_tests
   tests/*.cpp)
-add_executable(test_suite EXCLUDE_FROM_ALL
-  ${source_tests})
+add_executable(test_suite EXCLUDE_FROM_ALL ${source_tests}
+        $<TARGET_OBJECTS:utils>
+        $<TARGET_OBJECTS:config>
+        $<TARGET_OBJECTS:logger>
+        $<TARGET_OBJECTS:network>
+        $<TARGET_OBJECTS:xmpplib>
+        $<TARGET_OBJECTS:xmpp>
+        $<TARGET_OBJECTS:src_utils>
+        $<TARGET_OBJECTS:bridge>
+        $<TARGET_OBJECTS:irc>
+        $<TARGET_OBJECTS:identd>
+        $<$<BOOL:${USE_DATABASE}>:$<TARGET_OBJECTS:database>>)
+
+target_link_libraries(${PROJECT_NAME}
+        ${EXPAT_LIBRARIES}
+        ${LIBUUID_LIBRARIES}
+        ${EXPAT_LIBRARIES})
 target_link_libraries(test_suite
-  xmpplib
-  xmpp
-  irc
-  bridge
-  utils
-  config
-  logger
-  network)
+        ${EXPAT_LIBRARIES}
+        ${LIBUUID_LIBRARIES}
+        ${EXPAT_LIBRARIES})
+if(SYSTEMD_FOUND)
+  target_link_libraries(${PROJECT_NAME} ${SYSTEMD_LIBRARIES})
+  target_link_libraries(test_suite ${SYSTEMD_LIBRARIES})
+endif()
+if(BOTAN_FOUND)
+  target_link_libraries(${PROJECT_NAME} ${BOTAN_LIBRARIES})
+  target_link_libraries(test_suite ${BOTAN_LIBRARIES})
+elseif(GCRYPT_FOUND)
+  target_link_libraries(${PROJECT_NAME} ${GCRYPT_LIBRARIES})
+  target_link_libraries(test_suite ${GCRYPT_LIBRARIES})
+endif()
+if(UDNS_FOUND)
+  target_link_libraries(${PROJECT_NAME} ${UDNS_LIBRARIES})
+  target_link_libraries(test_suite ${UDNS_LIBRARIES})
+endif()
+if(LIBIDN_FOUND)
+  target_link_libraries(${PROJECT_NAME} ${LIBIDN_LIBRARIES})
+  target_link_libraries(test_suite ${LIBIDN_LIBRARIES})
+endif()
 if(USE_DATABASE)
-  target_link_libraries(test_suite
-  database)
+  target_link_libraries(${PROJECT_NAME} ${LITESQL_LIBRARIES})
+  target_link_libraries(test_suite ${LITESQL_LIBRARIES})
 endif()
 
 # Define a __FILENAME__ macro with the relative path (from the base project directory)

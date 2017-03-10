@@ -51,8 +51,11 @@ include_directories(${ICONV_INCLUDE_DIRS})
 include_directories(${LIBUUID_INCLUDE_DIRS})
 
 set(EXPAT_INCLUDE_DIRS ${EXPAT_INCLUDE_DIRS} PARENT_SCOPE)
+set(EXPAT_LIBRARIES ${EXPAT_LIBRARIES} PARENT_SCOPE)
 set(ICONV_INCLUDE_DIRS ${ICONV_INCLUDE_DIRS} PARENT_SCOPE)
+set(ICONV_LIBRARIES ${ICONV_LIBRARIES} PARENT_SCOPE)
 set(LIBUUID_INCLUDE_DIRS ${LIBUUID_INCLUDE_DIRS} PARENT_SCOPE)
+set(LIBUUID_LIBRARIES ${LIBUUID_LIBRARIES} PARENT_SCOPE)
 
 if(LIBIDN_FOUND)
   include_directories(${LIBIDN_INCLUDE_DIRS})
@@ -99,55 +102,35 @@ endif()
 #
 file(GLOB source_utils
   utils/*.[hc]pp)
-add_library(utils STATIC ${source_utils})
-target_link_libraries(utils ${ICONV_LIBRARIES})
+add_library(utils OBJECT ${source_utils})
 
 #
 ## config
 #
 file(GLOB source_config
   config/*.[hc]pp)
-add_library(config STATIC ${source_config})
+add_library(config OBJECT ${source_config})
 
 #
 ## logger
 #
 file(GLOB source_logger
   logger/*.[hc]pp)
-add_library(logger STATIC ${source_logger})
-target_link_libraries(logger config)
+add_library(logger OBJECT ${source_logger})
 
 #
 ## network
 #
 file(GLOB source_network
   network/*.[hc]pp)
-add_library(network STATIC ${source_network})
-target_link_libraries(network logger)
-if(BOTAN_FOUND)
-  target_link_libraries(network ${BOTAN_LIBRARIES})
-elseif(GCRYPT_FOUND)
-  target_link_libraries(network ${GCRYPT_LIBRARIES})
-endif()
-if(UDNS_FOUND)
-  target_link_libraries(network ${UDNS_LIBRARIES})
-endif()
+add_library(network OBJECT ${source_network})
 
 #
 ## xmpplib
 #
 file(GLOB source_xmpplib
   xmpp/*.[hc]pp)
-add_library(xmpplib STATIC ${source_xmpplib})
-target_link_libraries(xmpplib network utils logger
-  ${EXPAT_LIBRARIES}
-  ${LIBUUID_LIBRARIES})
-if(LIBIDN_FOUND)
-  target_link_libraries(xmpplib ${LIBIDN_LIBRARIES})
-endif()
-if(SYSTEMD_FOUND)
-  target_link_libraries(xmpplib ${SYSTEMD_LIBRARIES})
-endif()
+add_library(xmpplib OBJECT ${source_xmpplib})
 
 # Define a __FILENAME__ macro with the relative path (from the base project directory)
 # of each source file
