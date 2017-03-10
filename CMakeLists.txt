@@ -106,9 +106,10 @@ if(LITESQL_FOUND)
     "biboudb"
     LITESQL_GENERATED_SOURCES)
 
-  add_library(database OBJECT src/database/database.cpp
-    ${LITESQL_GENERATED_SOURCES})
+  set(source_database src/database/database.cpp ${LITESQL_GENERATED_SOURCES})
   set(USE_DATABASE TRUE)
+else()
+  set(source_database)
 endif()
 
 add_subdirectory("louloulibs")
@@ -130,51 +131,46 @@ endif()
 #
 file(GLOB source_src_utils
     src/utils/*.[hc]pp)
-add_library(src_utils OBJECT ${source_src_utils})
 
 #
 ## irclib
 #
 file(GLOB source_irc
   src/irc/*.[hc]pp)
-add_library(irc OBJECT ${source_irc})
 
 #
 ## xmpp
 #
 file(GLOB source_xmpp
   src/xmpp/*.[hc]pp)
-add_library(xmpp OBJECT ${source_xmpp})
 
 #
 ## identd
 #
 file(GLOB source_identd
   src/identd/*.[hc]pp)
-add_library(identd OBJECT ${source_identd})
 
 #
 ## bridge
 #
 file(GLOB source_bridge
   src/bridge/*.[hc]pp)
-add_library(bridge OBJECT ${source_bridge})
 
 #
 ## Main executable
 #
 add_executable(${PROJECT_NAME} src/main.cpp
-        $<TARGET_OBJECTS:utils>
-        $<TARGET_OBJECTS:config>
-        $<TARGET_OBJECTS:logger>
-        $<TARGET_OBJECTS:network>
-        $<TARGET_OBJECTS:xmpplib>
-        $<TARGET_OBJECTS:xmpp>
-        $<TARGET_OBJECTS:src_utils>
-        $<TARGET_OBJECTS:bridge>
-        $<TARGET_OBJECTS:irc>
-        $<TARGET_OBJECTS:identd>
-        $<$<BOOL:${USE_DATABASE}>:$<TARGET_OBJECTS:database>>)
+        ${source_utils}
+        ${source_config}
+        ${source_logger}
+        ${source_network}
+        ${source_xmpplib}
+        ${source_xmpp}
+        ${source_src_utils}
+        ${source_bridge}
+        ${source_irc}
+        ${source_identd}
+        ${source_database})
 
 #
 ## Tests
@@ -182,17 +178,17 @@ add_executable(${PROJECT_NAME} src/main.cpp
 file(GLOB source_tests
   tests/*.cpp)
 add_executable(test_suite EXCLUDE_FROM_ALL ${source_tests}
-        $<TARGET_OBJECTS:utils>
-        $<TARGET_OBJECTS:config>
-        $<TARGET_OBJECTS:logger>
-        $<TARGET_OBJECTS:network>
-        $<TARGET_OBJECTS:xmpplib>
-        $<TARGET_OBJECTS:xmpp>
-        $<TARGET_OBJECTS:src_utils>
-        $<TARGET_OBJECTS:bridge>
-        $<TARGET_OBJECTS:irc>
-        $<TARGET_OBJECTS:identd>
-        $<$<BOOL:${USE_DATABASE}>:$<TARGET_OBJECTS:database>>)
+        ${source_utils}
+        ${source_config}
+        ${source_logger}
+        ${source_network}
+        ${source_xmpplib}
+        ${source_xmpp}
+        ${source_src_utils}
+        ${source_bridge}
+        ${source_irc}
+        ${source_identd}
+        ${source_database})
 
 target_link_libraries(${PROJECT_NAME}
         ${EXPAT_LIBRARIES}

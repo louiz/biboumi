@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 3.0)
 
 set(${PROJECT_NAME}_VERSION_MAJOR 1)
 set(${PROJECT_NAME}_VERSION_MINOR 0)
@@ -102,35 +102,35 @@ endif()
 #
 file(GLOB source_utils
   utils/*.[hc]pp)
-add_library(utils OBJECT ${source_utils})
+set(source_utils ${source_utils} PARENT_SCOPE)
 
 #
 ## config
 #
 file(GLOB source_config
   config/*.[hc]pp)
-add_library(config OBJECT ${source_config})
+set(source_config ${source_config} PARENT_SCOPE)
 
 #
 ## logger
 #
 file(GLOB source_logger
   logger/*.[hc]pp)
-add_library(logger OBJECT ${source_logger})
+set(source_logger ${source_logger} PARENT_SCOPE)
 
 #
 ## network
 #
 file(GLOB source_network
   network/*.[hc]pp)
-add_library(network OBJECT ${source_network})
+set(source_network ${source_network} PARENT_SCOPE)
 
 #
 ## xmpplib
 #
 file(GLOB source_xmpplib
   xmpp/*.[hc]pp)
-add_library(xmpplib OBJECT ${source_xmpplib})
+set(source_xmpplib ${source_xmpplib} PARENT_SCOPE)
 
 # Define a __FILENAME__ macro with the relative path (from the base project directory)
 # of each source file
