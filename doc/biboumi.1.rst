@@ -38,9 +38,10 @@ Configuration
 The configuration file uses a simple format of the form
 ``option=value``. Here is a description of each possible option:
 
-The configuration can be re-read at runtime (you can for example change the
-log level without having to restart biboumi) by sending SIGUSR1 or SIGUSR2
-(see kill(1)) to the process.
+Sending SIGUSR1 or SIGUSR2 (see kill(1)) to the process will force it to
+re-read the configuration and make it close and re-open the log files. You
+can use this to change any configuration option at runtime, or do a log
+rotation.
 
 hostname
 --------
