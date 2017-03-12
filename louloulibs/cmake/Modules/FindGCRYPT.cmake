@@ -15,21 +15,27 @@
 #
 # This file is in the public domain
 
-find_path(GCRYPT_INCLUDE_DIRS NAMES gcrypt.h
-  PATH_SUFFIXES gcrypt
-  DOC "The gcrypt include directory")
+include(FindPkgConfig)
+pkg_check_modules(GCRYPT gcrypt)
 
-find_library(GCRYPT_LIBRARIES NAMES gcrypt
-  DOC "The gcrypt library")
+if(NOT GCRYPT_FOUND)
+  find_path(GCRYPT_INCLUDE_DIRS NAMES gcrypt.h
+      PATH_SUFFIXES gcrypt
+      DOC "The gcrypt include directory")
 
-# Use some standard module to handle the QUIETLY and REQUIRED arguments, and
-# set GCRYPT_FOUND to TRUE if these two variables are set.
-include(FindPackageHandleStandardArgs)
-find_package_handle_standard_args(GCRYPT REQUIRED_VARS GCRYPT_LIBRARIES GCRYPT_INCLUDE_DIRS)
+  find_library(GCRYPT_LIBRARIES NAMES gcrypt
+      DOC "The gcrypt library")
 
-if(GCRYPT_FOUND)
-  set(GCRYPT_LIBRARY ${GCRYPT_LIBRARIES})
-  set(GCRYPT_INCLUDE_DIR ${GCRYPT_INCLUDE_DIRS})
+  # Use some standard module to handle the QUIETLY and REQUIRED arguments, and
+  # set GCRYPT_FOUND to TRUE if these two variables are set.
+  include(FindPackageHandleStandardArgs)
+  find_package_handle_standard_args(GCRYPT REQUIRED_VARS GCRYPT_LIBRARIES GCRYPT_INCLUDE_DIRS)
+
+  if(GCRYPT_FOUND)
+    set(GCRYPT_LIBRARY ${GCRYPT_LIBRARIES} PARENT_SCOPE)
+    set(GCRYPT_INCLUDE_DIR ${GCRYPT_INCLUDE_DIRS} PARENT_SCOPE)
+    set(GCRYPT_FOUND ${GCRYPT_FOUND} PARENT_SCOPE)
+  endif()
 endif()
 
 mark_as_advanced(GCRYPT_INCLUDE_DIRS GCRYPT_LIBRARIES)

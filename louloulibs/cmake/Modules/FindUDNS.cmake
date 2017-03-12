@@ -29,8 +29,9 @@ if(NOT UDNS_FOUND)
 
   # Compatibility for all the ways of writing these variables
   if(UDNS_FOUND)
-    set(UDNS_INCLUDE_DIR ${UDNS_INCLUDE_DIRS})
-    set(UDNS_LIBRARY ${UDNS_LIBRARIES})
+    set(UDNS_INCLUDE_DIR ${UDNS_INCLUDE_DIRS} PARENT_SCOPE)
+    set(UDNS_LIBRARY ${UDNS_LIBRARIES} PARENT_SCOPE)
+    set(UDNS_FOUND ${UDNS_FOUND} PARENT_SCOPE)
   endif()
 endif()
 

@@ -52,9 +52,10 @@ if(ICONV_FOUND)
    return 0;}"
    ICONV_SECOND_ARGUMENT_IS_CONST)
 
-# Compatibility for all the ways of writing these variables
-  set(ICONV_LIBRARY ${ICONV_LIBRARIES})
-  set(ICONV_INCLUDE_DIR ${ICONV_INCLUDE_DIRS})
+  # Compatibility for all the ways of writing these variables
+  set(ICONV_LIBRARY ${ICONV_LIBRARIES} PARENT_SCOPE)
+  set(ICONV_INCLUDE_DIR ${ICONV_INCLUDE_DIRS} PARENT_SCOPE)
+  set(ICONV_FOUND ${ICONV_FOUND} PARENT_SCOPE)
 endif()
 
 mark_as_advanced(ICONV_INCLUDE_DIRS ICONV_LIBRARIES ICONV_SECOND_ARGUMENT_IS_CONST)

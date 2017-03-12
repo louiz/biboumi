@@ -193,11 +193,11 @@ add_executable(test_suite EXCLUDE_FROM_ALL ${source_tests}
 target_link_libraries(${PROJECT_NAME}
         ${EXPAT_LIBRARIES}
         ${LIBUUID_LIBRARIES}
-        ${EXPAT_LIBRARIES})
+        ${EXPAT_LIBRARY})
 target_link_libraries(test_suite
         ${EXPAT_LIBRARIES}
         ${LIBUUID_LIBRARIES}
-        ${EXPAT_LIBRARIES})
+        ${EXPAT_LIBRARY})
 if(SYSTEMD_FOUND)
   target_link_libraries(${PROJECT_NAME} ${SYSTEMD_LIBRARIES})
   target_link_libraries(test_suite ${SYSTEMD_LIBRARIES})

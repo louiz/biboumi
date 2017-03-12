@@ -33,8 +33,9 @@ if(NOT LIBIDN_FOUND)
 
   # Compatibility for all the ways of writing these variables
   if(LIBIDN_FOUND)
-    set(LIBIDN_INCLUDE_DIR ${LIBIDN_INCLUDE_DIRS})
-    set(LIBIDN_LIBRARY ${LIBIDN_LIBRARIES})
+    set(LIBIDN_INCLUDE_DIR ${LIBIDN_INCLUDE_DIRS} PARENT_SCOPE)
+    set(LIBIDN_LIBRARY ${LIBIDN_LIBRARIES} PARENT_SCOPE)
+    set(LIBIDN_FOUND ${LIBIDN_FOUND} PARENT_SCOPE)
   endif()
 endif()
 
