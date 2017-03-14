@@ -1,7 +1,7 @@
 #include "catch.hpp"
 
 #include <xmpp/jid.hpp>
-#include <louloulibs.h>
+#include <biboumi.h>
 
 TEST_CASE("Jid")
 {

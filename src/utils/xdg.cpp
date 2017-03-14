@@ -1,7 +1,7 @@
 #include <utils/xdg.hpp>
 #include <cstdlib>
 
-#include "louloulibs.h"
+#include "biboumi.h"
 
 std::string xdg_path(const std::string& filename, const char* env_var)
 {

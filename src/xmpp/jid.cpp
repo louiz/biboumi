@@ -3,7 +3,7 @@
 #include <cstring>
 #include <map>
 
-#include <louloulibs.h>
+#include <biboumi.h>
 #ifdef LIBIDN_FOUND
  #include <stringprep.h>
  #include <sys/types.h>

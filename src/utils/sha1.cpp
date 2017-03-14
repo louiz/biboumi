@@ -1,6 +1,6 @@
 #include <utils/sha1.hpp>
 
-#include <louloulibs.h>
+#include <biboumi.h>
 
 #ifdef BOTAN_FOUND
 # include <botan/hash.h>

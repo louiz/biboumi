@@ -16,10 +16,9 @@
 # This file is in the public domain
 
 include(FindPkgConfig)
+
 pkg_check_modules(BOTAN botan-2)
-if(NOT BOTAN_FOUND)
-  pkg_check_modules(BOTAN botan-1.11)
-endif()
+pkg_check_modules(BOTAN botan-1.11)
 
 if(NOT BOTAN_FOUND)
   find_path(BOTAN_INCLUDE_DIRS NAMES botan/botan.h
@@ -35,9 +34,9 @@ if(NOT BOTAN_FOUND)
   find_package_handle_standard_args(BOTAN REQUIRED_VARS BOTAN_LIBRARIES BOTAN_INCLUDE_DIRS)
 
   if(BOTAN_FOUND)
-    set(BOTAN_LIBRARY ${BOTAN_LIBRARIES} PARENT_SCOPE)
-    set(BOTAN_INCLUDE_DIR ${BOTAN_INCLUDE_DIRS} PARENT_SCOPE)
-    set(BOTAN_FOUND ${BOTAN_FOUND} PARENT_SCOPE)
+    set(BOTAN_LIBRARY ${BOTAN_LIBRARIES} CACHE INTERNAL "")
+    set(BOTAN_INCLUDE_DIR ${BOTAN_INCLUDE_DIRS} CACHE INTERNAL "")
+    set(BOTAN_FOUND ${BOTAN_FOUND} CACHE INTERNAL "")
   endif()
 endif()
 
