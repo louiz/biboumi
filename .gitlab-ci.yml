@@ -229,7 +229,7 @@ coverity:
     - cov-build --dir cov-int   make -j$(nproc || echo 1)
     - tar czvf biboumi_coverity.tgz cov-int
     - curl --form token=$COVERITY_TOKEN   --form email=louiz@louiz.org   --form file=@biboumi_coverity.tgz  --form version="$(git rev-parse --short HEAD)" --form description="Automatic submission by gitlab-ci" https://scan.coverity.com/builds?project=louiz%2Fbiboumi
-
+  dependencies: []
 
 packaging:rpm:
   stage: packaging
