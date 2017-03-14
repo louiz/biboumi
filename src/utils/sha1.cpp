@@ -3,8 +3,10 @@
 #include <biboumi.h>
 
 #ifdef BOTAN_FOUND
+# include <botan/version.h>
 # include <botan/hash.h>
 # include <botan/hex.h>
+# include <botan/exceptn.h>
 #endif
 #ifdef GCRYPT_FOUND
 # include <gcrypt.h>
@@ -16,7 +18,13 @@
 std::string sha1(const std::string& input)
 {
 #ifdef BOTAN_FOUND
+# if BOTAN_VERSION_CODE < BOTAN_VERSION_CODE_FOR(1,11,34)
+  auto sha1 = Botan::HashFunction::create("SHA-1");
+  if (!sha1)
+    throw Botan::Algorithm_Not_Found("SHA-1");
+# else
   auto sha1 = Botan::HashFunction::create_or_throw("SHA-1");
+# endif
   sha1->update(input);
   return Botan::hex_encode(sha1->final(), false);
 #endif
