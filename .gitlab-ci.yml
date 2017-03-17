@@ -272,3 +272,19 @@ packaging:deb:
   artifacts:
     untracked: true
     name: $CI_PROJECT_NAME-deb-$CI_BUILD_ID
+
+packaging:archlinux:
+  stage: packaging
+  tags:
+    - docker
+  image: docker.louiz.org/biboumi-test-archlinux:latest
+  before_script: []
+  script:
+    - git clone https://aur.archlinux.org/litesql-git.git
+    - cd litesql-git
+    - makepkg --noconfirm -s && makepkg -f && sudo pacman --noconfirm -U *.pkg.*
+    - cd ..
+    - git clone https://aur.archlinux.org/biboumi-git.git
+    - cd biboumi-git
+    - makepkg --noconfirm -s && makepkg -f && sudo pacman --noconfirm -U *.pkg.*
+  dependencies: []
