@@ -6,6 +6,7 @@
 
 #include <botan/botan.h>
 #include <botan/tls_client.h>
+#include <botan/version.h>
 
 class TCPSocketHandler;
 

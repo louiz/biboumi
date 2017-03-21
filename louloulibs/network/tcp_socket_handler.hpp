@@ -20,6 +20,8 @@
 #include <list>
 
 #ifdef BOTAN_FOUND
+#include <botan/version.h>
+
 class BiboumiTLSPolicy: public Botan::TLS::Policy
 {
 public:
