@@ -11,6 +11,11 @@ Version 5.0
  - Use the udns library instead of c-ares, for asynchronous DNS resolution.
    It’s still fully optional.
 
+Version 4.1 - 2017-03-21
+========================
+
+ - Works with biboumi 2.x, as well as biboumi 1.11.x
+
 Version 4.0 - 2016-11-09
 ========================
 
