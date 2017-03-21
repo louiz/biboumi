@@ -59,6 +59,9 @@ make check %{?_smp_mflags}
 
 
 %changelog
+* Tue Mar 21 2017 Le Coz Florent <louiz@louiz.org> - 4.1-1
+- Update to 4.1 sources: compatibility with botan 2.0
+
 * Wed Nov 9 2016 Le Coz Florent <louiz@louiz.org> - 4.0-1
 - Update to 4.0 sources
 
