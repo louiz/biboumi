@@ -1,7 +1,13 @@
 Version 5.0
 ===========
 
- - An identd server has been added
+ - An identd server has been added.
+ - Add a **persistent** option for channels. When a channel is configured
+   as persistent, when the user leaves the room, biboumi stays idle and keeps
+   saving the received messages in the archive, instead of leaving the channel
+   entirely.  When the user re-joins the room later, biboumi sends the message
+   history to her/him.  This feature can be used to make biboumi behave like
+   an IRC bouncer.
  - Use the udns library instead of c-ares, for asynchronous DNS resolution.
    It’s still fully optional.
 
