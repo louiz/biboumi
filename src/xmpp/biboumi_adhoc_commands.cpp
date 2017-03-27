@@ -256,7 +256,8 @@ void ConfigureIrcServerStep1(XmppComponent&, AdhocSession& session, XmlNode& com
   XmlSubNode pass(x, "field");
   pass["var"] = "pass";
   pass["type"] = "text-private";
-  pass["label"] = "Server password (to be used in a PASS command when connecting)";
+  pass["label"] = "Server password";
+  pass["desc"] = "Will be used in a PASS command when connecting";
   if (!options.pass.value().empty())
     {
       XmlSubNode pass_value(pass, "value");
@@ -463,6 +464,20 @@ void ConfigureIrcChannelStep1(XmppComponent&, AdhocSession& session, XmlNode& co
       XmlSubNode encoding_in_value(encoding_in, "value");
       encoding_in_value.set_inner(options.encodingIn.value());
     }
+
+  XmlSubNode persistent(x, "field");
+  persistent["var"] = "persistent";
+  persistent["type"] = "boolean";
+  persistent["desc"] = "If set to true, when all XMPP clients have left this channel, biboumi will stay idle in it, without sending a PART command.";
+  persistent["label"] = "Persistent";
+  {
+    XmlSubNode value(persistent, "value");
+    value.set_name("value");
+    if (options.persistent.value())
+      value.set_inner("true");
+    else
+      value.set_inner("false");
+  }
 }
 
 void ConfigureIrcChannelStep2(XmppComponent&, AdhocSession& session, XmlNode& command_node)
@@ -486,6 +501,10 @@ void ConfigureIrcChannelStep2(XmppComponent&, AdhocSession& session, XmlNode& co
           else if (field->get_tag("var") == "encoding_in" &&
                    value && !value->get_inner().empty())
             options.encodingIn = value->get_inner();
+
+          else if (field->get_tag("var") == "persistent" &&
+                   value)
+            options.persistent = to_bool(value->get_inner());
         }
 
       options.update();

@@ -501,15 +501,7 @@ void IrcClient::send_private_message(const std::string& username, const std::str
 
 void IrcClient::send_part_command(const std::string& chan_name, const std::string& status_message)
 {
-  IrcChannel* channel = this->get_channel(chan_name);
-  if (channel->joined == true)
-    {
-      if (chan_name.empty())
-        this->leave_dummy_channel(status_message);
-      else
-        this->send_message(IrcMessage("PART", {chan_name, status_message}));
-      channel->parting = true;
-    }
+  this->send_message(IrcMessage("PART", {chan_name, status_message}));
 }
 
 void IrcClient::send_mode_command(const std::string& chan_name, const std::vector<std::string>& arguments)
@@ -1160,14 +1152,14 @@ DummyIrcChannel& IrcClient::get_dummy_channel()
   return this->dummy_channel;
 }
 
-void IrcClient::leave_dummy_channel(const std::string& exit_message)
+void IrcClient::leave_dummy_channel(const std::string& exit_message, const std::string& resource)
 {
   if (!this->dummy_channel.joined)
     return;
   this->dummy_channel.joined = false;
   this->dummy_channel.joining = false;
   this->dummy_channel.remove_all_users();
-  this->bridge.send_muc_leave(Iid("%"s + this->hostname, this->chantypes), std::string(this->current_nick), exit_message, true);
+  this->bridge.send_muc_leave(Iid("%"s + this->hostname, this->chantypes), std::string(this->current_nick), exit_message, true, resource);
 }
 
 #ifdef BOTAN_FOUND

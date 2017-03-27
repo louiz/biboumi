@@ -46,6 +46,8 @@
 
         <field name="maxHistoryLength" type="integer" default="20"/>
 
+        <field name="persistent" type="boolean" default="false"/>
+
         <index unique="true">
             <indexfield name="owner"/>
             <indexfield name="server"/>

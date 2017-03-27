@@ -62,7 +62,7 @@ void Bridge::shutdown(const std::string& exit_message)
   for (auto it = this->irc_clients.begin(); it != this->irc_clients.end(); ++it)
   {
     it->second->send_quit_command(exit_message);
-    it->second->leave_dummy_channel(exit_message);
+    it->second->leave_dummy_channel(exit_message, {});
   }
 }
 
@@ -422,33 +422,48 @@ void Bridge::leave_irc_channel(Iid&& iid, const std::string& status_message, con
   if (!this->is_resource_in_chan(key, resource))
     return ;
 
+  IrcChannel* channel = irc->get_channel(iid.get_local());
+  auto nick = channel->get_self()->nick;
+
   const auto resources = this->number_of_resources_in_chan(key);
   if (resources == 1)
     {
       // Do not send a PART message if we actually are not in that channel
       // or if we already sent a PART but we are just waiting for the
       // acknowledgment from the server
-      IrcChannel* channel = irc->get_channel(iid.get_local());
-      if (channel->joined && !channel->parting)
-        irc->send_part_command(iid.get_local(), status_message);
+      bool persistent = false;
+#ifdef USE_DATABASE
+      const auto coptions = Database::get_irc_channel_options_with_server_default(this->user_jid,
+                                                                                  iid.get_server(), iid.get_local());
+      persistent = coptions.persistent.value();
+#endif
+      if (channel->joined && !channel->parting && !persistent)
+        {
+          const auto chan_name = iid.get_local();
+          if (chan_name.empty())
+            irc->leave_dummy_channel(status_message, resource);
+          else
+            irc->send_part_command(iid.get_local(), status_message);
+        }
+      else
+        {
+          this->send_muc_leave(std::move(iid), std::move(nick), "", true, resource);
+        }
       // Since there are no resources left in that channel, we don't
       // want to receive private messages using this room's JID
       this->remove_all_preferred_from_jid_of_room(iid.get_local());
     }
   else
     {
-      IrcChannel* chan = irc->get_channel(iid.get_local());
-      if (chan)
-        {
-          auto nick = chan->get_self()->nick;
-          this->remove_resource_from_chan(key, resource);
-          this->send_muc_leave(std::move(iid), std::move(nick),
-                               "Biboumi note: "s + std::to_string(resources - 1) + " resources are still in this channel.",
-          true, resource);
-          if (this->number_of_channels_the_resource_is_in(iid.get_server(), resource) == 0)
-            this->remove_resource_from_server(iid.get_server(), resource);
-        }
+      if (channel)
+        this->send_muc_leave(std::move(iid), std::move(nick),
+                             "Biboumi note: "s + std::to_string(resources - 1) + " resources are still in this channel.",
+                             true, resource);
+      this->remove_resource_from_chan(key, resource);
+      if (this->number_of_channels_the_resource_is_in(iid.get_server(), resource) == 0)
+        this->remove_resource_from_server(iid.get_server(), resource);
     }
+
 }
 
 void Bridge::send_irc_nick_change(const Iid& iid, const std::string& new_nick, const std::string& requesting_resource)
@@ -862,11 +877,16 @@ void Bridge::send_muc_leave(Iid&& iid, std::string&& nick, const std::string& me
     this->xmpp.send_muc_leave(std::to_string(iid), std::move(nick), this->make_xmpp_body(message),
                               this->user_jid + "/" + resource, self);
   else
-    for (const auto& res: this->resources_in_chan[iid.to_tuple()])
-      this->xmpp.send_muc_leave(std::to_string(iid), std::move(nick), this->make_xmpp_body(message),
-                                this->user_jid + "/" + res, self);
+    {
+      for (const auto &res: this->resources_in_chan[iid.to_tuple()])
+        this->xmpp.send_muc_leave(std::to_string(iid), std::move(nick), this->make_xmpp_body(message),
+                                  this->user_jid + "/" + res, self);
+      if (self)
+        this->remove_all_resources_from_chan(iid.to_tuple());
+
+    }
   IrcClient* irc = this->find_irc_client(iid.get_server());
-  if (irc && irc->number_of_joined_channels() == 0)
+  if (self && irc && irc->number_of_joined_channels() == 0)
     this->quit_or_start_linger_timer(iid.get_server());
 }
 
@@ -1135,6 +1155,11 @@ bool Bridge::is_resource_in_chan(const Bridge::ChannelKey& channel, const std::s
     if (it->second.count(resource) == 1)
       return true;
   return false;
+}
+
+void Bridge::remove_all_resources_from_chan(const Bridge::ChannelKey& channel_key)
+{
+  this->resources_in_chan.erase(channel_key);
 }
 
 void Bridge::add_resource_to_server(const Bridge::IrcHostname& irc_hostname, const std::string& resource)
