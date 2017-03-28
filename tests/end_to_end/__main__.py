@@ -2257,7 +2257,7 @@ if __name__ == '__main__':
         if b"now running in foreground mode" in res:
             break
     print("irc server started.")
-    print("Running %s checks for biboumi." % (len(scenarios)))
+    print("Running %s checks for biboumi." % (len([s for s in scenarios if s.name in scenar_list])))
 
     for s in scenarios:
         if scenar_list and s.name not in scenar_list:
