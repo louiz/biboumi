@@ -43,7 +43,7 @@
 class XmppComponent: public TCPClientSocketHandler
 {
 public:
-  explicit XmppComponent(std::shared_ptr<Poller>& poller, const std::string& hostname, const std::string& secret);
+  explicit XmppComponent(std::shared_ptr<Poller>& poller, std::string hostname, std::string secret);
   virtual ~XmppComponent() = default;
 
   XmppComponent(const XmppComponent&) = delete;
@@ -91,7 +91,7 @@ public:
    * stanza, and explanation being a short human-readable sentence
    * describing the error.
    */
-  void send_stream_error(const std::string& message, const std::string& explanation);
+  void send_stream_error(const std::string& name, const std::string& explanation);
   /**
    * Send error stanza, described in http://xmpp.org/rfcs/rfc6120.html#stanzas-error
    */
@@ -143,7 +143,7 @@ public:
   /**
    * Send an unavailable presence for this nick
    */
-  void send_muc_leave(const std::string& muc_name, std::string&& nick, Xmpp::body&& message, const std::string& jid_to, const bool self);
+  void send_muc_leave(const std::string& muc_name, const std::string& nick, Xmpp::body&& message, const std::string& jid_to, const bool self);
   /**
    * Indicate that a participant changed his nick
    */

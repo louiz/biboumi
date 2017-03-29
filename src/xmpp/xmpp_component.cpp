@@ -39,14 +39,14 @@ static std::set<std::string> kickable_errors{
     "malformed-error"
     };
 
-XmppComponent::XmppComponent(std::shared_ptr<Poller>& poller, const std::string& hostname, const std::string& secret):
+XmppComponent::XmppComponent(std::shared_ptr<Poller>& poller, std::string hostname, std::string secret):
   TCPClientSocketHandler(poller),
   ever_auth(false),
   first_connection_try(true),
-  secret(secret),
+  secret(std::move(secret)),
   authenticated(false),
   doc_open(false),
-  served_hostname(hostname),
+  served_hostname(std::move(hostname)),
   stanza_handlers{},
   adhoc_commands_handler(*this)
 {
@@ -429,7 +429,7 @@ void XmppComponent::send_history_message(const std::string& muc_name, const std:
   this->send_stanza(message);
 }
 
-void XmppComponent::send_muc_leave(const std::string& muc_name, std::string&& nick, Xmpp::body&& message, const std::string& jid_to, const bool self)
+void XmppComponent::send_muc_leave(const std::string& muc_name, const std::string& nick, Xmpp::body&& message, const std::string& jid_to, const bool self)
 {
   Stanza presence("presence");
   {

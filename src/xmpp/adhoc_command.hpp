@@ -17,7 +17,7 @@ class AdhocCommand
 {
   friend class AdhocSession;
 public:
-  AdhocCommand(std::vector<AdhocStep>&& callback, const std::string& name, const bool admin_only);
+  AdhocCommand(std::vector<AdhocStep>&& callbacks, const std::string& name, const bool admin_only);
   ~AdhocCommand() = default;
   AdhocCommand(const AdhocCommand&) = default;
   AdhocCommand(AdhocCommand&&) = default;

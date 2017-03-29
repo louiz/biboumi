@@ -37,7 +37,7 @@ void Config::set(const std::string& option, const std::string& value, bool save)
     }
 }
 
-void Config::connect(t_config_changed_callback callback)
+void Config::connect(const t_config_changed_callback& callback)
 {
     Config::callbacks.push_back(callback);
 }

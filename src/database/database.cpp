@@ -20,7 +20,7 @@ void Database::open(const std::string& filename, const std::string& db_type)
                                              "database="s + filename);
       if (new_db->needsUpgrade())
         new_db->upgrade();
-      Database::db.reset(new_db.release());
+      Database::db = std::move(new_db);
     } catch (const litesql::DatabaseError& e) {
       log_error("Failed to open database ", filename, ". ", e.what());
       throw;

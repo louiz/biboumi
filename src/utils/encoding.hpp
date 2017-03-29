@@ -28,7 +28,7 @@ namespace utils
    * Convert the given string (encoded is "encoding") into valid utf-8.
    * If some decoding fails, insert an utf-8 placeholder character instead.
    */
-  std::string convert_to_utf8(const std::string& str, const char* encoding);
+  std::string convert_to_utf8(const std::string& str, const char* charset);
 }
 
 namespace xep0106

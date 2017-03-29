@@ -1,4 +1,5 @@
 #include <bridge/bridge.hpp>
+#include <utility>
 #include <xmpp/biboumi_component.hpp>
 #include <network/poller.hpp>
 #include <utils/empty_if_fixed_server.hpp>
@@ -29,8 +30,8 @@ static std::string in_encoding_for(const Bridge& bridge, const Iid& iid)
 #endif
 }
 
-Bridge::Bridge(const std::string& user_jid, BiboumiComponent& xmpp, std::shared_ptr<Poller>& poller):
-  user_jid(user_jid),
+Bridge::Bridge(std::string user_jid, BiboumiComponent& xmpp, std::shared_ptr<Poller>& poller):
+  user_jid(std::move(user_jid)),
   xmpp(xmpp),
   poller(poller)
 {
@@ -59,10 +60,10 @@ static std::tuple<std::string, std::string> get_role_affiliation_from_irc_mode(c
 
 void Bridge::shutdown(const std::string& exit_message)
 {
-  for (auto it = this->irc_clients.begin(); it != this->irc_clients.end(); ++it)
+  for (auto& pair: this->irc_clients)
   {
-    it->second->send_quit_command(exit_message);
-    it->second->leave_dummy_channel(exit_message, {});
+    pair.second->send_quit_command(exit_message);
+    pair.second->leave_dummy_channel(exit_message, {});
   }
 }
 
@@ -168,7 +169,7 @@ IrcClient* Bridge::find_irc_client(const std::string& hostname) const
 bool Bridge::join_irc_channel(const Iid& iid, const std::string& nickname, const std::string& password,
                               const std::string& resource)
 {
-  const auto hostname = iid.get_server();
+  const auto& hostname = iid.get_server();
   this->cancel_linger_timer(hostname);
   IrcClient* irc = this->make_irc_client(hostname, nickname);
   this->add_resource_to_server(hostname, resource);
@@ -439,7 +440,7 @@ void Bridge::leave_irc_channel(Iid&& iid, const std::string& status_message, con
 #endif
       if (channel->joined && !channel->parting && !persistent)
         {
-          const auto chan_name = iid.get_local();
+          const auto& chan_name = iid.get_local();
           if (chan_name.empty())
             irc->leave_dummy_channel(status_message, resource);
           else
@@ -447,7 +448,7 @@ void Bridge::leave_irc_channel(Iid&& iid, const std::string& status_message, con
         }
       else
         {
-          this->send_muc_leave(std::move(iid), std::move(nick), "", true, resource);
+          this->send_muc_leave(iid, std::move(nick), "", true, resource);
         }
       // Since there are no resources left in that channel, we don't
       // want to receive private messages using this room's JID
@@ -456,7 +457,7 @@ void Bridge::leave_irc_channel(Iid&& iid, const std::string& status_message, con
   else
     {
       if (channel)
-        this->send_muc_leave(std::move(iid), std::move(nick),
+        this->send_muc_leave(iid, std::move(nick),
                              "Biboumi note: "s + std::to_string(resources - 1) + " resources are still in this channel.",
                              true, resource);
       this->remove_resource_from_chan(key, resource);
@@ -870,16 +871,16 @@ void Bridge::send_presence_error(const Iid& iid, const std::string& nick,
   this->xmpp.send_presence_error(std::to_string(iid), nick, this->user_jid, type, condition, error_code, text);
 }
 
-void Bridge::send_muc_leave(Iid&& iid, std::string&& nick, const std::string& message, const bool self,
+void Bridge::send_muc_leave(const Iid &iid, std::string&& nick, const std::string& message, const bool self,
                             const std::string& resource)
 {
   if (!resource.empty())
-    this->xmpp.send_muc_leave(std::to_string(iid), std::move(nick), this->make_xmpp_body(message),
+    this->xmpp.send_muc_leave(std::to_string(iid), nick, this->make_xmpp_body(message),
                               this->user_jid + "/" + resource, self);
   else
     {
       for (const auto &res: this->resources_in_chan[iid.to_tuple()])
-        this->xmpp.send_muc_leave(std::to_string(iid), std::move(nick), this->make_xmpp_body(message),
+        this->xmpp.send_muc_leave(std::to_string(iid), nick, this->make_xmpp_body(message),
                                   this->user_jid + "/" + res, self);
       if (self)
         this->remove_all_resources_from_chan(iid.to_tuple());
@@ -1157,9 +1158,9 @@ bool Bridge::is_resource_in_chan(const Bridge::ChannelKey& channel, const std::s
   return false;
 }
 
-void Bridge::remove_all_resources_from_chan(const Bridge::ChannelKey& channel_key)
+void Bridge::remove_all_resources_from_chan(const Bridge::ChannelKey& channel)
 {
-  this->resources_in_chan.erase(channel_key);
+  this->resources_in_chan.erase(channel);
 }
 
 void Bridge::add_resource_to_server(const Bridge::IrcHostname& irc_hostname, const std::string& resource)
@@ -1191,9 +1192,9 @@ bool Bridge::is_resource_in_server(const Bridge::IrcHostname& irc_hostname, cons
   return false;
 }
 
-std::size_t Bridge::number_of_resources_in_chan(const Bridge::ChannelKey& channel_key) const
+std::size_t Bridge::number_of_resources_in_chan(const Bridge::ChannelKey& channel) const
 {
-  auto it = this->resources_in_chan.find(channel_key);
+  auto it = this->resources_in_chan.find(channel);
   if (it == this->resources_in_chan.end())
     return 0;
   return it->second.size();

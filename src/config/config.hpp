@@ -54,7 +54,7 @@ public:
    * configuration change occurs (when set() is called, or when the initial
    * conf is read)
    */
-  static void connect(t_config_changed_callback);
+  static void connect(const t_config_changed_callback&);
   /**
    * Destroy the instance, forcing it to be recreated (with potentially
    * different parameters) the next time it’s needed.

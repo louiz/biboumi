@@ -1,7 +1,7 @@
 #include <network/dns_handler.hpp>
 #include <utils/timed_events.hpp>
 #include <network/resolver.hpp>
-#include <string.h>
+#include <cstring>
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #ifdef UDNS_FOUND
@@ -41,8 +41,8 @@ Resolver::Resolver():
 void Resolver::resolve(const std::string& hostname, const std::string& port,
                        SuccessCallbackType success_cb, ErrorCallbackType error_cb)
 {
-  this->error_cb = error_cb;
-  this->success_cb = success_cb;
+  this->error_cb = std::move(error_cb);
+  this->success_cb = std::move(success_cb);
 #ifdef UDNS_FOUND
   this->port = port;
 #endif
@@ -52,8 +52,7 @@ void Resolver::resolve(const std::string& hostname, const std::string& port,
 
 int Resolver::call_getaddrinfo(const char *name, const char* port, int flags)
 {
-  struct addrinfo hints;
-  memset(&hints, 0, sizeof(struct addrinfo));
+  struct addrinfo hints{};
   hints.ai_flags = flags;
   hints.ai_family = AF_UNSPEC;
   hints.ai_socktype = SOCK_STREAM;
@@ -111,7 +110,7 @@ void Resolver::start_resolving(const std::string& hostname, const std::string& p
   // And finally, we try a DNS resolution
   auto hostname6_resolved = [](dns_ctx*, dns_rr_a6* result, void* data)
   {
-    Resolver* resolver = static_cast<Resolver*>(data);
+    auto resolver = static_cast<Resolver*>(data);
     resolver->on_hostname6_resolved(result);
     resolver->after_resolved();
     std::free(result);
@@ -119,7 +118,7 @@ void Resolver::start_resolving(const std::string& hostname, const std::string& p
 
   auto hostname4_resolved = [](dns_ctx*, dns_rr_a4* result, void* data)
   {
-    Resolver* resolver = static_cast<Resolver*>(data);
+    auto resolver = static_cast<Resolver*>(data);
     resolver->on_hostname4_resolved(result);
     resolver->after_resolved();
     std::free(result);

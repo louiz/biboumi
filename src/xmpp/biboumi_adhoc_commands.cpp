@@ -24,7 +24,7 @@ using namespace std::string_literals;
 
 void DisconnectUserStep1(XmppComponent& xmpp_component, AdhocSession&, XmlNode& command_node)
 {
-  auto& biboumi_component = static_cast<BiboumiComponent&>(xmpp_component);
+  auto& biboumi_component = dynamic_cast<BiboumiComponent&>(xmpp_component);
 
   XmlSubNode x(command_node, "jabber:x:data:x");
   x["type"] = "form";
@@ -55,7 +55,7 @@ void DisconnectUserStep1(XmppComponent& xmpp_component, AdhocSession&, XmlNode& 
 
 void DisconnectUserStep2(XmppComponent& xmpp_component, AdhocSession& session, XmlNode& command_node)
 {
-  auto& biboumi_component = static_cast<BiboumiComponent&>(xmpp_component);
+  auto& biboumi_component = dynamic_cast<BiboumiComponent&>(xmpp_component);
 
   // Find out if the jids, and the quit message are provided in the form.
   std::string quit_message;
@@ -151,7 +151,7 @@ void ConfigureGlobalStep1(XmppComponent&, AdhocSession& session, XmlNode& comman
 
 void ConfigureGlobalStep2(XmppComponent& xmpp_component, AdhocSession& session, XmlNode& command_node)
 {
-  BiboumiComponent& biboumi_component = static_cast<BiboumiComponent&>(xmpp_component);
+  auto& biboumi_component = dynamic_cast<BiboumiComponent&>(xmpp_component);
 
   const XmlNode* x = command_node.get_child("x", "jabber:x:data");
   if (x)
@@ -533,7 +533,7 @@ void DisconnectUserFromServerStep1(XmppComponent& xmpp_component, AdhocSession& 
     }
   else
     { // Send a form to select the user to disconnect
-      auto& biboumi_component = static_cast<BiboumiComponent&>(xmpp_component);
+      auto& biboumi_component = dynamic_cast<BiboumiComponent&>(xmpp_component);
 
       XmlSubNode x(command_node, "jabber:x:data:x");
       x["type"] = "form";
@@ -578,7 +578,7 @@ void DisconnectUserFromServerStep2(XmppComponent& xmpp_component, AdhocSession& 
   // Send a data form to let the user choose which server to disconnect the
   // user from
   command_node.delete_all_children();
-  auto& biboumi_component = static_cast<BiboumiComponent&>(xmpp_component);
+  auto& biboumi_component = dynamic_cast<BiboumiComponent&>(xmpp_component);
 
   XmlSubNode x(command_node, "jabber:x:data:x");
   x["type"] = "form";
@@ -643,7 +643,7 @@ void DisconnectUserFromServerStep3(XmppComponent& xmpp_component, AdhocSession& 
         }
     }
 
-  auto& biboumi_component = static_cast<BiboumiComponent&>(xmpp_component);
+  auto& biboumi_component = dynamic_cast<BiboumiComponent&>(xmpp_component);
   Bridge* bridge = biboumi_component.find_user_bridge(jid_to_disconnect);
   auto& clients = bridge->get_irc_clients();
 
@@ -671,7 +671,7 @@ void DisconnectUserFromServerStep3(XmppComponent& xmpp_component, AdhocSession& 
 
 void GetIrcConnectionInfoStep1(XmppComponent& component, AdhocSession& session, XmlNode& command_node)
 {
-  BiboumiComponent& biboumi_component = static_cast<BiboumiComponent&>(component);
+  auto& biboumi_component = dynamic_cast<BiboumiComponent&>(component);
 
   const Jid owner(session.get_owner_jid());
   const Jid target(session.get_target_jid());

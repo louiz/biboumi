@@ -1,5 +1,5 @@
 #include <utils/time.hpp>
-#include <time.h>
+#include <ctime>
 
 #include <sstream>
 #include <iomanip>

@@ -1,7 +1,7 @@
 #include <xmpp/adhoc_session.hpp>
 #include <xmpp/adhoc_command.hpp>
 
-#include <assert.h>
+#include <cassert>
 
 AdhocSession::AdhocSession(const AdhocCommand& command, const std::string& owner_jid,
                            const std::string& to_jid):

@@ -38,7 +38,7 @@ using irc_responder_callback_t = std::function<bool(const std::string& irc_hostn
 class Bridge
 {
 public:
-  explicit Bridge(const std::string& user_jid, BiboumiComponent& xmpp, std::shared_ptr<Poller>& poller);
+  explicit Bridge(std::string  user_jid, BiboumiComponent& xmpp, std::shared_ptr<Poller>& poller);
   ~Bridge() = default;
 
   Bridge(const Bridge&) = delete;
@@ -169,7 +169,7 @@ public:
   /**
    * Send an unavailable presence from this participant
    */
-  void send_muc_leave(Iid&& iid, std::string&& nick, const std::string& message, const bool self, const std::string& resource="");
+  void send_muc_leave(const Iid& iid, std::string&& nick, const std::string& message, const bool self, const std::string& resource = "");
   /**
    * Send presences to indicate that an user old_nick (ourself if self ==
    * true) changed his nick to new_nick.  The user_mode is needed because
@@ -309,11 +309,11 @@ private:
   /**
    * Manage which resource is in which channel
    */
-  void add_resource_to_chan(const ChannelKey& channel_key, const std::string& resource);
-  void remove_resource_from_chan(const ChannelKey& channel_key, const std::string& resource);
-  bool is_resource_in_chan(const ChannelKey& channel_key, const std::string& resource) const;
-  void remove_all_resources_from_chan(const ChannelKey& channel_key);
-  std::size_t number_of_resources_in_chan(const ChannelKey& channel_key) const;
+  void add_resource_to_chan(const ChannelKey& channel, const std::string& resource);
+  void remove_resource_from_chan(const ChannelKey& channel, const std::string& resource);
+  bool is_resource_in_chan(const ChannelKey& channel, const std::string& resource) const;
+  void remove_all_resources_from_chan(const ChannelKey& channel);
+  std::size_t number_of_resources_in_chan(const ChannelKey& channel) const;
 
   void add_resource_to_server(const IrcHostname& irc_hostname, const std::string& resource);
   void remove_resource_from_server(const IrcHostname& irc_hostname, const std::string& resource);

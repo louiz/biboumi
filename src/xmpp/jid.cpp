@@ -68,8 +68,7 @@ std::string jidprep(const std::string& original)
     // Using getaddrinfo, check if the domain part is a valid IPv4 (then use
     // it as is), or IPv6 (surround it with []), or a domain name (run
     // nameprep)
-    struct addrinfo hints;
-    memset(&hints, 0, sizeof(hints));
+    struct addrinfo hints{};
     hints.ai_flags = AI_NUMERICHOST;
     hints.ai_family = AF_UNSPEC;
 

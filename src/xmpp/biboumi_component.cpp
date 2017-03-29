@@ -422,7 +422,6 @@ void BiboumiComponent::handle_iq(const Stanza& stanza)
             }
           else if (iid.type == Iid::Type::Channel)
             {
-              log_debug("type_channel");
               if (node.empty())
                 {
                   this->send_irc_channel_disco_info(id, from, to_str);
@@ -763,7 +762,6 @@ void BiboumiComponent::send_irc_channel_muc_traffic_info(const std::string& id, 
 
 void BiboumiComponent::send_irc_channel_disco_info(const std::string& id, const std::string& jid_to, const std::string& jid_from)
 {
-  log_debug("jid_from: ", jid_from);
   Jid from(jid_from);
   Iid iid(from.local, {});
   Stanza iq("iq");
