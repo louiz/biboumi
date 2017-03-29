@@ -734,7 +734,7 @@ void BiboumiComponent::send_irc_server_disco_info(const std::string& id, const s
     identity["category"] = "conference";
     identity["type"] = "irc";
     identity["name"] = "IRC server "s + from.local + " over Biboumi";
-    for (const char *ns: {DISCO_INFO_NS, ADHOC_NS, PING_NS, VERSION_NS})
+    for (const char *ns: {DISCO_INFO_NS, MUC_NS, ADHOC_NS, PING_NS, MAM_NS, VERSION_NS})
       {
         XmlSubNode feature(query, "feature");
         feature["var"] = ns;
