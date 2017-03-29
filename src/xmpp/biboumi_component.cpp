@@ -422,7 +422,13 @@ void BiboumiComponent::handle_iq(const Stanza& stanza)
             }
           else if (iid.type == Iid::Type::Channel)
             {
-              if (node == MUC_TRAFFIC_NS)
+              log_debug("type_channel");
+              if (node.empty())
+                {
+                  this->send_irc_channel_disco_info(id, from, to_str);
+                  stanza_error.disable();
+                }
+              else if (node == MUC_TRAFFIC_NS)
                 {
                   this->send_irc_channel_muc_traffic_info(id, from, to_str);
                   stanza_error.disable();
@@ -751,6 +757,32 @@ void BiboumiComponent::send_irc_channel_muc_traffic_info(const std::string& id, 
     query["node"] = MUC_TRAFFIC_NS;
     // We drop all “special” traffic (like xhtml-im, chatstates, etc), so
     // don’t include any <feature/>
+  }
+  this->send_stanza(iq);
+}
+
+void BiboumiComponent::send_irc_channel_disco_info(const std::string& id, const std::string& jid_to, const std::string& jid_from)
+{
+  log_debug("jid_from: ", jid_from);
+  Jid from(jid_from);
+  Iid iid(from.local, {});
+  Stanza iq("iq");
+  {
+    iq["type"] = "result";
+    iq["id"] = id;
+    iq["to"] = jid_to;
+    iq["from"] = jid_from;
+    XmlSubNode query(iq, "query");
+    query["xmlns"] = DISCO_INFO_NS;
+    XmlSubNode identity(query, "identity");
+    identity["category"] = "conference";
+    identity["type"] = "irc";
+    identity["name"] = "IRC channel "s + iid.get_local() + " from server " + iid.get_server() + " over biboumi";
+    for (const char *ns: {DISCO_INFO_NS, MUC_NS, ADHOC_NS, PING_NS, MAM_NS, VERSION_NS})
+      {
+        XmlSubNode feature(query, "feature");
+        feature["var"] = ns;
+      }
   }
   this->send_stanza(iq);
 }
