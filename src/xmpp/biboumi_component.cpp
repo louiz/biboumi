@@ -737,7 +737,7 @@ void BiboumiComponent::send_irc_server_disco_info(const std::string& id, const s
   this->send_stanza(iq);
 }
 
-void BiboumiComponent::send_irc_channel_muc_traffic_info(const std::string id, const std::string& jid_to, const std::string& jid_from)
+void BiboumiComponent::send_irc_channel_muc_traffic_info(const std::string& id, const std::string& jid_to, const std::string& jid_from)
 {
   Stanza iq("iq");
   {
