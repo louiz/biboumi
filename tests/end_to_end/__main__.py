@@ -125,7 +125,7 @@ def match(stanza, xpath):
                                             'commands': 'http://jabber.org/protocol/commands',
                                             'dataform': 'jabber:x:data',
                                             'version': 'jabber:iq:version',
-                                            'mam': 'urn:xmpp:mam:1',
+                                            'mam': 'urn:xmpp:mam:2',
                                             'delay': 'urn:xmpp:delay',
                                             'forward': 'urn:xmpp:forward:0',
                                             'client': 'jabber:client',
@@ -1489,7 +1489,7 @@ if __name__ == '__main__':
                     partial(expect_stanza, "/message[@from='#foo%{irc_server_one}/{nick_one}'][@to='{jid_one}/{resource_one}'][@type='groupchat']/body[text()='coucou 2']"),
 
                     # Retrieve the complete archive
-                    partial(send_stanza, "<iq to='#foo%{irc_server_one}' from='{jid_one}/{resource_one}' type='set' id='id1'><query xmlns='urn:xmpp:mam:1' queryid='qid1' /></iq>"),
+                    partial(send_stanza, "<iq to='#foo%{irc_server_one}' from='{jid_one}/{resource_one}' type='set' id='id1'><query xmlns='urn:xmpp:mam:2' queryid='qid1' /></iq>"),
 
                     partial(expect_stanza,
                             ("/message/mam:result[@queryid='qid1']/forward:forwarded/delay:delay",
@@ -1505,9 +1505,9 @@ if __name__ == '__main__':
 
                     # Retrieve an empty archive by specifying an early “end” date
                     partial(send_stanza, """<iq to='#foo%{irc_server_one}' from='{jid_one}/{resource_one}' type='set' id='id2'>
-                    <query xmlns='urn:xmpp:mam:1' queryid='qid2'>
+                    <query xmlns='urn:xmpp:mam:2' queryid='qid2'>
                     <x xmlns='jabber:x:data' type='submit'>
-                    <field var='FORM_TYPE' type='hidden'> <value>urn:xmpp:mam:1</value></field>
+                    <field var='FORM_TYPE' type='hidden'> <value>urn:xmpp:mam:2</value></field>
                     <field var='end'><value>2000-06-07T00:00:00Z</value></field>
                     </x>
                     </query></iq>"""),
@@ -1518,9 +1518,9 @@ if __name__ == '__main__':
                     # Retrieve an empty archive by specifying a late “start” date
                     # (note that this test will break in ~1000 years)
                     partial(send_stanza, """<iq to='#foo%{irc_server_one}' from='{jid_one}/{resource_one}' type='set' id='id3'>
-                    <query xmlns='urn:xmpp:mam:1' queryid='qid3'>
+                    <query xmlns='urn:xmpp:mam:2' queryid='qid3'>
                     <x xmlns='jabber:x:data' type='submit'>
-                    <field var='FORM_TYPE' type='hidden'> <value>urn:xmpp:mam:1</value></field>
+                    <field var='FORM_TYPE' type='hidden'> <value>urn:xmpp:mam:2</value></field>
                     <field var='start'><value>3016-06-07T00:00:00Z</value></field>
                     </x>
                     </query></iq>"""),
@@ -1550,7 +1550,7 @@ if __name__ == '__main__':
                      partial(expect_stanza, "/message[@from='#foo@{biboumi_host}/{nick_one}'][@to='{jid_one}/{resource_one}'][@type='groupchat']/body[text()='coucou 2']"),
 
                      # Retrieve the complete archive
-                     partial(send_stanza, "<iq to='#foo@{biboumi_host}' from='{jid_one}/{resource_one}' type='set' id='id1'><query xmlns='urn:xmpp:mam:1' queryid='qid1' /></iq>"),
+                     partial(send_stanza, "<iq to='#foo@{biboumi_host}' from='{jid_one}/{resource_one}' type='set' id='id1'><query xmlns='urn:xmpp:mam:2' queryid='qid1' /></iq>"),
 
                      partial(expect_stanza,
                              ("/message/mam:result[@queryid='qid1']/forward:forwarded/delay:delay",
@@ -1887,7 +1887,7 @@ if __name__ == '__main__':
                       "/iq/disco_info:query/disco_info:feature[@var='jabber:iq:version']",
                       "/iq/disco_info:query/disco_info:feature[@var='http://jabber.org/protocol/commands']",
                       "/iq/disco_info:query/disco_info:feature[@var='urn:xmpp:ping']",
-                      "/iq/disco_info:query/disco_info:feature[@var='urn:xmpp:mam:1']",
+                      "/iq/disco_info:query/disco_info:feature[@var='urn:xmpp:mam:2']",
                       "/iq/disco_info:query/disco_info:feature[@var='jabber:iq:version']",
                       )),
                 ]),
