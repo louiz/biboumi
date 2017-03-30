@@ -132,7 +132,8 @@ def match(stanza, xpath):
                                             'rsm': 'http://jabber.org/protocol/rsm',
                                             'carbon': 'urn:xmpp:carbons:2',
                                             'hints': 'urn:xmpp:hints',
-                                            'stanza': 'urn:ietf:params:xml:ns:xmpp-stanzas'})
+                                            'stanza': 'urn:ietf:params:xml:ns:xmpp-stanzas',
+                                            'stable_id': 'urn:xmpp:sid:0'})
     return matched
 
 
@@ -1483,7 +1484,10 @@ if __name__ == '__main__':
 
                     # Send two channel messages
                     partial(send_stanza, "<message from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}' type='groupchat'><body>coucou</body></message>"),
-                    partial(expect_stanza, "/message[@from='#foo%{irc_server_one}/{nick_one}'][@to='{jid_one}/{resource_one}'][@type='groupchat']/body[text()='coucou']"),
+                    partial(expect_stanza,
+                            ("/message[@from='#foo%{irc_server_one}/{nick_one}'][@to='{jid_one}/{resource_one}'][@type='groupchat']/body[text()='coucou']",
+                            "/message/stable_id:stanza-id[@by='#foo%{irc_server_one}'][@id]",)
+                            ),
 
                     partial(send_stanza, "<message from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}' type='groupchat'><body>coucou 2</body></message>"),
                     partial(expect_stanza, "/message[@from='#foo%{irc_server_one}/{nick_one}'][@to='{jid_one}/{resource_one}'][@type='groupchat']/body[text()='coucou 2']"),

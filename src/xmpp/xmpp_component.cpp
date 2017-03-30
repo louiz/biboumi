@@ -380,7 +380,7 @@ void XmppComponent::send_topic(const std::string& from, Xmpp::body&& topic, cons
   this->send_stanza(message);
 }
 
-void XmppComponent::send_muc_message(const std::string& muc_name, const std::string& nick, Xmpp::body&& xmpp_body, const std::string& jid_to)
+void XmppComponent::send_muc_message(const std::string& muc_name, const std::string& nick, Xmpp::body&& xmpp_body, const std::string& jid_to, std::string uuid)
 {
   Stanza message("message");
   message["to"] = jid_to;
@@ -402,6 +402,15 @@ void XmppComponent::send_muc_message(const std::string& muc_name, const std::str
       // Pass the ownership of the pointer to this xmlnode
       html.add_child(std::move(std::get<1>(xmpp_body)));
     }
+
+  if (!uuid.empty())
+    {
+      XmlSubNode stanza_id(message, "stanza-id");
+      stanza_id["xmlns"] = STABLE_ID_NS;
+      stanza_id["by"] = muc_name + "@" + this->served_hostname;
+      stanza_id["id"] = std::move(uuid);
+    }
+
   this->send_stanza(message);
 }
 

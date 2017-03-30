@@ -254,15 +254,16 @@ void Bridge::send_channel_message(const Iid& iid, const std::string& body)
       else
         irc->send_channel_message(iid.get_local(), line);
 
+      std::string uuid;
 #ifdef USE_DATABASE
       const auto xmpp_body = this->make_xmpp_body(line);
       if (this->record_history)
-        Database::store_muc_message(this->get_bare_jid(), iid, std::chrono::system_clock::now(),
+        uuid = Database::store_muc_message(this->get_bare_jid(), iid, std::chrono::system_clock::now(),
                                     std::get<0>(xmpp_body), irc->get_own_nick());
 #endif
       for (const auto& resource: this->resources_in_chan[iid.to_tuple()])
-        this->xmpp.send_muc_message(std::to_string(iid), irc->get_own_nick(),
-                                    this->make_xmpp_body(line), this->user_jid + "/" + resource);
+        this->xmpp.send_muc_message(std::to_string(iid), irc->get_own_nick(), this->make_xmpp_body(line),
+                                    this->user_jid + "/" + resource, uuid);
     }
 }
 
@@ -839,8 +840,8 @@ void Bridge::send_message(const Iid& iid, const std::string& nick, const std::st
 #endif
       for (const auto& resource: this->resources_in_chan[iid.to_tuple()])
         {
-          this->xmpp.send_muc_message(std::to_string(iid), nick,
-                                      this->make_xmpp_body(body, encoding), this->user_jid + "/" + resource);
+          this->xmpp.send_muc_message(std::to_string(iid), nick, this->make_xmpp_body(body, encoding),
+                                      this->user_jid + "/" + resource, {});
 
         }
     }

@@ -10,6 +10,7 @@ Version 5.0
    an IRC bouncer.
  - Use the udns library instead of c-ares, for asynchronous DNS resolution.
    It’s still fully optional.
+ - Update MAM implementation to version 6.0 (namespace mam:2)
 
 Version 4.1 - 2017-03-21
 ========================

@@ -50,7 +50,7 @@ public:
                                                                                       const std::string& channel);
   static std::vector<db::MucLogLine> get_muc_logs(const std::string& owner, const std::string& chan_name, const std::string& server,
                                                   int limit=-1, const std::string& start="", const std::string& end="");
-  static void store_muc_message(const std::string& owner, const Iid& iid,
+  static std::string store_muc_message(const std::string& owner, const Iid& iid,
                                 time_point date, const std::string& body, const std::string& nick);
 
   static void close();
