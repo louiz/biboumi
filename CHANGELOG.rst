@@ -1,7 +1,7 @@
 Version 4.1 - 2017-03-21
 ========================
 
- - Works with biboumi 2.x, as well as biboumi 1.11.x
+ - Works with botan 2.x, as well as botan 1.11.x
 
 Version 4.0 - 2016-11-09
 ========================
