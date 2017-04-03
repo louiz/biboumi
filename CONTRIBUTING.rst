@@ -9,11 +9,16 @@ but that’s mainly for the convenience of users.
 Before doing anything, you can come on the `XMPP chatroom`_ to discuss your
 changes, issues or ideas.
 
+
 Bug reports, feature requests
 -----------------------------
 
 To open a bug report, or a feature request, please do so on `our gitlab’s
 bug tracker`_.
+
+If the bug you’re reporting is about a bad behaviour of biboumi when some XMPP
+or IRC events occur, please try to reproduce the issue with a biboumi running
+in log_level=0, and include the relevant logs in your bug report.
 
 If the issue you’re reporting may have security implications, please select
 the “confidential” flag in your bug report.
