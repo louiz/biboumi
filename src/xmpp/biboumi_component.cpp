@@ -564,6 +564,12 @@ void BiboumiComponent::handle_iq(const Stanza& stanza)
   else if (type == "error")
     {
       stanza_error.disable();
+      const auto it = this->waiting_iq.find(id);
+      if (it != this->waiting_iq.end())
+        {
+          it->second(bridge, stanza);
+          this->waiting_iq.erase(it);
+        }
     }
   }
   catch (const IRCNotConnected& ex)
@@ -807,8 +813,14 @@ void BiboumiComponent::send_ping_request(const std::string& from,
         {
           log_error("Received a corresponding ping result, but the 'to' from "
                     "the response mismatches the 'from' of the request");
+          return;
         }
-      else
+      const std::string type = stanza.get_tag("type");
+      const XmlNode* error = stanza.get_child("error", COMPONENT_NS);
+      // Check if what we receive is considered a valid response. And yes, those errors are valid responses
+      if (type == "result" ||
+          (type == "error" && error && (error->get_child("feature-not-implemented", STANZA_NS) ||
+                                        error->get_child("service-unavailable", STANZA_NS))))
         bridge->send_irc_ping_result({from, bridge}, id);
     };
   this->waiting_iq[id] = result_cb;

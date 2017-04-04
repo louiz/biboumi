@@ -1101,6 +1101,44 @@ if __name__ == '__main__':
                              ),
                      partial(expect_stanza, "/message[@from='#biboumi\\40louiz.org\\3a80%{irc_server_one}'][@type='groupchat']/subject[not(text())]"),
                  ]),
+                Scenario("self_ping_with_error",
+                 [
+                     handshake_sequence(),
+                     partial(send_stanza,
+                             "<presence from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}/{nick_one}' />"),
+                     connection_sequence("irc.localhost", '{jid_one}/{resource_one}'),
+                     partial(expect_stanza,
+                             "/message/body[text()='Mode #foo [+nt] by {irc_host_one}']"),
+                     partial(expect_stanza,
+                             ("/presence[@to='{jid_one}/{resource_one}'][@from='#foo%{irc_server_one}/{nick_one}']/muc_user:x/muc_user:item[@affiliation='admin'][@role='moderator']",
+                              "/presence/muc_user:x/muc_user:status[@code='110']")
+                             ),
+                     partial(expect_stanza, "/message[@from='#foo%{irc_server_one}'][@type='groupchat']/subject[not(text())]"),
+
+                     # Send a ping to ourself
+                     partial(send_stanza,
+                             "<iq type='get' from='{jid_one}/{resource_one}' id='first_ping' to='#foo%{irc_server_one}/{nick_one}'><ping xmlns='urn:xmpp:ping' /></iq>"),
+                     # We receive our own ping request,
+                     partial(expect_stanza,
+                             "/iq[@from='{lower_nick_one}%{irc_server_one}'][@type='get'][@to='{jid_one}/{resource_one}'][@id='gnip_tsrif']"),
+                     # Respond to the request with an error
+                     partial(send_stanza,
+                             "<iq from='{jid_one}/{resource_one}' id='gnip_tsrif' to='{lower_nick_one}%{irc_server_one}' type='error'><error type='cancel'><feature-not-implemented xmlns='urn:ietf:params:xml:ns:xmpp-stanzas'/></error></iq>"),
+                     partial(expect_stanza,
+                             "/iq[@from='#foo%{irc_server_one}/{nick_one}'][@type='result'][@to='{jid_one}/{resource_one}'][@id='first_ping']"),
+
+                     # Send a ping to ourself
+                     partial(send_stanza,
+                             "<iq type='get' from='{jid_one}/{resource_one}' id='first_ping' to='#foo%{irc_server_one}/{nick_one}'><ping xmlns='urn:xmpp:ping' /></iq>"),
+                     # We receive our own ping request,
+                     partial(expect_stanza,
+                             "/iq[@from='{lower_nick_one}%{irc_server_one}'][@type='get'][@to='{jid_one}/{resource_one}'][@id='gnip_tsrif']"),
+                     # Respond to the request with an error
+                     partial(send_stanza,
+                             "<iq from='{jid_one}/{resource_one}' id='gnip_tsrif' to='{lower_nick_one}%{irc_server_one}' type='error'><error type='cancel'><service-unavailable xmlns='urn:ietf:params:xml:ns:xmpp-stanzas'/></error></iq>"),
+                     partial(expect_stanza,
+                             "/iq[@from='#foo%{irc_server_one}/{nick_one}'][@type='result'][@to='{jid_one}/{resource_one}'][@id='first_ping']"),
+                 ]),
                 Scenario("self_ping_on_real_channel",
                  [
                      handshake_sequence(),
