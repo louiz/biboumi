@@ -42,7 +42,6 @@ namespace
 using namespace std::string_literals;
 using namespace std::chrono_literals;
 
-namespace ph = std::placeholders;
 
 TCPSocketHandler::TCPSocketHandler(std::shared_ptr<Poller>& poller):
   SocketHandler(poller, -1),

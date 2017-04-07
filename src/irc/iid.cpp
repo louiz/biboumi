@@ -9,7 +9,7 @@
 constexpr char Iid::separator[];
 
 Iid::Iid(std::string local, std::string server, Iid::Type type):
-        type(std::move(type)),
+        type(type),
         local(std::move(local)),
         server(std::move(server))
 {

@@ -3,7 +3,7 @@
 
 TimedEvent::TimedEvent(std::chrono::steady_clock::time_point&& time_point,
                        std::function<void()> callback, std::string name):
-  time_point(std::move(time_point)),
+  time_point(time_point),
   callback(std::move(callback)),
   repeat(false),
   repeat_delay(0),
@@ -16,7 +16,7 @@ TimedEvent::TimedEvent(std::chrono::milliseconds&& duration,
   time_point(std::chrono::steady_clock::now() + duration),
   callback(std::move(callback)),
   repeat(true),
-  repeat_delay(std::move(duration)),
+  repeat_delay(duration),
   name(std::move(name))
 {
 }

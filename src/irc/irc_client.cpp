@@ -382,7 +382,7 @@ void IrcClient::send_message(IrcMessage&& message)
   std::string res;
   if (!message.prefix.empty())
     res += ":" + std::move(message.prefix) + " ";
-  res += std::move(message.command);
+  res += message.command;
   for (const std::string& arg: message.arguments)
     {
       if (arg.find(" ") != std::string::npos ||
@@ -889,7 +889,7 @@ void IrcClient::on_part(const IrcMessage& message)
         // channel pointer is now invalid
         channel = nullptr;
       }
-      this->bridge.send_muc_leave(iid, std::move(nick), std::move(txt), self);
+      this->bridge.send_muc_leave(iid, std::move(nick), txt, self);
     }
 }
 

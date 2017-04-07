@@ -98,7 +98,7 @@ bool BasicCredentialsManager::try_to_open_one_ca_bundle(const std::vector<std::s
               // because the certificate is signed by an issuer that was ignored.
               try {
                   Botan::X509_Certificate cert(bundle);
-                  BasicCredentialsManager::certificate_store.add_certificate(std::move(cert));
+                  BasicCredentialsManager::certificate_store.add_certificate(cert);
                 } catch (const Botan::Decoding_Error& error) {
                   continue;
                 }
