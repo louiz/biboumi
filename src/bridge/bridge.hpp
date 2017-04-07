@@ -157,7 +157,7 @@ public:
    * Send the MUC history to the user
    */
   void send_room_history(const std::string& hostname, const std::string& chan_name);
-  void send_room_history(const std::string& hostname, const std::string& chan_name, const std::string& resource);
+  void send_room_history(const std::string& hostname, std::string chan_name, const std::string& resource);
   /**
    * Send a MUC message from some participant
    */

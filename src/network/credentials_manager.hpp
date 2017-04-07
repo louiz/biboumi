@@ -19,7 +19,7 @@ class TCPSocketHandler;
  */
 void check_tls_certificate(const std::vector<Botan::X509_Certificate>& certs,
                            const std::string& hostname, const std::string& trusted_fingerprint,
-                           std::exception_ptr exc);
+                           const std::exception_ptr& exc);
 
 class BasicCredentialsManager: public Botan::Credentials_Manager
 {

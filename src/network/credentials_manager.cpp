@@ -44,7 +44,7 @@ const std::string& BasicCredentialsManager::get_trusted_fingerprint() const
 
 void check_tls_certificate(const std::vector<Botan::X509_Certificate>& certs,
                            const std::string& hostname, const std::string& trusted_fingerprint,
-                           std::exception_ptr exc)
+                           const std::exception_ptr& exc)
 {
 
   if (!trusted_fingerprint.empty() && !certs.empty() &&

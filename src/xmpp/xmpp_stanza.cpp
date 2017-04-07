@@ -52,7 +52,7 @@ XmlNode::XmlNode(const std::string& name, XmlNode* parent):
   parent(parent)
 {
   // split the namespace and the name
-  auto n = name.rfind(":");
+  auto n = name.rfind(':');
   if (n == std::string::npos)
     this->name = name;
   else

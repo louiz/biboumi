@@ -988,16 +988,16 @@ void Bridge::send_room_history(const std::string& hostname, const std::string& c
     this->send_room_history(hostname, chan_name, resource);
 }
 
-void Bridge::send_room_history(const std::string& hostname, const std::string& chan_name, const std::string& resource)
+void Bridge::send_room_history(const std::string& hostname, std::string chan_name, const std::string& resource)
 {
 #ifdef USE_DATABASE
   const auto coptions = Database::get_irc_channel_options_with_server_and_global_default(this->user_jid, hostname, chan_name);
   const auto lines = Database::get_muc_logs(this->user_jid, chan_name, hostname, coptions.maxHistoryLength.value());
+  chan_name.append(utils::empty_if_fixed_server("%" + hostname));
   for (const auto& line: lines)
     {
       const auto seconds = line.date.value().timeStamp();
-      this->xmpp.send_history_message(chan_name + utils::empty_if_fixed_server("%" + hostname), line.nick.value(),
-                                      line.body.value(),
+      this->xmpp.send_history_message(chan_name, line.nick.value(), line.body.value(),
                                       this->user_jid + "/" + resource, seconds);
     }
 #endif

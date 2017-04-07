@@ -445,7 +445,7 @@ void XmppComponent::send_muc_leave(const std::string& muc_name, const std::strin
     presence["to"] = jid_to;
     presence["from"] = muc_name + "@" + this->served_hostname + "/" + nick;
     presence["type"] = "unavailable";
-    const std::string message_str = std::get<0>(message);
+    const std::string& message_str = std::get<0>(message);
     XmlSubNode x(presence, "x");
     x["xmlns"] = MUC_USER_NS;
     if (self)

@@ -385,7 +385,7 @@ void IrcClient::send_message(IrcMessage&& message)
   res += message.command;
   for (const std::string& arg: message.arguments)
     {
-      if (arg.find(" ") != std::string::npos ||
+      if (arg.find(' ') != std::string::npos ||
           (!arg.empty() && arg[0] == ':'))
         {
           res += " :" + arg;
@@ -1080,7 +1080,7 @@ void IrcClient::on_channel_mode(const IrcMessage& message)
             {
               // That mode can also be of type B if it is present in the
               // prefix_to_mode map
-              for (const std::pair<char, char>& pair: this->prefix_to_mode)
+              for (const auto& pair: this->prefix_to_mode)
                 if (pair.second == c)
                   {
                     type = 1;
