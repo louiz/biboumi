@@ -43,7 +43,7 @@ TEST_CASE("Test basic XML parsing")
 
 TEST_CASE("XML escape")
 {
-  const std::string unescaped = "'coucou'<cc>/&\"gaga\"";
+  const std::string unescaped = R"('coucou'<cc>/&"gaga")";
   CHECK(xml_escape(unescaped) == "&apos;coucou&apos;&lt;cc&gt;/&amp;&quot;gaga&quot;");
 }
 

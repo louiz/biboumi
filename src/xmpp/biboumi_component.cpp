@@ -83,10 +83,8 @@ BiboumiComponent::BiboumiComponent(std::shared_ptr<Poller>& poller, const std::s
 
 void BiboumiComponent::shutdown()
 {
-  for (auto it = this->bridges.begin(); it != this->bridges.end(); ++it)
-  {
-    it->second->shutdown("Gateway shutdown");
-  }
+  for (auto& pair: this->bridges)
+    pair.second->shutdown("Gateway shutdown");
 }
 
 void BiboumiComponent::clean()
@@ -696,8 +694,8 @@ Bridge* BiboumiComponent::find_user_bridge(const std::string& full_jid)
 std::vector<Bridge*> BiboumiComponent::get_bridges() const
 {
   std::vector<Bridge*> res;
-  for (auto it = this->bridges.begin(); it != this->bridges.end(); ++it)
-    res.push_back(it->second.get());
+  for (const auto& bridge: this->bridges)
+    res.push_back(bridge.second.get());
   return res;
 }
 

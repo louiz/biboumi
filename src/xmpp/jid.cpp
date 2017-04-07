@@ -53,7 +53,7 @@ std::string jidprep(const std::string& original)
 
   char local[max_jid_part_len] = {};
   memcpy(local, jid.local.data(), std::min(max_jid_part_len, jid.local.size()));
-  Stringprep_rc rc = static_cast<Stringprep_rc>(::stringprep(local, max_jid_part_len,
+  auto rc = static_cast<Stringprep_rc>(::stringprep(local, max_jid_part_len,
                      static_cast<Stringprep_profile_flags>(0), stringprep_xmpp_nodeprep));
   if (rc != STRINGPREP_OK)
   {

@@ -1,11 +1,12 @@
+#include <utility>
 #include <xmpp/adhoc_command.hpp>
 #include <xmpp/xmpp_component.hpp>
 #include <utils/reload.hpp>
 
 using namespace std::string_literals;
 
-AdhocCommand::AdhocCommand(std::vector<AdhocStep>&& callbacks, const std::string& name, const bool admin_only):
-  name(name),
+AdhocCommand::AdhocCommand(std::vector<AdhocStep>&& callbacks, std::string name, const bool admin_only):
+  name(std::move(name)),
   callbacks(std::move(callbacks)),
   admin_only(admin_only)
 {

@@ -8,7 +8,7 @@
 #include <sys/types.h>
 #include <stdexcept>
 #include <unistd.h>
-#include <errno.h>
+#include <cerrno>
 #include <cstring>
 
 #ifdef BOTAN_FOUND

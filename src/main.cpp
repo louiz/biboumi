@@ -11,7 +11,7 @@
 #endif
 
 #include <atomic>
-#include <signal.h>
+#include <csignal>
 #ifdef USE_DATABASE
 # include <litesql.hpp>
 #endif

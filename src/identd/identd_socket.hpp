@@ -2,7 +2,6 @@
 
 #include <network/socket_handler.hpp>
 
-#include <cassert>
 #include <network/tcp_socket_handler.hpp>
 
 #include <logger/logger.hpp>

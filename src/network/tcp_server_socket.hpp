@@ -12,7 +12,6 @@
 #include <netinet/ip.h>
 
 #include <cstring>
-#include <cassert>
 
 template <typename RemoteSocketType>
 class TcpSocketServer: public SocketHandler

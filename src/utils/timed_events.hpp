@@ -25,9 +25,9 @@ public:
    * An event the occurs only once, at the given time_point
    */
   explicit TimedEvent(std::chrono::steady_clock::time_point&& time_point,
-                      std::function<void()> callback, const std::string& name="");
+                      std::function<void()> callback, std::string name="");
   explicit TimedEvent(std::chrono::milliseconds&& duration,
-                      std::function<void()> callback, const std::string& name="");
+                      std::function<void()> callback, std::string name="");
 
   explicit TimedEvent(TimedEvent&&) = default;
   TimedEvent& operator=(TimedEvent&&) = default;

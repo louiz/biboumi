@@ -1,22 +1,23 @@
+#include <utility>
 #include <utils/timed_events.hpp>
 
 TimedEvent::TimedEvent(std::chrono::steady_clock::time_point&& time_point,
-                       std::function<void()> callback, const std::string& name):
+                       std::function<void()> callback, std::string name):
   time_point(std::move(time_point)),
-  callback(callback),
+  callback(std::move(callback)),
   repeat(false),
   repeat_delay(0),
-  name(name)
+  name(std::move(name))
 {
 }
 
 TimedEvent::TimedEvent(std::chrono::milliseconds&& duration,
-                       std::function<void()> callback, const std::string& name):
+                       std::function<void()> callback, std::string name):
   time_point(std::chrono::steady_clock::now() + duration),
-  callback(callback),
+  callback(std::move(callback)),
   repeat(true),
   repeat_delay(std::move(duration)),
-  name(name)
+  name(std::move(name))
 {
 }
 

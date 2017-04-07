@@ -4,7 +4,7 @@
 
 #include <stdexcept>
 
-#include <assert.h>
+#include <cassert>
 #include <string.h>
 #include <iconv.h>
 #include <cerrno>

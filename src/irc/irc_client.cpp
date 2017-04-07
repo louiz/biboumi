@@ -1,3 +1,4 @@
+#include <utility>
 #include <utils/timed_events.hpp>
 #include <database/database.hpp>
 #include <irc/irc_message.hpp>
@@ -127,16 +128,16 @@ static const std::unordered_map<std::string,
   {"502", {&IrcClient::on_generic_error, {2, 0}}},
 };
 
-IrcClient::IrcClient(std::shared_ptr<Poller>& poller, const std::string& hostname,
-                     const std::string& nickname, const std::string& username,
-                     const std::string& realname, const std::string& user_hostname,
+IrcClient::IrcClient(std::shared_ptr<Poller>& poller, std::string hostname,
+                     std::string nickname, std::string username,
+                     std::string realname, std::string user_hostname,
                      Bridge& bridge):
   TCPClientSocketHandler(poller),
-  hostname(hostname),
-  user_hostname(user_hostname),
-  username(username),
-  realname(realname),
-  current_nick(nickname),
+  hostname(std::move(hostname)),
+  user_hostname(std::move(user_hostname)),
+  username(std::move(username)),
+  realname(std::move(realname)),
+  current_nick(std::move(nickname)),
   bridge(bridge),
   welcomed(false),
   chanmodes({"", "", "", ""}),
@@ -791,10 +792,10 @@ void IrcClient::on_nickname_conflict(const IrcMessage& message)
 {
   const std::string nickname = message.arguments[1];
   this->on_generic_error(message);
-  for (auto it = this->channels.begin(); it != this->channels.end(); ++it)
+  for (const auto& pair: this->channels)
   {
     Iid iid;
-    iid.set_local(it->first);
+    iid.set_local(pair.first);
     iid.set_server(this->hostname);
     iid.type = Iid::Type::Channel;
     this->bridge.send_nickname_conflict_error(iid, nickname);
@@ -808,10 +809,10 @@ void IrcClient::on_nickname_change_too_fast(const IrcMessage& message)
   if (message.arguments.size() >= 3)
     txt = message.arguments[2];
   this->on_generic_error(message);
-  for (auto it = this->channels.begin(); it != this->channels.end(); ++it)
+  for (const auto& pair: this->channels)
   {
     Iid iid;
-    iid.set_local(it->first);
+    iid.set_local(pair.first);
     iid.set_server(this->hostname);
     iid.type = Iid::Type::Channel;
     this->bridge.send_presence_error(iid, nickname,
@@ -896,13 +897,13 @@ void IrcClient::on_error(const IrcMessage& message)
 {
   const std::string leave_message = message.arguments[0];
   // The user is out of all the channels
-  for (auto it = this->channels.begin(); it != this->channels.end(); ++it)
+  for (const auto& pair: this->channels)
   {
     Iid iid;
-    iid.set_local(it->first);
+    iid.set_local(pair.first);
     iid.set_server(this->hostname);
     iid.type = Iid::Type::Channel;
-    IrcChannel* channel = it->second.get();
+    IrcChannel* channel = pair.second.get();
     if (!channel->joined)
       continue;
     std::string own_nick = channel->get_self()->nick;
@@ -917,10 +918,10 @@ void IrcClient::on_quit(const IrcMessage& message)
   std::string txt;
   if (message.arguments.size() >= 1)
     txt = message.arguments[0];
-  for (auto it = this->channels.begin(); it != this->channels.end(); ++it)
+  for (const auto& pair: this->channels)
     {
-      const std::string chan_name = it->first;
-      IrcChannel* channel = it->second.get();
+      const std::string& chan_name = pair.first;
+      IrcChannel* channel = pair.second.get();
       const IrcUser* user = channel->find_user(message.prefix);
       if (user)
         {
@@ -966,9 +967,9 @@ void IrcClient::on_nick(const IrcMessage& message)
     {
       change_nick_func("", &this->get_dummy_channel());
     }
-  for (auto it = this->channels.begin(); it != this->channels.end(); ++it)
+  for (const auto& pair: this->channels)
     {
-      change_nick_func(it->first, it->second.get());
+      change_nick_func(pair.first, pair.second.get());
     }
 }
 

@@ -2,8 +2,8 @@
 #include <logger/logger.hpp>
 #include <utils/timed_events.hpp>
 
-#include <assert.h>
-#include <errno.h>
+#include <cassert>
+#include <cerrno>
 #include <stdio.h>
 #include <signal.h>
 #include <unistd.h>
