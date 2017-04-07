@@ -9,7 +9,7 @@ namespace utils
 {
 std::string get_system_name()
 {
-  struct utsname uts;
+  struct utsname uts{};
   const int res = ::uname(&uts);
   if (res == -1)
     {

@@ -198,7 +198,7 @@ int Poller::poll(const std::chrono::milliseconds& timeout)
   static const size_t max_events = 12;
   struct epoll_event revents[max_events];
   // Unblock all signals, only during the epoll_pwait call
-  sigset_t empty_signal_set;
+  sigset_t empty_signal_set{};
   sigemptyset(&empty_signal_set);
   const int nb_events = ::epoll_pwait(this->epfd, revents, max_events, timeout.count(),
                                       &empty_signal_set);

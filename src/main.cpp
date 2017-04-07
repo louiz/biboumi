@@ -99,7 +99,7 @@ int main(int ac, char** av)
   // Block the signals we want to manage. They will be unblocked only during
   // the epoll_pwait or ppoll calls. This avoids some race conditions,
   // explained in man 2 pselect on linux
-  sigset_t mask;
+  sigset_t mask{};
   sigemptyset(&mask);
   sigaddset(&mask, SIGINT);
   sigaddset(&mask, SIGTERM);

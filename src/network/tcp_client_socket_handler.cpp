@@ -35,7 +35,7 @@ void TCPClientSocketHandler::init_socket(const struct addrinfo* rp)
       // Convert the address from string format to a sockaddr that can be
       // used in bind()
       struct addrinfo* result;
-      struct addrinfo hints;
+      struct addrinfo hints{};
       memset(&hints, 0, sizeof(hints));
       hints.ai_flags = AI_NUMERICHOST;
       hints.ai_family = AF_UNSPEC;
@@ -161,14 +161,14 @@ void TCPClientSocketHandler::connect(const std::string& address, const std::stri
           this->local_port = static_cast<uint16_t>(-1);
           if (rp->ai_family == AF_INET6)
             {
-              struct sockaddr_in6 a;
+              struct sockaddr_in6 a{};
               socklen_t l = sizeof(a);
               if (::getsockname(this->socket, (struct sockaddr*)&a, &l) != -1)
                 this->local_port = ntohs(a.sin6_port);
             }
           else if (rp->ai_family == AF_INET)
             {
-              struct sockaddr_in a;
+              struct sockaddr_in a{};
               socklen_t l = sizeof(a);
               if (::getsockname(this->socket, (struct sockaddr*)&a, &l) != -1)
                 this->local_port = ntohs(a.sin_port);

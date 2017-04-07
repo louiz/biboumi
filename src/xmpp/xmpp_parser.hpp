@@ -106,7 +106,7 @@ private:
   /**
    * Expat structure.
    */
-  XML_Parser parser;
+  XML_Parser parser{};
   /**
    * The current depth in the XML document
    */
