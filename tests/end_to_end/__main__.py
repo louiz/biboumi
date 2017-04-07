@@ -811,6 +811,12 @@ if __name__ == '__main__':
                      partial(send_stanza, "<iq type='set' id='ping-command1' from='{jid_one}/{resource_one}' to='{biboumi_host}'><command xmlns='http://jabber.org/protocol/commands' node='ping' action='execute' /></iq>"),
                      partial(expect_stanza, "/iq[@type='result']/commands:command[@node='ping'][@status='completed']/commands:note[@type='info'][text()='Pong']")
                  ]),
+        Scenario("execute_reload_adhoc_command",
+                 [
+                     handshake_sequence(),
+                     partial(send_stanza, "<iq type='set' id='ping-command1' from='{jid_admin}/{resource_one}' to='{biboumi_host}'><command xmlns='http://jabber.org/protocol/commands' node='reload' action='execute' /></iq>"),
+                     partial(expect_stanza, "/iq[@type='result']/commands:command[@node='reload'][@status='completed']/commands:note[@type='info'][text()='Configuration reloaded.']")
+                 ]),
         Scenario("execute_forbidden_adhoc_command",
                  [
                      handshake_sequence(),
