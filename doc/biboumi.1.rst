@@ -371,6 +371,13 @@ Notices
 Notices are received exactly like private messages.  It is not possible to
 send a notice.
 
+Topic
+-----
+
+The topic can be set and retrieved seemlessly. The unique difference is that
+if an XMPP user tries to set a multiline topic, every line return (\n) will
+be replaced by a space, because the IRC wouldn’t accept it.
+
 Invitations
 -----------
 

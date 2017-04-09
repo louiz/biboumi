@@ -83,7 +83,7 @@ public:
   void send_irc_nick_change(const Iid& iid, const std::string& new_nick, const std::string& requesting_resource);
   void send_irc_kick(const Iid& iid, const std::string& target, const std::string& reason,
                      const std::string& iq_id, const std::string& to_jid);
-  void set_channel_topic(const Iid& iid, const std::string& subject);
+  void set_channel_topic(const Iid& iid, std::string subject);
   void send_xmpp_version_to_irc(const Iid& iid, const std::string& name, const std::string& version,
                                 const std::string& os);
   void send_irc_ping_result(const Iid& iid, const std::string& id);

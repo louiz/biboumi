@@ -11,6 +11,7 @@ Version 5.0
  - Use the udns library instead of c-ares, for asynchronous DNS resolution.
    It’s still fully optional.
  - Update MAM implementation to version 6.0 (namespace mam:2)
+ - Multiline topics are now properly handled
 
 Version 4.1 - 2017-03-21
 ========================

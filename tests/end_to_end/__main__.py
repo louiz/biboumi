@@ -707,6 +707,23 @@ if __name__ == '__main__':
                              ),
                      partial(expect_stanza, "/message[@from='#foo%{irc_server_one}/{nick_one}'][@type='groupchat']/subject[text()='TOPIC TEST']"),
                  ]),
+        Scenario("multiline_topic",
+                 [
+                     handshake_sequence(),
+                     # User joins
+                     partial(send_stanza,
+                             "<presence from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}/{nick_one}' />"),
+                     connection_sequence("irc.localhost", '{jid_one}/{resource_one}'),
+                     partial(expect_stanza,
+                             "/message/body"),
+                     partial(expect_stanza, "/presence"),
+                     partial(expect_stanza, "/message[@from='#foo%{irc_server_one}'][@type='groupchat']/subject[not(text())]"),
+
+                     # User tries to set a multiline topic
+                     partial(send_stanza,
+                             "<message from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}' type='groupchat'><subject>FIRST LINE\nSECOND LINE.</subject></message>"),
+                     partial(expect_stanza, "/message[@from='#foo%{irc_server_one}/{nick_one}'][@type='groupchat'][@to='{jid_one}/{resource_one}']/subject[text()='FIRST LINE SECOND LINE.']"),
+                 ]),
         Scenario("channel_basic_join_on_fixed_irc_server",
                  [
                      handshake_sequence(),

@@ -684,9 +684,12 @@ void Bridge::send_irc_kick(const Iid& iid, const std::string& target, const std:
   this->add_waiting_irc(std::move(cb));
 }
 
-void Bridge::set_channel_topic(const Iid& iid, const std::string& subject)
+void Bridge::set_channel_topic(const Iid& iid, std::string subject)
 {
   IrcClient* irc = this->get_irc_client(iid.get_server());
+  std::string::size_type pos{0};
+  while ((pos = subject.find('\n', pos)) != std::string::npos)
+    subject[pos] = ' ';
   irc->send_topic_command(iid.get_local(), subject);
 }
 
