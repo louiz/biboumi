@@ -627,6 +627,11 @@ bool BiboumiComponent::handle_mam_request(const Stanza& stanza)
             if (max)
               limit = std::atoi(max->get_inner().data());
           }
+        // If the archive is really big, and the client didn’t specify any
+        // limit, we avoid flooding it: we set an arbitrary max limit.
+        if (limit == -1 && start.empty() && end.empty()) {
+            limit = 100;
+          }
         const auto lines = Database::get_muc_logs(from.bare(), iid.get_local(), iid.get_server(), limit, start, end);
         for (const db::MucLogLine& line: lines)
         {
