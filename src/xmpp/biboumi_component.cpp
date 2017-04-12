@@ -619,7 +619,15 @@ bool BiboumiComponent::handle_mam_request(const Stanza& stanza)
                   }
               }
           }
-        const auto lines = Database::get_muc_logs(from.bare(), iid.get_local(), iid.get_server(), -1, start, end);
+        const XmlNode* set = query->get_child("set", RSM_NS);
+        int limit = -1;
+        if (set)
+          {
+            const XmlNode* max = set->get_child("max", RSM_NS);
+            if (max)
+              limit = std::atoi(max->get_inner().data());
+          }
+        const auto lines = Database::get_muc_logs(from.bare(), iid.get_local(), iid.get_server(), limit, start, end);
         for (const db::MucLogLine& line: lines)
         {
           if (!line.nick.value().empty())

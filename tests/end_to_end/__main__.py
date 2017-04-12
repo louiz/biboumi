@@ -1626,6 +1626,18 @@ if __name__ == '__main__':
 
                     partial(expect_stanza,
                             "/iq[@type='result'][@id='id3'][@from='#foo%{irc_server_one}'][@to='{jid_one}/{resource_one}']"),
+
+                    # Retrieve a limited archive
+                    partial(send_stanza, "<iq to='#foo%{irc_server_one}' from='{jid_one}/{resource_one}' type='set' id='id4'><query xmlns='urn:xmpp:mam:2' queryid='qid4'><set xmlns='http://jabber.org/protocol/rsm'><max>1</max></set></query></iq>"),
+
+                    partial(expect_stanza,
+                            ("/message/mam:result[@queryid='qid4']/forward:forwarded/delay:delay",
+                             "/message/mam:result[@queryid='qid4']/forward:forwarded/client:message[@from='#foo%{irc_server_one}/{nick_one}'][@type='groupchat']/client:body[text()='coucou 2']")
+                            ),
+
+                    partial(expect_stanza,
+                            "/iq[@type='result'][@id='id4'][@from='#foo%{irc_server_one}'][@to='{jid_one}/{resource_one}']"),
+
                 ]),
         Scenario("mam_on_fixed_server",
                  [
