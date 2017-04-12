@@ -36,7 +36,7 @@ variables:
   script:
     - "echo Running cmake with the following parameters: -DCMAKE_CXX_COMPILER=${COMPILER} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ${BOTAN} ${UDNS} ${SYSTEMD} ${LIBIDN} ${LITESQL}"
     - cmake .. -DCMAKE_CXX_COMPILER=${COMPILER} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ${BOTAN} ${UDNS} ${SYSTEMD} ${LIBIDN} ${LITESQL}
-    - make -j$(nproc || echo 1)
+    - make everything -j$(nproc || echo 1)
     - make coverage_check -j$(nproc || echo 1)
   artifacts:
     expire_in: 8 hours
@@ -145,7 +145,6 @@ test:freebsd:
   stage: test
   script:
     - cmake .. -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ${BOTAN} ${UDNS} ${SYSTEMD} ${LIBIDN} ${LITESQL}
-    - make
     - make check
     - make e2e
 
@@ -231,7 +230,7 @@ coverity:
   script:
     - export PATH=$PATH:~/coverity/bin
     - cmake .. -DWITHOUT_SYSTEMD=1
-    - cov-build --dir cov-int   make -j$(nproc || echo 1)
+    - cov-build --dir cov-int   make everything -j$(nproc || echo 1)
     - tar czvf biboumi_coverity.tgz cov-int
     - curl --form token=$COVERITY_TOKEN   --form email=louiz@louiz.org   --form file=@biboumi_coverity.tgz  --form version="$(git rev-parse --short HEAD)" --form description="Automatic submission by gitlab-ci" https://scan.coverity.com/builds?project=louiz%2Fbiboumi
   dependencies: []

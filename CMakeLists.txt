@@ -228,6 +228,7 @@ add_executable(test_suite ${source_tests}
         $<TARGET_OBJECTS:irc>
         $<TARGET_OBJECTS:identd>
         $<TARGET_OBJECTS:database>)
+set_target_properties(test_suite PROPERTIES EXCLUDE_FROM_ALL TRUE)
 
 #
 ## Link the executables with their libraries
@@ -298,8 +299,10 @@ endif()
 #
 add_custom_target(check COMMAND "test_suite"
   DEPENDS test_suite biboumi)
+set_target_properties(check PROPERTIES EXCLUDE_FROM_ALL TRUE)
 add_custom_target(e2e COMMAND "python3" "${CMAKE_CURRENT_SOURCE_DIR}/tests/end_to_end/"
   DEPENDS biboumi)
+set_target_properties(e2e PROPERTIES EXCLUDE_FROM_ALL TRUE)
 add_custom_target(e2e_valgrind COMMAND "E2E_BIBOUMI_SUPP_DIR=${CMAKE_CURRENT_SOURCE_DIR}/tests/end_to_end/" "E2E_BIBOUMI_VALGRIND=1" "python3" "${CMAKE_CURRENT_SOURCE_DIR}/tests/end_to_end/"
     DEPENDS biboumi)
 if(CMAKE_BUILD_TYPE MATCHES Debug)
@@ -323,6 +326,7 @@ if(CMAKE_BUILD_TYPE MATCHES Debug)
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
     )
 endif()
+add_custom_target(everything DEPENDS test_suite biboumi)
 
 #
 ## Install target
