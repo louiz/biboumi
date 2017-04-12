@@ -10,4 +10,4 @@ chown -R biboumi:biboumi /var/lib/biboumi
 echo "Running biboumi with the following conf: "
 cat /etc/biboumi/biboumi.cfg
 
-runuser -u biboumi /usr/bin/biboumi /etc/biboumi/biboumi.cfg
+exec runuser -u biboumi /usr/bin/biboumi /etc/biboumi/biboumi.cfg
