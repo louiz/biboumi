@@ -35,7 +35,6 @@ RUN git clone git://git.louiz.org/biboumi && mkdir ./biboumi/build && cd ./bibou
 RUN useradd biboumi
 
 RUN mkdir /var/lib/biboumi
-RUN chown -R biboumi:biboumi /var/lib/biboumi
 
 COPY ./biboumi.cfg /etc/biboumi/biboumi.cfg
 RUN chown -R biboumi:biboumi /etc/biboumi
@@ -44,5 +43,3 @@ COPY ./entrypoint.sh /entrypoint.sh
 RUN chmod 755 /entrypoint.sh
 
 ENTRYPOINT ["/entrypoint.sh"]
-
-USER biboumi
