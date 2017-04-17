@@ -179,19 +179,20 @@ int main(int ac, char** av)
     {
       if (xmpp_component->ever_auth)
         {
+          static const std::string reconnect_name{"XMPP reconnection"};
           if (xmpp_component->first_connection_try == true)
             { // immediately re-try to connect
               xmpp_component->reset();
               xmpp_component->start();
             }
-          else
+          else if (!TimedEventsManager::instance().find_event(reconnect_name))
             { // Re-connecting failed, we now try only each few seconds
               auto reconnect_later = [xmpp_component]()
               {
                 xmpp_component->reset();
                 xmpp_component->start();
               };
-              TimedEvent event(std::chrono::steady_clock::now() + 2s, reconnect_later, "XMPP reconnection");
+              TimedEvent event(std::chrono::steady_clock::now() + 2s, reconnect_later, reconnect_name);
               TimedEventsManager::instance().add_event(std::move(event));
             }
         }

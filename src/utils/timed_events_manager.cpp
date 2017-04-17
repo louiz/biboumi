@@ -1,5 +1,7 @@
 #include <utils/timed_events.hpp>
 
+#include <algorithm>
+
 TimedEventsManager& TimedEventsManager::instance()
 {
   static TimedEventsManager inst;
@@ -67,7 +69,19 @@ std::size_t TimedEventsManager::cancel(const std::string& name)
   return res;
 }
 
+
+
 std::size_t TimedEventsManager::size() const
 {
   return this->events.size();
+}
+
+const TimedEvent* TimedEventsManager::find_event(const std::string& name) const
+{
+  const auto it = std::find_if(this->events.begin(), this->events.end(), [&name](const TimedEvent& o) {
+    return o.get_name() == name;
+  });
+  if (it == this->events.end())
+    return nullptr;
+  return &*it;
 }

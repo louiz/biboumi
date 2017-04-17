@@ -125,6 +125,11 @@ public:
    * Return the number of managed events.
    */
   std::size_t size() const;
+  /**
+   * Return a pointer to the first event with the given name. If none
+   * is found, returns nullptr.
+   */
+  const TimedEvent* find_event(const std::string& name) const;
 
 private:
   std::vector<TimedEvent> events;
