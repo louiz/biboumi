@@ -629,7 +629,8 @@ bool BiboumiComponent::handle_mam_request(const Stanza& stanza)
           }
         // If the archive is really big, and the client didn’t specify any
         // limit, we avoid flooding it: we set an arbitrary max limit.
-        if (limit == -1 && start.empty() && end.empty()) {
+        if (limit == -1 && start.empty() && end.empty())
+          {
             limit = 100;
           }
         const auto lines = Database::get_muc_logs(from.bare(), iid.get_local(), iid.get_server(), limit, start, end);
