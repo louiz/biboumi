@@ -166,7 +166,7 @@ test:freebsd:
 .template:codecov_e2e: &codecov_e2e
   <<: *codecov
   script:
-    - bash <(curl -s https://codecov.io/bash) -X gcov -X coveragepy -f ./coverage_e2e.info -F $(echo $CI_JOB_NAME | sed s/:/_/g)
+    - bash <(curl -s https://codecov.io/bash) -X gcov -X coveragepy -f ./coverage_e2e.info -F $(echo $CI_JOB_NAME | sed s/:/_/g | sed s/codecov_//)
 
 codecov:fedora:
   <<: *codecov_e2e
