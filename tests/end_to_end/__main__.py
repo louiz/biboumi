@@ -454,6 +454,7 @@ def connection_end_sequence(irc_host, jid):
     xpath_re = "/message[@to='" + jid + "'][@from='" + irc_host + "@biboumi.localhost']/body[re:test(text(), '%s')]"
     irc_host = 'irc.localhost'
     return (
+    partial(expect_stanza, xpath_re % (r'^%s: \*\*\* You are exempt from flood limits$' % irc_host)),
     partial(expect_stanza,
             xpath_re % (r'^%s: Your host is .*$' % irc_host)),
     partial(expect_stanza,
