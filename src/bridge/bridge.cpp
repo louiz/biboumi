@@ -425,7 +425,6 @@ void Bridge::leave_irc_channel(Iid&& iid, const std::string& status_message, con
     return ;
 
   IrcChannel* channel = irc->get_channel(iid.get_local());
-  auto nick = channel->get_self()->nick;
 
   const auto resources = this->number_of_resources_in_chan(key);
   if (resources == 1)
@@ -447,9 +446,9 @@ void Bridge::leave_irc_channel(Iid&& iid, const std::string& status_message, con
           else
             irc->send_part_command(iid.get_local(), status_message);
         }
-      else
+      else if (channel->joined)
         {
-          this->send_muc_leave(iid, std::move(nick), "", true, resource);
+          this->send_muc_leave(iid, channel->get_self()->nick, "", true, resource);
         }
       // Since there are no resources left in that channel, we don't
       // want to receive private messages using this room's JID
@@ -457,8 +456,8 @@ void Bridge::leave_irc_channel(Iid&& iid, const std::string& status_message, con
     }
   else
     {
-      if (channel)
-        this->send_muc_leave(iid, std::move(nick),
+      if (channel && channel->joined)
+        this->send_muc_leave(iid, channel->get_self()->nick,
                              "Biboumi note: "s + std::to_string(resources - 1) + " resources are still in this channel.",
                              true, resource);
       this->remove_resource_from_chan(key, resource);
@@ -876,7 +875,8 @@ void Bridge::send_presence_error(const Iid& iid, const std::string& nick,
   this->xmpp.send_presence_error(std::to_string(iid), nick, this->user_jid, type, condition, error_code, text);
 }
 
-void Bridge::send_muc_leave(const Iid &iid, std::string&& nick, const std::string& message, const bool self,
+void Bridge::send_muc_leave(const Iid& iid, const std::string& nick,
+                            const std::string& message, const bool self,
                             const std::string& resource)
 {
   if (!resource.empty())

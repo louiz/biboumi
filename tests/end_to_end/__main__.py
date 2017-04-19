@@ -2457,10 +2457,23 @@ if __name__ == '__main__':
                       handshake_sequence(),
                       partial(send_stanza, "<presence type='subscribe' from='{jid_one}/{resource_one}' to='{biboumi_host}' id='sub1' />"),
                       partial(expect_stanza, "/presence[@to='{jid_one}'][@from='{biboumi_host}'][@type='subscribed']")
-                  ], conf='fixed_server')
+                  ], conf='fixed_server'),
+        Scenario("leave_unjoined_chan",
+                  [
+                      handshake_sequence(),
+                      partial(send_stanza, "<presence from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}/{nick_one}' />"),
+                      connection_sequence("irc.localhost", '{jid_one}/{resource_one}'),
+                      partial(expect_stanza, "/message"),
+                      partial(expect_stanza, "/presence"),
+                      partial(expect_stanza, "/message"),
 
+                      partial(send_stanza, "<presence from='{jid_two}/{resource_two}' to='#foo%{irc_server_one}/{nick_one}' />"),
+                      connection_begin_sequence("irc.localhost", '{jid_two}/{resource_two}'),
+                      partial(expect_stanza, "/message[@to='{jid_two}/{resource_two}'][@type='chat']/body[text()='irc.localhost: {nick_one}: Nickname is already in use.']"),
+                      partial(expect_stanza, "/presence[@type='error']/error[@type='cancel'][@code='409']/stanza:conflict"),
+                      partial(send_stanza, "<presence from='{jid_two}/{resource_two}' to='#foo%{irc_server_one}/{nick_one}' type='unavailable' />")
+         ])
     )
-
 
     failures = 0
 
