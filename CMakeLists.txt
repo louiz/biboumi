@@ -194,6 +194,7 @@ if(LITESQL_FOUND)
 
   add_library(database OBJECT src/database/database.cpp
           ${LITESQL_GENERATED_SOURCES})
+  include_directories(database ${LITESQL_INCLUDE_DIRS})
   set(USE_DATABASE TRUE)
 else()
   add_library(database OBJECT "")
