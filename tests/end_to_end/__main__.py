@@ -492,8 +492,14 @@ def extract_attribute(xpath, name, stanza):
     return matched[0].get(name)
 
 
+def extract_text(xpath, stanza):
+    matched = match(stanza, xpath)
+    return matched[0].text
+
+
 def save_value(name, func, stanza, xmpp):
     xmpp.saved_values[name] = func(stanza)
+
 
 if __name__ == '__main__':
 
@@ -1673,6 +1679,51 @@ if __name__ == '__main__':
                               "/message/mam:result[@queryid='qid1']/forward:forwarded/client:message[@from='#foo@{biboumi_host}/{nick_one}'][@type='groupchat']/client:body[text()='coucou 2']")
                              ),
                  ], conf="fixed_server"),
+         Scenario("default_mam_limit",
+                 [
+                     handshake_sequence(),
+                     partial(send_stanza,
+                             "<presence from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}/{nick_one}' />"),
+                     connection_sequence("irc.localhost", '{jid_one}/{resource_one}'),
+                     partial(expect_stanza,
+                             "/message/body[text()='Mode #foo [+nt] by {irc_host_one}']"),
+                     partial(expect_stanza,
+                            ("/presence[@to='{jid_one}/{resource_one}'][@from='#foo%{irc_server_one}/{nick_one}']/muc_user:x/muc_user:item[@affiliation='admin'][@role='moderator']",
+                             "/presence/muc_user:x/muc_user:status[@code='110']")
+                      ),
+                     partial(expect_stanza, "/message[@from='#foo%{irc_server_one}'][@type='groupchat']/subject[not(text())]",
+                             after = partial(save_value, "counter", lambda x: 0)),
+                 ] + [
+                     partial(send_stanza, "<message from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}' type='groupchat'><body>{counter}</body></message>"),
+                     partial(expect_stanza,
+                             "/message[@from='#foo%{irc_server_one}/{nick_one}'][@to='{jid_one}/{resource_one}'][@type='groupchat']/body[text()='{counter}']",
+                             after = partial(save_value, "counter", lambda stanza: str(1 + int(extract_text("/message/body", stanza))))
+                             ),
+                 ] * 150 + [
+                    # Retrieve the archive, without any restriction
+                    partial(send_stanza, "<iq to='#foo%{irc_server_one}' from='{jid_one}/{resource_one}' type='set' id='id1'><query xmlns='urn:xmpp:mam:2' queryid='qid1' /></iq>"),
+                    # Since we should only receive the last 100 messages from the archive,
+                    # it should start with message "50"
+                    partial(expect_stanza,
+                            ("/message/mam:result[@queryid='qid1']/forward:forwarded/delay:delay",
+                            "/message/mam:result[@queryid='qid1']/forward:forwarded/client:message[@from='#foo%{irc_server_one}/{nick_one}'][@type='groupchat']/client:body[text()='50']")
+                            ),
+                 ] + [
+                     # followed by 98 more messages
+                    partial(expect_stanza,
+                            ("/message/mam:result[@queryid='qid1']/forward:forwarded/delay:delay",
+                            "/message/mam:result[@queryid='qid1']/forward:forwarded/client:message[@from='#foo%{irc_server_one}/{nick_one}'][@type='groupchat']/client:body")
+                            ),
+                  ] * 98 + [
+                     # and finally the message "149"
+                    partial(expect_stanza,
+                            ("/message/mam:result[@queryid='qid1']/forward:forwarded/delay:delay",
+                            "/message/mam:result[@queryid='qid1']/forward:forwarded/client:message[@from='#foo%{irc_server_one}/{nick_one}'][@type='groupchat']/client:body[text()='149']")
+                            ),
+                    partial(expect_stanza,
+                            "/iq[@type='result'][@id='id1'][@from='#foo%{irc_server_one}'][@to='{jid_one}/{resource_one}']"),
+
+                  ]),
         Scenario("channel_history_on_fixed_server",
                  [
                      handshake_sequence(),
