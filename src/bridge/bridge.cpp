@@ -170,7 +170,6 @@ bool Bridge::join_irc_channel(const Iid& iid, const std::string& nickname, const
                               const std::string& resource)
 {
   const auto& hostname = iid.get_server();
-  this->cancel_linger_timer(hostname);
   IrcClient* irc = this->make_irc_client(hostname, nickname);
   this->add_resource_to_server(hostname, resource);
   auto res_in_chan = this->is_resource_in_chan(ChannelKey{iid.get_local(), hostname}, resource);
@@ -1263,10 +1262,4 @@ void Bridge::quit_or_start_linger_timer(const std::string& irc_hostname)
       irc->send_quit_command("");
   }, event_name);
   TimedEventsManager::instance().add_event(std::move(event));
-}
-
-void Bridge::cancel_linger_timer(const std::string& irc_hostname)
-{
-  const auto event_name = "IRCLINGER:" + irc_hostname + ".." + this->get_bare_jid();
-  TimedEventsManager::instance().cancel(event_name);
 }
