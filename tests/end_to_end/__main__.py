@@ -2346,42 +2346,6 @@ if __name__ == '__main__':
                      partial(send_stanza, "<iq type='set' id='id4' from='{jid_one}/{resource_one}' to='#foo@{biboumi_host}'><command xmlns='http://jabber.org/protocol/commands' action='cancel' node='configure' sessionid='{sessionid}' /></iq>"),
                      partial(expect_stanza, "/iq[@type='result']/commands:command[@node='configure'][@status='canceled']"),
                  ], conf='fixed_server'),
-        Scenario("irc_server_linger_time",
-                 [
-                     handshake_sequence(),
-                     # Set a custom value for the linger_time option, using the ad-hoc command
-                     partial(send_stanza, "<iq type='set' id='id1' from='{jid_one}/{resource_one}' to='{irc_server_one}'><command xmlns='http://jabber.org/protocol/commands' node='configure' action='execute' /></iq>"),
-                     partial(expect_stanza, ("/iq[@type='result']/commands:command[@node='configure'][@sessionid][@status='executing']",
-                                             "/iq/commands:command/dataform:x[@type='form']/dataform:title[text()='Configure the IRC server irc.localhost']",
-                                             "/iq/commands:command/commands:actions/commands:next",
-                                             ),
-                             after = partial(save_value, "sessionid", partial(extract_attribute, "/iq[@type='result']/commands:command[@node='configure']", "sessionid"))
-                             ),
-                     partial(send_stanza, "<iq type='set' id='id2' from='{jid_one}/{resource_one}' to='{irc_server_one}'>"
-                                          "<command xmlns='http://jabber.org/protocol/commands' node='configure' sessionid='{sessionid}' action='next'>"
-                                          "<x xmlns='jabber:x:data' type='submit'>"
-                                          "<field var='linger_time'><value>3</value></field>"
-                                          "</x></command></iq>"),
-                     partial(expect_stanza, "/iq[@type='result']/commands:command[@node='configure'][@status='completed']/commands:note[@type='info'][text()='Configuration successfully applied.']"),
-
-                     partial(send_stanza,
-                             "<presence from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}/{nick_one}' />"),
-                     connection_sequence("irc.localhost", '{jid_one}/{resource_one}'),
-                     partial(expect_stanza,
-                             "/message/body[text()='Mode #foo [+nt] by {irc_host_one}']"),
-                     partial(expect_stanza,
-                             ("/presence[@to='{jid_one}/{resource_one}'][@from='#foo%{irc_server_one}/{nick_one}']/muc_user:x/muc_user:item[@affiliation='admin'][@role='moderator']",
-                             "/presence/muc_user:x/muc_user:status[@code='110']")
-                             ),
-                     partial(expect_stanza, "/message[@from='#foo%{irc_server_one}'][@type='groupchat']/subject[not(text())]"),
-
-                     partial(save_datetime),
-                     partial(send_stanza, "<presence type='unavailable' from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}/{nick_one}' />"),
-                     partial(expect_stanza, "/presence[@type='unavailable'][@from='#foo%{irc_server_one}/{nick_one}']"),
-                     partial(expect_stanza, "/message[@from='{irc_server_one}']/body[text()='ERROR: Closing Link: localhost (Client Quit)']"),
-                     partial(expect_stanza, "/message[@from='{irc_server_one}']/body[text()='ERROR: Connection closed.']"),
-                     partial(expect_now_is_after, datetime.timedelta(seconds=3)),
-                 ]),
          Scenario("irc_tls_connection",
                   [
                      handshake_sequence(),
