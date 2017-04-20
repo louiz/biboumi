@@ -6,7 +6,6 @@ stages:
 
 before_script:
   - uname -a
-  - locale
   - whoami
   - mkdir -p build/
   - cd build/
@@ -51,11 +50,20 @@ variables:
   <<: *basic_build
   image: docker.louiz.org/biboumi-test-debian:latest
 
+.template:alpine_build: &alpine_build
+  variables:
+    SYSTEMD: "-DWITHOUT_SYSTEMD=1"
+  <<: *basic_build
+  image: docker.louiz.org/biboumi-test-alpine:latest
+
 build:fedora:
   <<: *fedora_build
 
 build:debian:
   <<: *debian_build
+
+build:alpine:
+  <<: *alpine_build
 
 build:1:
   variables:
@@ -134,6 +142,16 @@ test:without_udns:
   <<: *basic_test
   dependencies:
     - build:7
+
+test:alpine:
+  image: docker.louiz.org/biboumi-test-alpine:latest
+  stage: test
+  tags:
+    - docker
+  script:
+    - make e2e
+  dependencies:
+    - build:alpine
 
 test:freebsd:
   only:
