@@ -423,7 +423,6 @@ def connection_begin_sequence(irc_host, jid):
             xpath_re % (r'^%s: (\*\*\* Checking Ident|\*\*\* Looking up your hostname\.\.\.|\*\*\* Found your hostname: .*|ACK multi-prefix|\*\*\* Got Ident response)$' % 'irc.localhost')),
     partial(expect_stanza,
             xpath_re % (r'^%s: (\*\*\* Checking Ident|\*\*\* Looking up your hostname\.\.\.|\*\*\* Found your hostname: .*|ACK multi-prefix|\*\*\* Got Ident response)$' % 'irc.localhost')),
-    partial(expect_stanza, xpath_re % (r'^%s: \*\*\* You are exempt from flood limits$' % 'irc.localhost')),
     )
 
 def connection_tls_begin_sequence(irc_host, jid):
@@ -447,7 +446,6 @@ def connection_tls_begin_sequence(irc_host, jid):
                 xpath_re % (r'^%s: (\*\*\* Checking Ident|\*\*\* Looking up your hostname\.\.\.|\*\*\* Found your hostname: .*|ACK multi-prefix|\*\*\* Got Ident response)$' % irc_host)),
         partial(expect_stanza,
                 xpath_re % (r'^%s: (\*\*\* Checking Ident|\*\*\* Looking up your hostname\.\.\.|\*\*\* Found your hostname: .*|ACK multi-prefix|\*\*\* Got Ident response)$' % irc_host)),
-        partial(expect_stanza, xpath_re % (r'^%s: \*\*\* You are exempt from flood limits$' % 'irc.localhost')),
     )
 
 def connection_end_sequence(irc_host, jid):
@@ -480,12 +478,23 @@ def connection_end_sequence(irc_host, jid):
             xpath_re % r'^User mode for \w+ is \[\+Z?i\]$'),
     )
 
+def connection_middle_sequence(irc_host, jid):
+    xpath_re = "/message[@to='" + jid + "'][@from='" + irc_host + "@biboumi.localhost']/body[re:test(text(), '%s')]"
+    irc_host = 'irc.localhost'
+    return (
+        partial(expect_stanza, xpath_re % (r'^%s: \*\*\* You are exempt from flood limits$' % irc_host)),
+    )
+
 
 def connection_sequence(irc_host, jid):
-    return connection_begin_sequence(irc_host, jid) + connection_end_sequence(irc_host, jid)
+    return connection_begin_sequence(irc_host, jid) +\
+           connection_middle_sequence(irc_host, jid) +\
+           connection_end_sequence(irc_host, jid)
 
 def connection_tls_sequence(irc_host, jid):
-    return connection_tls_begin_sequence(irc_host, jid) + connection_end_sequence(irc_host, jid)
+    return connection_tls_begin_sequence(irc_host, jid) + \
+           connection_middle_sequence(irc_host, jid) +\
+           connection_end_sequence(irc_host, jid)
 
 
 def extract_attribute(xpath, name, stanza):
@@ -554,6 +563,8 @@ if __name__ == '__main__':
                      partial(send_stanza,
                              "<presence from='{jid_one}/{resource_one}' to='%{irc_server_one}/{nick_one}' />"),
                      connection_begin_sequence("irc.localhost", '{jid_one}/{resource_one}'),
+                     connection_middle_sequence("irc.localhost", '{jid_one}/{resource_one}'),
+
                      partial(expect_stanza,
                              ("/presence[@to='{jid_one}/{resource_one}'][@from='%{irc_server_one}/{nick_one}']/muc_user:x/muc_user:item[@affiliation='none'][@role='participant']",
                               "/presence/muc_user:x/muc_user:status[@code='110']")
@@ -587,6 +598,8 @@ if __name__ == '__main__':
                      partial(send_stanza,
                              "<presence from='{jid_one}/{resource_one}' to='%{irc_server_one}/{nick_one}' />"),
                      connection_begin_sequence("irc.localhost", '{jid_one}/{resource_one}'),
+                     connection_middle_sequence("irc.localhost", '{jid_one}/{resource_one}'),
+
                      partial(expect_stanza,
                              ("/presence[@to='{jid_one}/{resource_one}'][@from='%{irc_server_one}/{nick_one}']/muc_user:x/muc_user:item[@affiliation='none'][@role='participant']",
                               "/presence/muc_user:x/muc_user:status[@code='110']")
@@ -2136,6 +2149,8 @@ if __name__ == '__main__':
                      partial(send_stanza,
                              "<presence from='{jid_one}/{resource_one}' to='%{irc_server_one}/{nick_one}' />"),
                      connection_begin_sequence("irc.localhost", '{jid_one}/{resource_one}'),
+                     connection_middle_sequence("irc.localhost", '{jid_one}/{resource_one}'),
+
                      partial(expect_stanza,
                              ("/presence[@to='{jid_one}/{resource_one}'][@from='%{irc_server_one}/{nick_one}']/muc_user:x/muc_user:item[@affiliation='none'][@role='participant']",
                               "/presence/muc_user:x/muc_user:status[@code='110']")
@@ -2469,6 +2484,7 @@ if __name__ == '__main__':
 
                       partial(send_stanza, "<presence from='{jid_two}/{resource_two}' to='#foo%{irc_server_one}/{nick_one}' />"),
                       connection_begin_sequence("irc.localhost", '{jid_two}/{resource_two}'),
+
                       partial(expect_stanza, "/message[@to='{jid_two}/{resource_two}'][@type='chat']/body[text()='irc.localhost: {nick_one}: Nickname is already in use.']"),
                       partial(expect_stanza, "/presence[@type='error']/error[@type='cancel'][@code='409']/stanza:conflict"),
                       partial(send_stanza, "<presence from='{jid_two}/{resource_two}' to='#foo%{irc_server_one}/{nick_one}' type='unavailable' />")
