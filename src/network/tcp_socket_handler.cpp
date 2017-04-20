@@ -125,9 +125,14 @@ ssize_t TCPSocketHandler::do_recv(void* recv_buf, const size_t buf_size)
 void TCPSocketHandler::on_send()
 {
   struct iovec msg_iov[UIO_FASTIOV] = {};
-  struct msghdr msg{nullptr, 0,
-      msg_iov,
-      0, nullptr, 0, 0};
+  struct msghdr msg;
+  msg.msg_name = nullptr;
+  msg.msg_namelen = 0;
+  msg.msg_iov = msg_iov;
+  msg.msg_iovlen = 0;
+  msg.msg_control = nullptr;
+  msg.msg_controllen = 0;
+  msg.msg_flags = 0;
   for (const std::string& s: this->out_buf)
     {
       // unconsting the content of s is ok, sendmsg will never modify it
