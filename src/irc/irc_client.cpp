@@ -846,8 +846,36 @@ void IrcClient::on_welcome_message(const IrcMessage& message)
   // Install a repeated events to regularly send a PING
   TimedEventsManager::instance().add_event(TimedEvent(240s, std::bind(&IrcClient::send_ping_command, this),
                                                       "PING"s + this->hostname + this->bridge.get_jid()));
+  std::string channels{};
+  std::string channels_with_key{};
+  std::string keys{};
+
   for (const auto& tuple: this->channels_to_join)
-    this->send_join_command(std::get<0>(tuple), std::get<1>(tuple));
+    {
+      const auto& chan = std::get<0>(tuple);
+      const auto& key = std::get<1>(tuple);
+      if (chan.empty())
+        continue;
+      if (!key.empty())
+        {
+          if (!keys.empty())
+            keys += ",";
+          keys += key;
+          if (!channels_with_key.empty())
+            channels_with_key += ",";
+          channels_with_key += chan;
+        }
+      else
+        {
+          if (!channels.empty())
+            channels += ",";
+          channels += chan;
+        }
+    }
+  if (!channels.empty())
+    this->send_join_command(channels, {});
+  if (!channels_with_key.empty())
+    this->send_join_command(channels_with_key, keys);
   this->channels_to_join.clear();
   // Indicate that the dummy channel is joined as well, if needed
   if (this->dummy_channel.joining)
