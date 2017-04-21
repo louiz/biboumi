@@ -35,15 +35,19 @@ details on its content.
 Configuration
 =============
 
-The configuration file uses a simple format of the form
-``option=value``.
+The configuration file uses a simple format of the form ``option=value``.
+
+The values from the configuration file can be overridden by environment
+variables, with the name all in upper case and prefixed with "BIBOUMI_".
+For example, if the environment contains “BIBOUMI_PASSWORD=blah", this will
+override the value of the “password” option in the configuration file.
 
 Sending SIGUSR1 or SIGUSR2 (see kill(1)) to the process will force it to
 re-read the configuration and make it close and re-open the log files. You
 can use this to change any configuration option at runtime, or do a log
 rotation.
 
-Here is a description of each possible option:
+Here is a description of every possible option:
 
 hostname
 --------

@@ -1,9 +1,14 @@
 #include <config/config.hpp>
+#include <utils/tolower.hpp>
 
 #include <iostream>
 #include <cstring>
 
 #include <cstdlib>
+
+using namespace std::string_literals;
+
+extern char** environ;
 
 std::string Config::filename{};
 std::map<std::string, std::string> Config::values{};
@@ -71,21 +76,40 @@ bool Config::read_conf(const std::string& name)
 
   Config::clear();
 
+  auto parse_line = [](const std::string& line, const bool env)
+  {
+    static const auto env_option_prefix = "BIBOUMI_"s;
+
+    if (line == "" || line[0] == '#')
+      return;
+    size_t pos = line.find('=');
+    if (pos == std::string::npos)
+      return;
+    std::string option = line.substr(0, pos);
+    std::string value = line.substr(pos+1);
+    if (env)
+      {
+        auto a = option.substr(0, env_option_prefix.size());
+        if (a == env_option_prefix)
+          option = utils::tolower(option.substr(env_option_prefix.size()));
+        else
+          return;
+      }
+    Config::values[option] = value;
+  };
+
   std::string line;
-  size_t pos;
-  std::string option;
-  std::string value;
   while (file.good())
     {
       std::getline(file, line);
-      if (line == "" || line[0] == '#')
-        continue ;
-      pos = line.find('=');
-      if (pos == std::string::npos)
-        continue ;
-      option = line.substr(0, pos);
-      value = line.substr(pos+1);
-      Config::values[option] = value;
+      parse_line(line, false);
+    }
+
+  char** env_line = environ;
+  while (*env_line)
+    {
+      parse_line(*env_line, true);
+      env_line++;
     }
   return true;
 }

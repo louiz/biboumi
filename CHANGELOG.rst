@@ -14,6 +14,7 @@ Version 5.0
  - If the client doesn’t specify any limit, MAM results contain at most 100
    messages, instead of the whole archive.
  - Multiline topics are now properly handled
+ - Configuration options can be overridden by values found in the process env.
 
 Version 4.1 - 2017-03-21
 ========================
