@@ -858,6 +858,12 @@ void IrcClient::on_welcome_message(const IrcMessage& message)
         continue;
       if (!key.empty())
         {
+          if (keys.size() + channels_with_key.size() >= 300)
+            { // Arbitrary size, to make sure we never send more than 512
+              this->send_join_command(channels_with_key, keys);
+              channels_with_key.clear();
+              keys.clear();
+            }
           if (!keys.empty())
             keys += ",";
           keys += key;
@@ -867,6 +873,11 @@ void IrcClient::on_welcome_message(const IrcMessage& message)
         }
       else
         {
+          if (channels.size() >= 300)
+            { // Arbitrary size, to make sure we never send more than 512
+              this->send_join_command(channels, {});
+              channels.clear();
+            }
           if (!channels.empty())
             channels += ",";
           channels += chan;
