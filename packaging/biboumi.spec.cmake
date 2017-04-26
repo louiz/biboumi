@@ -59,6 +59,9 @@ make check %{?_smp_mflags}
 
 
 %changelog
+* Wed Apr 26 2017 Le Coz Florent <louiz@louiz.org> - 4.2-1
+- Fix a build issue when LiteSQL is absent from the system
+
 * Tue Mar 21 2017 Le Coz Florent <louiz@louiz.org> - 4.1-1
 - Update to 4.1 sources: compatibility with botan 2.0
 
