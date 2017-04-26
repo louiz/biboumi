@@ -18,6 +18,11 @@ Version 5.0
  - Botan’s TLS policies can be customized by the administrator, for each
    IRC server, with simple text files.
 
+Version 4.2 - 2017-04-26
+========================
+
+ - Fix a build issue when LiteSQL is absent from the system
+
 Version 4.1 - 2017-03-21
 ========================
 
