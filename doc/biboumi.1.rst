@@ -81,9 +81,8 @@ admin
 -----
 
 The bare JID of the gateway administrator. This JID will have more
-privileges than other standard users (the admin thus needs to check their
-privileges), for example some administration ad-hoc commands will only be
-available to that JID.
+privileges than other standard users, for example some administration
+ad-hoc commands will only be available to that JID.
 
 fixed_irc_server
 ----------------
