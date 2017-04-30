@@ -1,6 +1,7 @@
 #include "catch.hpp"
 #include <network/tls_policy.hpp>
 
+#ifdef USE_DATABASE
 TEST_CASE("tls_policy")
 {
   BiboumiTLSPolicy policy;
@@ -40,3 +41,4 @@ TEST_CASE("tls_policy")
         }
     }
 }
+#endif
