@@ -163,6 +163,40 @@ identd_port
 
 The TCP port on which to listen for identd queries.  The default is the standard value: 113.
 
+policy_directory
+----------------
+
+A directory that should contain the policy files, used to customize
+Botan’s behaviour when negociating the TLS connections with the IRC
+servers. If not specified, the directory is the one where biboumi’s
+configuration file is located: for example if biboumi reads its
+configuration from /etc/biboumi/biboumi.cfg, the policy_directory value
+will be /etc/biboumi.
+
+
+TLS configuration
+=================
+
+Various settings of the TLS connections can be customized using policy
+files. The files should be located in the directory specified by the
+configuration option `policy_directory`_.  When attempting to connect to
+an IRC server using TLS, biboumi will use Botan’s default TLS policy, and
+then will try to load some policy files to override the values found in
+these files.  For example, if policy_directory is /etc/biboumi, when
+trying to connect to irc.example.com, biboumi will try to read
+/etc/biboumi/policy.txt, use the values found to override the default
+values, then it will try to read /etc/biboumi/irc.example.com.policy.txt
+and re-override the policy with the values found in this file.
+
+The policy.txt file applies to all the connections, and
+irc.example.policy.txt will only apply (in addition to policy.txt) when
+connecting to that specific server.
+
+To see the list of possible options to configure, refer to `Botan’s TLS
+documentation <https://botan.randombit.net/manual/tls.html#tls-policies>`_.
+
+By default, biboumi provides a few policy files, to work around some
+issues found with a few well-known IRC servers.
 
 Usage
 =====
@@ -628,3 +662,4 @@ protection against flood or any sort of abuse that your users may cause on
 the IRC servers. Some XMPP server however offer the possibility to restrict
 what JID can access a gateway. Use that feature if you wish to grant access
 to your biboumi instance only to a list of trusted users.
+

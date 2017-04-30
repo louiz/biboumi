@@ -1,0 +1,1 @@
+minimum_dh_group_size = 1024

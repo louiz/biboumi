@@ -15,6 +15,8 @@ Version 5.0
    messages, instead of the whole archive.
  - Multiline topics are now properly handled
  - Configuration options can be overridden by values found in the process env.
+ - Botan’s TLS policies can be customized by the administrator, for each
+   IRC server, with simple text files.
 
 Version 4.1 - 2017-03-21
 ========================

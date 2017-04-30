@@ -10,6 +10,7 @@
 #include <utils/time.hpp>
 #include <utils/system.hpp>
 #include <utils/scopeguard.hpp>
+#include <utils/dirname.hpp>
 
 using namespace std::string_literals;
 
@@ -157,4 +158,16 @@ TEST_CASE("system_name")
 {
   CHECK(utils::get_system_name() != "Unknown");
   CHECK(!utils::get_system_name().empty());
+}
+
+TEST_CASE("dirname")
+{
+  CHECK(utils::dirname("/") == "/");
+  CHECK(utils::dirname("coucou.txt") == "./");
+  CHECK(utils::dirname("../coucou.txt") == "../");
+  CHECK(utils::dirname("/etc/biboumi/coucou.txt") == "/etc/biboumi/");
+  CHECK(utils::dirname("..") == "..");
+  CHECK(utils::dirname("../") == "../");
+  CHECK(utils::dirname(".") == ".");
+  CHECK(utils::dirname("./") == "./");
 }

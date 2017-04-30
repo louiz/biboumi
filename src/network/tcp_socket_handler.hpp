@@ -23,21 +23,7 @@
 # include <botan/types.h>
 # include <botan/botan.h>
 # include <botan/tls_session_manager.h>
-
-class BiboumiTLSPolicy: public Botan::TLS::Policy
-{
-public:
-# if BOTAN_VERSION_CODE >= BOTAN_VERSION_CODE_FOR(1,11,33)
-  bool use_ecc_point_compression() const override
-  {
-    return true;
-  }
-  bool require_cert_revocation_info() const override
-  {
-    return false;
-  }
-# endif
-};
+# include <network/tls_policy.hpp>
 
 # if BOTAN_VERSION_CODE >= BOTAN_VERSION_CODE_FOR(1,11,32)
 #  define BOTAN_TLS_CALLBACKS_OVERRIDE override final
@@ -230,6 +216,7 @@ protected:
 protected:
   BasicCredentialsManager credential_manager;
 private:
+  BiboumiTLSPolicy policy;
   /**
    * We use a unique_ptr because we may not want to create the object at
    * all. The Botan::TLS::Client object generates a handshake message and

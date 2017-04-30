@@ -14,6 +14,8 @@
 #ifdef BOTAN_FOUND
 # include <botan/hex.h>
 # include <botan/tls_exceptn.h>
+# include <config/config.hpp>
+# include <utils/dirname.hpp>
 
 namespace
 {
@@ -21,11 +23,6 @@ namespace
     {
       static Botan::AutoSeeded_RNG rng{};
       return rng;
-    }
-    BiboumiTLSPolicy& get_policy()
-    {
-      static BiboumiTLSPolicy policy{};
-      return policy;
     }
     Botan::TLS::Session_Manager_In_Memory& get_session_manager()
     {
@@ -233,6 +230,11 @@ void TCPSocketHandler::consume_in_buffer(const std::size_t size)
 void TCPSocketHandler::start_tls(const std::string& address, const std::string& port)
 {
   Botan::TLS::Server_Information server_info(address, "irc", std::stoul(port));
+  auto policy_directory = Config::get("policy_directory", utils::dirname(Config::get_filename()));
+  if (!policy_directory.empty() && policy_directory[policy_directory.size()-1] != '/')
+    policy_directory += '/';
+  this->policy.load(policy_directory + "policy.txt");
+  this->policy.load(policy_directory + address + ".policy.txt");
   this->tls = std::make_unique<Botan::TLS::Client>(
 # if BOTAN_VERSION_CODE >= BOTAN_VERSION_CODE_FOR(1,11,32)
       *this,
@@ -242,7 +244,7 @@ void TCPSocketHandler::start_tls(const std::string& address, const std::string& 
       [this](Botan::TLS::Alert alert, const Botan::byte*, size_t) { this->tls_alert(alert); },
       [this](const Botan::TLS::Session& session) { return this->tls_session_established(session); },
 # endif
-      get_session_manager(), this->credential_manager, get_policy(),
+      get_session_manager(), this->credential_manager, this->policy,
       get_rng(), server_info, Botan::TLS::Protocol_Version::latest_tls_version());
 }
 
