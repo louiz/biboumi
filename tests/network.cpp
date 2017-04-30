@@ -1,7 +1,7 @@
 #include "catch.hpp"
 #include <network/tls_policy.hpp>
 
-#ifdef USE_DATABASE
+#ifdef BOTAN_FOUND
 TEST_CASE("tls_policy")
 {
   BiboumiTLSPolicy policy;
