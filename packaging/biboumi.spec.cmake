@@ -59,6 +59,10 @@ make check %{?_smp_mflags}
 
 
 %changelog
+* Wed May 2 2017 Le Coz Florent <louiz@louiz.org> - 4.3-1
+- Fix a segmentation fault that occured when trying to connect
+  to an IRC server without any port configured.
+
 * Wed Apr 26 2017 Le Coz Florent <louiz@louiz.org> - 4.2-1
 - Fix a build issue when LiteSQL is absent from the system
 
