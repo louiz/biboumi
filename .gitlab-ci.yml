@@ -117,6 +117,7 @@ build:7:
     - make coverage_e2e -j$(nproc || echo 1)
     - make coverage
   artifacts:
+    expire_in: 2 weeks
     paths:
       - build/coverage_test_suite/
       - build/coverage_e2e/
