@@ -38,7 +38,7 @@ variables:
     - make everything -j$(nproc || echo 1)
     - make coverage_check -j$(nproc || echo 1)
   artifacts:
-    expire_in: 8 hours
+    expire_in: 2 weeks
     paths:
       - build/
 
