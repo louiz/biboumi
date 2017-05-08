@@ -503,6 +503,8 @@ void BiboumiComponent::handle_iq(const Stanza& stanza)
                     rs_info.max = std::atoi(max->get_inner().data());
 
                 }
+              if (rs_info.max == -1)
+                rs_info.max = 100;
               bridge->send_irc_channel_list_request(iid, id, from, std::move(rs_info));
               stanza_error.disable();
             }
