@@ -478,7 +478,7 @@ void Bridge::send_irc_nick_change(const Iid& iid, const std::string& new_nick, c
 void Bridge::send_irc_channel_list_request(const Iid& iid, const std::string& iq_id, const std::string& to_jid,
                                            ResultSetInfo rs_info)
 {
-  auto& list = channel_list_cache[iid.get_server()];
+  auto& list = this->channel_list_cache[iid.get_server()];
 
   // We fetch the list from the IRC server only if we have a complete
   // cached list that needs to be invalidated (that is, when the request
@@ -501,7 +501,7 @@ void Bridge::send_irc_channel_list_request(const Iid& iid, const std::string& iq
         if (irc_hostname != iid.get_server())
           return false;
 
-        auto& list = channel_list_cache[iid.get_server()];
+        auto& list = this->channel_list_cache[iid.get_server()];
 
         if (message.command == "263" || message.command == "RPL_TRYAGAIN" || message.command == "ERR_TOOMANYMATCHES"
             || message.command == "ERR_NOSUCHSERVER")
@@ -579,7 +579,7 @@ bool Bridge::send_matching_channel_list(const ChannelList& channel_list, const R
                                         const std::string& id, const std::string& to_jid, const std::string& from)
 {
   auto begin = channel_list.channels.begin();
-  auto end = channel_list.channels.begin();
+  auto end = channel_list.channels.end();
   if (channel_list.complete)
     {
       begin = std::find_if(channel_list.channels.begin(), channel_list.channels.end(), [this, &rs_info](const ListElement& element)
