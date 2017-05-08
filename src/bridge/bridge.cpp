@@ -559,7 +559,6 @@ void Bridge::send_irc_channel_list_request(const Iid& iid, const std::string& iq
           {
             auto& list = channel_list_cache[iid.get_server()];
             const auto res = this->send_matching_channel_list(list, rs_info, iq_id, to_jid, std::to_string(iid));
-            log_debug("We added a new channel in our list, can we send the result? ", std::boolalpha, res);
             return res;
           }
         else if (message.command == "323" || message.command == "RPL_LISTEND")
