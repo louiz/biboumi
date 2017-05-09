@@ -227,9 +227,10 @@ void TCPSocketHandler::consume_in_buffer(const std::size_t size)
 }
 
 #ifdef BOTAN_FOUND
-void TCPSocketHandler::start_tls(const std::string& address, const std::string& port)
+void TCPSocketHandler::start_tls(const std::string& address, const std::string& port_string)
 {
-  Botan::TLS::Server_Information server_info(address, "irc", std::stoul(port));
+  auto port = std::min(std::stoul(port_string), static_cast<unsigned long>(std::numeric_limits<uint16_t>::max()));
+  Botan::TLS::Server_Information server_info(address, "irc", static_cast<uint16_t>(port));
   auto policy_directory = Config::get("policy_directory", utils::dirname(Config::get_filename()));
   if (!policy_directory.empty() && policy_directory[policy_directory.size()-1] != '/')
     policy_directory += '/';

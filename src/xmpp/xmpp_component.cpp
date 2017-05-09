@@ -112,17 +112,20 @@ void XmppComponent::on_connection_close(const std::string& error)
 
 void XmppComponent::parse_in_buffer(const size_t size)
 {
+  // in_buf.size, or size, cannot be bigger than our read-size (4096) so it’s safe
+  // to cast.
+
   if (!this->in_buf.empty())
     { // This may happen if the parser could not allocate enough space for
       // us. We try to feed it the data that was read into our in_buf
       // instead. If this fails again we are in trouble.
-      this->parser.feed(this->in_buf.data(), this->in_buf.size(), false);
+      this->parser.feed(this->in_buf.data(), static_cast<int>(this->in_buf.size()), false);
       this->in_buf.clear();
     }
   else
     { // Just tell the parser to parse the data that was placed into the
       // buffer it provided to us with GetBuffer
-      this->parser.parse(size, false);
+      this->parser.parse(static_cast<int>(size), false);
     }
 }
 

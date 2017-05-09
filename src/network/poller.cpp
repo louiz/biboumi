@@ -200,7 +200,11 @@ int Poller::poll(const std::chrono::milliseconds& timeout)
   // Unblock all signals, only during the epoll_pwait call
   sigset_t empty_signal_set{};
   sigemptyset(&empty_signal_set);
-  const int nb_events = ::epoll_pwait(this->epfd, revents, max_events, timeout.count(),
+
+  int real_timeout = std::numeric_limits<int>::max();
+  if (timeout.count() < real_timeout) // Just avoid any potential int overflow
+    real_timeout = static_cast<int>(timeout.count());
+  const int nb_events = ::epoll_pwait(this->epfd, revents, max_events, real_timeout,
                                       &empty_signal_set);
   if (nb_events == -1)
     {
