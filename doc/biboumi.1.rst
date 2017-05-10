@@ -326,7 +326,7 @@ biboumi provides a virtual channel on the jid
 channel ``#foo`` on the server ``irc.example.com``, but you need to authenticate
 to a bot of the server before you’re allowed to join it, you can first join
 the room ``%irc.example.com@biboumi.example.com`` (this will effectively
-connect you to the IRC server without joining any room), then send your
+connect you to the IRC server without joining any channel), then send your
 authentication message to the user ``bot%irc.example.com@biboumi.example.com``
 and finally join the room ``#foo%irc.example.com@biboumi.example.com``.
 
@@ -412,8 +412,8 @@ Topic
 -----
 
 The topic can be set and retrieved seemlessly. The unique difference is that
-if an XMPP user tries to set a multiline topic, every line return (\n) will
-be replaced by a space, because the IRC wouldn’t accept it.
+if an XMPP user tries to set a multiline topic, every line return (\\n) will
+be replaced by a space, because the IRC server wouldn’t accept it.
 
 Invitations
 -----------
