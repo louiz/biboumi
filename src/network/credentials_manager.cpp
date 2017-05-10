@@ -7,10 +7,6 @@
 #include <botan/tls_exceptn.h>
 #include <config/config.hpp>
 
-#ifdef USE_DATABASE
-# include <database/database.hpp>
-#endif
-
 /**
  * TODO find a standard way to find that out.
  */

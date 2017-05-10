@@ -153,17 +153,17 @@ include_directories("${CMAKE_CURRENT_BINARY_DIR}/")
 file(GLOB source_utils
         src/utils/*.[hc]pp)
 add_library(utils OBJECT ${source_utils})
-add_dependencies(utils database)
+add_dependencies(utils litesql_generated_sources)
 
 file(GLOB source_irc
         src/irc/*.[hc]pp)
 add_library(irc OBJECT ${source_irc})
-add_dependencies(irc database)
+add_dependencies(irc litesql_generated_sources)
 
 file(GLOB source_xmpp
         src/xmpp/*.[hc]pp)
 add_library(xmpp OBJECT ${source_xmpp})
-add_dependencies(xmpp database)
+add_dependencies(xmpp litesql_generated_sources)
 
 file(GLOB source_identd
         src/identd/*.[hc]pp)
@@ -172,7 +172,7 @@ add_library(identd OBJECT ${source_identd})
 file(GLOB source_bridge
         src/bridge/*.[hc]pp)
 add_library(bridge OBJECT ${source_bridge})
-add_dependencies(bridge database)
+add_dependencies(bridge litesql_generated_sources)
 
 file(GLOB source_config
         src/config/*.[hc]pp)
@@ -185,15 +185,16 @@ add_library(logger OBJECT ${source_logger})
 file(GLOB source_network
         src/network/*.[hc]pp)
 add_library(network OBJECT ${source_network})
-add_dependencies(network database)
 
 if(LITESQL_FOUND)
   LITESQL_GENERATE_CPP("database/database.xml"
           "biboudb"
           LITESQL_GENERATED_SOURCES)
+  add_custom_target(litesql_generated_sources SOURCES ${LITESQL_GENERATED_SOURCES})
 
-  add_library(database OBJECT src/database/database.cpp
-          ${LITESQL_GENERATED_SOURCES})
+  add_library(database OBJECT src/database/database.cpp ${LITESQL_GENERATED_SOURCES})
+  add_dependencies(database litesql_generated_sources)
+
   include_directories(database ${LITESQL_INCLUDE_DIRS})
   set(USE_DATABASE TRUE)
 else()
