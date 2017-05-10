@@ -199,6 +199,7 @@ if(LITESQL_FOUND)
   set(USE_DATABASE TRUE)
 else()
   add_library(database OBJECT "")
+  add_custom_target(litesql_generated_sources)
 endif()
 
 #
