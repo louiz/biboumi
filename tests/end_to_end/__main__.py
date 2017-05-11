@@ -118,6 +118,7 @@ def match(stanza, xpath):
     tree = lxml.etree.parse(io.StringIO(str(stanza)))
     matched = tree.xpath(xpath, namespaces={'re': 'http://exslt.org/regular-expressions',
                                             'muc_user': 'http://jabber.org/protocol/muc#user',
+                                            'muc_owner': 'http://jabber.org/protocol/muc#owner',
                                             'muc': 'http://jabber.org/protocol/muc',
                                             'disco_info': 'http://jabber.org/protocol/disco#info',
                                             'muc_traffic': 'http://jabber.org/protocol/muc#traffic',
@@ -2381,6 +2382,26 @@ if __name__ == '__main__':
                              ),
                      partial(send_stanza, "<iq type='set' id='id4' from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}'><command xmlns='http://jabber.org/protocol/commands' action='cancel' node='configure' sessionid='{sessionid}' /></iq>"),
                      partial(expect_stanza, "/iq[@type='result']/commands:command[@node='configure'][@status='canceled']"),
+                 ]),
+        Scenario("irc_channel_configure_xep0045",
+                 [
+                     handshake_sequence(),
+                     partial(send_stanza, "<iq type='get' id='id1' from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}'><query xmlns='http://jabber.org/protocol/muc#owner'/></iq>"),
+                     partial(expect_stanza, ("/iq[@type='result']/muc_owner:query",
+                                             "/iq/muc_owner:query/dataform:x[@type='form']/dataform:field[@type='text-single'][@var='encoding_in']",
+                                             "/iq/muc_owner:query/dataform:x[@type='form']/dataform:field[@type='text-single'][@var='encoding_out']",
+                                             ),
+                             ),
+                     partial(send_stanza, "<iq type='set' id='id2' from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}'>"
+                                          "<query xmlns='http://jabber.org/protocol/muc#owner'>"
+                                          "<x xmlns='jabber:x:data' type='submit'>"
+                                          "<field var='ports' />"
+                                          "<field var='encoding_out'><value>UTF-8</value></field>"
+                                          "<field var='encoding_in'><value>latin-1</value></field>"
+                                          "</x></query></iq>"),
+                     partial(expect_stanza, "/iq[@type='result']"),
+                     partial(send_stanza, "<iq type='set' id='id3' from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}'><query xmlns='http://jabber.org/protocol/muc#owner'>    <x xmlns='jabber:x:data' type='cancel'/></query></iq>"),
+                     partial(expect_stanza, "/iq[@type='result']"),
                  ]),
         Scenario("irc_channel_configure_fixed",
                  [

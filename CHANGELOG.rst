@@ -17,6 +17,8 @@ Version 5.0
  - Configuration options can be overridden by values found in the process env.
  - Botan’s TLS policies can be customized by the administrator, for each
    IRC server, with simple text files.
+ - The IRC channel configuration form is now also available using the MUC
+   configuration, in addition to the ad-hoc command.
 
 Version 4.3 - 2017-05-02
 ========================

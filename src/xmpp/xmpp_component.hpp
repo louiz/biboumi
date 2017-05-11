@@ -17,6 +17,7 @@
 #define MUC_NS           "http://jabber.org/protocol/muc"
 #define MUC_USER_NS      MUC_NS"#user"
 #define MUC_ADMIN_NS     MUC_NS"#admin"
+#define MUC_OWNER_NS     MUC_NS"#owner"
 #define DISCO_NS         "http://jabber.org/protocol/disco"
 #define DISCO_ITEMS_NS   DISCO_NS"#items"
 #define DISCO_INFO_NS    DISCO_NS"#info"

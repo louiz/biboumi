@@ -2,6 +2,7 @@
 
 
 #include <xmpp/xmpp_component.hpp>
+#include <xmpp/jid.hpp>
 
 #include <bridge/bridge.hpp>
 
@@ -97,6 +98,8 @@ public:
   bool handle_mam_request(const Stanza& stanza);
   void send_archived_message(const db::MucLogLine& log_line, const std::string& from, const std::string& to,
                              const std::string& queryid);
+  bool handle_room_configuration_form_request(const std::string& from, const Jid& to, const std::string& id);
+  bool handle_room_configuration_form(const XmlNode& query, const std::string& from, const Jid& to, const std::string& id);
 #endif
 
   /**

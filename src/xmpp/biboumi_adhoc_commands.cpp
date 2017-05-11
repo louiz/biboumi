@@ -418,11 +418,18 @@ void ConfigureIrcChannelStep1(XmppComponent&, AdhocSession& session, XmlNode& co
 {
   const Jid owner(session.get_owner_jid());
   const Jid target(session.get_target_jid());
+
+  insert_irc_channel_configuration_form(command_node, owner, target);
+}
+
+void insert_irc_channel_configuration_form(XmlNode& node, const Jid& requester, const Jid& target)
+{
   const Iid iid(target.local, {});
-  auto options = Database::get_irc_channel_options_with_server_default(owner.local + "@" + owner.domain,
+
+  auto options = Database::get_irc_channel_options_with_server_default(requester.local + "@" + requester.domain,
                                                                        iid.get_server(), iid.get_local());
 
-  XmlSubNode x(command_node, "jabber:x:data:x");
+  XmlSubNode x(node, "jabber:x:data:x");
   x["type"] = "form";
   XmlSubNode title(x, "title");
   title.set_inner("Configure the IRC channel "s + iid.get_local() + " on server "s + iid.get_server());
@@ -468,43 +475,57 @@ void ConfigureIrcChannelStep1(XmppComponent&, AdhocSession& session, XmlNode& co
 
 void ConfigureIrcChannelStep2(XmppComponent&, AdhocSession& session, XmlNode& command_node)
 {
-  const XmlNode* x = command_node.get_child("x", "jabber:x:data");
-  if (x)
+  const Jid owner(session.get_owner_jid());
+  const Jid target(session.get_target_jid());
+
+  if (handle_irc_channel_configuration_form(command_node, owner, target))
     {
-      const Jid owner(session.get_owner_jid());
-      const Jid target(session.get_target_jid());
-      const Iid iid(target.local, {});
-      auto options = Database::get_irc_channel_options(owner.local + "@" + owner.domain,
-                                                       iid.get_server(), iid.get_local());
-      for (const XmlNode* field: x->get_children("field", "jabber:x:data"))
-        {
-          const XmlNode* value = field->get_child("value", "jabber:x:data");
-
-          if (field->get_tag("var") == "encoding_out" &&
-              value && !value->get_inner().empty())
-            options.encodingOut = value->get_inner();
-
-          else if (field->get_tag("var") == "encoding_in" &&
-                   value && !value->get_inner().empty())
-            options.encodingIn = value->get_inner();
-
-          else if (field->get_tag("var") == "persistent" &&
-                   value)
-            options.persistent = to_bool(value->get_inner());
-        }
-
-      options.update();
-
       command_node.delete_all_children();
       XmlSubNode note(command_node, "note");
       note["type"] = "info";
       note.set_inner("Configuration successfully applied.");
-      return;
     }
-  XmlSubNode error(command_node, ADHOC_NS":error");
-  error["type"] = "modify";
-  XmlSubNode condition(error, STANZA_NS":bad-request");
-  session.terminate();
+  else
+    {
+      XmlSubNode error(command_node, ADHOC_NS":error");
+      error["type"] = "modify";
+      XmlSubNode condition(error, STANZA_NS":bad-request");
+      session.terminate();
+    }
+}
+
+bool handle_irc_channel_configuration_form(const XmlNode& node, const Jid& requester, const Jid& target)
+{
+  const XmlNode* x = node.get_child("x", "jabber:x:data");
+  if (x)
+    {
+      if (x->get_tag("type") == "submit")
+        {
+          const Iid iid(target.local, {});
+          auto options = Database::get_irc_channel_options(requester.local + "@" + requester.domain,
+                                                           iid.get_server(), iid.get_local());
+          for (const XmlNode *field: x->get_children("field", "jabber:x:data"))
+            {
+              const XmlNode *value = field->get_child("value", "jabber:x:data");
+
+              if (field->get_tag("var") == "encoding_out" &&
+                  value && !value->get_inner().empty())
+                options.encodingOut = value->get_inner();
+
+              else if (field->get_tag("var") == "encoding_in" &&
+                       value && !value->get_inner().empty())
+                options.encodingIn = value->get_inner();
+
+              else if (field->get_tag("var") == "persistent" &&
+                       value)
+                options.persistent = to_bool(value->get_inner());
+            }
+
+          options.update();
+        }
+      return true;
+    }
+  return false;
 }
 #endif  // USE_DATABASE
 

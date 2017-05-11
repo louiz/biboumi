@@ -392,6 +392,11 @@ void BiboumiComponent::handle_iq(const Stanza& stanza)
           if (this->handle_mam_request(stanza))
             stanza_error.disable();
         }
+      else if ((query = stanza.get_child("query", MUC_OWNER_NS)))
+        {
+          if (this->handle_room_configuration_form(*query, from, to, id))
+            stanza_error.disable();
+        }
 #endif
     }
   else if (type == "get")
@@ -529,6 +534,13 @@ void BiboumiComponent::handle_iq(const Stanza& stanza)
             }
           stanza_error.disable();
         }
+#ifdef USE_DATABASE
+      else if ((query = stanza.get_child("query", MUC_OWNER_NS)))
+        {
+          if (this->handle_room_configuration_form_request(from, to, id))
+            stanza_error.disable();
+        }
+#endif
     }
   else if (type == "result")
     {
@@ -677,6 +689,50 @@ void BiboumiComponent::send_archived_message(const db::MucLogLine& log_line, con
     body.set_inner(log_line.body.value());
   }
   this->send_stanza(message);
+}
+
+bool BiboumiComponent::handle_room_configuration_form_request(const std::string& from, const Jid& to, const std::string& id)
+{
+  Iid iid(to.local, {'#', '&'});
+
+  if (iid.type != Iid::Type::Channel)
+    return false;
+
+  Stanza iq("iq");
+  {
+    iq["from"] = to.full();
+    iq["to"] = from;
+    iq["id"] = id;
+    iq["type"] = "result";
+    XmlSubNode query(iq, "query");
+    query["xmlns"] = MUC_OWNER_NS;
+    Jid requester(from);
+    insert_irc_channel_configuration_form(query, requester, to);
+  }
+  this->send_stanza(iq);
+  return true;
+}
+
+bool BiboumiComponent::handle_room_configuration_form(const XmlNode& query, const std::string &from, const Jid &to, const std::string &id)
+{
+  Iid iid(to.local, {'#', '&'});
+
+  if (iid.type != Iid::Type::Channel)
+    return false;
+
+  Jid requester(from);
+  if (!handle_irc_channel_configuration_form(query, requester, to))
+    return false;
+
+  Stanza iq("iq");
+  iq["type"] = "result";
+  iq["from"] = to.full();
+  iq["to"] = from;
+  iq["id"] = id;
+
+  this->send_stanza(iq);
+
+  return true;
 }
 
 #endif
