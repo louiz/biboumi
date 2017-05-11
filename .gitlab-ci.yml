@@ -180,7 +180,7 @@ test:freebsd:
 .template:codecov_unittests: &codecov_unittests
   <<: *codecov
   script:
-    - bash <(curl -s https://codecov.io/bash) -X gcov -X coveragepy -f ./coverage_test_suite.info -F $(echo $CI_JOB_NAME | sed s/:/_/g)
+    - bash <(curl -s https://codecov.io/bash) -X gcov -X coveragepy -f ./coverage_test_suite.info -F $(echo $CI_JOB_NAME | sed s/:/_/g | sed s/codecov_//)
 
 .template:codecov_e2e: &codecov_e2e
   <<: *codecov
