@@ -11,8 +11,9 @@ Version 5.0
  - Use the udns library instead of c-ares, for asynchronous DNS resolution.
    It’s still fully optional.
  - Update MAM implementation to version 6.0 (namespace mam:2)
- - If the client doesn’t specify any limit, MAM results contain at most 100
-   messages, instead of the whole archive.
+ - If the client doesn’t specify any limit in its MAM and channel list request,
+   the results returned by biboumi contain at most 100 messages, instead of
+   the potentially huge complete result.
  - Multiline topics are now properly handled
  - Configuration options can be overridden by values found in the process env.
  - Botan’s TLS policies can be customized by the administrator, for each
