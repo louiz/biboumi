@@ -140,9 +140,15 @@ def match(stanza, xpath):
 
 def check_xpath(xpaths, xmpp, after, stanza):
     for xpath in xpaths:
+        expected = True
+        real_xpath = xpath
+        # We can check that a stanza DOESN’T match, by adding a ! before it.
+        if xpath.startswith('!'):
+            expected = False
+            xpath = xpath[1:]
         matched = match(stanza, xpath)
-        if not matched:
-            raise StanzaError("Received stanza “%s” did not match expected xpath “%s”" % (stanza, xpath))
+        if (expected and not matched) or (not expected and matched):
+            raise StanzaError("Received stanza “%s” did not match expected xpath “%s”" % (stanza, real_xpath))
     if after:
         if isinstance(after, collections.Iterable):
             for af in after:
@@ -502,11 +508,13 @@ def extract_attribute(xpath, name, stanza):
     matched = match(stanza, xpath)
     return matched[0].get(name)
 
+def chan_name_from_jid(jid):
+    return jid[1:jid.find('%')]
+
 
 def extract_text(xpath, stanza):
     matched = match(stanza, xpath)
     return matched[0].text
-
 
 def save_value(name, func, stanza, xmpp):
     xmpp.saved_values[name] = func(stanza)
@@ -2002,6 +2010,34 @@ if __name__ == '__main__':
                          "/iq[@type='result']/disco_items:query",
                          "/iq/disco_items:query/rsm:set/rsm:count[text()='3']"
                      )),
+                 ]),
+                Scenario("default_channel_list_limit",
+                 [
+                     handshake_sequence(),
+                     partial(send_stanza,
+                             "<presence from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}/{nick_one}' />"),
+                     connection_sequence("irc.localhost", '{jid_one}/{resource_one}'),
+                     partial(expect_stanza, "/message"),
+                     partial(expect_stanza, "/presence"),
+                     partial(expect_stanza, "/message",
+                             after = partial(save_value, "counter", lambda x: 0)),
+                 ] + [
+                     partial(send_stanza,
+                             "<presence from='{jid_one}/{resource_one}' to='#{counter}%{irc_server_one}/{nick_one}' />"),
+                     partial(expect_stanza, "/message"),
+                     partial(expect_stanza, "/presence",
+                             after = partial(save_value, "counter", lambda stanza: str(1 + int(chan_name_from_jid(extract_attribute("/presence", "from", stanza)))))),
+                     partial(expect_stanza, "/message")
+                 ] * 110 + [
+                     partial(send_stanza, "<iq from='{jid_one}/{resource_one}' id='id1' to='{irc_server_one}' type='get'><query xmlns='http://jabber.org/protocol/disco#items'/></iq>"),
+                     # charybdis sends the list in alphabetic order, so #foo is the last, and #99 is after #120
+                     partial(expect_stanza, ("/iq/disco_items:query/disco_items:item[@jid='#0%{irc_server_one}']",
+                                             "/iq/disco_items:query/disco_items:item[@jid='#1%{irc_server_one}']",
+                                             "/iq/disco_items:query/disco_items:item[@jid='#109%{irc_server_one}']",
+                                             "/iq/disco_items:query/disco_items:item[@jid='#9%{irc_server_one}']",
+                                             "!/iq/disco_items:query/disco_items:item[@jid='#foo%{irc_server_one}']",
+                                             "!/iq/disco_items:query/disco_items:item[@jid='#99%{irc_server_one}']",
+                                             "!/iq/disco_items:query/disco_items:item[@jid='#90%{irc_server_one}']")),
                  ]),
                 Scenario("complete_channel_list_with_pages_of_3",
                  [
