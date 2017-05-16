@@ -6,6 +6,11 @@ set(${PROJECT_NAME}_VERSION_MAJOR 5)
 set(${PROJECT_NAME}_VERSION_MINOR 0)
 set(${PROJECT_NAME}_VERSION_SUFFIX "~dev")
 
+if(NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE "Debug" CACHE STRING
+      "Build type (Release/Debug/RelWithDebInfo/MinSizeRel)" FORCE)
+endif()
+
 #
 ## Find optional instrumentation libraries that will be used in debug only
 #
