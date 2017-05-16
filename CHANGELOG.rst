@@ -20,6 +20,8 @@ Version 5.0
    IRC server, with simple text files.
  - The IRC channel configuration form is now also available using the MUC
    configuration, in addition to the ad-hoc command.
+ - Notices starting with [#channel] are considered as welcome messages coming
+   from that channel, instead of private messages.
 
 Version 4.3 - 2017-05-02
 ========================

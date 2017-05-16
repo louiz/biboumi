@@ -544,8 +544,17 @@ void IrcClient::forward_server_message(const IrcMessage& message)
 void IrcClient::on_notice(const IrcMessage& message)
 {
   std::string from = message.prefix;
-  const std::string to = message.arguments[0];
+  std::string to = message.arguments[0];
   const std::string body = message.arguments[1];
+
+  // Handle notices starting with [#channame] as if they were sent to that channel
+  if (body.size() > 3 && body[0] == '[')
+    {
+      const auto chan_prefix = body[1];
+      auto end = body.find(']');
+      if (this->chantypes.find(chan_prefix) != this->chantypes.end() && end != std::string::npos)
+        to = body.substr(1, end - 1);
+    }
 
   if (!body.empty() && body[0] == '\01' && body[body.size() - 1] == '\01')
     // Do not forward the notice to the user if it's a CTCP command
