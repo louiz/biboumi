@@ -642,15 +642,18 @@ void IrcClient::set_and_forward_user_list(const IrcMessage& message)
   std::vector<std::string> nicks = utils::split(message.arguments[3], ' ');
   for (const std::string& nick: nicks)
     {
-      const IrcUser* user = channel->add_user(nick, this->prefix_to_mode);
-      if (user->nick != channel->get_self()->nick)
+      // Just create this dummy user to parse and get its modes
+      IrcUser tmp_user{nick, this->prefix_to_mode};
+      // Does this concern ourself
+      if (channel->get_self() && channel->find_user(tmp_user.nick) == channel->get_self())
         {
-          this->bridge.send_user_join(this->hostname, chan_name, user, user->get_most_significant_mode(this->sorted_user_modes), false);
+          // We now know our own modes, that’s all.
+          channel->get_self()->modes = tmp_user.modes;
         }
       else
-        {
-          // we now know the modes of self, so copy the modes into self
-          channel->get_self()->modes = user->modes;
+        { // Otherwise this is a new user
+          const IrcUser *user = channel->add_user(nick, this->prefix_to_mode);
+          this->bridge.send_user_join(this->hostname, chan_name, user, user->get_most_significant_mode(this->sorted_user_modes), false);
         }
     }
 }
@@ -664,13 +667,11 @@ void IrcClient::on_channel_join(const IrcMessage& message)
   else
     channel = this->get_channel(chan_name);
   const std::string nick = message.prefix;
+  IrcUser* user = channel->add_user(nick, this->prefix_to_mode);
   if (channel->joined == false)
-    channel->set_self(nick);
+    channel->set_self(user);
   else
-    {
-      const IrcUser* user = channel->add_user(nick, this->prefix_to_mode);
-      this->bridge.send_user_join(this->hostname, chan_name, user, user->get_most_significant_mode(this->sorted_user_modes), false);
-    }
+    this->bridge.send_user_join(this->hostname, chan_name, user, user->get_most_significant_mode(this->sorted_user_modes), false);
 }
 
 void IrcClient::on_channel_message(const IrcMessage& message)
@@ -929,15 +930,14 @@ void IrcClient::on_part(const IrcMessage& message)
   if (user)
     {
       std::string nick = user->nick;
+      bool self = channel->get_self() && channel->get_self()->nick == nick;
       channel->remove_user(user);
       Iid iid;
       iid.set_local(chan_name);
       iid.set_server(this->hostname);
       iid.type = Iid::Type::Channel;
-      bool self = channel->get_self()->nick == nick;
       if (self)
       {
-        channel->joined = false;
         this->channels.erase(utils::tolower(chan_name));
         // channel pointer is now invalid
         channel = nullptr;
