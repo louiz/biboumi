@@ -62,6 +62,8 @@ static const std::unordered_map<std::string,
   {"333", {&IrcClient::on_topic_who_time_received, {4, 0}}},
   {"RPL_TOPICWHOTIME", {&IrcClient::on_topic_who_time_received, {4, 0}}},
   {"366", {&IrcClient::on_channel_completely_joined, {2, 0}}},
+  {"367", {&IrcClient::on_banlist, {3, 0}}},
+  {"368", {&IrcClient::on_banlist_end, {3, 0}}},
   {"396", {&IrcClient::on_own_host_received, {2, 0}}},
   {"432", {&IrcClient::on_erroneous_nickname, {2, 0}}},
   {"433", {&IrcClient::on_nickname_conflict, {2, 0}}},
@@ -782,6 +784,43 @@ void IrcClient::on_channel_completely_joined(const IrcMessage& message)
                               channel->get_self()->get_most_significant_mode(this->sorted_user_modes), true);
   this->bridge.send_room_history(this->hostname, chan_name);
   this->bridge.send_topic(this->hostname, chan_name, channel->topic, channel->topic_author);
+}
+
+void IrcClient::on_banlist(const IrcMessage& message)
+{
+  const std::string chan_name = utils::tolower(message.arguments[1]);
+  IrcChannel* channel = this->get_channel(chan_name);
+  if (channel->joined)
+    {
+      Iid iid;
+      iid.set_local(chan_name);
+      iid.set_server(this->hostname);
+      iid.type = Iid::Type::Channel;
+      std::string body{message.arguments[2] + " banned"};
+      if (message.arguments.size() >= 4)
+        {
+          IrcUser by(message.arguments[3], this->prefix_to_mode);
+          body += " by " + by.nick;
+        }
+      if (message.arguments.size() >= 5)
+        body += " on " + message.arguments[4];
+
+      this->bridge.send_message(iid, "", body, true);
+    }
+}
+
+void IrcClient::on_banlist_end(const IrcMessage& message)
+{
+  const std::string chan_name = utils::tolower(message.arguments[1]);
+  IrcChannel* channel = this->get_channel(chan_name);
+  if (channel->joined)
+    {
+      Iid iid;
+      iid.set_local(chan_name);
+      iid.set_server(this->hostname);
+      iid.type = Iid::Type::Channel;
+      this->bridge.send_message(iid, "", message.arguments[2], true);
+    }
 }
 
 void IrcClient::on_own_host_received(const IrcMessage& message)

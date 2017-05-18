@@ -222,6 +222,8 @@ public:
    * received etc), send the self presence and topic to the XMPP user.
    */
   void on_channel_completely_joined(const IrcMessage& message);
+  void on_banlist(const IrcMessage& message);
+  void on_banlist_end(const IrcMessage& message);
   /**
    * Save our own host, as reported by the server
    */
