@@ -19,6 +19,27 @@
 #include <string>
 #include <list>
 
+#ifdef BOTAN_FOUND
+#include <botan/version.h>
+
+class BiboumiTLSPolicy: public Botan::TLS::Policy
+{
+public:
+# if BOTAN_VERSION_CODE >= BOTAN_VERSION_CODE_FOR(1,11,33)
+  bool use_ecc_point_compression() const override
+  {
+    return true;
+  }
+# endif
+};
+
+# if BOTAN_VERSION_CODE >= BOTAN_VERSION_CODE_FOR(1,11,32)
+#  define BOTAN_TLS_CALLBACKS_OVERRIDE override final
+# else
+#  define BOTAN_TLS_CALLBACKS_OVERRIDE
+# endif
+#endif
+
 /**
  * An interface, with a series of callbacks that should be implemented in
  * subclasses that deal with a socket. These callbacks are called on various events
@@ -26,6 +47,11 @@
  * (select/poll/epoll etc)
  */
 class TCPSocketHandler: public SocketHandler
+#ifdef BOTAN_FOUND
+# if BOTAN_VERSION_CODE >= BOTAN_VERSION_CODE_FOR(1,11,32)
+    ,public Botan::TLS::Callbacks
+# endif
+#endif
 {
 protected:
   ~TCPSocketHandler();
@@ -158,22 +184,31 @@ private:
    * Called by the tls object that some data has been decrypt. We call
    * parse_in_buffer() to handle that unencrypted data.
    */
-  void tls_data_cb(const Botan::byte* data, size_t size);
+  void tls_record_received(uint64_t rec_no, const Botan::byte* data, size_t size) BOTAN_TLS_CALLBACKS_OVERRIDE;
   /**
    * Called by the tls object to indicate that some data has been encrypted
    * and is now ready to be sent on the socket as is.
    */
-  void tls_output_fn(const Botan::byte* data, size_t size);
+  void tls_emit_data(const Botan::byte* data, size_t size) BOTAN_TLS_CALLBACKS_OVERRIDE;
   /**
    * Called by the tls object to indicate that a TLS alert has been
    * received. We don’t use it, we just log some message, at the moment.
    */
-  void tls_alert_cb(Botan::TLS::Alert alert, const Botan::byte*, size_t);
+  void tls_alert(Botan::TLS::Alert alert) BOTAN_TLS_CALLBACKS_OVERRIDE;
   /**
    * Called by the tls object at the end of the TLS handshake. We don't do
    * anything here appart from logging the TLS session information.
    */
-  bool tls_handshake_cb(const Botan::TLS::Session& session);
+  bool tls_session_established(const Botan::TLS::Session& session) BOTAN_TLS_CALLBACKS_OVERRIDE;
+
+#if BOTAN_VERSION_CODE >= BOTAN_VERSION_CODE_FOR(1,11,34)
+  void tls_verify_cert_chain(const std::vector<Botan::X509_Certificate>& cert_chain,
+                             const std::vector<std::shared_ptr<const Botan::OCSP::Response>>& ocsp_responses,
+                             const std::vector<Botan::Certificate_Store*>& trusted_roots,
+                             Botan::Usage_Type usage,
+                             const std::string& hostname,
+                             const Botan::TLS::Policy& policy) BOTAN_TLS_CALLBACKS_OVERRIDE;
+#endif
   /**
    * Called whenever the tls session goes from inactive to active. This
    * means that the handshake has just been successfully done, and we can

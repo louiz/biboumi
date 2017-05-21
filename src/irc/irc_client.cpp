@@ -182,6 +182,11 @@ void IrcClient::start()
 {
   if (this->is_connecting() || this->is_connected())
     return;
+  if (this->ports_to_try.empty())
+    {
+      this->bridge.send_xmpp_message(this->hostname, "", "Can not connect to IRC server: no port specified.");
+      return;
+    }
   std::string port;
   bool tls;
   std::tie(port, tls) = this->ports_to_try.top();

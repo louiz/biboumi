@@ -37,6 +37,28 @@ void BasicCredentialsManager::set_trusted_fingerprint(const std::string& fingerp
   this->trusted_fingerprint = fingerprint;
 }
 
+const std::string& BasicCredentialsManager::get_trusted_fingerprint() const
+{
+  return this->trusted_fingerprint;
+}
+
+void check_tls_certificate(const std::vector<Botan::X509_Certificate>& certs,
+                           const std::string& hostname, const std::string& trusted_fingerprint,
+                           std::exception_ptr exc)
+{
+
+  if (!trusted_fingerprint.empty() && !certs.empty() &&
+      trusted_fingerprint == certs[0].fingerprint() &&
+      certs[0].matches_dns_name(hostname))
+    // We trust the certificate, based on the trusted fingerprint and
+    // the fact that the hostname matches
+    return;
+
+  if (exc)
+    std::rethrow_exception(exc);
+}
+
+#if BOTAN_VERSION_CODE < BOTAN_VERSION_CODE_FOR(1,11,34)
 void BasicCredentialsManager::verify_certificate_chain(const std::string& type,
                                                        const std::string& purported_hostname,
                                                        const std::vector<Botan::X509_Certificate>& certs)
@@ -50,17 +72,14 @@ void BasicCredentialsManager::verify_certificate_chain(const std::string& type,
   catch (const std::exception& tls_exception)
     {
       log_warning("TLS certificate check failed: ", tls_exception.what());
-      if (!this->trusted_fingerprint.empty() && !certs.empty() &&
-          this->trusted_fingerprint == certs[0].fingerprint() &&
-          certs[0].matches_dns_name(purported_hostname))
-        // We trust the certificate, based on the trusted fingerprint and
-        // the fact that the hostname matches
-        return;
-
+      std::exception_ptr exception_ptr{};
       if (this->socket_handler->abort_on_invalid_cert())
-        throw;
+        exception_ptr = std::current_exception();
+
+      check_tls_certificate(certs, purported_hostname, this->trusted_fingerprint, exception_ptr);
     }
 }
+#endif
 
 bool BasicCredentialsManager::try_to_open_one_ca_bundle(const std::vector<std::string>& paths)
 {
