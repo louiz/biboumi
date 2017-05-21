@@ -18,8 +18,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 include /usr/share/cdbs/1/rules/debhelper.mk
-include /usr/share/cdbs/1/rules/utils.mk
-
 include /usr/share/cdbs/1/class/cmake.mk
 
 pkg = $(DEB_SOURCE_PACKAGE)
