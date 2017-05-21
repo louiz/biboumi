@@ -342,7 +342,6 @@ add_custom_target(everything DEPENDS test_suite biboumi)
 install(TARGETS ${PROJECT_NAME} RUNTIME                     DESTINATION bin)
 install(FILES   ${MAN_PAGE}                                 DESTINATION share/man/man1         OPTIONAL COMPONENT documentation)
 install(FILES   ${CMAKE_CURRENT_BINARY_DIR}/biboumi.service DESTINATION lib/systemd/system     COMPONENT init)
-install(FILES   conf/biboumi.cfg                            DESTINATION /etc/biboumi           COMPONENT configuration)
 file(GLOB policy_files conf/*policy.txt)
 install(FILES   ${policy_files}                             DESTINATION /etc/biboumi           COMPONENT configuration)
 
