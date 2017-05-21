@@ -30,15 +30,16 @@ TEST_CASE("Test basic XML parsing")
         // And do the same checks on moved-constructed stanza
         Stanza moved(std::move(copy));
       });
-  xml.feed(doc.data(), doc.size(), true);
+  CHECK(doc.size() <= std::numeric_limits<int>::max());
+  xml.feed(doc.data(), static_cast<int>(doc.size()), true);
 
   const std::string doc2 = "<stream xmlns='s'><stanza>coucou\r\n\a</stanza></stream>";
   xml.add_stanza_callback([](const Stanza& stanza)
       {
         CHECK(stanza.get_inner() == "coucou\r\n");
       });
-
-  xml.feed(doc2.data(), doc.size(), true);
+  CHECK(doc.size() <= std::numeric_limits<int>::max());
+  xml.feed(doc2.data(), static_cast<int>(doc.size()), true);
 }
 
 TEST_CASE("XML escape")

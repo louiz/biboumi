@@ -25,6 +25,8 @@ static std::string in_encoding_for(const Bridge& bridge, const Iid& iid)
   auto options = Database::get_irc_channel_options_with_server_default(jid, iid.get_server(), iid.get_local());
   return options.encodingIn.value();
 #else
+  (void)bridge;
+  (void)iid;
   return {"ISO-8859-1"};
 #endif
 }
@@ -1000,6 +1002,10 @@ void Bridge::send_room_history(const std::string& hostname, std::string chan_nam
       this->xmpp.send_history_message(chan_name, line.nick.value(), line.body.value(),
                                       this->user_jid + "/" + resource, seconds);
     }
+#else
+  (void)hostname;
+  (void)chan_name;
+  (void)resource;
 #endif
 }
 
