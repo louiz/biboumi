@@ -1,3 +1,19 @@
+Version 4.3 - 2017-05-02
+========================
+
+  - Fix a segmentation fault that occured when trying to connect to an IRC
+    server without any port configured.
+
+Version 4.2 - 2017-04-26
+========================
+
+ - Fix a build issue when LiteSQL is absent from the system
+
+Version 4.1 - 2017-03-21
+========================
+
+ - Works with botan 2.x, as well as botan 1.11.x
+
 Version 4.0 - 2016-11-09
 ========================
 
