@@ -15,10 +15,7 @@ Files: CHANGELOG.rst
  debian/compat
  debian/control
  debian/control.in
- debian/files
  debian/gbp.conf
- debian/patches/020161125~ad22be4.patch
- debian/patches/020161204~eb8f1cb.patch
  debian/patches/2001_cmake_ignore_git.patch
  debian/patches/2002_fix_default_locale.patch
  debian/patches/README
@@ -149,6 +146,11 @@ License: public-domain
 Files: cmake/Modules/CodeCoverage.cmake
 Copyright: 2012-2015, Lars Bilke
 License: BSD-3-clause
+ FIXME
+
+Files: debian/copyright-check
+Copyright: 2016-2017, Jonas Smedegaard <dr@jones.dk>
+License: GPL-3+
  FIXME
 
 Files: debian/rules

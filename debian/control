@@ -4,7 +4,6 @@ Priority: optional
 Build-Depends: cdbs,
  debhelper,
  dh-buildinfo,
- licensecheck,
  cmake,
  catch,
  uuid-dev,

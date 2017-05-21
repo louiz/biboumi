@@ -1,3 +1,25 @@
+biboumi (4.3-1) unstable; urgency=medium
+
+  [ upstream ]
+  * New release(s).
+    + Works with botan 2.x (not only botan 1.11.x).
+    + Fix build without LiteSQL available.
+    + Fix segmentation fault connecting to IRC server on undefined port.
+
+  [ Jonas Smedegaard ]
+  * Update watch file:
+    + Fix mangle upstream filename (lacked versioning, confusing uscan).
+  * Modernize cdbs:
+    + Do copyright-check in maintainer script (not during build).
+    + Stop build-depend on licensecheck.
+  * Drop patch cherry-picked upstream and now applied.
+  * Drop patch cherry-picked upstream but now mysteriously gone from
+    upstream master branch.
+  * Update copyright info:
+    + Extend copyright for my parts to cover current year.
+
+ -- Jonas Smedegaard <dr@jones.dk>  Sun, 21 May 2017 12:03:04 +0200
+
 biboumi (4.0-2) unstable; urgency=medium
 
   * Fix set proper group (and explicitly set user too, while at it).
