@@ -17,8 +17,10 @@
 
 include(FindPkgConfig)
 
-pkg_check_modules(BOTAN botan-2)
-pkg_check_modules(BOTAN botan-1.11)
+if(NOT BOTAN_FOUND)
+  pkg_check_modules(BOTAN botan-2)
+  pkg_check_modules(BOTAN botan-1.11)
+endif()
 
 if(NOT BOTAN_FOUND)
   find_path(BOTAN_INCLUDE_DIRS NAMES botan/botan.h

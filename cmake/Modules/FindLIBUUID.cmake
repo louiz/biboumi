@@ -16,7 +16,9 @@
 # This file is in the public domain
 
 include(FindPkgConfig)
-pkg_check_modules(LIBUUID uuid)
+if(NOT LIBUUID_FOUND)
+  pkg_check_modules(LIBUUID uuid)
+endif()
 
 if(NOT LIBUUID_FOUND)
   find_path(LIBUUID_INCLUDE_DIRS NAMES uuid/uuid.h

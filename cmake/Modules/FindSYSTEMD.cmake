@@ -16,7 +16,9 @@
 # This file is in the public domain
 
 include(FindPkgConfig)
-pkg_check_modules(SYSTEMD libsystemd)
+if(NOT SYSTEMD_FOUND)
+  pkg_check_modules(SYSTEMD libsystemd)
+endif()
 
 if(NOT SYSTEMD_FOUND)
   find_path(SYSTEMD_INCLUDE_DIRS NAMES systemd/sd-daemon.h

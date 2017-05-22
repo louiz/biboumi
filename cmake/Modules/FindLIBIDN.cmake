@@ -16,7 +16,9 @@
 # This file is in the public domain
 
 include(FindPkgConfig)
-pkg_check_modules(LIBIDN libidn)
+if(NOT LIBIDN_FOUND)
+  pkg_check_modules(LIBIDN libidn)
+endif()
 
 if(NOT LIBIDN_FOUND)
   find_path(LIBIDN_INCLUDE_DIRS NAMES stringprep.h
