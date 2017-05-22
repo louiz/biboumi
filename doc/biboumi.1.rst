@@ -161,7 +161,21 @@ to IRC servers.
 identd_port
 -----------
 
-The TCP port on which to listen for identd queries.  The default is the standard value: 113.
+The TCP port on which to listen for identd queries.  The default is the
+standard value: 113. To be able to listen on this privileged port, biboumi
+needs to have certain capabilities: on linux, using systemd, this can be
+achieved by adding `AmbientCapabilities=CAP_NET_BIND_SERVICE` to the unit
+file. On other systems, other solutions exist, like the portacl module on
+FreeBSD.
+
+If biboumi’s identd server is properly started, it will receive queries from
+the IRC servers asking for the “identity” of each IRC connection made to it.
+Biboumi will answer with a hash of the JID that made the connection. This is
+useful for the IRC server to be able to distinguish the different users, and
+be able to deal with the absuses without having to simply ban the IP. Without
+this identd server, moderation is a lot harder, because all the different
+users of a single biboumi instance all share the same IP, and they can’t be
+distinguished by the IRC servers.
 
 policy_directory
 ----------------
