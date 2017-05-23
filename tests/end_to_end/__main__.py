@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 
 import collections
+import lxml.etree
 import datetime
 import slixmpp
 import asyncio
 import logging
 import signal
 import atexit
-import lxml.etree
+import time
 import sys
 import io
 import os
@@ -274,14 +275,13 @@ def expect_stanza(xpaths, xmpp, biboumi, optional=False, after=None):
     else:
         print("Warning, from argument type passed to expect_stanza: %s" % (type(xpaths)))
 
-def save_datetime(xmpp, biboumi):
-    xmpp.saved_values["saved_datetime"] = datetime.datetime.now()
-    asyncio.get_event_loop().call_soon(xmpp.run_scenario)
+def save_current_timestamp_plus_delta(key, delta, message, xmpp):
+    now_plus_delta = datetime.datetime.utcnow() + delta
+    xmpp.saved_values[key] = now_plus_delta.strftime("%FT%T.967Z")
+    print(xmpp.saved_values[key])
 
-def expect_now_is_after(timedelta, xmpp, biboumi):
-    time_passed = datetime.datetime.now() - xmpp.saved_values["saved_datetime"]
-    if time_passed < timedelta:
-        raise StanzaError("Not enough time has passed: %s instead of %s" % (time_passed, timedelta))
+def sleep_for(duration, xmpp, biboumi):
+    time.sleep(duration)
     asyncio.get_event_loop().call_soon(xmpp.run_scenario)
 
 # list_of_xpaths: [(xpath, xpath), (xpath, xpath), (xpath)]
@@ -1754,6 +1754,65 @@ if __name__ == '__main__':
                             "/iq[@type='result'][@id='id4'][@from='#foo%{irc_server_one}'][@to='{jid_one}/{resource_one}']"),
 
                 ]),
+        Scenario("mam_with_timestamps",
+                 [
+                     handshake_sequence(),
+                     partial(send_stanza,
+                             "<presence from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}/{nick_one}' />"),
+                     connection_sequence("irc.localhost", '{jid_one}/{resource_one}'),
+                     partial(expect_stanza,
+                             "/message/body[text()='Mode #foo [+nt] by {irc_host_one}']"),
+                     partial(expect_stanza,
+                             ("/presence[@to='{jid_one}/{resource_one}'][@from='#foo%{irc_server_one}/{nick_one}']/muc_user:x/muc_user:item[@affiliation='admin'][@role='moderator']",
+                              "/presence/muc_user:x/muc_user:status[@code='110']")
+                             ),
+                     partial(expect_stanza, "/message[@from='#foo%{irc_server_one}'][@type='groupchat']/subject[not(text())]"),
+
+                     # Send two channel messages
+                     partial(send_stanza, "<message from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}' type='groupchat'><body>coucou</body></message>"),
+                     partial(expect_stanza,
+                             ("/message[@from='#foo%{irc_server_one}/{nick_one}'][@to='{jid_one}/{resource_one}'][@type='groupchat']/body[text()='coucou']",
+                              "/message/stable_id:stanza-id[@by='#foo%{irc_server_one}'][@id]",)
+                             ),
+
+                     partial(send_stanza, "<message from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}' type='groupchat'><body>coucou 2</body></message>"),
+                     # Record the current time
+                     partial(expect_stanza, "/message[@from='#foo%{irc_server_one}/{nick_one}'][@to='{jid_one}/{resource_one}'][@type='groupchat']/body[text()='coucou 2']",
+                             after = partial(save_current_timestamp_plus_delta, "first_timestamp", datetime.timedelta(seconds=1))),
+
+                     # Wait two seconds before sending two new messages
+                     partial(sleep_for, 2),
+                     partial(send_stanza, "<message from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}' type='groupchat'><body>coucou 3</body></message>"),
+                     partial(send_stanza, "<message from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}' type='groupchat'><body>coucou 4</body></message>"),
+                     partial(expect_stanza, "/message[@type='groupchat']/body[text()='coucou 3']"),
+                     partial(expect_stanza, "/message[@type='groupchat']/body[text()='coucou 4']",
+                             after = partial(save_current_timestamp_plus_delta, "second_timestamp", datetime.timedelta(seconds=1))),
+
+                     # Retrieve the archive, after our saved datetime
+                     partial(send_stanza, """<iq to='#foo%{irc_server_one}' from='{jid_one}/{resource_one}' type='set' id='id8'>
+                          <query xmlns='urn:xmpp:mam:2' queryid='qid16'>
+                            <x type='submit' xmlns='jabber:x:data'>
+                             <field var='FORM_TYPE' xmlns='jabber:x:data'><value xmlns='jabber:x:data'>urn:xmpp:mam:2</value></field>
+                             <field var='start' xmlns='jabber:x:data'><value xmlns='jabber:x:data'>{first_timestamp}</value></field>
+                             <field var='end' xmlns='jabber:x:data'><value xmlns='jabber:x:data'>{second_timestamp}</value></field>
+                            </x>
+                          </query>
+                         </iq>"""),
+
+
+                     partial(expect_stanza,
+                             ("/message/mam:result[@queryid='qid16']/forward:forwarded/delay:delay",
+                              "/message/mam:result/forward:forwarded/client:message[@from='#foo%{irc_server_one}/{nick_one}'][@type='groupchat']/client:body[text()='coucou 3']")
+                             ),
+
+                     partial(expect_stanza,
+                             ("/message/mam:result[@queryid='qid16']/forward:forwarded/delay:delay",
+                              "/message/mam:result/forward:forwarded/client:message[@from='#foo%{irc_server_one}/{nick_one}'][@type='groupchat']/client:body[text()='coucou 4']")
+                             ),
+
+                     partial(expect_stanza,
+                             "/iq[@type='result'][@id='id8'][@from='#foo%{irc_server_one}'][@to='{jid_one}/{resource_one}']"),
+                 ]),
         Scenario("mam_on_fixed_server",
                  [
                      handshake_sequence(),
