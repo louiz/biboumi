@@ -26,8 +26,8 @@ std::time_t parse_datetime(const std::string& stamp)
   std::istringstream ss(stamp);
   ss.imbue(std::locale("C"));
 
-  std::string timezone;
-  ss >> std::get_time(&t, format) >> timezone;
+  std::string remainings;
+  ss >> std::get_time(&t, format) >> remainings;
   if (ss.fail())
     return -1;
 #else
@@ -36,11 +36,21 @@ std::time_t parse_datetime(const std::string& stamp)
   if (!strptime(stamp.data(), format, &t)) {
     return -1;
   }
-  const std::string timezone(stamp.data() + stamp_size_without_tz);
+  const std::string remainings(stamp.data() + stamp_size_without_tz);
 #endif
 
-  if (timezone.empty())
+  if (remainings.empty())
     return -1;
+
+  std::string timezone;
+  // Skip optional fractions of seconds
+  if (remainings[0] == '.')
+    {
+      const auto pos = remainings.find_first_not_of(".0123456789");
+      timezone = remainings.substr(pos);
+    }
+  else
+    timezone = std::move(remainings);
 
   if (timezone.compare(0, 1, "Z") != 0)
     {
