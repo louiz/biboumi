@@ -1,5 +1,5 @@
-Version 5.0
-===========
+Version 5.0 - 2017-05-24
+========================
 
  - An identd server has been added.
  - Add a **persistent** option for channels. When a channel is configured

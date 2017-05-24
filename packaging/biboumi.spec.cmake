@@ -59,8 +59,8 @@ make check %{?_smp_mflags}
 
 
 %changelog
-* ${RPM_DATE} Le Coz Florent <louiz@louiz.org> - ${RPM_VERSION}-1
-- Build latest git revision
+* Wed May 24 Le Coz Florent <louiz@louiz.org> - 5.0-1
+- Update to version 5.0
 
 * Wed May 2 2017 Le Coz Florent <louiz@louiz.org> - 4.3-1
 - Fix a segmentation fault that occured when trying to connect
