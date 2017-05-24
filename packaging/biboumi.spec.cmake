@@ -59,7 +59,7 @@ make check %{?_smp_mflags}
 
 
 %changelog
-* Wed May 24 Le Coz Florent <louiz@louiz.org> - 5.0-1
+* Wed May 24 2017 Le Coz Florent <louiz@louiz.org> - 5.0-1
 - Update to version 5.0
 
 * Wed May 2 2017 Le Coz Florent <louiz@louiz.org> - 4.3-1
