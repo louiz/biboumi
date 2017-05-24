@@ -122,10 +122,6 @@ Once you’ve configured everything using cmake, build the software:
 
 To build the biboumi binary:
 
-  make biboumi
-
-To build everything, including the tests
-
   make
 
 
