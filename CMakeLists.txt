@@ -432,4 +432,4 @@ mark_as_advanced(HAS_PUT_TIME)
 
 configure_file(unit/biboumi.service.cmake biboumi.service)
 configure_file(packaging/biboumi.spec.cmake biboumi.spec)
-configure_file(biboumi.h.cmake src/biboumi.h)
+configure_file(src/biboumi.h.cmake src/biboumi.h)
