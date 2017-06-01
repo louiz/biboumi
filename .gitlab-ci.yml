@@ -311,4 +311,5 @@ packaging:archlinux:
     - git clone https://aur.archlinux.org/biboumi-git.git
     - cd biboumi-git
     - makepkg -si --noconfirm
+    - test -e /usr/bin/biboumi
   dependencies: []
