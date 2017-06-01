@@ -306,9 +306,9 @@ packaging:archlinux:
     - sudo pacman -Syuu --noconfirm
     - git clone https://aur.archlinux.org/litesql-git.git
     - cd litesql-git
-    - makepkg --noconfirm -s && makepkg -f && sudo pacman --noconfirm -U *.pkg.*
+    - makepkg -si --noconfirm
     - cd ..
     - git clone https://aur.archlinux.org/biboumi-git.git
     - cd biboumi-git
-    - makepkg --noconfirm -s && makepkg -f && sudo pacman --noconfirm -U *.pkg.*
+    - makepkg -si --noconfirm
   dependencies: []
