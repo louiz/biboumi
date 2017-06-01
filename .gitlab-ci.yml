@@ -304,8 +304,12 @@ packaging:archlinux:
   before_script: []
   script:
     - sudo pacman -Syuu --noconfirm
-    - git clone https://aur.archlinux.org/litesql-git.git
-    - cd litesql-git
+    - git clone https://aur.archlinux.org/libucl.git
+    - cd libucl
+    - makepkg -si --noconfirm
+    - cd ..
+    - git clone https://aur.archlinux.org/odb.git
+    - cd odb
     - makepkg -si --noconfirm
     - cd ..
     - git clone https://aur.archlinux.org/biboumi-git.git
