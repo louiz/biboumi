@@ -1,0 +1,103 @@
+<changelog xmlns="http://www.codesynthesis.com/xmlns/odb/changelog" database="sqlite" version="1">
+  <model version="1">
+    <table name="MucLogLine" kind="object">
+      <column name="uuid" type="TEXT" null="false"/>
+      <column name="owner" type="TEXT" null="false"/>
+      <column name="channel_name" type="TEXT" null="false"/>
+      <column name="server_name" type="TEXT" null="false"/>
+      <column name="body" type="TEXT" null="false"/>
+      <column name="nick" type="TEXT" null="false"/>
+      <column name="date" type="INTEGER" null="false"/>
+      <primary-key>
+        <column name="uuid"/>
+      </primary-key>
+      <index name="MucLogLine_uuid_i">
+        <column name="uuid"/>
+      </index>
+    </table>
+    <table name="GlobalOptions" kind="object">
+      <column name="owner" type="TEXT" null="false"/>
+      <column name="max_history_length" type="INTEGER" null="false"/>
+      <column name="record_history" type="INTEGER" null="false"/>
+      <primary-key>
+        <column name="owner"/>
+      </primary-key>
+      <index name="GlobalOptions_owner_i" type="UNIQUE">
+        <column name="owner"/>
+      </index>
+    </table>
+    <table name="IrcServerOptions" kind="object">
+      <column name="id" type="INTEGER" null="false"/>
+      <column name="owner" type="TEXT" null="false"/>
+      <column name="server" type="TEXT" null="false"/>
+      <column name="pass" type="TEXT" null="false"/>
+      <column name="after_connection_command" type="TEXT" null="false"/>
+      <column name="username" type="TEXT" null="false"/>
+      <column name="realname" type="TEXT" null="false"/>
+      <column name="verify_cert" type="INTEGER" null="false"/>
+      <column name="trusted_fingerprint" type="TEXT" null="false"/>
+      <column name="encoding_out" type="TEXT" null="false"/>
+      <column name="encoding_in" type="TEXT" null="false"/>
+      <column name="max_history_length" type="INTEGER" null="false"/>
+      <primary-key auto="true">
+        <column name="id"/>
+      </primary-key>
+      <index name="owner_server" type="UNIQUE">
+        <column name="owner"/>
+        <column name="server"/>
+      </index>
+    </table>
+    <table name="IrcServerOptions_tls_ports" kind="container">
+      <column name="object_id" type="INTEGER" null="false"/>
+      <column name="index" type="INTEGER" null="false"/>
+      <column name="value" type="INTEGER" null="false"/>
+      <foreign-key name="object_id_fk" on-delete="CASCADE">
+        <column name="object_id"/>
+        <references table="IrcServerOptions">
+          <column name="id"/>
+        </references>
+      </foreign-key>
+      <index name="IrcServerOptions_tls_ports_object_id_i">
+        <column name="object_id"/>
+      </index>
+      <index name="IrcServerOptions_tls_ports_index_i">
+        <column name="index"/>
+      </index>
+    </table>
+    <table name="IrcServerOptions_ports" kind="container">
+      <column name="object_id" type="INTEGER" null="false"/>
+      <column name="index" type="INTEGER" null="false"/>
+      <column name="value" type="INTEGER" null="false"/>
+      <foreign-key name="object_id_fk" on-delete="CASCADE">
+        <column name="object_id"/>
+        <references table="IrcServerOptions">
+          <column name="id"/>
+        </references>
+      </foreign-key>
+      <index name="IrcServerOptions_ports_object_id_i">
+        <column name="object_id"/>
+      </index>
+      <index name="IrcServerOptions_ports_index_i">
+        <column name="index"/>
+      </index>
+    </table>
+    <table name="IrcChannelOptions" kind="object">
+      <column name="id" type="INTEGER" null="false"/>
+      <column name="owner" type="TEXT" null="false"/>
+      <column name="server" type="TEXT" null="false"/>
+      <column name="channel" type="TEXT" null="false"/>
+      <column name="encoding_out" type="TEXT" null="false"/>
+      <column name="encoding_in" type="TEXT" null="false"/>
+      <column name="max_history_length" type="INTEGER" null="false"/>
+      <column name="persistent" type="INTEGER" null="false"/>
+      <primary-key auto="true">
+        <column name="id"/>
+      </primary-key>
+      <index name="owner_server_channel" type="UNIQUE">
+        <column name="owner"/>
+        <column name="server"/>
+        <column name="channel"/>
+      </index>
+    </table>
+  </model>
+</changelog>
