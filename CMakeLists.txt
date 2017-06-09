@@ -20,7 +20,7 @@ find_library(LIBUBSAN NAMES ubsan libubsan.so.0)
 #
 ## Set various debug flags (instrumentation libs, coverage, …)
 #
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++1y -pedantic -Wall -Wextra -Wconversion")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++1y -pedantic -Wall -Wextra -Wconversion -Wno-unknown-pragmas")
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
   set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fprofile-arcs -ftest-coverage --coverage")
 endif()
@@ -124,10 +124,10 @@ elseif(NOT WITHOUT_UDNS)
   find_package(UDNS)
 endif()
 
-if(WITH_LITESQL)
-  find_package(LITESQL REQUIRED)
-elseif(NOT WITHOUT_LITESQL)
-  find_package(LITESQL)
+if(WITH_ODB)
+  find_package(ODB REQUIRED COMPONENTS sqlite)
+elseif(NOT WITHOUT_ODB)
+  find_package(ODB COMPONENTS sqlite)
 endif()
 
 #
@@ -158,17 +158,17 @@ include_directories("${CMAKE_CURRENT_BINARY_DIR}/")
 file(GLOB source_utils
         src/utils/*.[hc]pp)
 add_library(utils OBJECT ${source_utils})
-add_dependencies(utils litesql_generated_sources)
+add_dependencies(utils odb_generated_sources)
 
 file(GLOB source_irc
         src/irc/*.[hc]pp)
 add_library(irc OBJECT ${source_irc})
-add_dependencies(irc litesql_generated_sources)
+add_dependencies(irc odb_generated_sources)
 
 file(GLOB source_xmpp
         src/xmpp/*.[hc]pp)
 add_library(xmpp OBJECT ${source_xmpp})
-add_dependencies(xmpp litesql_generated_sources)
+add_dependencies(xmpp odb_generated_sources)
 
 file(GLOB source_identd
         src/identd/*.[hc]pp)
@@ -177,7 +177,7 @@ add_library(identd OBJECT ${source_identd})
 file(GLOB source_bridge
         src/bridge/*.[hc]pp)
 add_library(bridge OBJECT ${source_bridge})
-add_dependencies(bridge litesql_generated_sources)
+add_dependencies(bridge odb_generated_sources)
 
 file(GLOB source_config
         src/config/*.[hc]pp)
@@ -191,20 +191,27 @@ file(GLOB source_network
         src/network/*.[hc]pp)
 add_library(network OBJECT ${source_network})
 
-if(LITESQL_FOUND)
-  LITESQL_GENERATE_CPP("database/database.xml"
-          "biboudb"
-          LITESQL_GENERATED_SOURCES)
-  add_custom_target(litesql_generated_sources SOURCES ${LITESQL_GENERATED_SOURCES})
+if(ODB_FOUND)
+  include(${ODB_USE_FILE})
+  set(ODB_HEADERS
+      src/database/schema.hpp
+      src/database/old_schema.hpp)
 
-  add_library(database OBJECT src/database/database.cpp ${LITESQL_GENERATED_SOURCES})
-  add_dependencies(database litesql_generated_sources)
+  odb_compile(ODB_SOURCES FILES ${ODB_HEADERS} DB sqlite GENERATE_QUERY GENERATE_SCHEMA
+              INCLUDE src src/database STANDARD c++14)
 
-  include_directories(database ${LITESQL_INCLUDE_DIRS})
+  add_custom_target(odb_generated_sources SOURCES ${ODB_SOURCES})
+
+  add_library(database OBJECT src/database/database.cpp ${ODB_SOURCES})
+  target_include_directories(database PRIVATE src src/database ${ODB_INCLUDE_DIRS} ${ODB_COMPILE_OUTPUT_DIR})
+
+  include_directories(${ODB_COMPILE_OUTPUT_DIR})
+  include_directories(src/database)
+
   set(USE_DATABASE TRUE)
 else()
   add_library(database OBJECT "")
-  add_custom_target(litesql_generated_sources)
+  add_custom_target(odb_generated_sources)
 endif()
 
 #
@@ -269,8 +276,8 @@ if(LIBIDN_FOUND)
   target_link_libraries(test_suite ${LIBIDN_LIBRARIES})
 endif()
 if(USE_DATABASE)
-  target_link_libraries(${PROJECT_NAME} ${LITESQL_LIBRARIES})
-  target_link_libraries(test_suite ${LITESQL_LIBRARIES})
+  target_link_libraries(${PROJECT_NAME} ${ODB_LIBRARIES})
+  target_link_libraries(test_suite ${ODB_LIBRARIES})
 endif()
 
 # Define a __FILENAME__ macro with the relative path (from the base project directory)
