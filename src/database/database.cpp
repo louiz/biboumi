@@ -1,7 +1,20 @@
 #include "biboumi.h"
 #ifdef USE_DATABASE
 
+#include <database/schema.hpp>
+#include <database/old_schema.hpp>
+
+#include <old_schema-odb.hpp>
+#include <schema-odb.hpp>
+
+#include <irc/iid.hpp>
+
 #include <database/database.hpp>
+
+#include <odb/database.hxx>
+#include <odb/schema-catalog.hxx>
+#include <odb/transaction.hxx>
+
 #include <logger/logger.hpp>
 #include <irc/iid.hpp>
 #include <uuid/uuid.h>
@@ -10,75 +23,103 @@
 
 using namespace std::string_literals;
 
-std::unique_ptr<db::BibouDB> Database::db;
+std::unique_ptr<Database::Type> Database::db;
 
-void Database::open(const std::string& filename, const std::string& db_type)
+namespace
 {
-  try
-    {
-      auto new_db = std::make_unique<db::BibouDB>(db_type,
-                                             "database="s + filename);
-      if (new_db->needsUpgrade())
-        new_db->upgrade();
-      Database::db = std::move(new_db);
-    } catch (const litesql::DatabaseError& e) {
-      log_error("Failed to open database ", filename, ". ", e.what());
-      throw;
+template <typename From, typename To>
+void migrate(Database::Type& db)
+{
+  try {
+      odb::core::transaction t(db.begin());
+      auto res = db.template query<From>();
+
+      for (const auto& val: res)
+        {
+          To entry(val);
+          db.persist(entry);
+        }
+      t.commit();
+    } catch (...) {
+      // The table doesn’t exist, no data to migrate
+      return;
+    }
+
+}
+}
+
+void Database::open(const std::string& filename)
+{
+  Database::db = std::make_unique<Database::Type>(filename, SQLITE_OPEN_CREATE | SQLITE_OPEN_READWRITE);
+
+  if (db->schema_version() == 0)
+    { // New schema does not exist at all. Create it and migrate old data if they exist
+      log_debug("Creating new database schema…");
+      {
+        odb::core::transaction t(db->begin());
+        odb::schema_catalog::create_schema(*db);
+        t.commit();
+      }
+      log_debug("Migrate data");
+      {
+        migrate<old_database::MucLogLine, db::MucLogLine>(*db);
+        migrate<old_database::GlobalOptions, db::GlobalOptions>(*db);
+        migrate<old_database::IrcServerOptions, db::IrcServerOptions>(*db);
+        migrate<old_database::IrcChannelOptions, db::IrcChannelOptions>(*db);
+      }
+      log_debug("Done.");
     }
 }
 
-void Database::set_verbose(const bool val)
+void Database::set_verbose(const bool)
 {
-  Database::db->verbose = val;
 }
 
 db::GlobalOptions Database::get_global_options(const std::string& owner)
 {
-  try {
-    auto options = litesql::select<db::GlobalOptions>(*Database::db,
-                                                      db::GlobalOptions::Owner == owner).one();
-    return options;
-  } catch (const litesql::NotFound& e) {
-    db::GlobalOptions options(*Database::db);
-    options.owner = owner;
-    return options;
-  }
+  using Query = odb::query<db::GlobalOptions>;
+
+  Query query(Query::owner == owner);
+  db::GlobalOptions options;
+  options.owner = owner;
+
+  odb::core::transaction t(db->begin());
+  Database::db->query_one(query, options);
+  t.commit();
+
+  return options;
 }
 
 db::IrcServerOptions Database::get_irc_server_options(const std::string& owner,
                                                       const std::string& server)
 {
-  try {
-    auto options = litesql::select<db::IrcServerOptions>(*Database::db,
-                             db::IrcServerOptions::Owner == owner &&
-                             db::IrcServerOptions::Server == server).one();
-    return options;
-  } catch (const litesql::NotFound& e) {
-    db::IrcServerOptions options(*Database::db);
-    options.owner = owner;
-    options.server = server;
-    // options.update();
-    return options;
-  }
+  using Query = odb::query<db::IrcServerOptions>;
+
+  Query query(Query::owner == owner && Query::server == server);
+  db::IrcServerOptions options;
+  options.owner = owner;
+  options.server = server;
+  odb::core::transaction t(db->begin());
+  Database::db->query_one(query, options);
+  t.commit();
+  return options;
 }
 
 db::IrcChannelOptions Database::get_irc_channel_options(const std::string& owner,
                                                         const std::string& server,
                                                         const std::string& channel)
 {
-  try {
-    auto options = litesql::select<db::IrcChannelOptions>(*Database::db,
-                                                         db::IrcChannelOptions::Owner == owner &&
-                                                         db::IrcChannelOptions::Server == server &&
-                                                         db::IrcChannelOptions::Channel == channel).one();
-    return options;
-  } catch (const litesql::NotFound& e) {
-    db::IrcChannelOptions options(*Database::db);
-    options.owner = owner;
-    options.server = server;
-    options.channel = channel;
-    return options;
-  }
+  using Query = odb::query<db::IrcChannelOptions>;
+
+  Query query(Query::owner == owner && Query::server == server && Query::channel == channel);
+  db::IrcChannelOptions options;
+  options.owner = owner;
+  options.server = server;
+  options.channel = channel;
+  odb::core::transaction t(db->begin());
+  Database::db->query_one(query, options);
+t.commit();
+  return options;
 }
 
 db::IrcChannelOptions Database::get_irc_channel_options_with_server_default(const std::string& owner,
@@ -88,13 +129,13 @@ db::IrcChannelOptions Database::get_irc_channel_options_with_server_default(cons
   auto coptions = Database::get_irc_channel_options(owner, server, channel);
   auto soptions = Database::get_irc_server_options(owner, server);
 
-  coptions.encodingIn = get_first_non_empty(coptions.encodingIn.value(),
-                                            soptions.encodingIn.value());
-  coptions.encodingOut = get_first_non_empty(coptions.encodingOut.value(),
-                                             soptions.encodingOut.value());
+  coptions.encoding_in = get_first_non_empty(coptions.encoding_in,
+                                            soptions.encoding_in);
+  coptions.encoding_out = get_first_non_empty(coptions.encoding_out,
+                                             soptions.encoding_out);
 
-  coptions.maxHistoryLength = get_first_non_empty(coptions.maxHistoryLength.value(),
-                                                  soptions.maxHistoryLength.value());
+  coptions.max_history_length = get_first_non_empty(coptions.max_history_length,
+                                                  soptions.max_history_length);
 
   return coptions;
 }
@@ -107,65 +148,78 @@ db::IrcChannelOptions Database::get_irc_channel_options_with_server_and_global_d
   auto soptions = Database::get_irc_server_options(owner, server);
   auto goptions = Database::get_global_options(owner);
 
-  coptions.encodingIn = get_first_non_empty(coptions.encodingIn.value(),
-                                            soptions.encodingIn.value());
-  coptions.encodingOut = get_first_non_empty(coptions.encodingOut.value(),
-                                             soptions.encodingOut.value());
+  coptions.encoding_in = get_first_non_empty(coptions.encoding_in,
+                                            soptions.encoding_in);
+  coptions.encoding_out = get_first_non_empty(coptions.encoding_out,
+                                             soptions.encoding_out);
 
-  coptions.maxHistoryLength = get_first_non_empty(coptions.maxHistoryLength.value(),
-                                                  soptions.maxHistoryLength.value(),
-                                                  goptions.maxHistoryLength.value());
+  coptions.max_history_length = get_first_non_empty(coptions.max_history_length,
+                                                  soptions.max_history_length,
+                                                  goptions.max_history_length);
 
   return coptions;
 }
 
-std::string Database::store_muc_message(const std::string& owner, const Iid& iid,
+std::string Database::store_muc_message(const std::string& owner, const std::string& channel_name,
+                                        const std::string& server_name,
                                         Database::time_point date,
                                         const std::string& body,
                                         const std::string& nick)
 {
-  db::MucLogLine line(*Database::db);
+  db::MucLogLine line;
 
   auto uuid = Database::gen_uuid();
 
   line.uuid = uuid;
   line.owner = owner;
-  line.ircChanName = iid.get_local();
-  line.ircServerName = iid.get_server();
+  line.channel_name = channel_name;
+  line.server_name = server_name;
   line.date = std::chrono::duration_cast<std::chrono::seconds>(date.time_since_epoch()).count();
   line.body = body;
   line.nick = nick;
+  odb::core::transaction t(db->begin());
 
-  line.update();
-
+  Database::db->persist(line);
+  t.commit();
   return uuid;
 }
 
 std::vector<db::MucLogLine> Database::get_muc_logs(const std::string& owner, const std::string& chan_name, const std::string& server,
                                                    int limit, const std::string& start, const std::string& end)
 {
-  auto request = litesql::select<db::MucLogLine>(*Database::db,
-                                              db::MucLogLine::Owner == owner &&
-                                              db::MucLogLine::IrcChanName == chan_name &&
-                                              db::MucLogLine::IrcServerName == server);
-  request.orderBy(db::MucLogLine::Id, false);
 
-  if (limit >= 0)
-    request.limit(limit);
+  using Query = odb::query<db::MucLogLine>;
+
+
+  Query query{Query::owner == owner &&
+              Query::channel_name == chan_name &&
+              Query::server_name == server};
+
   if (!start.empty())
     {
       const auto start_time = utils::parse_datetime(start);
       if (start_time != -1)
-        request.where(db::MucLogLine::Date >= start_time);
+        query = query && (Query::date >= start_time);
     }
   if (!end.empty())
     {
       const auto end_time = utils::parse_datetime(end);
       if (end_time != -1)
-        request.where(db::MucLogLine::Date <= end_time);
+        query = query && (Query::date <= end_time);
     }
-  const auto& res = request.all();
-  return {res.crbegin(), res.crend()};
+
+  query += "ORDER BY" + Query::id + "DESC";
+
+  if (limit >= 0)
+    query += "LIMIT" + Query::_val(limit);
+
+  odb::core::transaction t(db->begin());
+  odb::result<db::MucLogLine> res = Database::db->query<db::MucLogLine>(query);
+
+  std::vector<db::MucLogLine> results{res.begin(), res.end()};
+  t.commit();
+
+  return {results.crbegin(), results.crend()};
 }
 
 void Database::close()

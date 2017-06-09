@@ -1,11 +1,13 @@
 #include "catch.hpp"
 
+#include "io_tester.hpp"
 #include <database/database.hpp>
 
 #include <config/config.hpp>
 
 TEST_CASE("Database")
 {
+  IoTester<std::ostream> out(std::cout);
 #ifdef USE_DATABASE
   Database::open(":memory:");
   Database::set_verbose(false);
@@ -13,7 +15,7 @@ TEST_CASE("Database")
   SECTION("Basic retrieve and update")
     {
       auto o = Database::get_irc_server_options("zouzou@example.com", "irc.example.com");
-      o.update();
+      Database::persist(o);
       auto a = Database::get_irc_server_options("zouzou@example.com", "irc.example.com");
       auto b = Database::get_irc_server_options("moumou@example.com", "irc.example.com");
 
@@ -21,11 +23,10 @@ TEST_CASE("Database")
       // inserted
       CHECK(1 == Database::count<db::IrcServerOptions>());
 
-      b.update();
+      Database::persist(b);
       CHECK(2 == Database::count<db::IrcServerOptions>());
 
       CHECK(b.pass == "");
-      CHECK(b.pass.value() == "");
     }
 
   SECTION("channel options")
@@ -33,11 +34,11 @@ TEST_CASE("Database")
       Config::set("db_name", ":memory:");
       auto o = Database::get_irc_channel_options("zouzou@example.com", "irc.example.com", "#foo");
 
-      CHECK(o.encodingIn == "");
-      o.encodingIn = "ISO-8859-1";
-      o.update();
+      CHECK(o.encoding_in == "");
+      o.encoding_in = "latin-1";
+      Database::persist(o);
       auto b = Database::get_irc_channel_options("zouzou@example.com", "irc.example.com", "#foo");
-      CHECK(o.encodingIn == "ISO-8859-1");
+      CHECK(o.encoding_in == "latin-1");
     }
 
   SECTION("Channel options with server default")
@@ -51,43 +52,43 @@ TEST_CASE("Database")
 
       GIVEN("An option defined for the channel but not the server")
       {
-        c.encodingIn = "channelEncoding";
-        c.update();
+        c.encoding_in = "channelEncoding";
+        Database::persist(c);
         WHEN("we fetch that option")
           {
             auto r = Database::get_irc_channel_options_with_server_default(owner, server, chan1);
             THEN("we get the channel option")
-              CHECK(r.encodingIn == "channelEncoding");
+              CHECK(r.encoding_in == "channelEncoding");
           }
       }
       GIVEN("An option defined for the server but not the channel")
         {
-          s.encodingIn = "serverEncoding";
-          s.update();
+          s.encoding_in = "serverEncoding";
+          Database::persist(s);
         WHEN("we fetch that option")
           {
             auto r = Database::get_irc_channel_options_with_server_default(owner, server, chan1);
             THEN("we get the server option")
-              CHECK(r.encodingIn == "serverEncoding");
+              CHECK(r.encoding_in == "serverEncoding");
           }
         }
       GIVEN("An option defined for both the server and the channel")
         {
-          s.encodingIn = "serverEncoding";
-          s.update();
-          c.encodingIn = "channelEncoding";
-          c.update();
+          s.encoding_in = "serverEncoding";
+          Database::persist(s);
+          c.encoding_in = "channelEncoding";
+          Database::persist(c);
         WHEN("we fetch that option")
           {
             auto r = Database::get_irc_channel_options_with_server_default(owner, server, chan1);
             THEN("we get the channel option")
-              CHECK(r.encodingIn == "channelEncoding");
+              CHECK(r.encoding_in == "channelEncoding");
           }
         WHEN("we fetch that option, with no channel specified")
           {
             auto r = Database::get_irc_channel_options_with_server_default(owner, server, "");
             THEN("we get the server option")
-              CHECK(r.encodingIn == "serverEncoding");
+              CHECK(r.encoding_in == "serverEncoding");
           }
         }
     }

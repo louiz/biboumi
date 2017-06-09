@@ -650,7 +650,7 @@ bool BiboumiComponent::handle_mam_request(const Stanza& stanza)
         const auto lines = Database::get_muc_logs(from.bare(), iid.get_local(), iid.get_server(), limit, start, end);
         for (const db::MucLogLine& line: lines)
         {
-          if (!line.nick.value().empty())
+          if (!line.nick.empty())
             this->send_archived_message(line, to.full(), from.full(), query_id);
         }
         this->send_iq_result_full_jid(id, from.full(), to.full());
@@ -671,22 +671,22 @@ void BiboumiComponent::send_archived_message(const db::MucLogLine& log_line, con
     result["xmlns"] = MAM_NS;
     if (!queryid.empty())
       result["queryid"] = queryid;
-    result["id"] = log_line.uuid.value();
+    result["id"] = log_line.uuid;
 
     XmlSubNode forwarded(result, "forwarded");
     forwarded["xmlns"] = FORWARD_NS;
 
     XmlSubNode delay(forwarded, "delay");
     delay["xmlns"] = DELAY_NS;
-    delay["stamp"] = utils::to_string(log_line.date.value().timeStamp());
+    delay["stamp"] = utils::to_string(log_line.date);
 
     XmlSubNode submessage(forwarded, "message");
     submessage["xmlns"] = CLIENT_NS;
-    submessage["from"] = from + "/" + log_line.nick.value();
+    submessage["from"] = from + "/" + log_line.nick;
     submessage["type"] = "groupchat";
 
     XmlSubNode body(submessage, "body");
-    body.set_inner(log_line.body.value());
+    body.set_inner(log_line.body);
   }
   this->send_stanza(message);
 }
