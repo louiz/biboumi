@@ -23,7 +23,7 @@ static std::string in_encoding_for(const Bridge& bridge, const Iid& iid)
 #ifdef USE_DATABASE
   const auto jid = bridge.get_bare_jid();
   auto options = Database::get_irc_channel_options_with_server_default(jid, iid.get_server(), iid.get_local());
-  return options.encodingIn.value();
+  return options.encoding_in;
 #else
   (void)bridge;
   (void)iid;
@@ -32,13 +32,13 @@ static std::string in_encoding_for(const Bridge& bridge, const Iid& iid)
 }
 
 Bridge::Bridge(std::string user_jid, BiboumiComponent& xmpp, std::shared_ptr<Poller>& poller):
-  user_jid(std::move(user_jid)),
+ user_jid(std::move(user_jid)),
   xmpp(xmpp),
   poller(poller)
 {
 #ifdef USE_DATABASE
   const auto options = Database::get_global_options(this->user_jid);
-  this->set_record_history(options.recordHistory.value());
+  this->set_record_history(options.record_history);
 #endif
 }
 
@@ -436,7 +436,7 @@ void Bridge::leave_irc_channel(Iid&& iid, const std::string& status_message, con
 #ifdef USE_DATABASE
       const auto coptions = Database::get_irc_channel_options_with_server_default(this->user_jid,
                                                                                   iid.get_server(), iid.get_local());
-      persistent = coptions.persistent.value();
+      persistent = coptions.persistent;
 #endif
       if (channel->joined && !channel->parting && !persistent)
         {
@@ -994,12 +994,12 @@ void Bridge::send_room_history(const std::string& hostname, std::string chan_nam
 {
 #ifdef USE_DATABASE
   const auto coptions = Database::get_irc_channel_options_with_server_and_global_default(this->user_jid, hostname, chan_name);
-  const auto lines = Database::get_muc_logs(this->user_jid, chan_name, hostname, coptions.maxHistoryLength.value());
+  const auto lines = Database::get_muc_logs(this->user_jid, chan_name, hostname, coptions.max_history_length);
   chan_name.append(utils::empty_if_fixed_server("%" + hostname));
   for (const auto& line: lines)
     {
-      const auto seconds = line.date.value().timeStamp();
-      this->xmpp.send_history_message(chan_name, line.nick.value(), line.body.value(),
+      const auto seconds = line.date;
+      this->xmpp.send_history_message(chan_name, line.nick, line.body,
                                       this->user_jid + "/" + resource, seconds);
     }
 #else

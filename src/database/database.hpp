@@ -1,21 +1,20 @@
 #pragma once
 
-
 #include <biboumi.h>
 #ifdef USE_DATABASE
 
-#include "biboudb.hpp"
+#include <irc/iid.hpp>
+
+#include <database/schema.hpp>
+#include <odb/sqlite/database.hxx>
+#include <schema-odb.hpp>
 
 #include <memory>
-
-#include <litesql.hpp>
-#include <chrono>
-
-class Iid;
 
 class Database
 {
 public:
+  using Type = odb::sqlite::database;
   using time_point = std::chrono::system_clock::time_point;
   Database() = default;
   ~Database() = default;
@@ -27,15 +26,6 @@ public:
 
   static void set_verbose(const bool val);
 
-  template<typename PersistentType>
-  static size_t count()
-  {
-    return litesql::select<PersistentType>(*Database::db).count();
-  }
-  /**
-   * Return the object from the db. Create it beforehand (with all default
-   * values) if it is not already present.
-   */
   static db::GlobalOptions get_global_options(const std::string& owner);
   static db::IrcServerOptions get_irc_server_options(const std::string& owner,
                                                      const std::string& server);
@@ -54,12 +44,13 @@ public:
                                 time_point date, const std::string& body, const std::string& nick);
 
   static void close();
-  static void open(const std::string& filename, const std::string& db_type="sqlite3");
+  static void open(const std::string& filename);
 
 
 private:
   static std::string gen_uuid();
-  static std::unique_ptr<db::BibouDB> db;
+public:
+  static std::unique_ptr<Type> db;
 };
 #endif /* USE_DATABASE */
 
