@@ -22,12 +22,16 @@ std::string Database::gen_uuid()
 
 void Database::open(const std::string& filename)
 {
-  sqlite3_open_v2(filename.data(), &Database::db, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, nullptr);
+  auto res = sqlite3_open_v2(filename.data(), &Database::db, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, nullptr);
+  log_debug("open: ", res);
+  Database::muc_log_lines.create();
+  Database::global_options.create();
+  Database::irc_server_options.create();
+  Database::irc_channel_options.create();
 }
 
 void Database::close()
 {
-
 }
 
 Database::GlobalOptions Database::get_global_options(const std::string& owner)

@@ -1,12 +1,11 @@
 #pragma once
 
 #include <database/insert_query.hpp>
-
-#include <sqlite3.h>
+#include <logger/logger.hpp>
 
 #include <type_traits>
 
-#include <iostream>
+#include <sqlite3.h>
 
 template <typename ColumnType, typename... T>
 typename std::enable_if<!std::is_same<std::decay_t<ColumnType>, Id>::value, void>::type
@@ -18,9 +17,9 @@ typename std::enable_if<std::is_same<std::decay_t<ColumnType>, Id>::value, void>
 update_id(std::tuple<T...>& columns, sqlite3* db)
 {
   auto&& column = std::get<ColumnType>(columns);
-  std::cout << "Found an autoincrement col." << std::endl;
+  log_debug("Found an autoincrement col.");
   auto res = sqlite3_last_insert_rowid(db);
-  std::cout << "Value is now: " << res << std::endl;
+  log_debug("Value is now: ", res);
   column.value = res;
 }
 
@@ -64,11 +63,10 @@ struct Row
       InsertQuery query(this->table_name);
       query.insert_col_names(this->columns);
       query.insert_values(this->columns);
-      std::cout << query.body << std::endl;
+      log_debug(query.body);
 
       query.execute(this->columns, db);
 
-      std::cout << "trying to update the row with the inserted ID" << std::endl;
       update_autoincrement_id<0>(this->columns, db);
     }
 

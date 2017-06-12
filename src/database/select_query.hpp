@@ -1,9 +1,9 @@
 #pragma once
 
 #include <database/query.hpp>
+#include <logger/logger.hpp>
 #include <database/row.hpp>
 
-#include <iostream>
 #include <vector>
 #include <string>
 
@@ -96,22 +96,20 @@ struct SelectQuery: public Query
 
     auto execute(sqlite3* db)
     {
-      std::cout << "Execute, size of T..." << sizeof...(T) << std::endl;
       auto statement = this->prepare(db);
       int i = 1;
       for (const std::string& param: this->params)
         {
           if (sqlite3_bind_text(statement, i, param.data(), static_cast<int>(param.size()), SQLITE_TRANSIENT) != SQLITE_OK)
-            std::cout << "Failed to bind " << param << " to param " << i << std::endl;
+            log_debug("Failed to bind ", param, " to param ", i);
           else
-            std::cout << "Bound " << param << " to " << i << std::endl;
+            log_debug("Bound ", param, " to ", i);
 
           i++;
         }
       std::vector<Row<T...>> rows;
       while (sqlite3_step(statement) == SQLITE_ROW)
         {
-          std::cout << "result." << std::endl;
           Row<T...> row(this->table_name);
           extract_row_values(row, statement);
           rows.push_back(row);

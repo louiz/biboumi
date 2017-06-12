@@ -1,10 +1,11 @@
 #pragma once
 
-#include <sqlite3.h>
+#include <logger/logger.hpp>
 
-#include <iostream>
 #include <vector>
 #include <string>
+
+#include <sqlite3.h>
 
 struct Query
 {
@@ -18,17 +19,16 @@ struct Query
     sqlite3_stmt* prepare(sqlite3* db)
     {
       sqlite3_stmt* statement;
-      std::cout << this->body << std::endl;
+      log_debug(this->body);
       auto res = sqlite3_prepare(db, this->body.data(), static_cast<int>(this->body.size()) + 1,
                                  &statement, nullptr);
       if (res != SQLITE_OK)
         {
-          std::cout << "Error preparing statement: " << sqlite3_errmsg(db) << std::endl;
+          log_error("Error preparing statement: ", sqlite3_errmsg(db));
           return nullptr;
         }
       return statement;
     }
-
 };
 
 template <typename ColumnType>

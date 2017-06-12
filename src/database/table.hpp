@@ -1,12 +1,12 @@
 #pragma once
 
-#include <database/row.hpp>
 #include <database/select_query.hpp>
 #include <database/type_to_sql.hpp>
+#include <logger/logger.hpp>
+#include <database/row.hpp>
 
-#include <string>
 #include <algorithm>
-#include <iostream>
+#include <string>
 
 template <typename... T>
 class Table
@@ -24,26 +24,22 @@ class Table
 
   void create()
   {
-    std::string res{"CREATE TABLE "};
+    std::string res{"CREATE TABLE IF NOT EXISTS "};
     res += this->name;
     res += " (\n";
     this->add_column_create<0>(res);
     res += ")";
 
-    std::cout << res << std::endl;
+    log_debug(res);
 
     char* error;
     const auto result = sqlite3_exec(this->db, res.data(), nullptr, nullptr, &error);
+    log_debug("result: ", +result);
     if (result != SQLITE_OK)
       {
-        std::cout << "Error executing query: " << error;
+        log_error("Error executing query: ", error);
         sqlite3_free(error);
       }
-    else
-      {
-        std::cout << "success." << std::endl;
-      }
-
   }
 
   RowType row()

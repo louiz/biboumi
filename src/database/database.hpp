@@ -1,10 +1,11 @@
 #pragma once
 
 #include <biboumi.h>
-//#ifdef USE_DATABASE
+#ifdef USE_DATABASE
 
 #include <database/table.hpp>
 #include <database/column.hpp>
+#include <database/count_query.hpp>
 
 #include <chrono>
 #include <string>
@@ -102,9 +103,7 @@ class Database
   Database(Database&&) = delete;
   Database& operator=(const Database&) = delete;
   Database& operator=(Database&&) = delete;
-//
-//  static void set_verbose(const bool val);
-//
+
   static GlobalOptions get_global_options(const std::string& owner);
   static IrcServerOptions get_irc_server_options(const std::string& owner,
                                                      const std::string& server);
@@ -125,14 +124,20 @@ class Database
   static void close();
   static void open(const std::string& filename);
 
-private:
-  static std::string gen_uuid();
+  template <typename TableType>
+  static std::size_t count(const TableType& table)
+  {
+    CountQuery query{table.get_name()};
+    return query.execute(Database::db);
+  }
 
   static MucLogLineTable muc_log_lines;
   static GlobalOptionsTable global_options;
   static IrcServerOptionsTable irc_server_options;
   static IrcChannelOptionsTable irc_channel_options;
-public:
   static sqlite3* db;
+
+ private:
+  static std::string gen_uuid();
 };
-//#endif /* USE_DATABASE */
+#endif /* USE_DATABASE */
