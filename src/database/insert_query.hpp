@@ -1,6 +1,7 @@
 #pragma once
 
 #include <database/query.hpp>
+#include <database/column.hpp>
 
 #include <type_traits>
 #include <vector>
@@ -14,10 +15,9 @@ template <std::size_t N, typename ColumnType, typename... T>
 typename std::enable_if<!std::is_same<std::decay_t<ColumnType>, Id>::value, void>::type
 actual_bind(sqlite3_stmt* statement, std::vector<std::string>& params, const std::tuple<T...>&)
 {
-  std::cout << "actual bind, not ID" << std::endl;
   const auto value = params.front();
   params.erase(params.begin());
-  if (sqlite3_bind_text(statement, N + 1, value.data(), value.size(), SQLITE_TRANSIENT) != SQLITE_OK)
+  if (sqlite3_bind_text(statement, N + 1, value.data(), static_cast<int>(value.size()), SQLITE_TRANSIENT) != SQLITE_OK)
     std::cout << "Failed to bind " << value << " to param " << N << std::endl;
   else
     std::cout << "Bound (not id)" << value << " to " << N << std::endl;
@@ -27,7 +27,6 @@ template <std::size_t N, typename ColumnType, typename... T>
 typename std::enable_if<std::is_same<std::decay_t<ColumnType>, Id>::value, void>::type
 actual_bind(sqlite3_stmt* statement, std::vector<std::string>&, const std::tuple<T...>& columns)
 {
-  std::cout << "actual bind, ID" << std::endl;
   auto&& column = std::get<Id>(columns);
   if (column.value != 0)
     {
@@ -38,7 +37,7 @@ actual_bind(sqlite3_stmt* statement, std::vector<std::string>&, const std::tuple
     std::cout << "Failed to bind NULL to param " << N << std::endl;
   else
     std::cout << "Bound NULL to " << N << std::endl;
-};
+}
 
 struct InsertQuery: public Query
 {
@@ -97,6 +96,33 @@ struct InsertQuery: public Query
   typename std::enable_if<N == sizeof...(T), void>::type
   insert_value(const std::tuple<T...>&)
   { }
+
+  template <typename... T>
+  void insert_col_names(const std::tuple<T...>& columns)
+  {
+    this->body += " (";
+    this->insert_col_name<0>(columns);
+    this->body += ")\n";
+  }
+
+  template <std::size_t N, typename... T>
+  typename std::enable_if<N < sizeof...(T), void>::type
+  insert_col_name(const std::tuple<T...>& columns)
+  {
+    auto value = std::get<N>(columns);
+
+    this->body += value.name;
+
+    if (N < (sizeof...(T) - 1))
+      this->body += ", ";
+
+    this->insert_col_name<N+1>(columns);
+  }
+  template <std::size_t N, typename... T>
+  typename std::enable_if<N == sizeof...(T), void>::type
+  insert_col_name(const std::tuple<T...>&)
+  {}
+
 
  private:
 };

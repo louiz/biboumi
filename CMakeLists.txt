@@ -124,10 +124,10 @@ elseif(NOT WITHOUT_UDNS)
   find_package(UDNS)
 endif()
 
-if(WITH_LITESQL)
-  find_package(LITESQL REQUIRED)
-elseif(NOT WITHOUT_LITESQL)
-  find_package(LITESQL)
+if(WITH_SQLITE3)
+  find_package(SQLITE3 REQUIRED)
+elseif(NOT WITHOUT_SQLITE3)
+  find_package(SQLITE3)
 endif()
 
 #
@@ -158,17 +158,14 @@ include_directories("${CMAKE_CURRENT_BINARY_DIR}/")
 file(GLOB source_utils
         src/utils/*.[hc]pp)
 add_library(utils OBJECT ${source_utils})
-add_dependencies(utils litesql_generated_sources)
 
 file(GLOB source_irc
         src/irc/*.[hc]pp)
 add_library(irc OBJECT ${source_irc})
-add_dependencies(irc litesql_generated_sources)
 
 file(GLOB source_xmpp
         src/xmpp/*.[hc]pp)
 add_library(xmpp OBJECT ${source_xmpp})
-add_dependencies(xmpp litesql_generated_sources)
 
 file(GLOB source_identd
         src/identd/*.[hc]pp)
@@ -177,7 +174,6 @@ add_library(identd OBJECT ${source_identd})
 file(GLOB source_bridge
         src/bridge/*.[hc]pp)
 add_library(bridge OBJECT ${source_bridge})
-add_dependencies(bridge litesql_generated_sources)
 
 file(GLOB source_config
         src/config/*.[hc]pp)
@@ -191,20 +187,15 @@ file(GLOB source_network
         src/network/*.[hc]pp)
 add_library(network OBJECT ${source_network})
 
-if(LITESQL_FOUND)
-  LITESQL_GENERATE_CPP("database/database.xml"
-          "biboudb"
-          LITESQL_GENERATED_SOURCES)
-  add_custom_target(litesql_generated_sources SOURCES ${LITESQL_GENERATED_SOURCES})
+if(SQLITE3_FOUND)
+  file(GLOB source_database
+          src/database/*.[hc]pp)
+  add_library(database OBJECT ${source_database})
 
-  add_library(database OBJECT src/database/database.cpp ${LITESQL_GENERATED_SOURCES})
-  add_dependencies(database litesql_generated_sources)
-
-  include_directories(database ${LITESQL_INCLUDE_DIRS})
+  include_directories(database ${SQLITE3_INCLUDE_DIRS})
   set(USE_DATABASE TRUE)
 else()
   add_library(database OBJECT "")
-  add_custom_target(litesql_generated_sources)
 endif()
 
 #
@@ -269,8 +260,8 @@ if(LIBIDN_FOUND)
   target_link_libraries(test_suite ${LIBIDN_LIBRARIES})
 endif()
 if(USE_DATABASE)
-  target_link_libraries(${PROJECT_NAME} ${LITESQL_LIBRARIES})
-  target_link_libraries(test_suite ${LITESQL_LIBRARIES})
+  target_link_libraries(${PROJECT_NAME} ${SQLITE3_LIBRARIES})
+  target_link_libraries(test_suite ${SQLITE3_LIBRARIES})
 endif()
 
 # Define a __FILENAME__ macro with the relative path (from the base project directory)

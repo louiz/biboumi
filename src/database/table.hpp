@@ -15,6 +15,8 @@ class Table
   using ColumnTypes = std::tuple<T...>;
 
  public:
+  using RowType = Row<T...>;
+
   Table(sqlite3* db, std::string name):
       db(db),
       name(std::move(name))
@@ -44,7 +46,7 @@ class Table
 
   }
 
-  Row<T...> row()
+  RowType row()
   {
     return {this->name};
   }

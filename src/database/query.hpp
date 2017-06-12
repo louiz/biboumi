@@ -18,7 +18,8 @@ struct Query
     sqlite3_stmt* prepare(sqlite3* db)
     {
       sqlite3_stmt* statement;
-      auto res = sqlite3_prepare(db, this->body.data(), this->body.size() + 1,
+      std::cout << this->body << std::endl;
+      auto res = sqlite3_prepare(db, this->body.data(), static_cast<int>(this->body.size()) + 1,
                                  &statement, nullptr);
       if (res != SQLITE_OK)
         {
@@ -30,16 +31,11 @@ struct Query
 
 };
 
-
 template <typename ColumnType>
 void add_param(Query& query, const ColumnType& column)
 {
   actual_add_param(query, column.value);
 }
-
-template <>
-void add_param<Id>(Query&, const Id&)
-{}
 
 template <typename T>
 void actual_add_param(Query& query, const T& val)
@@ -47,7 +43,4 @@ void actual_add_param(Query& query, const T& val)
   query.params.push_back(std::to_string(val));
 }
 
-void actual_add_param(Query& query, const std::string& val)
-{
-  query.params.push_back(val);
-}
+void actual_add_param(Query& query, const std::string& val);

@@ -156,11 +156,13 @@ IrcClient::IrcClient(std::shared_ptr<Poller>& poller, std::string hostname,
 #ifdef USE_DATABASE
   auto options = Database::get_irc_server_options(this->bridge.get_bare_jid(),
                                                   this->get_hostname());
-  for (auto it = options.ports.rbegin(); it != options.ports.rend(); ++it)
-    this->ports_to_try.emplace(std::to_string(*it), false);
+  std::vector<std::string> ports = utils::split(options.col<Database::Ports>(), ';', false);
+  for (auto it = ports.rbegin(); it != ports.rend(); ++it)
+    this->ports_to_try.emplace(*it, false);
 # ifdef BOTAN_FOUND
-  for (auto it = options.tls_ports.rbegin(); it != options.tls_ports.rend(); ++it)
-    this->ports_to_try.emplace(std::to_string(*it), true);
+  ports = utils::split(options.col<Database::TlsPorts>(), ';', false);
+  for (auto it = ports.rbegin(); it != ports.rend(); ++it)
+    this->ports_to_try.emplace(*it, true);
 # endif // BOTAN_FOUND
 
 #else  // not USE_DATABASE
@@ -202,7 +204,7 @@ void IrcClient::start()
 # ifdef USE_DATABASE
   auto options = Database::get_irc_server_options(this->bridge.get_bare_jid(),
                                                   this->get_hostname());
-  this->credential_manager.set_trusted_fingerprint(options.trusted_fingerprint);
+  this->credential_manager.set_trusted_fingerprint(options.col<Database::TrustedFingerprint>());
 # endif
 #endif
   this->connect(this->hostname, port, tls);
@@ -273,8 +275,8 @@ void IrcClient::on_connected()
 #ifdef USE_DATABASE
   auto options = Database::get_irc_server_options(this->bridge.get_bare_jid(),
                                                   this->get_hostname());
-  if (!options.pass.empty())
-    this->send_pass_command(options.pass);
+  if (!options.col<Database::Pass>().empty())
+    this->send_pass_command(options.col<Database::Pass>());
 #endif
 
   this->send_nick_command(this->current_nick);
@@ -282,10 +284,10 @@ void IrcClient::on_connected()
 #ifdef USE_DATABASE
   if (Config::get("realname_customization", "true") == "true")
     {
-      if (!options.username.empty())
-        this->username = options.username;
-      if (!options.realname.empty())
-        this->realname = options.realname;
+      if (!options.col<Database::Username>().empty())
+        this->username = options.col<Database::Username>();
+      if (!options.col<Database::Realname>().empty())
+        this->realname = options.col<Database::Realname>();
       this->send_user_command(username, realname);
     }
   else
@@ -892,8 +894,8 @@ void IrcClient::on_welcome_message(const IrcMessage& message)
 #ifdef USE_DATABASE
   auto options = Database::get_irc_server_options(this->bridge.get_bare_jid(),
                                                   this->get_hostname());
-  if (!options.after_connection_command.empty())
-    this->send_raw(options.after_connection_command);
+  if (!options.col<Database::AfterConnectionCommand>().empty())
+    this->send_raw(options.col<Database::AfterConnectionCommand>());
 #endif
   // Install a repeated events to regularly send a PING
   TimedEventsManager::instance().add_event(TimedEvent(240s, std::bind(&IrcClient::send_ping_command, this),
@@ -1258,7 +1260,7 @@ bool IrcClient::abort_on_invalid_cert() const
 {
 #ifdef USE_DATABASE
   auto options = Database::get_irc_server_options(this->bridge.get_bare_jid(), this->hostname);
-  return options.verify_cert;
+  return options.col<Database::VerifyCert>();
 #endif
   return true;
 }

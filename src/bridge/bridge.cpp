@@ -23,7 +23,7 @@ static std::string in_encoding_for(const Bridge& bridge, const Iid& iid)
 #ifdef USE_DATABASE
   const auto jid = bridge.get_bare_jid();
   auto options = Database::get_irc_channel_options_with_server_default(jid, iid.get_server(), iid.get_local());
-  return options.encoding_in;
+  return options.col<Database::EncodingIn>();
 #else
   (void)bridge;
   (void)iid;
@@ -38,7 +38,7 @@ Bridge::Bridge(std::string user_jid, BiboumiComponent& xmpp, std::shared_ptr<Pol
 {
 #ifdef USE_DATABASE
   const auto options = Database::get_global_options(this->user_jid);
-  this->set_record_history(options.record_history);
+  this->set_record_history(options.col<Database::RecordHistory>());
 #endif
 }
 
@@ -258,7 +258,7 @@ void Bridge::send_channel_message(const Iid& iid, const std::string& body)
 #ifdef USE_DATABASE
       const auto xmpp_body = this->make_xmpp_body(line);
       if (this->record_history)
-        uuid = Database::store_muc_message(this->get_bare_jid(), iid, std::chrono::system_clock::now(),
+        uuid = Database::store_muc_message(this->get_bare_jid(), iid.get_local(), iid.get_server(), std::chrono::system_clock::now(),
                                     std::get<0>(xmpp_body), irc->get_own_nick());
 #endif
       for (const auto& resource: this->resources_in_chan[iid.to_tuple()])
@@ -436,7 +436,7 @@ void Bridge::leave_irc_channel(Iid&& iid, const std::string& status_message, con
 #ifdef USE_DATABASE
       const auto coptions = Database::get_irc_channel_options_with_server_default(this->user_jid,
                                                                                   iid.get_server(), iid.get_local());
-      persistent = coptions.persistent;
+      persistent = coptions.col<Database::Persistent>();
 #endif
       if (channel->joined && !channel->parting && !persistent)
         {
@@ -837,7 +837,7 @@ void Bridge::send_message(const Iid& iid, const std::string& nick, const std::st
 #ifdef USE_DATABASE
       const auto xmpp_body = this->make_xmpp_body(body, encoding);
       if (!nick.empty() && this->record_history)
-        Database::store_muc_message(this->get_bare_jid(), iid, std::chrono::system_clock::now(),
+        Database::store_muc_message(this->get_bare_jid(), iid.get_local(), iid.get_server(), std::chrono::system_clock::now(),
                                     std::get<0>(xmpp_body), nick);
 #endif
       for (const auto& resource: this->resources_in_chan[iid.to_tuple()])
@@ -994,12 +994,12 @@ void Bridge::send_room_history(const std::string& hostname, std::string chan_nam
 {
 #ifdef USE_DATABASE
   const auto coptions = Database::get_irc_channel_options_with_server_and_global_default(this->user_jid, hostname, chan_name);
-  const auto lines = Database::get_muc_logs(this->user_jid, chan_name, hostname, coptions.max_history_length);
+  const auto lines = Database::get_muc_logs(this->user_jid, chan_name, hostname, coptions.col<Database::MaxHistoryLength>());
   chan_name.append(utils::empty_if_fixed_server("%" + hostname));
   for (const auto& line: lines)
     {
-      const auto seconds = line.date;
-      this->xmpp.send_history_message(chan_name, line.nick, line.body,
+      const auto seconds = line.col<Database::Date>();
+      this->xmpp.send_history_message(chan_name, line.col<Database::Nick>(), line.col<Database::Body>(),
                                       this->user_jid + "/" + resource, seconds);
     }
 #else

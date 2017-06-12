@@ -13,14 +13,14 @@ using namespace std::string_literals;
 
 template <typename T>
 typename std::enable_if<std::is_integral<T>::value, sqlite3_int64>::type
-extract_row_value(sqlite3_stmt* statement, const std::size_t i)
+extract_row_value(sqlite3_stmt* statement, const int i)
 {
   return sqlite3_column_int64(statement, i);
 }
 
 template <typename T>
 typename std::enable_if<std::is_same<std::string, T>::value, std::string>::type
-extract_row_value(sqlite3_stmt* statement, const std::size_t i)
+extract_row_value(sqlite3_stmt* statement, const int i)
 {
   const auto size = sqlite3_column_bytes(statement, i);
   const unsigned char* str = sqlite3_column_text(statement, i);
@@ -35,7 +35,7 @@ extract_row_values(Row<T...>& row, sqlite3_stmt* statement)
   using ColumnType = typename std::remove_reference<decltype(std::get<N>(row.columns))>::type;
 
   auto&& column = std::get<N>(row.columns);
-  column.value = extract_row_value<typename ColumnType::real_type>(statement, N);
+  column.value = static_cast<decltype(column.value)>(extract_row_value<typename ColumnType::real_type>(statement, N));
 
   extract_row_values<N+1>(row, statement);
 }
@@ -49,15 +49,50 @@ template <typename... T>
 struct SelectQuery: public Query
 {
     SelectQuery(std::string table_name):
-        Query("SELECT * from "s + table_name),
+        Query("SELECT"),
         table_name(table_name)
+    {
+      this->insert_col_name<0>();
+      this->body += " from " + this->table_name;
+    }
+
+    template <std::size_t N>
+    typename std::enable_if<N < sizeof...(T), void>::type
+    insert_col_name()
+    {
+      using ColumnsType = std::tuple<T...>;
+      ColumnsType tuple{};
+      auto value = std::get<N>(tuple);
+
+      this->body += " "s + value.name;
+
+      if (N < (sizeof...(T) - 1))
+        this->body += ", ";
+
+      this->insert_col_name<N+1>();
+    }
+    template <std::size_t N>
+    typename std::enable_if<N == sizeof...(T), void>::type
+    insert_col_name()
     {}
 
-    SelectQuery& where()
+  SelectQuery& where()
     {
       this->body += " WHERE ";
       return *this;
     };
+
+    SelectQuery& order_by()
+    {
+      this->body += " ORDER BY ";
+      return *this;
+    }
+
+    SelectQuery& limit()
+    {
+      this->body += " LIMIT ";
+      return *this;
+    }
 
     auto execute(sqlite3* db)
     {
@@ -66,7 +101,7 @@ struct SelectQuery: public Query
       int i = 1;
       for (const std::string& param: this->params)
         {
-          if (sqlite3_bind_text(statement, i, param.data(), param.size(), SQLITE_TRANSIENT) != SQLITE_OK)
+          if (sqlite3_bind_text(statement, i, param.data(), static_cast<int>(param.size()), SQLITE_TRANSIENT) != SQLITE_OK)
             std::cout << "Failed to bind " << param << " to param " << i << std::endl;
           else
             std::cout << "Bound " << param << " to " << i << std::endl;
@@ -77,7 +112,7 @@ struct SelectQuery: public Query
       while (sqlite3_step(statement) == SQLITE_ROW)
         {
           std::cout << "result." << std::endl;
-          Row<T...> row;
+          Row<T...> row(this->table_name);
           extract_row_values(row, statement);
           rows.push_back(row);
         }

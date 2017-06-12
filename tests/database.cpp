@@ -8,12 +8,11 @@ TEST_CASE("Database")
 {
 #ifdef USE_DATABASE
   Database::open(":memory:");
-  Database::set_verbose(false);
 
   SECTION("Basic retrieve and update")
     {
       auto o = Database::get_irc_server_options("zouzou@example.com", "irc.example.com");
-      o.update();
+      o.save(Database::db);
       auto a = Database::get_irc_server_options("zouzou@example.com", "irc.example.com");
       auto b = Database::get_irc_server_options("moumou@example.com", "irc.example.com");
 

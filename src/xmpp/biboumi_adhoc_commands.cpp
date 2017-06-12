@@ -130,7 +130,7 @@ void ConfigureGlobalStep1(XmppComponent&, AdhocSession& session, XmlNode& comman
 
   {
     XmlSubNode value(max_histo_length, "value");
-    value.set_inner(std::to_string(options.max_history_length));
+    value.set_inner(std::to_string(options.col<Database::MaxHistoryLength>()));
   }
 
   XmlSubNode record_history(x, "field");
@@ -142,7 +142,7 @@ void ConfigureGlobalStep1(XmppComponent&, AdhocSession& session, XmlNode& comman
   {
     XmlSubNode value(record_history, "value");
     value.set_name("value");
-    if (options.record_history)
+    if (options.col<Database::RecordHistory>())
       value.set_inner("true");
     else
       value.set_inner("false");
@@ -164,18 +164,18 @@ void ConfigureGlobalStep2(XmppComponent& xmpp_component, AdhocSession& session, 
 
           if (field->get_tag("var") == "max_history_length" &&
               value && !value->get_inner().empty())
-            options.max_history_length = atoi(value->get_inner().data());
+            options.col<Database::MaxHistoryLength>() = atoi(value->get_inner().data());
           else if (field->get_tag("var") == "record_history" &&
                    value && !value->get_inner().empty())
             {
-              options.record_history = to_bool(value->get_inner());
+              options.col<Database::RecordHistory>() = to_bool(value->get_inner());
               Bridge* bridge = biboumi_component.find_user_bridge(owner.bare());
               if (bridge)
-                bridge->set_record_history(options.record_history);
+                bridge->set_record_history(options.col<Database::RecordHistory>());
             }
         }
 
-      Database::db->persist(options);
+      options.save(Database::db);
 
       command_node.delete_all_children();
       XmlSubNode note(command_node, "note");
@@ -211,10 +211,10 @@ void ConfigureIrcServerStep1(XmppComponent&, AdhocSession& session, XmlNode& com
   ports["type"] = "text-multi";
   ports["label"] = "Ports";
   ports["desc"] = "List of ports to try, without TLS. Defaults: 6667.";
-  for (const auto& val: options.ports)
+  for (const auto& val: utils::split(options.col<Database::Ports>(), ';', false))
     {
       XmlSubNode ports_value(ports, "value");
-      ports_value.set_inner(std::to_string(val));
+      ports_value.set_inner(val);
     }
 
 #ifdef BOTAN_FOUND
@@ -223,10 +223,10 @@ void ConfigureIrcServerStep1(XmppComponent&, AdhocSession& session, XmlNode& com
   tls_ports["type"] = "text-multi";
   tls_ports["label"] = "TLS ports";
   tls_ports["desc"] = "List of ports to try, with TLS. Defaults: 6697, 6670.";
-  for (const auto& val: options.tls_ports)
+  for (const auto& val: utils::split(options.col<Database::TlsPorts>(), ';', false))
     {
       XmlSubNode tls_ports_value(tls_ports, "value");
-      tls_ports_value.set_inner(std::to_string(val));
+      tls_ports_value.set_inner(val);
     }
 
   XmlSubNode verify_cert(x, "field");
@@ -235,7 +235,7 @@ void ConfigureIrcServerStep1(XmppComponent&, AdhocSession& session, XmlNode& com
   verify_cert["label"] = "Verify certificate";
   verify_cert["desc"] = "Whether or not to abort the connection if the server’s TLS certificate is invalid";
   XmlSubNode verify_cert_value(verify_cert, "value");
-  if (options.verify_cert)
+  if (options.col<Database::VerifyCert>())
     verify_cert_value.set_inner("true");
   else
     verify_cert_value.set_inner("false");
@@ -244,10 +244,10 @@ void ConfigureIrcServerStep1(XmppComponent&, AdhocSession& session, XmlNode& com
   fingerprint["var"] = "fingerprint";
   fingerprint["type"] = "text-single";
   fingerprint["label"] = "SHA-1 fingerprint of the TLS certificate to trust.";
-  if (!options.trusted_fingerprint.empty())
+  if (!options.col<Database::TrustedFingerprint>().empty())
     {
       XmlSubNode fingerprint_value(fingerprint, "value");
-      fingerprint_value.set_inner(options.trusted_fingerprint);
+      fingerprint_value.set_inner(options.col<Database::TrustedFingerprint>());
     }
 #endif
 
@@ -256,10 +256,10 @@ void ConfigureIrcServerStep1(XmppComponent&, AdhocSession& session, XmlNode& com
   pass["type"] = "text-private";
   pass["label"] = "Server password";
   pass["desc"] = "Will be used in a PASS command when connecting";
-  if (!options.pass.empty())
+  if (!options.col<Database::Pass>().empty())
     {
       XmlSubNode pass_value(pass, "value");
-      pass_value.set_inner(options.pass);
+      pass_value.set_inner(options.col<Database::Pass>());
     }
 
   XmlSubNode after_cnt_cmd(x, "field");
@@ -267,10 +267,10 @@ void ConfigureIrcServerStep1(XmppComponent&, AdhocSession& session, XmlNode& com
   after_cnt_cmd["type"] = "text-single";
   after_cnt_cmd["desc"] = "Custom IRC command sent after the connection is established with the server.";
   after_cnt_cmd["label"] = "After-connection IRC command";
-  if (!options.after_connection_command.empty())
+  if (!options.col<Database::AfterConnectionCommand>().empty())
     {
       XmlSubNode after_cnt_cmd_value(after_cnt_cmd, "value");
-      after_cnt_cmd_value.set_inner(options.after_connection_command);
+      after_cnt_cmd_value.set_inner(options.col<Database::AfterConnectionCommand>());
     }
 
   if (Config::get("realname_customization", "true") == "true")
@@ -279,20 +279,20 @@ void ConfigureIrcServerStep1(XmppComponent&, AdhocSession& session, XmlNode& com
       username["var"] = "username";
       username["type"] = "text-single";
       username["label"] = "Username";
-      if (!options.username.empty())
+      if (!options.col<Database::Username>().empty())
         {
           XmlSubNode username_value(username, "value");
-          username_value.set_inner(options.username);
+          username_value.set_inner(options.col<Database::Username>());
         }
 
       XmlSubNode realname(x, "field");
       realname["var"] = "realname";
       realname["type"] = "text-single";
       realname["label"] = "Realname";
-      if (!options.realname.empty())
+      if (!options.col<Database::Realname>().empty())
         {
           XmlSubNode realname_value(realname, "value");
-          realname_value.set_inner(options.realname);
+          realname_value.set_inner(options.col<Database::Realname>());
         }
     }
 
@@ -301,10 +301,10 @@ void ConfigureIrcServerStep1(XmppComponent&, AdhocSession& session, XmlNode& com
   encoding_out["type"] = "text-single";
   encoding_out["desc"] = "The encoding used when sending messages to the IRC server.";
   encoding_out["label"] = "Out encoding";
-  if (!options.encoding_out.empty())
+  if (!options.col<Database::EncodingOut>().empty())
     {
       XmlSubNode encoding_out_value(encoding_out, "value");
-      encoding_out_value.set_inner(options.encoding_out);
+      encoding_out_value.set_inner(options.col<Database::EncodingOut>());
     }
 
   XmlSubNode encoding_in(x, "field");
@@ -312,10 +312,10 @@ void ConfigureIrcServerStep1(XmppComponent&, AdhocSession& session, XmlNode& com
   encoding_in["type"] = "text-single";
   encoding_in["desc"] = "The encoding used to decode message received from the IRC server.";
   encoding_in["label"] = "In encoding";
-  if (!options.encoding_in.empty())
+  if (!options.col<Database::EncodingIn>().empty())
     {
       XmlSubNode encoding_in_value(encoding_in, "value");
-      encoding_in_value.set_inner(options.encoding_in);
+      encoding_in_value.set_inner(options.col<Database::EncodingIn>());
     }
 }
 
@@ -340,7 +340,7 @@ void ConfigureIrcServerStep2(XmppComponent&, AdhocSession& session, XmlNode& com
               std::string ports;
               for (const auto& val: values)
                 ports += val->get_inner() + ";";
-              options.set_ports(ports);
+              options.col<Database::Ports>() = ports;
             }
 
 #ifdef BOTAN_FOUND
@@ -349,31 +349,31 @@ void ConfigureIrcServerStep2(XmppComponent&, AdhocSession& session, XmlNode& com
               std::string ports;
               for (const auto& val: values)
                 ports += val->get_inner() + ";";
-              options.set_tls_ports(ports);
+              options.col<Database::TlsPorts>() = ports;
             }
 
           else if (field->get_tag("var") == "verify_cert" && value
                    && !value->get_inner().empty())
             {
               auto val = to_bool(value->get_inner());
-              options.verify_cert = val;
+              options.col<Database::VerifyCert>() = val;
             }
 
           else if (field->get_tag("var") == "fingerprint" && value &&
                    !value->get_inner().empty())
             {
-              options.trusted_fingerprint = value->get_inner();
+              options.col<Database::TrustedFingerprint>() = value->get_inner();
             }
 
 #endif // BOTAN_FOUND
 
           else if (field->get_tag("var") == "pass" &&
                    value && !value->get_inner().empty())
-            options.pass = value->get_inner();
+            options.col<Database::Pass>() = value->get_inner();
 
           else if (field->get_tag("var") == "after_connect_command" &&
                    value && !value->get_inner().empty())
-            options.after_connection_command = value->get_inner();
+            options.col<Database::AfterConnectionCommand>() = value->get_inner();
 
           else if (field->get_tag("var") == "username" &&
                    value && !value->get_inner().empty())
@@ -381,24 +381,24 @@ void ConfigureIrcServerStep2(XmppComponent&, AdhocSession& session, XmlNode& com
               auto username = value->get_inner();
               // The username must not contain spaces
               std::replace(username.begin(), username.end(), ' ', '_');
-              options.username = username;
+              options.col<Database::Username>() = username;
             }
 
           else if (field->get_tag("var") == "realname" &&
                    value && !value->get_inner().empty())
-            options.realname = value->get_inner();
+            options.col<Database::Realname>() = value->get_inner();
 
           else if (field->get_tag("var") == "encoding_out" &&
                    value && !value->get_inner().empty())
-            options.encoding_out = value->get_inner();
+            options.col<Database::EncodingOut>() = value->get_inner();
 
           else if (field->get_tag("var") == "encoding_in" &&
                    value && !value->get_inner().empty())
-            options.encoding_in = value->get_inner();
+            options.col<Database::EncodingIn>() = value->get_inner();
 
         }
 
-      Database::db->persist(options);
+      options.save(Database::db);
 
       command_node.delete_all_children();
       XmlSubNode note(command_node, "note");
@@ -439,10 +439,10 @@ void insert_irc_channel_configuration_form(XmlNode& node, const Jid& requester, 
   encoding_out["type"] = "text-single";
   encoding_out["desc"] = "The encoding used when sending messages to the IRC server. Defaults to the server's “out encoding” if unset for the channel";
   encoding_out["label"] = "Out encoding";
-  if (!options.encoding_out.empty())
+  if (!options.col<Database::EncodingOut>().empty())
     {
       XmlSubNode encoding_out_value(encoding_out, "value");
-      encoding_out_value.set_inner(options.encoding_out);
+      encoding_out_value.set_inner(options.col<Database::EncodingOut>());
     }
 
   XmlSubNode encoding_in(x, "field");
@@ -450,10 +450,10 @@ void insert_irc_channel_configuration_form(XmlNode& node, const Jid& requester, 
   encoding_in["type"] = "text-single";
   encoding_in["desc"] = "The encoding used to decode message received from the IRC server. Defaults to the server's “in encoding” if unset for the channel";
   encoding_in["label"] = "In encoding";
-  if (!options.encoding_in.empty())
+  if (!options.col<Database::EncodingIn>().empty())
     {
       XmlSubNode encoding_in_value(encoding_in, "value");
-      encoding_in_value.set_inner(options.encoding_in);
+      encoding_in_value.set_inner(options.col<Database::EncodingIn>());
     }
 
   XmlSubNode persistent(x, "field");
@@ -464,7 +464,7 @@ void insert_irc_channel_configuration_form(XmlNode& node, const Jid& requester, 
   {
     XmlSubNode value(persistent, "value");
     value.set_name("value");
-    if (options.persistent)
+    if (options.col<Database::Persistent>())
       value.set_inner("true");
     else
       value.set_inner("false");
@@ -508,18 +508,18 @@ bool handle_irc_channel_configuration_form(const XmlNode& node, const Jid& reque
 
               if (field->get_tag("var") == "encoding_out" &&
                   value && !value->get_inner().empty())
-                options.encoding_out = value->get_inner();
+                options.col<Database::EncodingOut>() = value->get_inner();
 
               else if (field->get_tag("var") == "encoding_in" &&
                        value && !value->get_inner().empty())
-                options.encoding_in = value->get_inner();
+                options.col<Database::EncodingIn>() = value->get_inner();
 
               else if (field->get_tag("var") == "persistent" &&
                        value)
-                options.persistent = to_bool(value->get_inner());
+                options.col<Database::Persistent>() = to_bool(value->get_inner());
             }
 
-          Database::db->persist(options);
+          options.save(Database::db);
         }
       return true;
     }

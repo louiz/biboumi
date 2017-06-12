@@ -9,5 +9,5 @@ struct Column
     T value;
 };
 
-struct Id: Column<std::size_t> { static constexpr auto name = "id";
+struct Id: Column<std::size_t> { static constexpr auto name = "id_";
                                  static constexpr auto options = "PRIMARY KEY AUTOINCREMENT"; };
