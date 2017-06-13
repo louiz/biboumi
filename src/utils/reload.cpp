@@ -26,7 +26,7 @@ void reload_process()
 #ifdef USE_DATABASE
   try {
       open_database();
-    } catch (const litesql::DatabaseError&) {
+    } catch (...) {
       log_warning("Re-using the previous database.");
     }
 #endif
