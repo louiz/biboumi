@@ -18,15 +18,12 @@ RUN apk add --no-cache\
 # Install botan
 RUN git clone https://github.com/randombit/botan.git && cd botan && ./configure.py --prefix=/usr && make -j8 && make install && rm -rf /botan
 
-# Install litesql
-RUN git clone git://git.louiz.org/litesql && mkdir /litesql/build && cd /litesql/build && cmake .. -DCMAKE_INSTALL_PREFIX=/usr && make -j8 &&  cd /litesql/build && make install && rm -rf /litesql
-
 # Install biboumi
 RUN git clone git://git.louiz.org/biboumi && mkdir ./biboumi/build && cd ./biboumi/build &&\
    cmake .. -DCMAKE_INSTALL_PREFIX=/usr\
             -DCMAKE_BUILD_TYPE=Release\
             -DWITH_BOTAN=1\
-            -DWITH_LITESQL=1\
+            -DWITH_SQLITE3=1\
             -DWITH_LIBIDN=1\
    && make -j8 && make install && rm -rf /biboumi
 
