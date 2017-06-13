@@ -23,12 +23,14 @@ static std::string in_encoding_for(const Bridge& bridge, const Iid& iid)
 #ifdef USE_DATABASE
   const auto jid = bridge.get_bare_jid();
   auto options = Database::get_irc_channel_options_with_server_default(jid, iid.get_server(), iid.get_local());
-  return options.col<Database::EncodingIn>();
+  auto result = options.col<Database::EncodingIn>();
+  if (!result.empty())
+    return result;
 #else
   (void)bridge;
   (void)iid;
-  return {"ISO-8859-1"};
 #endif
+  return {"ISO-8859-1"};
 }
 
 Bridge::Bridge(std::string user_jid, BiboumiComponent& xmpp, std::shared_ptr<Poller>& poller):
