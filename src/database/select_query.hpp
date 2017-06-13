@@ -1,5 +1,6 @@
 #pragma once
 
+#include <database/statement.hpp>
 #include <database/query.hpp>
 #include <logger/logger.hpp>
 #include <database/row.hpp>
@@ -13,24 +14,24 @@ using namespace std::string_literals;
 
 template <typename T>
 typename std::enable_if<std::is_integral<T>::value, sqlite3_int64>::type
-extract_row_value(sqlite3_stmt* statement, const int i)
+extract_row_value(Statement& statement, const int i)
 {
-  return sqlite3_column_int64(statement, i);
+  return sqlite3_column_int64(statement.get(), i);
 }
 
 template <typename T>
 typename std::enable_if<std::is_same<std::string, T>::value, std::string>::type
-extract_row_value(sqlite3_stmt* statement, const int i)
+extract_row_value(Statement& statement, const int i)
 {
-  const auto size = sqlite3_column_bytes(statement, i);
-  const unsigned char* str = sqlite3_column_text(statement, i);
+  const auto size = sqlite3_column_bytes(statement.get(), i);
+  const unsigned char* str = sqlite3_column_text(statement.get(), i);
   std::string result(reinterpret_cast<const char*>(str), size);
   return result;
 }
 
 template <std::size_t N=0, typename... T>
 typename std::enable_if<N < sizeof...(T), void>::type
-extract_row_values(Row<T...>& row, sqlite3_stmt* statement)
+extract_row_values(Row<T...>& row, Statement& statement)
 {
   using ColumnType = typename std::remove_reference<decltype(std::get<N>(row.columns))>::type;
 
@@ -42,7 +43,7 @@ extract_row_values(Row<T...>& row, sqlite3_stmt* statement)
 
 template <std::size_t N=0, typename... T>
 typename std::enable_if<N == sizeof...(T), void>::type
-extract_row_values(Row<T...>&, sqlite3_stmt*)
+extract_row_values(Row<T...>&, Statement&)
 {}
 
 template <typename... T>
@@ -100,7 +101,7 @@ struct SelectQuery: public Query
       int i = 1;
       for (const std::string& param: this->params)
         {
-          if (sqlite3_bind_text(statement, i, param.data(), static_cast<int>(param.size()), SQLITE_TRANSIENT) != SQLITE_OK)
+          if (sqlite3_bind_text(statement.get(), i, param.data(), static_cast<int>(param.size()), SQLITE_TRANSIENT) != SQLITE_OK)
             log_debug("Failed to bind ", param, " to param ", i);
           else
             log_debug("Bound ", param, " to ", i);
@@ -108,7 +109,7 @@ struct SelectQuery: public Query
           i++;
         }
       std::vector<Row<T...>> rows;
-      while (sqlite3_step(statement) == SQLITE_ROW)
+      while (sqlite3_step(statement.get()) == SQLITE_ROW)
         {
           Row<T...> row(this->table_name);
           extract_row_values(row, statement);

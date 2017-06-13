@@ -1,5 +1,7 @@
 #pragma once
 
+#include <database/statement.hpp>
+
 #include <logger/logger.hpp>
 
 #include <vector>
@@ -16,7 +18,7 @@ struct Query
         body(std::move(str))
     {}
 
-    sqlite3_stmt* prepare(sqlite3* db)
+    Statement prepare(sqlite3* db)
     {
       sqlite3_stmt* statement;
       log_debug(this->body);
@@ -27,7 +29,7 @@ struct Query
           log_error("Error preparing statement: ", sqlite3_errmsg(db));
           return nullptr;
         }
-      return statement;
+      return {statement};
     }
 };
 

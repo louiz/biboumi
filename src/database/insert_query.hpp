@@ -1,5 +1,6 @@
 #pragma once
 
+#include <database/statement.hpp>
 #include <database/column.hpp>
 #include <database/query.hpp>
 #include <logger/logger.hpp>
@@ -13,11 +14,11 @@
 
 template <int N, typename ColumnType, typename... T>
 typename std::enable_if<!std::is_same<std::decay_t<ColumnType>, Id>::value, void>::type
-actual_bind(sqlite3_stmt* statement, std::vector<std::string>& params, const std::tuple<T...>&)
+actual_bind(Statement& statement, std::vector<std::string>& params, const std::tuple<T...>&)
 {
   const auto value = params.front();
   params.erase(params.begin());
-  if (sqlite3_bind_text(statement, N + 1, value.data(), static_cast<int>(value.size()), SQLITE_TRANSIENT) != SQLITE_OK)
+  if (sqlite3_bind_text(statement.get(), N + 1, value.data(), static_cast<int>(value.size()), SQLITE_TRANSIENT) != SQLITE_OK)
     log_error("Failed to bind ", value, " to param ", N);
   else
     log_debug("Bound (not id) [", value, "] to ", N);
@@ -25,15 +26,15 @@ actual_bind(sqlite3_stmt* statement, std::vector<std::string>& params, const std
 
 template <int N, typename ColumnType, typename... T>
 typename std::enable_if<std::is_same<std::decay_t<ColumnType>, Id>::value, void>::type
-actual_bind(sqlite3_stmt* statement, std::vector<std::string>&, const std::tuple<T...>& columns)
+actual_bind(Statement& statement, std::vector<std::string>&, const std::tuple<T...>& columns)
 {
   auto&& column = std::get<Id>(columns);
   if (column.value != 0)
     {
-      if (sqlite3_bind_int64(statement, N + 1, column.value) != SQLITE_OK)
+      if (sqlite3_bind_int64(statement.get(), N + 1, column.value) != SQLITE_OK)
         log_error("Failed to bind ", column.value, " to id.");
     }
-  else if (sqlite3_bind_null(statement, N + 1) != SQLITE_OK)
+  else if (sqlite3_bind_null(statement.get(), N + 1) != SQLITE_OK)
     log_error("Failed to bind NULL to param ", N);
   else
     log_debug("Bound NULL to ", N);
@@ -53,14 +54,14 @@ struct InsertQuery: public Query
     auto statement = this->prepare(db);
     {
       this->bind_param<0>(columns, statement);
-      if (sqlite3_step(statement) != SQLITE_DONE)
+      if (sqlite3_step(statement.get()) != SQLITE_DONE)
         log_error("Failed to execute query: ", sqlite3_errmsg(db));
     }
   }
 
   template <int N, typename... T>
   typename std::enable_if<N < sizeof...(T), void>::type
-  bind_param(const std::tuple<T...>& columns, sqlite3_stmt* statement)
+  bind_param(const std::tuple<T...>& columns, Statement& statement)
   {
     using ColumnType = typename std::remove_reference<decltype(std::get<N>(columns))>::type;
 
@@ -70,7 +71,7 @@ struct InsertQuery: public Query
 
   template <int N, typename... T>
   typename std::enable_if<N == sizeof...(T), void>::type
-  bind_param(const std::tuple<T...>&, sqlite3_stmt*)
+  bind_param(const std::tuple<T...>&, Statement&)
   {}
 
   template <typename... T>
