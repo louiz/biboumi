@@ -156,7 +156,7 @@ test:alpine:
 
 test:freebsd:
   only:
-    - master@louiz/biboumi
+    - *@louiz/biboumi
   tags:
     - freebsd
   variables:
@@ -240,7 +240,7 @@ codecov:build:7:
 coverity:
   stage: external
   only:
-    - master@louiz/biboumi
+    - *@louiz/biboumi
   tags:
     - docker
   image: docker.louiz.org/biboumi-test-fedora:latest
