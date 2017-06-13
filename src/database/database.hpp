@@ -49,10 +49,12 @@ class Database
     static constexpr auto options = ""; };
 
   struct Ports: Column<std::string> { static constexpr auto name = "tlsPorts_";
-    static constexpr auto options = ""; };
+    static constexpr auto options = "";
+    Ports(): Column<std::string>("6667") {}};
 
   struct TlsPorts: Column<std::string> { static constexpr auto name = "ports_";
-    static constexpr auto options = ""; };
+    static constexpr auto options = "";
+    TlsPorts(): Column<std::string>("6697;6670") {} };
 
   struct Username: Column<std::string> { static constexpr auto name = "username_";
     static constexpr auto options = ""; };
@@ -67,22 +69,28 @@ class Database
     static constexpr auto options = ""; };
 
   struct EncodingOut: Column<std::string> { static constexpr auto name = "encodingOut_";
-    static constexpr auto options = ""; };
+    static constexpr auto options = "";
+    EncodingOut(): Column<std::string>("ISO-8859-1") {} };
 
   struct EncodingIn: Column<std::string> { static constexpr auto name = "encodingIn_";
-    static constexpr auto options = ""; };
+    static constexpr auto options = "";
+    EncodingIn(): Column<std::string>("ISO-8859-1") {} };
 
   struct MaxHistoryLength: Column<int> { static constexpr auto name = "maxHistoryLength_";
-    static constexpr auto options = ""; };
+    static constexpr auto options = "";
+    MaxHistoryLength(): Column<int>(20) {} };
 
   struct RecordHistory: Column<bool> { static constexpr auto name = "recordHistory_";
-    static constexpr auto options = ""; };
+    static constexpr auto options = "";
+    RecordHistory(): Column<bool>(true) {}};
 
   struct VerifyCert: Column<bool> { static constexpr auto name = "verifyCert_";
-    static constexpr auto options = ""; };
+    static constexpr auto options = "";
+    VerifyCert(): Column<bool>(true) {} };
 
   struct Persistent: Column<bool> { static constexpr auto name = "persistent_";
-    static constexpr auto options = ""; };
+    static constexpr auto options = "";
+    Persistent(): Column<bool>(false) {} };
 
   using MucLogLineTable = Table<Id, Uuid, Owner, IrcChanName, IrcServerName, Date, Body, Nick>;
   using MucLogLine = MucLogLineTable::RowType;
