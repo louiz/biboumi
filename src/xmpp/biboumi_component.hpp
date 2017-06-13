@@ -1,6 +1,6 @@
 #pragma once
 
-
+#include <database/database.hpp>
 #include <xmpp/xmpp_component.hpp>
 #include <xmpp/jid.hpp>
 
@@ -96,7 +96,7 @@ public:
 
 #ifdef USE_DATABASE
   bool handle_mam_request(const Stanza& stanza);
-  void send_archived_message(const db::MucLogLine& log_line, const std::string& from, const std::string& to,
+  void send_archived_message(const Database::MucLogLine& log_line, const std::string& from, const std::string& to,
                              const std::string& queryid);
   bool handle_room_configuration_form_request(const std::string& from, const Jid& to, const std::string& id);
   bool handle_room_configuration_form(const XmlNode& query, const std::string& from, const Jid& to, const std::string& id);
