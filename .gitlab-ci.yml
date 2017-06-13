@@ -298,6 +298,8 @@ packaging:deb:
 
 packaging:archlinux:
   stage: packaging
+  only:
+    - master@louiz/biboumi
   tags:
     - docker
   image: docker.louiz.org/biboumi-test-archlinux:latest
