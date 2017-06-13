@@ -12,9 +12,6 @@
 
 #include <atomic>
 #include <csignal>
-#ifdef USE_DATABASE
-# include <litesql.hpp>
-#endif
 
 #include <identd/identd_server.hpp>
 
@@ -91,7 +88,7 @@ int main(int ac, char** av)
 #ifdef USE_DATABASE
   try {
     open_database();
-  } catch (const litesql::DatabaseError&) {
+  } catch (...) {
     return 1;
   }
 #endif
