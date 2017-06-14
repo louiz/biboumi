@@ -1,22 +1,107 @@
 #pragma once
 
-
 #include <biboumi.h>
 #ifdef USE_DATABASE
 
-#include "biboudb.hpp"
+#include <database/table.hpp>
+#include <database/column.hpp>
+#include <database/count_query.hpp>
+
+#include <chrono>
+#include <string>
 
 #include <memory>
 
-#include <litesql.hpp>
-#include <chrono>
-
-class Iid;
 
 class Database
 {
-public:
+ public:
   using time_point = std::chrono::system_clock::time_point;
+
+  struct Uuid: Column<std::string> { static constexpr auto name = "uuid_";
+    static constexpr auto options = ""; };
+
+  struct Owner: Column<std::string> { static constexpr auto name = "owner_";
+    static constexpr auto options = ""; };
+
+  struct IrcChanName: Column<std::string> { static constexpr auto name = "ircChanName_";
+    static constexpr auto options = ""; };
+
+  struct Channel: Column<std::string> { static constexpr auto name = "channel_";
+    static constexpr auto options = ""; };
+
+  struct IrcServerName: Column<std::string> { static constexpr auto name = "ircServerName_";
+    static constexpr auto options = ""; };
+
+  struct Server: Column<std::string> { static constexpr auto name = "server_";
+    static constexpr auto options = ""; };
+
+  struct Date: Column<time_point::rep> { static constexpr auto name = "date_";
+    static constexpr auto options = ""; };
+
+  struct Body: Column<std::string> { static constexpr auto name = "body_";
+    static constexpr auto options = ""; };
+
+  struct Nick: Column<std::string> { static constexpr auto name = "nick_";
+    static constexpr auto options = ""; };
+
+  struct Pass: Column<std::string> { static constexpr auto name = "pass_";
+    static constexpr auto options = ""; };
+
+  struct Ports: Column<std::string> { static constexpr auto name = "ports_";
+    static constexpr auto options = "";
+    Ports(): Column<std::string>("6667") {} };
+
+  struct TlsPorts: Column<std::string> { static constexpr auto name = "tlsPorts_";
+    static constexpr auto options = "";
+    TlsPorts(): Column<std::string>("6697;6670") {} };
+
+  struct Username: Column<std::string> { static constexpr auto name = "username_";
+    static constexpr auto options = ""; };
+
+  struct Realname: Column<std::string> { static constexpr auto name = "realname_";
+    static constexpr auto options = ""; };
+
+  struct AfterConnectionCommand: Column<std::string> { static constexpr auto name = "afterConnectionCommand_";
+    static constexpr auto options = ""; };
+
+  struct TrustedFingerprint: Column<std::string> { static constexpr auto name = "trustedFingerprint_";
+    static constexpr auto options = ""; };
+
+  struct EncodingOut: Column<std::string> { static constexpr auto name = "encodingOut_";
+    static constexpr auto options = ""; };
+
+  struct EncodingIn: Column<std::string> { static constexpr auto name = "encodingIn_";
+    static constexpr auto options = ""; };
+
+  struct MaxHistoryLength: Column<int> { static constexpr auto name = "maxHistoryLength_";
+    static constexpr auto options = "";
+    MaxHistoryLength(): Column<int>(20) {} };
+
+  struct RecordHistory: Column<bool> { static constexpr auto name = "recordHistory_";
+    static constexpr auto options = "";
+    RecordHistory(): Column<bool>(true) {}};
+
+  struct VerifyCert: Column<bool> { static constexpr auto name = "verifyCert_";
+    static constexpr auto options = "";
+    VerifyCert(): Column<bool>(true) {} };
+
+  struct Persistent: Column<bool> { static constexpr auto name = "persistent_";
+    static constexpr auto options = "";
+    Persistent(): Column<bool>(false) {} };
+
+  using MucLogLineTable = Table<Id, Uuid, Owner, IrcChanName, IrcServerName, Date, Body, Nick>;
+  using MucLogLine = MucLogLineTable::RowType;
+
+  using GlobalOptionsTable = Table<Id, Owner, MaxHistoryLength, RecordHistory>;
+  using GlobalOptions = GlobalOptionsTable::RowType;
+
+  using IrcServerOptionsTable = Table<Id, Owner, Server, Pass, AfterConnectionCommand, TlsPorts, Ports, Username, Realname, VerifyCert, TrustedFingerprint, EncodingOut, EncodingIn, MaxHistoryLength>;
+  using IrcServerOptions = IrcServerOptionsTable::RowType;
+
+  using IrcChannelOptionsTable = Table<Id, Owner, Server, Channel, EncodingOut, EncodingIn, MaxHistoryLength, Persistent>;
+  using IrcChannelOptions = IrcChannelOptionsTable::RowType;
+
   Database() = default;
   ~Database() = default;
 
@@ -25,42 +110,40 @@ public:
   Database& operator=(const Database&) = delete;
   Database& operator=(Database&&) = delete;
 
-  static void set_verbose(const bool val);
-
-  template<typename PersistentType>
-  static size_t count()
-  {
-    return litesql::select<PersistentType>(*Database::db).count();
-  }
-  /**
-   * Return the object from the db. Create it beforehand (with all default
-   * values) if it is not already present.
-   */
-  static db::GlobalOptions get_global_options(const std::string& owner);
-  static db::IrcServerOptions get_irc_server_options(const std::string& owner,
+  static GlobalOptions get_global_options(const std::string& owner);
+  static IrcServerOptions get_irc_server_options(const std::string& owner,
                                                      const std::string& server);
-  static db::IrcChannelOptions get_irc_channel_options(const std::string& owner,
-                                                       const std::string& server,
-                                                       const std::string& channel);
-  static db::IrcChannelOptions get_irc_channel_options_with_server_default(const std::string& owner,
-                                                                           const std::string& server,
-                                                                           const std::string& channel);
-  static db::IrcChannelOptions get_irc_channel_options_with_server_and_global_default(const std::string& owner,
-                                                                                      const std::string& server,
-                                                                                      const std::string& channel);
-  static std::vector<db::MucLogLine> get_muc_logs(const std::string& owner, const std::string& chan_name, const std::string& server,
-                                                  int limit=-1, const std::string& start="", const std::string& end="");
-  static std::string store_muc_message(const std::string& owner, const Iid& iid,
-                                time_point date, const std::string& body, const std::string& nick);
+  static IrcChannelOptions get_irc_channel_options(const std::string& owner,
+                                                   const std::string& server,
+                                                   const std::string& channel);
+  static IrcChannelOptions get_irc_channel_options_with_server_default(const std::string& owner,
+                                                                       const std::string& server,
+                                                                       const std::string& channel);
+  static IrcChannelOptions get_irc_channel_options_with_server_and_global_default(const std::string& owner,
+                                                                                  const std::string& server,
+                                                                                  const std::string& channel);
+  static std::vector<MucLogLine> get_muc_logs(const std::string& owner, const std::string& chan_name, const std::string& server,
+                                              int limit=-1, const std::string& start="", const std::string& end="");
+  static std::string store_muc_message(const std::string& owner, const std::string& chan_name, const std::string& server_name,
+                                       time_point date, const std::string& body, const std::string& nick);
 
   static void close();
-  static void open(const std::string& filename, const std::string& db_type="sqlite3");
+  static void open(const std::string& filename);
 
+  template <typename TableType>
+  static int64_t count(const TableType& table)
+  {
+    CountQuery query{table.get_name()};
+    return query.execute(Database::db);
+  }
 
-private:
+  static MucLogLineTable muc_log_lines;
+  static GlobalOptionsTable global_options;
+  static IrcServerOptionsTable irc_server_options;
+  static IrcChannelOptionsTable irc_channel_options;
+  static sqlite3* db;
+
+ private:
   static std::string gen_uuid();
-  static std::unique_ptr<db::BibouDB> db;
 };
 #endif /* USE_DATABASE */
-
-

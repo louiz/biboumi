@@ -1,3 +1,9 @@
+Version 6.0
+===========
+
+ - The LiteSQL dependency was removed. Only libsqlite3 is now necessary
+   to work with the database.
+
 Version 5.0 - 2017-05-24
 ========================
 

@@ -52,8 +52,8 @@ There are two test suites for biboumi:
   uses a specific IRC server (`charybdis`_), and only tests the most complete
   biboumi configuration (when all dependencies are used). To run it, you need
   to install various dependencies: refer to fedora’s `Dockerfile.base`_ and
-  `Dockerfile`_ to see how to install charybdis, slixmpp, botan, litesql, an
-  ssl certificate, etc.
+  `Dockerfile`_ to see how to install charybdis, slixmpp, botan, a ssl
+  certificate, etc.
 
   Once all the dependencies are correctly installed, the tests are run with
 

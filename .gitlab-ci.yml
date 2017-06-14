@@ -22,7 +22,7 @@ variables:
   UDNS: "-DWITH_UDNS=1"
   SYSTEMD: "-DWITH_SYSTEMD=1"
   LIBIDN: "-DWITH_LIBIDN=1"
-  LITESQL: "-DWITH_LITESQL=1"
+  SQLITE3: "-DWITH_SQLITE3=1"
 
 #
 ## Build jobs
@@ -33,8 +33,8 @@ variables:
   tags:
     - docker
   script:
-    - "echo Running cmake with the following parameters: -DCMAKE_CXX_COMPILER=${COMPILER} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ${BOTAN} ${UDNS} ${SYSTEMD} ${LIBIDN} ${LITESQL}"
-    - cmake .. -DCMAKE_CXX_COMPILER=${COMPILER} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ${BOTAN} ${UDNS} ${SYSTEMD} ${LIBIDN} ${LITESQL}
+    - "echo Running cmake with the following parameters: -DCMAKE_CXX_COMPILER=${COMPILER} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ${BOTAN} ${UDNS} ${SYSTEMD} ${LIBIDN} ${SQLITE3}"
+    - cmake .. -DCMAKE_CXX_COMPILER=${COMPILER} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ${BOTAN} ${UDNS} ${SYSTEMD} ${LIBIDN} ${SQLITE3}
     - make everything -j$(nproc || echo 1)
     - make coverage_check -j$(nproc || echo 1)
   artifacts:
@@ -77,19 +77,19 @@ build:2:
 
 build:3:
   variables:
-    LITESQL: "-DWITHOUT_LITESQL=1"
+    SQLITE3: "-DWITHOUT_SQLITE3=1"
   <<: *fedora_build
 
 build:4:
   variables:
-    LITESQL: "-DWITHOUT_LITESQL=1"
+    SQLITE3: "-DWITHOUT_SQLITE3=1"
     BOTAN: "-DWITHOUT_BOTAN=1"
     LIBIDN: "-DWITHOUT_LIBIDN=1"
   <<: *fedora_build
 
 build:5:
   variables:
-    LITESQL: "-DWITHOUT_LITESQL=1"
+    SQLITE3: "-DWITHOUT_SQLITE3=1"
     UDNS: "-DWITHOUT_UDNS=1"
   <<: *fedora_build
 
@@ -156,14 +156,14 @@ test:alpine:
 
 test:freebsd:
   only:
-    - master@louiz/biboumi
+    - branches@louiz/biboumi
   tags:
     - freebsd
   variables:
     SYSTEMD: "-DWITHOUT_SYSTEMD=1"
   stage: test
   script:
-    - cmake .. -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ${BOTAN} ${UDNS} ${SYSTEMD} ${LIBIDN} ${LITESQL}
+    - cmake .. -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ${BOTAN} ${UDNS} ${SYSTEMD} ${LIBIDN} ${SQLITE3}
     - make check
     - make e2e
 
@@ -240,7 +240,7 @@ codecov:build:7:
 coverity:
   stage: external
   only:
-    - master@louiz/biboumi
+    - branches@louiz/biboumi
   tags:
     - docker
   image: docker.louiz.org/biboumi-test-fedora:latest
@@ -298,16 +298,13 @@ packaging:deb:
 
 packaging:archlinux:
   stage: packaging
+  only:
+    - master@louiz/biboumi
   tags:
     - docker
   image: docker.louiz.org/biboumi-test-archlinux:latest
   before_script: []
   script:
-    - sudo pacman -Syuu --noconfirm
-    - git clone https://aur.archlinux.org/litesql-git.git
-    - cd litesql-git
-    - makepkg -si --noconfirm
-    - cd ..
     - git clone https://aur.archlinux.org/biboumi-git.git
     - cd biboumi-git
     - makepkg -si --noconfirm
