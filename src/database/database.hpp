@@ -129,7 +129,7 @@ class Database
   static void open(const std::string& filename);
 
   template <typename TableType>
-  static std::size_t count(const TableType& table)
+  static int64_t count(const TableType& table)
   {
     CountQuery query{table.get_name()};
     return query.execute(Database::db);
