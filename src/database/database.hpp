@@ -48,11 +48,11 @@ class Database
   struct Pass: Column<std::string> { static constexpr auto name = "pass_";
     static constexpr auto options = ""; };
 
-  struct Ports: Column<std::string> { static constexpr auto name = "tlsPorts_";
+  struct Ports: Column<std::string> { static constexpr auto name = "ports_";
     static constexpr auto options = "";
-    Ports(): Column<std::string>("6667") {}};
+    Ports(): Column<std::string>("6667") {} };
 
-  struct TlsPorts: Column<std::string> { static constexpr auto name = "ports_";
+  struct TlsPorts: Column<std::string> { static constexpr auto name = "tlsPorts_";
     static constexpr auto options = "";
     TlsPorts(): Column<std::string>("6697;6670") {} };
 
