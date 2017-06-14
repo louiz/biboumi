@@ -1,6 +1,7 @@
 #pragma once
 
 #include <database/statement.hpp>
+#include <database/column.hpp>
 
 #include <logger/logger.hpp>
 
@@ -38,6 +39,8 @@ void add_param(Query& query, const ColumnType& column)
 {
   actual_add_param(query, column.value);
 }
+template <>
+void add_param<Id>(Query& query, const Id& column);
 
 template <typename T>
 void actual_add_param(Query& query, const T& val)
