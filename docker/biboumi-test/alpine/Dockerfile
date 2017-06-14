@@ -10,7 +10,6 @@ RUN apk add --no-cache g++\
     clang\
     valgrind\
     udns-dev\
-    c-ares-dev\
     sqlite-dev\
     libuuid\
     util-linux-dev\
