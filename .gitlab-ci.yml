@@ -305,6 +305,7 @@ packaging:archlinux:
   image: docker.louiz.org/biboumi-test-archlinux:latest
   before_script: []
   script:
+    - sudo pacman -Syuu --noconfirm
     - git clone https://aur.archlinux.org/biboumi-git.git
     - cd biboumi-git
     - makepkg -si --noconfirm
