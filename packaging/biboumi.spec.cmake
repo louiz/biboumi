@@ -11,6 +11,7 @@ BuildRequires: libidn-devel
 BuildRequires: expat-devel
 BuildRequires: libuuid-devel
 BuildRequires: systemd-devel
+BuildRequires: sqlite-devel
 BuildRequires: cmake
 BuildRequires: systemd
 BuildRequires: pandoc
@@ -37,7 +38,8 @@ cmake . -DCMAKE_CXX_FLAGS="%{optflags}" \
       -DPOLLER=EPOLL \
       -DWITHOUT_BOTAN=1 \
       -DWITH_SYSTEMD=1 \
-      -DWITH_LIBIDN=1
+      -DWITH_LIBIDN=1 \
+      -DWITH_SQLITE3=1
 
 make %{?_smp_mflags}
 
@@ -59,6 +61,12 @@ make check %{?_smp_mflags}
 
 
 %changelog
+* ${RPM_DATE} Le Coz Florent <louiz@louiz.org> - ${RPM_VERSION}-1
+- Build latest git revision
+
+* Wed Jun 14 2017 Le Coz Florent <louiz@louiz.org> - 6.0-1
+  Enable database support by building with sqlite3
+
 * Wed May 24 2017 Le Coz Florent <louiz@louiz.org> - 5.0-1
 - Update to version 5.0
 
