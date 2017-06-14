@@ -15,10 +15,10 @@ struct CountQuery: public Query
       this->body += std::move(name);
     }
 
-    std::size_t execute(sqlite3* db)
+    int64_t execute(sqlite3* db)
     {
       auto statement = this->prepare(db);
-      std::size_t res = 0;
+      int64_t res = 0;
       if (sqlite3_step(statement.get()) == SQLITE_ROW)
         res = sqlite3_column_int64(statement.get(), 0);
       else

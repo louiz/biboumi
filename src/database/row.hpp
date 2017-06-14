@@ -20,7 +20,7 @@ update_id(std::tuple<T...>& columns, sqlite3* db)
   log_debug("Found an autoincrement col.");
   auto res = sqlite3_last_insert_rowid(db);
   log_debug("Value is now: ", res);
-  column.value = res;
+  column.value = static_cast<Id::real_type>(res);
 }
 
 template <std::size_t N, typename... T>

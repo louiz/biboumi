@@ -31,7 +31,7 @@ actual_bind(Statement& statement, std::vector<std::string>&, const std::tuple<T.
   auto&& column = std::get<Id>(columns);
   if (column.value != 0)
     {
-      if (sqlite3_bind_int64(statement.get(), N + 1, column.value) != SQLITE_OK)
+      if (sqlite3_bind_int64(statement.get(), N + 1, static_cast<sqlite3_int64>(column.value)) != SQLITE_OK)
         log_error("Failed to bind ", column.value, " to id.");
     }
   else if (sqlite3_bind_null(statement.get(), N + 1) != SQLITE_OK)
@@ -110,9 +110,9 @@ struct InsertQuery: public Query
   typename std::enable_if<N < sizeof...(T), void>::type
   insert_col_name(const std::tuple<T...>& columns)
   {
-    auto value = std::get<N>(columns);
+    using ColumnType = typename std::remove_reference<decltype(std::get<N>(columns))>::type;
 
-    this->body += value.name;
+    this->body += ColumnType::name;
 
     if (N < (sizeof...(T) - 1))
       this->body += ", ";

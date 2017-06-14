@@ -25,7 +25,7 @@ extract_row_value(Statement& statement, const int i)
 {
   const auto size = sqlite3_column_bytes(statement.get(), i);
   const unsigned char* str = sqlite3_column_text(statement.get(), i);
-  std::string result(reinterpret_cast<const char*>(str), size);
+  std::string result(reinterpret_cast<const char*>(str), static_cast<std::size_t>(size));
   return result;
 }
 
@@ -62,10 +62,9 @@ struct SelectQuery: public Query
     insert_col_name()
     {
       using ColumnsType = std::tuple<T...>;
-      ColumnsType tuple{};
-      auto value = std::get<N>(tuple);
+      using ColumnType = typename std::remove_reference<decltype(std::get<N>(std::declval<ColumnsType>()))>::type;
 
-      this->body += " "s + value.name;
+      this->body += " "s + ColumnType::name;
 
       if (N < (sizeof...(T) - 1))
         this->body += ", ";
