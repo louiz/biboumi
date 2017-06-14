@@ -23,7 +23,7 @@ update_id(std::tuple<T...>& columns, sqlite3* db)
   column.value = static_cast<Id::real_type>(res);
 }
 
-template <std::size_t N, typename... T>
+template <std::size_t N=0, typename... T>
 typename std::enable_if<N < sizeof...(T), void>::type
 update_autoincrement_id(std::tuple<T...>& columns, sqlite3* db)
 {
@@ -32,7 +32,7 @@ update_autoincrement_id(std::tuple<T...>& columns, sqlite3* db)
   update_autoincrement_id<N+1>(columns, db);
 }
 
-template <std::size_t N, typename... T>
+template <std::size_t N=0, typename... T>
 typename std::enable_if<N == sizeof...(T), void>::type
 update_autoincrement_id(std::tuple<T...>&, sqlite3*)
 {}
@@ -67,7 +67,7 @@ struct Row
 
       query.execute(this->columns, db);
 
-      update_autoincrement_id<0>(this->columns, db);
+      update_autoincrement_id(this->columns, db);
     }
 
     std::tuple<T...> columns;

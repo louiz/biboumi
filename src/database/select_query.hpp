@@ -53,11 +53,11 @@ struct SelectQuery: public Query
         Query("SELECT"),
         table_name(table_name)
     {
-      this->insert_col_name<0>();
+      this->insert_col_name();
       this->body += " from " + this->table_name;
     }
 
-    template <std::size_t N>
+    template <std::size_t N=0>
     typename std::enable_if<N < sizeof...(T), void>::type
     insert_col_name()
     {
@@ -71,7 +71,7 @@ struct SelectQuery: public Query
 
       this->insert_col_name<N+1>();
     }
-    template <std::size_t N>
+    template <std::size_t N=0>
     typename std::enable_if<N == sizeof...(T), void>::type
     insert_col_name()
     {}

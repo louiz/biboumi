@@ -26,7 +26,7 @@ class Table
     std::string res{"CREATE TABLE IF NOT EXISTS "};
     res += this->name;
     res += " (\n";
-    this->add_column_create<0>(res);
+    this->add_column_create(res);
     res += ")";
 
     log_debug(res);
@@ -58,7 +58,7 @@ class Table
   }
 
  private:
-  template <std::size_t N>
+  template <std::size_t N=0>
   typename std::enable_if<N < sizeof...(T), void>::type
   add_column_create(std::string& str)
   {
@@ -75,7 +75,7 @@ class Table
     add_column_create<N+1>(str);
   }
 
-  template <std::size_t N>
+  template <std::size_t N=0>
   typename std::enable_if<N == sizeof...(T), void>::type
   add_column_create(std::string&)
   { }

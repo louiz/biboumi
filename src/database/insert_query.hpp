@@ -53,13 +53,13 @@ struct InsertQuery: public Query
   {
     auto statement = this->prepare(db);
     {
-      this->bind_param<0>(columns, statement);
+      this->bind_param(columns, statement);
       if (sqlite3_step(statement.get()) != SQLITE_DONE)
         log_error("Failed to execute query: ", sqlite3_errmsg(db));
     }
   }
 
-  template <int N, typename... T>
+  template <int N=0, typename... T>
   typename std::enable_if<N < sizeof...(T), void>::type
   bind_param(const std::tuple<T...>& columns, Statement& statement)
   {
@@ -69,7 +69,7 @@ struct InsertQuery: public Query
     this->bind_param<N+1>(columns, statement);
   }
 
-  template <int N, typename... T>
+  template <int N=0, typename... T>
   typename std::enable_if<N == sizeof...(T), void>::type
   bind_param(const std::tuple<T...>&, Statement&)
   {}
@@ -78,11 +78,11 @@ struct InsertQuery: public Query
   void insert_values(const std::tuple<T...>& columns)
   {
     this->body += "VALUES (";
-    this->insert_value<0>(columns);
+    this->insert_value(columns);
     this->body += ")";
   }
 
-  template <int N, typename... T>
+  template <int N=0, typename... T>
   typename std::enable_if<N < sizeof...(T), void>::type
   insert_value(const std::tuple<T...>& columns)
   {
@@ -93,7 +93,7 @@ struct InsertQuery: public Query
     add_param(*this, std::get<N>(columns));
     this->insert_value<N+1>(columns);
   }
-  template <int N, typename... T>
+  template <int N=0, typename... T>
   typename std::enable_if<N == sizeof...(T), void>::type
   insert_value(const std::tuple<T...>&)
   { }
@@ -102,11 +102,11 @@ struct InsertQuery: public Query
   void insert_col_names(const std::tuple<T...>& columns)
   {
     this->body += " (";
-    this->insert_col_name<0>(columns);
+    this->insert_col_name(columns);
     this->body += ")\n";
   }
 
-  template <int N, typename... T>
+  template <int N=0, typename... T>
   typename std::enable_if<N < sizeof...(T), void>::type
   insert_col_name(const std::tuple<T...>& columns)
   {
@@ -119,7 +119,7 @@ struct InsertQuery: public Query
 
     this->insert_col_name<N+1>(columns);
   }
-  template <int N, typename... T>
+  template <int N=0, typename... T>
   typename std::enable_if<N == sizeof...(T), void>::type
   insert_col_name(const std::tuple<T...>&)
   {}
