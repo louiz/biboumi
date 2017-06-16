@@ -19,9 +19,13 @@ void Database::open(const std::string& filename)
   auto res = sqlite3_open_v2(filename.data(), &Database::db, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, nullptr);
   log_debug("open: ", res);
   Database::muc_log_lines.create(Database::db);
+  Database::muc_log_lines.upgrade(Database::db);
   Database::global_options.create(Database::db);
+  Database::global_options.upgrade(Database::db);
   Database::irc_server_options.create(Database::db);
+  Database::irc_server_options.upgrade(Database::db);
   Database::irc_channel_options.create(Database::db);
+  Database::irc_channel_options.upgrade(Database::db);
 }
 
 

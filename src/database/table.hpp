@@ -7,6 +7,26 @@
 
 #include <algorithm>
 #include <string>
+#include <set>
+
+using namespace std::string_literals;
+
+std::set<std::string> get_all_columns_from_table(sqlite3* db, const std::string& table_name);
+
+template <typename ColumnType>
+void add_column_to_table(sqlite3* db, const std::string& table_name)
+{
+  const std::string name = ColumnType::name;
+  std::string query{"ALTER TABLE "s + table_name + " ADD " + ColumnType::name + " " + TypeToSQLType<typename ColumnType::real_type>::type};
+  log_debug(query);
+  char* error;
+  const auto result = sqlite3_exec(db, query.data(), nullptr, nullptr, &error);
+  if (result != SQLITE_OK)
+    {
+      log_error("Error adding column ", name, " to table ", table_name, ": ",  error);
+      sqlite3_free(error);
+    }
+}
 
 template <typename... T>
 class Table
@@ -20,6 +40,12 @@ class Table
   Table(std::string name):
       name(std::move(name))
   {}
+
+  void upgrade(sqlite3* db)
+  {
+    const auto existing_columns = get_all_columns_from_table(db, this->name);
+    add_column_if_not_exists(db, existing_columns);
+  }
 
   void create(sqlite3* db)
   {
@@ -58,6 +84,23 @@ class Table
   }
 
  private:
+
+  template <std::size_t N=0>
+  typename std::enable_if<N < sizeof...(T), void>::type
+  add_column_if_not_exists(sqlite3* db, const std::set<std::string>& existing_columns)
+  {
+    using ColumnType = typename std::remove_reference<decltype(std::get<N>(std::declval<ColumnTypes>()))>::type;
+    if (existing_columns.count(ColumnType::name) != 1)
+      {
+        add_column_to_table<ColumnType>(db, this->name);
+      }
+    add_column_if_not_exists<N+1>(db, existing_columns);
+  }
+  template <std::size_t N=0>
+  typename std::enable_if<N == sizeof...(T), void>::type
+  add_column_if_not_exists(sqlite3*, const std::set<std::string>&)
+  {}
+
   template <std::size_t N=0>
   typename std::enable_if<N < sizeof...(T), void>::type
   add_column_create(std::string& str)
