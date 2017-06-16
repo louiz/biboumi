@@ -278,7 +278,6 @@ def expect_stanza(xpaths, xmpp, biboumi, optional=False, after=None):
 def save_current_timestamp_plus_delta(key, delta, message, xmpp):
     now_plus_delta = datetime.datetime.utcnow() + delta
     xmpp.saved_values[key] = now_plus_delta.strftime("%FT%T.967Z")
-    print(xmpp.saved_values[key])
 
 def sleep_for(duration, xmpp, biboumi):
     time.sleep(duration)
