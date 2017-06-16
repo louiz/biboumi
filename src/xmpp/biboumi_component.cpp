@@ -719,7 +719,7 @@ bool BiboumiComponent::handle_room_configuration_form(const XmlNode& query, cons
     return false;
 
   Jid requester(from);
-  if (!handle_irc_channel_configuration_form(query, requester, to))
+  if (!handle_irc_channel_configuration_form(*this, query, requester, to))
     return false;
 
   Stanza iq("iq");

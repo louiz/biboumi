@@ -434,6 +434,26 @@ void insert_irc_channel_configuration_form(XmlNode& node, const Jid& requester, 
   XmlSubNode instructions(x, "instructions");
   instructions.set_inner("Edit the form, to configure the settings of the IRC channel "s + iid.get_local());
 
+  XmlSubNode record_history(x, "field");
+  record_history["var"] = "record_history";
+  record_history["type"] = "list-single";
+  record_history["label"] = "Record history for this channel";
+  record_history["desc"] = "If unset, the value is the one configured globally";
+
+  {
+    // Value selected by default
+    XmlSubNode value(record_history, "value");
+    value.set_inner(options.col<Database::RecordHistoryOptional>().to_string());
+  }
+  // All three possible values
+  for (const auto& val: {"unset", "true", "false"})
+  {
+    XmlSubNode option(record_history, "option");
+    option["label"] = val;
+    XmlSubNode value(option, "value");
+    value.set_inner(val);
+  }
+
   XmlSubNode encoding_out(x, "field");
   encoding_out["var"] = "encoding_out";
   encoding_out["type"] = "text-single";
@@ -471,12 +491,12 @@ void insert_irc_channel_configuration_form(XmlNode& node, const Jid& requester, 
   }
 }
 
-void ConfigureIrcChannelStep2(XmppComponent&, AdhocSession& session, XmlNode& command_node)
+void ConfigureIrcChannelStep2(XmppComponent& xmpp_component, AdhocSession& session, XmlNode& command_node)
 {
   const Jid owner(session.get_owner_jid());
   const Jid target(session.get_target_jid());
 
-  if (handle_irc_channel_configuration_form(command_node, owner, target))
+  if (handle_irc_channel_configuration_form(xmpp_component, command_node, owner, target))
     {
       command_node.delete_all_children();
       XmlSubNode note(command_node, "note");
@@ -492,7 +512,7 @@ void ConfigureIrcChannelStep2(XmppComponent&, AdhocSession& session, XmlNode& co
     }
 }
 
-bool handle_irc_channel_configuration_form(const XmlNode& node, const Jid& requester, const Jid& target)
+bool handle_irc_channel_configuration_form(XmppComponent& xmpp_component, const XmlNode& node, const Jid& requester, const Jid& target)
 {
   const XmlNode* x = node.get_child("x", "jabber:x:data");
   if (x)
@@ -500,7 +520,7 @@ bool handle_irc_channel_configuration_form(const XmlNode& node, const Jid& reque
       if (x->get_tag("type") == "submit")
         {
           const Iid iid(target.local, {});
-          auto options = Database::get_irc_channel_options(requester.local + "@" + requester.domain,
+          auto options = Database::get_irc_channel_options(requester.bare(),
                                                            iid.get_server(), iid.get_local());
           for (const XmlNode *field: x->get_children("field", "jabber:x:data"))
             {
@@ -517,6 +537,31 @@ bool handle_irc_channel_configuration_form(const XmlNode& node, const Jid& reque
               else if (field->get_tag("var") == "persistent" &&
                        value)
                 options.col<Database::Persistent>() = to_bool(value->get_inner());
+              else if (field->get_tag("var") == "record_history" &&
+                       value && !value->get_inner().empty())
+                {
+                  OptionalBool& database_value = options.col<Database::RecordHistoryOptional>();
+                  if (value->get_inner() == "true")
+                    database_value.set_value(true);
+                  else if (value->get_inner() == "false")
+                    database_value.set_value(false);
+                  else
+                    database_value.unset();
+                  auto& biboumi_component = dynamic_cast<BiboumiComponent&>(xmpp_component);
+                  Bridge* bridge = biboumi_component.find_user_bridge(requester.bare());
+                  if (bridge)
+                    {
+                      if (database_value.is_set)
+                        bridge->set_record_history(database_value.value);
+                      else
+                        { // It is unset, we need to fetch the Global option, to
+                          // know if it’s enabled or not
+                          auto g_options = Database::get_global_options(requester.bare());
+                          bridge->set_record_history(g_options.col<Database::RecordHistory>());
+                        }
+                    }
+                }
+
             }
 
           options.save(Database::db);

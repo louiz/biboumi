@@ -20,6 +20,16 @@ struct OptionalBool
     this->is_set = false;
   }
 
+  std::string to_string()
+  {
+    if (this->is_set == false)
+      return "unset";
+    else if (this->value)
+      return "true";
+    else
+      return "false";
+  }
+
   bool is_set{false};
   bool value{false};
 };

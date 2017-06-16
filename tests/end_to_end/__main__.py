@@ -2467,6 +2467,7 @@ if __name__ == '__main__':
                      partial(expect_stanza, ("/iq[@type='result']/commands:command[@node='configure'][@sessionid][@status='executing']",
                                              "/iq/commands:command/dataform:x[@type='form']/dataform:field[@type='text-single'][@var='encoding_in']",
                                              "/iq/commands:command/dataform:x[@type='form']/dataform:field[@type='text-single'][@var='encoding_out']",
+                                             "/iq/commands:command/dataform:x[@type='form']/dataform:field[@type='list-single'][@var='record_history']/dataform:value[text()='unset']",
                                              ),
                                              after = partial(save_value, "sessionid", partial(extract_attribute, "/iq[@type='result']/commands:command[@node='configure']", "sessionid"))
                              ),
@@ -2476,6 +2477,7 @@ if __name__ == '__main__':
                                           "<field var='ports' />"
                                           "<field var='encoding_out'><value>UTF-8</value></field>"
                                           "<field var='encoding_in'><value>latin-1</value></field>"
+                                          "<field var='record_history'><value>true</value></field>"
                                           "</x></command></iq>"),
                      partial(expect_stanza, "/iq[@type='result']/commands:command[@node='configure'][@status='completed']/commands:note[@type='info'][text()='Configuration successfully applied.']"),
 
@@ -2484,6 +2486,7 @@ if __name__ == '__main__':
                                              "/iq/commands:command/dataform:x[@type='form']/dataform:title[text()='Configure the IRC channel #foo on server irc.localhost']",
                                              "/iq/commands:command/dataform:x[@type='form']/dataform:field[@type='text-single'][@var='encoding_in']/dataform:value[text()='latin-1']",
                                              "/iq/commands:command/dataform:x[@type='form']/dataform:field[@type='text-single'][@var='encoding_out']/dataform:value[text()='UTF-8']",
+                                             "/iq/commands:command/dataform:x[@type='form']/dataform:field[@type='list-single'][@var='record_history']/dataform:value[text()='true']",
                                              "/iq/commands:command/commands:actions/commands:next",
                                              ),
                              after = partial(save_value, "sessionid", partial(extract_attribute, "/iq[@type='result']/commands:command[@node='configure']", "sessionid"))

@@ -358,7 +358,7 @@ History
 -------
 
 Public channel messages are saved into archives, inside the database, unless
-the `record_history` option is set to false for that user `Ad-hoc commands`.
+the `record_history` option is set to false by that user (see `Ad-hoc commands`).
 Private messages (messages that are sent directly to a nickname, not a
 channel) are never stored in the database. When a channel is joined, biboumi
 sends the `max_history_length` messages found in the database as the MUC
@@ -631,6 +631,11 @@ On a channel JID (e.g on the JID #test%chat.freenode.org@biboumi.example.com)
       the archiving of messages is enabled for this room, the client will
       receive the messages that where sent in this channel. This option can be
       used to make biboumi act as an IRC bouncer.
+    * Record History: whether or not history messages should be saved in
+      the database, for this specific channel. If the value is “unset” (the
+      default), then the value configured globally is used. This option is there,
+      for example, to be able to enable history recording globally while disabling
+      it for a few specific “private” channels.
 
 Raw IRC messages
 ----------------

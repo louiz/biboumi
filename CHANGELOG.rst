@@ -3,6 +3,8 @@ Version 6.0
 
  - The LiteSQL dependency was removed. Only libsqlite3 is now necessary
    to work with the database.
+ - The RecordHistory option can now also be configured for each IRC channel,
+   individually.
 
 Version 5.0 - 2017-05-24
 ========================
