@@ -1,5 +1,6 @@
 #pragma once
 
+#include <utils/optional_bool.hpp>
 #include <database/statement.hpp>
 #include <database/column.hpp>
 
@@ -49,3 +50,4 @@ void actual_add_param(Query& query, const T& val)
 }
 
 void actual_add_param(Query& query, const std::string& val);
+void actual_add_param(Query& query, const OptionalBool& val);

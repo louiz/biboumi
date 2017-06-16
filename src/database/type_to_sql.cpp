@@ -6,3 +6,4 @@ template <> const std::string TypeToSQLType<long>::type = "INTEGER";
 template <> const std::string TypeToSQLType<long long>::type = "INTEGER";
 template <> const std::string TypeToSQLType<bool>::type = "INTEGER";
 template <> const std::string TypeToSQLType<std::string>::type = "TEXT";
+template <> const std::string TypeToSQLType<OptionalBool>::type = "INTEGER";

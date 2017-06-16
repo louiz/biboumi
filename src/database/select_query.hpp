@@ -5,6 +5,8 @@
 #include <logger/logger.hpp>
 #include <database/row.hpp>
 
+#include <utils/optional_bool.hpp>
+
 #include <vector>
 #include <string>
 
@@ -20,12 +22,25 @@ extract_row_value(Statement& statement, const int i)
 }
 
 template <typename T>
-typename std::enable_if<std::is_same<std::string, T>::value, std::string>::type
+typename std::enable_if<std::is_same<std::string, T>::value, T>::type
 extract_row_value(Statement& statement, const int i)
 {
   const auto size = sqlite3_column_bytes(statement.get(), i);
   const unsigned char* str = sqlite3_column_text(statement.get(), i);
   std::string result(reinterpret_cast<const char*>(str), static_cast<std::size_t>(size));
+  return result;
+}
+
+template <typename T>
+typename std::enable_if<std::is_same<OptionalBool, T>::value, T>::type
+extract_row_value(Statement& statement, const int i)
+{
+  const auto integer = sqlite3_column_int(statement.get(), i);
+  OptionalBool result;
+  if (integer > 0)
+    result.set_value(true);
+  else if (integer < 0)
+    result.set_value(false);
   return result;
 }
 

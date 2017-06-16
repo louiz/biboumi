@@ -7,6 +7,8 @@
 #include <database/column.hpp>
 #include <database/count_query.hpp>
 
+#include <utils/optional_bool.hpp>
+
 #include <chrono>
 #include <string>
 
@@ -82,6 +84,9 @@ class Database
     static constexpr auto options = "";
     RecordHistory(): Column<bool>(true) {}};
 
+  struct RecordHistoryOptional: Column<OptionalBool> { static constexpr auto name = "recordHistory_";
+    static constexpr auto options = ""; };
+
   struct VerifyCert: Column<bool> { static constexpr auto name = "verifyCert_";
     static constexpr auto options = "";
     VerifyCert(): Column<bool>(true) {} };
@@ -99,7 +104,7 @@ class Database
   using IrcServerOptionsTable = Table<Id, Owner, Server, Pass, AfterConnectionCommand, TlsPorts, Ports, Username, Realname, VerifyCert, TrustedFingerprint, EncodingOut, EncodingIn, MaxHistoryLength>;
   using IrcServerOptions = IrcServerOptionsTable::RowType;
 
-  using IrcChannelOptionsTable = Table<Id, Owner, Server, Channel, EncodingOut, EncodingIn, MaxHistoryLength, Persistent>;
+  using IrcChannelOptionsTable = Table<Id, Owner, Server, Channel, EncodingOut, EncodingIn, MaxHistoryLength, Persistent, RecordHistoryOptional>;
   using IrcChannelOptions = IrcChannelOptionsTable::RowType;
 
   Database() = default;
