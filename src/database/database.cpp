@@ -16,8 +16,18 @@ Database::IrcChannelOptionsTable Database::irc_channel_options("IrcChannelOption
 
 void Database::open(const std::string& filename)
 {
-  auto res = sqlite3_open_v2(filename.data(), &Database::db, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, nullptr);
-  log_debug("open: ", res);
+  // Try to open the specified database.
+  // Close and replace the previous database pointer if it succeeded. If it did
+  // not, just leave things untouched
+  sqlite3* new_db;
+  auto res = sqlite3_open_v2(filename.data(), &new_db, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, nullptr);
+  if (res != SQLITE_OK)
+    {
+      log_error("Failed to open database file ", filename, ": ", sqlite3_errmsg(Database::db));
+      throw std::runtime_error("");
+    }
+  Database::close();
+  Database::db = new_db;
   Database::muc_log_lines.create(Database::db);
   Database::muc_log_lines.upgrade(Database::db);
   Database::global_options.create(Database::db);
