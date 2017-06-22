@@ -19,3 +19,16 @@ void actual_add_param(Query& query, const OptionalBool& val)
   else
     query.params.push_back("-1");
 }
+
+Query& operator<<(Query& query, const char* str)
+{
+  query.body += str;
+  return query;
+}
+
+Query& operator<<(Query& query, const std::string& str)
+{
+  query.body += "?";
+  actual_add_param(query, str);
+  return query;
+}

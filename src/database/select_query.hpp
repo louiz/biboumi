@@ -112,16 +112,6 @@ struct SelectQuery: public Query
     auto execute(sqlite3* db)
     {
       auto statement = this->prepare(db);
-      int i = 1;
-      for (const std::string& param: this->params)
-        {
-          if (sqlite3_bind_text(statement.get(), i, param.data(), static_cast<int>(param.size()), SQLITE_TRANSIENT) != SQLITE_OK)
-            log_debug("Failed to bind ", param, " to param ", i);
-          else
-            log_debug("Bound ", param, " to ", i);
-
-          i++;
-        }
       std::vector<Row<T...>> rows;
       while (sqlite3_step(statement.get()) == SQLITE_ROW)
         {
@@ -135,34 +125,3 @@ struct SelectQuery: public Query
     const std::string table_name;
 };
 
-template <typename T, typename... ColumnTypes>
-typename std::enable_if<!std::is_integral<T>::value, SelectQuery<ColumnTypes...>&>::type
-operator<<(SelectQuery<ColumnTypes...>& query, const T&)
-{
-  query.body += T::name;
-  return query;
-}
-
-template <typename... ColumnTypes>
-SelectQuery<ColumnTypes...>& operator<<(SelectQuery<ColumnTypes...>& query, const char* str)
-{
-  query.body += str;
-  return query;
-}
-
-template <typename... ColumnTypes>
-SelectQuery<ColumnTypes...>& operator<<(SelectQuery<ColumnTypes...>& query, const std::string& str)
-{
-  query.body += "?";
-  actual_add_param(query, str);
-  return query;
-}
-
-template <typename Integer, typename... ColumnTypes>
-typename std::enable_if<std::is_integral<Integer>::value, SelectQuery<ColumnTypes...>&>::type
-operator<<(SelectQuery<ColumnTypes...>& query, const Integer& i)
-{
-  query.body += "?";
-  actual_add_param(query, i);
-  return query;
-}

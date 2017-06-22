@@ -41,7 +41,8 @@ void Database::open(const std::string& filename)
 
 Database::GlobalOptions Database::get_global_options(const std::string& owner)
 {
-  auto request = Database::global_options.select().where() << Owner{} << "=" << owner;
+  auto request = Database::global_options.select();
+  request.where() << Owner{} << "=" << owner;
 
   Database::GlobalOptions options{Database::global_options.get_name()};
   auto result = request.execute(Database::db);
@@ -54,7 +55,8 @@ Database::GlobalOptions Database::get_global_options(const std::string& owner)
 
 Database::IrcServerOptions Database::get_irc_server_options(const std::string& owner, const std::string& server)
 {
-  auto request = Database::irc_server_options.select().where() << Owner{} << "=" << owner << " and " << Server{} << "=" << server;
+  auto request = Database::irc_server_options.select();
+  request.where() << Owner{} << "=" << owner << " and " << Server{} << "=" << server;
 
   Database::IrcServerOptions options{Database::irc_server_options.get_name()};
   auto result = request.execute(Database::db);
@@ -70,9 +72,10 @@ Database::IrcServerOptions Database::get_irc_server_options(const std::string& o
 
 Database::IrcChannelOptions Database::get_irc_channel_options(const std::string& owner, const std::string& server, const std::string& channel)
 {
-  auto request = Database::irc_channel_options.select().where() << Owner{} << "=" << owner <<\
-                                                        " and " << Server{} << "=" << server <<\
-                                                        " and " << Channel{} << "=" << channel;
+  auto request = Database::irc_channel_options.select();
+  request.where() << Owner{} << "=" << owner <<\
+          " and " << Server{} << "=" << server <<\
+          " and " << Channel{} << "=" << channel;
   Database::IrcChannelOptions options{Database::irc_channel_options.get_name()};
   auto result = request.execute(Database::db);
   if (result.size() == 1)
@@ -146,9 +149,10 @@ std::string Database::store_muc_message(const std::string& owner, const std::str
 std::vector<Database::MucLogLine> Database::get_muc_logs(const std::string& owner, const std::string& chan_name, const std::string& server,
                                                    int limit, const std::string& start, const std::string& end)
 {
-  auto request = Database::muc_log_lines.select().where() << Database::Owner{} << "=" << owner << \
-                                            " and " << Database::IrcChanName{} << "=" << chan_name << \
-                                            " and " << Database::IrcServerName{} << "=" << server;
+  auto request = Database::muc_log_lines.select();
+  request.where() << Database::Owner{} << "=" << owner << \
+          " and " << Database::IrcChanName{} << "=" << chan_name << \
+          " and " << Database::IrcServerName{} << "=" << server;
 
   if (!start.empty())
     {

@@ -22,16 +22,34 @@ struct Query
 
     Statement prepare(sqlite3* db)
     {
-      sqlite3_stmt* statement;
+      sqlite3_stmt* stmt;
       log_debug(this->body);
       auto res = sqlite3_prepare(db, this->body.data(), static_cast<int>(this->body.size()) + 1,
-                                 &statement, nullptr);
+                                 &stmt, nullptr);
       if (res != SQLITE_OK)
         {
           log_error("Error preparing statement: ", sqlite3_errmsg(db));
           return nullptr;
         }
-      return {statement};
+      Statement statement(stmt);
+      int i = 1;
+      for (const std::string& param: this->params)
+        {
+          if (sqlite3_bind_text(statement.get(), i, param.data(), static_cast<int>(param.size()), SQLITE_TRANSIENT) != SQLITE_OK)
+            log_debug("Failed to bind ", param, " to param ", i);
+          else
+            log_debug("Bound ", param, " to ", i);
+          i++;
+        }
+
+      return statement;
+    }
+
+    void execute(sqlite3* db)
+    {
+      auto statement = this->prepare(db);
+      while (sqlite3_step(statement.get()) != SQLITE_DONE)
+        ;
     }
 };
 
@@ -51,3 +69,22 @@ void actual_add_param(Query& query, const T& val)
 
 void actual_add_param(Query& query, const std::string& val);
 void actual_add_param(Query& query, const OptionalBool& val);
+
+template <typename T>
+typename std::enable_if<!std::is_integral<T>::value, Query&>::type
+operator<<(Query& query, const T&)
+{
+  query.body += T::name;
+  return query;
+}
+
+Query& operator<<(Query& query, const char* str);
+Query& operator<<(Query& query, const std::string& str);
+template <typename Integer>
+typename std::enable_if<std::is_integral<Integer>::value, Query&>::type
+operator<<(Query& query, const Integer& i)
+{
+  query.body += "?";
+  actual_add_param(query, i);
+  return query;
+}
