@@ -36,6 +36,8 @@ public:
   BiboumiComponent& operator=(const BiboumiComponent&) = delete;
   BiboumiComponent& operator=(BiboumiComponent&&) = delete;
 
+  void after_handshake() override final;
+
   /**
    * Returns the bridge for the given user. If it does not exist, return
    * nullptr.
@@ -87,6 +89,7 @@ public:
   void send_invitation(const std::string& room_target, const std::string& jid_to, const std::string& author_nick);
   void accept_subscription(const std::string& from, const std::string& to);
   void ask_subscription(const std::string& from, const std::string& to);
+  void send_presence_to_contact(const std::string& from, const std::string& to, const std::string& type);
   /**
    * Handle the various stanza types
    */

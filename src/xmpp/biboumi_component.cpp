@@ -83,6 +83,13 @@ void BiboumiComponent::shutdown()
 {
   for (auto& pair: this->bridges)
     pair.second->shutdown("Gateway shutdown");
+  const auto full_roster = Database::get_full_roster();
+  for (const Database::RosterItem& roster_item: full_roster)
+    {
+      this->send_presence_to_contact(roster_item.col<Database::LocalJid>(),
+                                     roster_item.col<Database::RemoteJid>(),
+                                     "unavailable");
+    }
 }
 
 void BiboumiComponent::clean()
@@ -160,10 +167,26 @@ void BiboumiComponent::handle_presence(const Stanza& stanza)
     {
       if (type == "subscribe")
         { // Auto-accept any subscription request for an IRC server
-          this->accept_subscription(to_str, from.bare());
-          this->ask_subscription(to_str, from.bare());
+          if (!Database::has_roster_item(to_str, from.bare()))
+            Database::add_roster_item(to_str, from.bare());
+          this->send_presence_to_contact(to_str, from.bare(), "subscribed");
+          this->send_presence_to_contact(to_str, from.bare(), "subscribe");
+          if (iid.type == Iid::Type::None)
+            this->send_presence_to_contact(to_str, from.bare(), "");
+          else if (iid.type == Iid::Type::Server)
+            ; // TODO
         }
-
+      else if (type == "unsubscribe")
+        {
+          const bool res = Database::has_roster_item(to_str, from.bare());
+          if (res)
+            Database::delete_roster_item(to_str, from.bare());
+        }
+      else
+        { // We just receive a presence from someone (as the result of a probe,
+          // or a directed presence, or a normal presence change)
+          this->send_presence_to_contact(to_str, from.bare(), "");
+        }
     }
   else
     {
@@ -978,4 +1001,26 @@ void BiboumiComponent::ask_subscription(const std::string& from, const std::stri
   presence["id"] = this->next_id();
   presence["type"] = "subscribe";
   this->send_stanza(presence);
+}
+
+void BiboumiComponent::send_presence_to_contact(const std::string& from, const std::string& to, const std::string& type)
+{
+  Stanza presence("presence");
+  presence["from"] = from;
+  presence["to"] = to;
+  if (!type.empty())
+    presence["type"] = type;
+  this->send_stanza(presence);
+}
+
+void BiboumiComponent::after_handshake()
+{
+  XmppComponent::after_handshake();
+  const auto contacts = Database::get_contact_list(this->get_served_hostname());
+
+  for (const Database::RosterItem& roster_item: contacts)
+    {
+      const auto remote_jid = roster_item.col<Database::RemoteJid>();
+      this->send_presence_to_contact(this->get_served_hostname(), remote_jid, "probe");
+    }
 }
