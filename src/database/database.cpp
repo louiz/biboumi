@@ -176,6 +176,7 @@ std::vector<Database::MucLogLine> Database::get_muc_logs(const std::string& owne
 void Database::close()
 {
   sqlite3_close_v2(Database::db);
+  Database::db = nullptr;
 }
 
 std::string Database::gen_uuid()
