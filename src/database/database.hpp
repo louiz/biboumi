@@ -72,6 +72,13 @@ class Database
   struct Persistent: Column<bool> { static constexpr auto name = "persistent_";
     Persistent(): Column<bool>(false) {} };
 
+  struct LocalJid: Column<std::string> { static constexpr auto name = "local";
+   static constexpr auto options = ""; };
+
+  struct RemoteJid: Column<std::string> { static constexpr auto name = "remote";
+   static constexpr auto options = ""; };
+
+
   using MucLogLineTable = Table<Id, Uuid, Owner, IrcChanName, IrcServerName, Date, Body, Nick>;
   using MucLogLine = MucLogLineTable::RowType;
 
@@ -83,6 +90,9 @@ class Database
 
   using IrcChannelOptionsTable = Table<Id, Owner, Server, Channel, EncodingOut, EncodingIn, MaxHistoryLength, Persistent, RecordHistoryOptional>;
   using IrcChannelOptions = IrcChannelOptionsTable::RowType;
+
+  using RosterTable = Table<LocalJid, RemoteJid>;
+  using RosterItem = RosterTable::RowType;
 
   Database() = default;
   ~Database() = default;
@@ -109,6 +119,12 @@ class Database
   static std::string store_muc_message(const std::string& owner, const std::string& chan_name, const std::string& server_name,
                                        time_point date, const std::string& body, const std::string& nick);
 
+  static void add_roster_item(const std::string& local, const std::string& remote);
+  static bool has_roster_item(const std::string& local, const std::string& remote);
+  static void delete_roster_item(const std::string& local, const std::string& remote);
+  static std::vector<Database::RosterItem> get_contact_list(const std::string& local);
+  static std::vector<Database::RosterItem> get_full_roster();
+
   static void close();
   static void open(const std::string& filename);
 
@@ -123,6 +139,7 @@ class Database
   static GlobalOptionsTable global_options;
   static IrcServerOptionsTable irc_server_options;
   static IrcChannelOptionsTable irc_channel_options;
+  static RosterTable roster;
   static sqlite3* db;
 
  private:

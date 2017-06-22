@@ -13,6 +13,8 @@ Database::MucLogLineTable Database::muc_log_lines("MucLogLine_");
 Database::GlobalOptionsTable Database::global_options("GlobalOptions_");
 Database::IrcServerOptionsTable Database::irc_server_options("IrcServerOptions_");
 Database::IrcChannelOptionsTable Database::irc_channel_options("IrcChannelOptions_");
+Database::RosterTable Database::roster("roster");
+
 
 void Database::open(const std::string& filename)
 {
@@ -36,6 +38,8 @@ void Database::open(const std::string& filename)
   Database::irc_server_options.upgrade(Database::db);
   Database::irc_channel_options.create(Database::db);
   Database::irc_channel_options.upgrade(Database::db);
+  Database::roster.create(Database::db);
+  Database::roster.upgrade(Database::db);
 }
 
 
@@ -175,6 +179,51 @@ std::vector<Database::MucLogLine> Database::get_muc_logs(const std::string& owne
   auto result = request.execute(Database::db);
 
   return {result.crbegin(), result.crend()};
+}
+
+void Database::add_roster_item(const std::string& local, const std::string& remote)
+{
+  auto roster_item = Database::roster.row();
+
+  roster_item.col<Database::LocalJid>() = local;
+  roster_item.col<Database::RemoteJid>() = remote;
+
+  roster_item.save(Database::db);
+}
+
+void Database::delete_roster_item(const std::string& local, const std::string& remote)
+{
+  Query query("DELETE FROM "s + Database::roster.get_name());
+  query << " WHERE " << Database::RemoteJid{} << "=" << remote << \
+           " AND " << Database::LocalJid{} << "=" << local;
+
+  query.execute(Database::db);
+}
+
+bool Database::has_roster_item(const std::string& local, const std::string& remote)
+{
+  auto query = Database::roster.select();
+  query.where() << Database::LocalJid{} << "=" << local << \
+        " and " << Database::RemoteJid{} << "=" << remote;
+
+  auto res = query.execute(Database::db);
+
+  return !res.empty();
+}
+
+std::vector<Database::RosterItem> Database::get_contact_list(const std::string& local)
+{
+  auto query = Database::roster.select();
+  query.where() << Database::LocalJid{} << "=" << local;
+
+  return query.execute(Database::db);
+}
+
+std::vector<Database::RosterItem> Database::get_full_roster()
+{
+  auto query = Database::roster.select();
+
+  return query.execute(Database::db);
 }
 
 void Database::close()
