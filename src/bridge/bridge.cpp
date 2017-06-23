@@ -851,7 +851,6 @@ void Bridge::send_message(const Iid& iid, const std::string& nick, const std::st
     }
   else
     {
-      std::string target = std::to_string(iid);
       const auto it = this->preferred_user_from.find(iid.get_local());
       if (it != this->preferred_user_from.end())
         {
