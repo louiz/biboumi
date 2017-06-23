@@ -49,6 +49,8 @@ class XMPPComponent(slixmpp.BaseXMPP):
     def __init__(self, scenario, biboumi):
         super().__init__(jid="biboumi.localhost", default_ns="jabber:component:accept")
         self.is_component = True
+        self.auto_authorize = None # Do not accept or reject subscribe requests automatically
+        self.auto_subscribe = False
         self.stream_header = '<stream:stream %s %s from="%s" id="%s">' % (
             'xmlns="jabber:component:accept"',
             'xmlns:stream="%s"' % self.stream_ns,
@@ -2649,7 +2651,28 @@ if __name__ == '__main__':
                       partial(expect_stanza, "/message[@to='{jid_two}/{resource_two}'][@type='chat']/body[text()='irc.localhost: {nick_one}: Nickname is already in use.']"),
                       partial(expect_stanza, "/presence[@type='error']/error[@type='cancel'][@code='409']/stanza:conflict"),
                       partial(send_stanza, "<presence from='{jid_two}/{resource_two}' to='#foo%{irc_server_one}/{nick_one}' type='unavailable' />")
-         ])
+         ]),
+        Scenario("basic_subscribe_unsubscribe",
+                 [
+                     handshake_sequence(),
+
+                     # Mutual subscription exchange
+                     partial(send_stanza, "<presence from='{jid_one}' to='{biboumi_host}' type='subscribe' id='subid1' />"),
+                     partial(expect_stanza, "/presence[@type='subscribed'][@id='subid1']"),
+
+                     # Get the current presence of the biboumi gateway
+                     partial(expect_stanza, "/presence"),
+
+                     partial(expect_stanza, "/presence[@type='subscribe']"),
+                     partial(send_stanza, "<presence from='{jid_one}' to='{biboumi_host}' type='subscribed' />"),
+
+
+                     # Unsubscribe
+                     partial(send_stanza, "<presence from='{jid_one}' to='{biboumi_host}' type='unsubscribe' id='unsubid1' />"),
+                     partial(expect_stanza, "/presence[@type='unavailable']"),
+                     partial(expect_stanza, "/presence[@type='unsubscribe']"),
+                     partial(send_stanza, "<presence from='{jid_one}' to='{biboumi_host}' type='unavailable' />"),
+                 ])
     )
 
     failures = 0
