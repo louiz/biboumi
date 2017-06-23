@@ -180,6 +180,8 @@ void BiboumiComponent::handle_presence(const Stanza& stanza)
         }
       else if (type == "unsubscribe")
         {
+          this->send_presence_to_contact(to_str, from.bare(), "unavailable", id);
+          this->send_presence_to_contact(to_str, from.bare(), "unsubscribe");
 #ifdef USE_DATABASE
           const bool res = Database::has_roster_item(to_str, from.bare());
           if (res)
