@@ -2692,8 +2692,10 @@ if __name__ == '__main__':
                      # Unsubscribe
                      partial(send_stanza, "<presence from='{jid_one}' to='{biboumi_host}' type='unsubscribe' id='unsubid1' />"),
                      partial(expect_stanza, "/presence[@type='unavailable']"),
+                     partial(expect_stanza, "/presence[@type='unsubscribed']"),
                      partial(expect_stanza, "/presence[@type='unsubscribe']"),
                      partial(send_stanza, "<presence from='{jid_one}' to='{biboumi_host}' type='unavailable' />"),
+                     partial(send_stanza, "<presence from='{jid_one}' to='{biboumi_host}' type='unsubscribed' />"),
                  ])
     )
 
