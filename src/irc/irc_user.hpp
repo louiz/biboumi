@@ -23,7 +23,7 @@ public:
 
   void add_mode(const char mode);
   void remove_mode(const char mode);
-  char get_most_significant_mode(const std::vector<char>& sorted_user_modes) const;
+  char get_most_significant_mode(const std::vector<char>& modes) const;
 
   std::string nick;
   std::string host;

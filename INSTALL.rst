@@ -36,15 +36,17 @@ libidn_ (optional, but recommended)
  Provides the stringprep functionality. Without it, JIDs for IRC users are
  not provided.
 
-c-ares_ (optional, but recommended)
+udns_ (optional, but recommended)
  Asynchronously resolve domain names. This offers better reactivity and
  performances when connecting to a big number of IRC servers at the same
  time.
 
-libbotan_ 1.11 (optional)
+libbotan_ 1.11 or 2.0 (optional)
  Provides TLS support. Without it, IRC connections are all made in
  plain-text mode.
- Other branches than the 1.11 are not supported.
+
+gcrypt_ (mandatory only if botan is absent)
+ Provides the SHA-1 hash function, for the case where Botan is absent.
 
 litesql_ (optional)
  Provides a way to store various options in a (sqlite3) database. Each user
@@ -116,7 +118,9 @@ This command will configure the project to build a release, with TLS enabled
 
 Build
 -----
-Once you’ve configured everything using cmake, build the project
+Once you’ve configured everything using cmake, build the software:
+
+To build the biboumi binary:
 
   make
 
@@ -155,7 +159,8 @@ to use biboumi.
 .. _libuuid: http://sourceforge.net/projects/libuuid/
 .. _libidn: http://www.gnu.org/software/libidn/
 .. _libbotan: http://botan.randombit.net/
-.. _c-ares: http://c-ares.haxx.se/
+.. _udns: http://www.corpit.ru/mjt/udns.html
 .. _litesql: http://git.louiz.org/litesql
 .. _systemd: https://www.freedesktop.org/wiki/Software/systemd/
 .. _biboumi.1.rst: doc/biboumi.1.rst
+.. _gcrypt: https://www.gnu.org/software/libgcrypt/

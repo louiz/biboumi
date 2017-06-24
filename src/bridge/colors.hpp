@@ -51,6 +51,6 @@ static const char irc_format_char[] = {
  * Returns the body cleaned from any IRC formatting (but without any xhtml),
  * and the body as XHTML-IM
  */
-Xmpp::body irc_format_to_xhtmlim(const std::string& str);
+Xmpp::body irc_format_to_xhtmlim(const std::string& s);
 
 

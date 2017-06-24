@@ -20,7 +20,7 @@ void Database::open(const std::string& filename, const std::string& db_type)
                                              "database="s + filename);
       if (new_db->needsUpgrade())
         new_db->upgrade();
-      Database::db.reset(new_db.release());
+      Database::db = std::move(new_db);
     } catch (const litesql::DatabaseError& e) {
       log_error("Failed to open database ", filename, ". ", e.what());
       throw;
@@ -119,22 +119,26 @@ db::IrcChannelOptions Database::get_irc_channel_options_with_server_and_global_d
   return coptions;
 }
 
-void Database::store_muc_message(const std::string& owner, const Iid& iid,
-                                 Database::time_point date,
-                                 const std::string& body,
-                                 const std::string& nick)
+std::string Database::store_muc_message(const std::string& owner, const Iid& iid,
+                                        Database::time_point date,
+                                        const std::string& body,
+                                        const std::string& nick)
 {
   db::MucLogLine line(*Database::db);
 
-  line.uuid = Database::gen_uuid();
+  auto uuid = Database::gen_uuid();
+
+  line.uuid = uuid;
   line.owner = owner;
   line.ircChanName = iid.get_local();
   line.ircServerName = iid.get_server();
-  line.date = date.time_since_epoch().count() / 1'000'000'000;
+  line.date = std::chrono::duration_cast<std::chrono::seconds>(date.time_since_epoch()).count();
   line.body = body;
   line.nick = nick;
 
   line.update();
+
+  return uuid;
 }
 
 std::vector<db::MucLogLine> Database::get_muc_logs(const std::string& owner, const std::string& chan_name, const std::string& server,

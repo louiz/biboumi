@@ -1,0 +1,2 @@
+require_cert_revocation_info = false
+use_ecc_point_compression = true

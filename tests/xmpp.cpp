@@ -30,20 +30,21 @@ TEST_CASE("Test basic XML parsing")
         // And do the same checks on moved-constructed stanza
         Stanza moved(std::move(copy));
       });
-  xml.feed(doc.data(), doc.size(), true);
+  CHECK(doc.size() <= std::numeric_limits<int>::max());
+  xml.feed(doc.data(), static_cast<int>(doc.size()), true);
 
   const std::string doc2 = "<stream xmlns='s'><stanza>coucou\r\n\a</stanza></stream>";
   xml.add_stanza_callback([](const Stanza& stanza)
       {
         CHECK(stanza.get_inner() == "coucou\r\n");
       });
-
-  xml.feed(doc2.data(), doc.size(), true);
+  CHECK(doc.size() <= std::numeric_limits<int>::max());
+  xml.feed(doc2.data(), static_cast<int>(doc.size()), true);
 }
 
 TEST_CASE("XML escape")
 {
-  const std::string unescaped = "'coucou'<cc>/&\"gaga\"";
+  const std::string unescaped = R"('coucou'<cc>/&"gaga")";
   CHECK(xml_escape(unescaped) == "&apos;coucou&apos;&lt;cc&gt;/&amp;&quot;gaga&quot;");
 }
 
@@ -51,4 +52,21 @@ TEST_CASE("handshake_digest")
 {
   const auto res = get_handshake_digest("id1234", "S4CR3T");
   CHECK(res == "c92901b5d376ad56269914da0cce3aab976847df");
+}
+
+TEST_CASE("substanzas")
+{
+  Stanza a("a");
+  {
+    XmlSubNode b(a, "b");
+    {
+      CHECK(!a.has_children());
+      XmlSubNode c(b, "c");
+      XmlSubNode d(b, "d");
+      CHECK(!c.has_children());
+      CHECK(!d.has_children());
+    }
+    CHECK(b.has_children());
+  }
+  CHECK(a.has_children());
 }

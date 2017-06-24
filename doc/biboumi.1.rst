@@ -35,12 +35,19 @@ details on its content.
 Configuration
 =============
 
-The configuration file uses a simple format of the form
-``option=value``. Here is a description of each possible option:
+The configuration file uses a simple format of the form ``option=value``.
 
-The configuration can be re-read at runtime (you can for example change the
-log level without having to restart biboumi) by sending SIGUSR1 or SIGUSR2
-(see kill(1)) to the process.
+The values from the configuration file can be overridden by environment
+variables, with the name all in upper case and prefixed with "BIBOUMI_".
+For example, if the environment contains “BIBOUMI_PASSWORD=blah", this will
+override the value of the “password” option in the configuration file.
+
+Sending SIGUSR1 or SIGUSR2 (see kill(1)) to the process will force it to
+re-read the configuration and make it close and re-open the log files. You
+can use this to change any configuration option at runtime, or do a log
+rotation.
+
+Here is a description of every possible option:
 
 hostname
 --------
@@ -74,22 +81,21 @@ admin
 -----
 
 The bare JID of the gateway administrator. This JID will have more
-privileges than other standard users (the admin thus needs to check their
-privileges), for example some administration ad-hoc commands will only be
-available to that JID.
+privileges than other standard users, for example some administration
+ad-hoc commands will only be available to that JID.
 
 fixed_irc_server
 ----------------
 
 If this option contains the hostname of an IRC server (for example
 irc.example.org), then biboumi will enforce the connexion to that IRC
-server only.  This means that a JID like "#chan@biboumi.example.com" must
-be used instead of "#chan%irc.example.org@biboumi.example.com".  In that
+server only.  This means that a JID like ``#chan@biboumi.example.com`` must
+be used instead of ``#chan%irc.example.org@biboumi.example.com``.  In that
 mode, the virtual channel (see `Connect to an IRC server`_) is not
-available. The '%' character loses any meaning in the JIDs.  It can appear
+available. The `%` character loses any meaning in the JIDs.  It can appear
 in the JID but will not be interpreted as a separator (thus the JID
-"#channel%hello@biboumi.example.com" points to the channel named
-"#channel%hello" on the configured IRC server) This option can for example
+``#channel%hello@biboumi.example.com`` points to the channel named
+``#channel%hello`` on the configured IRC server) This option can for example
 be used by an administrator that just wants to let their users join their own
 IRC server using an XMPP client, while forbidding access to any other IRC
 server.
@@ -152,6 +158,60 @@ for example use outgoing_bind=192.168.1.11 to force biboumi to use the
 interface with this address.  Note that this is only used for connections
 to IRC servers.
 
+identd_port
+-----------
+
+The TCP port on which to listen for identd queries.  The default is the
+standard value: 113. To be able to listen on this privileged port, biboumi
+needs to have certain capabilities: on linux, using systemd, this can be
+achieved by adding `AmbientCapabilities=CAP_NET_BIND_SERVICE` to the unit
+file. On other systems, other solutions exist, like the portacl module on
+FreeBSD.
+
+If biboumi’s identd server is properly started, it will receive queries from
+the IRC servers asking for the “identity” of each IRC connection made to it.
+Biboumi will answer with a hash of the JID that made the connection. This is
+useful for the IRC server to be able to distinguish the different users, and
+be able to deal with the absuses without having to simply ban the IP. Without
+this identd server, moderation is a lot harder, because all the different
+users of a single biboumi instance all share the same IP, and they can’t be
+distinguished by the IRC servers.
+
+policy_directory
+----------------
+
+A directory that should contain the policy files, used to customize
+Botan’s behaviour when negociating the TLS connections with the IRC
+servers. If not specified, the directory is the one where biboumi’s
+configuration file is located: for example if biboumi reads its
+configuration from /etc/biboumi/biboumi.cfg, the policy_directory value
+will be /etc/biboumi.
+
+
+TLS configuration
+=================
+
+Various settings of the TLS connections can be customized using policy
+files. The files should be located in the directory specified by the
+configuration option `policy_directory`_.  When attempting to connect to
+an IRC server using TLS, biboumi will use Botan’s default TLS policy, and
+then will try to load some policy files to override the values found in
+these files.  For example, if policy_directory is /etc/biboumi, when
+trying to connect to irc.example.com, biboumi will try to read
+/etc/biboumi/policy.txt, use the values found to override the default
+values, then it will try to read /etc/biboumi/irc.example.com.policy.txt
+and re-override the policy with the values found in this file.
+
+The policy.txt file applies to all the connections, and
+irc.example.policy.txt will only apply (in addition to policy.txt) when
+connecting to that specific server.
+
+To see the list of possible options to configure, refer to `Botan’s TLS
+documentation <https://botan.randombit.net/manual/tls.html#tls-policies>`_.
+
+By default, biboumi provides a few policy files, to work around some
+issues found with a few well-known IRC servers.
+
 Usage
 =====
 
@@ -194,8 +254,8 @@ Addressing
 ----------
 
 IRC entities are represented by XMPP JIDs.  The domain part of the JID is
-the domain served by biboumi (the part after the ``@``, biboumi.example.com in
-the examples), and the local part (the part before the ``@``) depends on the
+the domain served by biboumi (the part after the `@`, biboumi.example.com in
+the examples), and the local part (the part before the `@`) depends on the
 concerned entity.
 
 IRC channels and IRC users have a local part formed like this:
@@ -280,7 +340,7 @@ biboumi provides a virtual channel on the jid
 channel ``#foo`` on the server ``irc.example.com``, but you need to authenticate
 to a bot of the server before you’re allowed to join it, you can first join
 the room ``%irc.example.com@biboumi.example.com`` (this will effectively
-connect you to the IRC server without joining any room), then send your
+connect you to the IRC server without joining any channel), then send your
 authentication message to the user ``bot%irc.example.com@biboumi.example.com``
 and finally join the room ``#foo%irc.example.com@biboumi.example.com``.
 
@@ -291,7 +351,7 @@ On XMPP, unlike on IRC, the displayed order of the messages is the same for
 all participants of a MUC.  Biboumi can not however provide this feature, as
 it cannot know whether the IRC server has received and forwarded the
 messages to other users.  This means that the order of the messages
-displayed in your XMPP client may not be the same than the order on other
+displayed in your XMPP client may not be the same as the order on other
 IRC users’.
 
 History
@@ -322,8 +382,8 @@ List channels
 
 You can list the IRC channels on a given IRC server by sending an XMPP disco
 items request on the IRC server JID.  The number of channels on some servers
-is huge, and biboumi does not (yet) support result set management (XEP 0059)
-so the result stanza may be very big.
+is huge so the result stanza may be very big, unless your client supports
+result set management (XEP 0059)
 
 Nicknames
 ---------
@@ -361,6 +421,13 @@ Notices
 
 Notices are received exactly like private messages.  It is not possible to
 send a notice.
+
+Topic
+-----
+
+The topic can be set and retrieved seemlessly. The unique difference is that
+if an XMPP user tries to set a multiline topic, every line return (\\n) will
+be replaced by a space, because the IRC server wouldn’t accept it.
 
 Invitations
 -----------
@@ -485,11 +552,59 @@ On the gateway itself (e.g on the JID biboumi.example.com):
   with an XMPP message.  The administrator can disconnect any user, while
   the other users can only disconnect themselves.
 
+- configure: Lets each user configure some options that applies globally.
+  The provided configuration form contains these fields:
+    * Record History: whether or not history messages should be saved in
+      the database.
+    * Max history length: The maximum number of lines in the history
+      that the server is allowed to send when joining a channel.
+
 On a server JID (e.g on the JID chat.freenode.org@biboumi.example.com)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 - configure: Lets each user configure some options that applies to the
-  concerned IRC server.
+  concerned IRC server.  The provided configuration form contains these
+  fields:
+    * Realname: The customized “real name” as it will appear on the
+      user’s whois. This option is not available if biboumi is configured
+      with realname_customization to false.
+    * Username: The “user” part in your `user@host`. This option is not
+      available if biboumi is configured with realname_customization to
+      false.
+    * In encoding: The incoming encoding. Any received message that is not
+      proper UTF-8 will be converted will be converted from the configured
+      In encoding into UTF-8. If the conversion fails at some point, some
+      characters will be replaced by the placeholders.
+    * Out encoding: Currently ignored.
+    * After-connection IRC command: A raw IRC command that will be sent to
+      the server immediately after the connection has been successful. It
+      can for example be used to identify yourself using NickServ, with a
+      command like this: `PRIVMSG NickServ :identify PASSWORD`.
+    * Ports: The list of TCP ports to use when connecting to this IRC server.
+      This list will be tried in sequence, until the connection succeeds for
+      one of them. The connection made on these ports will not use TLS, the
+      communication will be insecure. The default list contains 6697 and 6670.
+    * TLS ports: A second list of ports to try when connecting to the IRC
+      server. The only difference is that TLS will be used if the connection
+      is established on one of these ports. All the ports in this list will
+      be tried before using the other plain-text ports list. To entirely
+      disable any non-TLS connection, just remove all the values from the
+      “normal” ports list. The default list contains 6697.
+    * Verify certificate: If set to true (the default value), when connecting
+      on a TLS port, the connection will be aborted if the certificate is
+      not valid (for example if it’s not signed by a known authority, or if
+      the domain name doesn’t match, etc). Set it to false if you want to
+      connect on a server with a self-signed certificate.
+    * SHA-1 fingerprint of the TLS certificate to trust: if you know the hash
+      of the certificate that the server is supposed to use, and you only want
+      to accept this one, set its SHA-1 hash in this field.
+    * Server password: A password that will be sent just after the connection,
+      in a PASS command. This is usually used in private servers, where you’re
+      only allowed to connect if you have the password. Note that, although
+      this is NOT a password that will be sent to NickServ (or some author
+      authentication service), some server (notably Freenode) use it as if it
+      was sent to NickServ to identify your nickname.
+
 - get-irc-connection-info: Returns some information about the IRC server,
   for the executing user. It lets the user know if they are connected to
   this server, from what port, with or without TLS, and it gives the list
@@ -504,7 +619,18 @@ On a channel JID (e.g on the JID #test%chat.freenode.org@biboumi.example.com)
   specific channel, defaults to the value configured at the IRC server
   level.  For example the encoding can be specified for both the channel
   and the server.  If an encoding is not specified for a channel, the
-  encoding configured in the server applies.
+  encoding configured in the server applies. The provided configuration
+  form contains these fields:
+    * In encoding: see the option with the same name in the server configuration
+      form.
+    * Out encoding: Currently ignored.
+    * Persistent: If set to true, biboumi will stay in this channel even when
+      all the XMPP resources have left the room. I.e. it will not send a PART
+      command, and will stay idle in the channel until the connection is
+      forcibly closed. If a resource comes back in the room again, and if
+      the archiving of messages is enabled for this room, the client will
+      receive the messages that where sent in this channel. This option can be
+      used to make biboumi act as an IRC bouncer.
 
 Raw IRC messages
 ----------------
@@ -515,11 +641,11 @@ arbitrary IRC message, biboumi forwards any XMPP message received on an IRC
 Server JID (see *ADDRESSING*) as a raw command to that IRC server.
 
 For example, to WHOIS the user Foo on the server irc.example.com, a user can
-send the message “WHOIS Foo” to “irc.example.com@biboumi.example.com”.
+send the message “WHOIS Foo” to ``irc.example.com@biboumi.example.com``.
 
 The message will be forwarded as is, without any modification appart from
-adding "\r\n" at the end (to make it a valid IRC message).  You need to have
-a little bit of understanding of the IRC protocol to use this feature.
+adding ``\r\n`` at the end (to make it a valid IRC message).  You need to
+have a little bit of understanding of the IRC protocol to use this feature.
 
 Security
 ========
@@ -550,3 +676,4 @@ protection against flood or any sort of abuse that your users may cause on
 the IRC servers. Some XMPP server however offer the possibility to restrict
 what JID can access a gateway. Use that feature if you wish to grant access
 to your biboumi instance only to a list of trusted users.
+

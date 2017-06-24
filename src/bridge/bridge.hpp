@@ -38,7 +38,7 @@ using irc_responder_callback_t = std::function<bool(const std::string& irc_hostn
 class Bridge
 {
 public:
-  explicit Bridge(const std::string& user_jid, BiboumiComponent& xmpp, std::shared_ptr<Poller> poller);
+  explicit Bridge(std::string  user_jid, BiboumiComponent& xmpp, std::shared_ptr<Poller>& poller);
   ~Bridge() = default;
 
   Bridge(const Bridge&) = delete;
@@ -80,10 +80,10 @@ public:
   void send_private_message(const Iid& iid, const std::string& body, const std::string& type="PRIVMSG");
   void send_raw_message(const std::string& hostname, const std::string& body);
   void leave_irc_channel(Iid&& iid, const std::string& status_message, const std::string& resource);
-  void send_irc_nick_change(const Iid& iid, const std::string& new_nick);
+  void send_irc_nick_change(const Iid& iid, const std::string& new_nick, const std::string& requesting_resource);
   void send_irc_kick(const Iid& iid, const std::string& target, const std::string& reason,
                      const std::string& iq_id, const std::string& to_jid);
-  void set_channel_topic(const Iid& iid, const std::string& subject);
+  void set_channel_topic(const Iid& iid, std::string subject);
   void send_xmpp_version_to_irc(const Iid& iid, const std::string& name, const std::string& version,
                                 const std::string& os);
   void send_irc_ping_result(const Iid& iid, const std::string& id);
@@ -103,8 +103,8 @@ public:
   bool send_matching_channel_list(const ChannelList& channel_list,
                                   const ResultSetInfo& rs_info, const std::string& id, const std::string& to_jid,
                                   const std::string& from);
-  void forward_affiliation_role_change(const Iid& iid, const std::string& nick,
-                                       const std::string& affiliation, const std::string& role);
+  void forward_affiliation_role_change(const Iid& iid, const std::string& from, const std::string& nick,
+                                       const std::string& affiliation, const std::string& role, const std::string& id);
   /**
    * Directly send a CTCP PING request to the IRC user
    */
@@ -157,7 +157,7 @@ public:
    * Send the MUC history to the user
    */
   void send_room_history(const std::string& hostname, const std::string& chan_name);
-  void send_room_history(const std::string& hostname, const std::string& chan_name, const std::string& resource);
+  void send_room_history(const std::string& hostname, std::string chan_name, const std::string& resource);
   /**
    * Send a MUC message from some participant
    */
@@ -169,7 +169,7 @@ public:
   /**
    * Send an unavailable presence from this participant
    */
-  void send_muc_leave(Iid&& iid, std::string&& nick, const std::string& message, const bool self, const std::string& resource="");
+  void send_muc_leave(const Iid& iid, const std::string& nick, const std::string& message, const bool self, const std::string& resource = "");
   /**
    * Send presences to indicate that an user old_nick (ourself if self ==
    * true) changed his nick to new_nick.  The user_mode is needed because
@@ -231,6 +231,7 @@ public:
    */
   void trigger_on_irc_message(const std::string& irc_hostname, const IrcMessage& message);
   std::unordered_map<std::string, std::shared_ptr<IrcClient>>& get_irc_clients();
+  const std::unordered_map<std::string, std::shared_ptr<IrcClient>>& get_irc_clients() const;
   std::set<char> get_chantypes(const std::string& hostname) const;
 #ifdef USE_DATABASE
   void set_record_history(const bool val);
@@ -302,10 +303,11 @@ private:
   /**
    * Manage which resource is in which channel
    */
-  void add_resource_to_chan(const ChannelKey& channel_key, const std::string& resource);
-  void remove_resource_from_chan(const ChannelKey& channel_key, const std::string& resource);
-  bool is_resource_in_chan(const ChannelKey& channel_key, const std::string& resource) const;
-  std::size_t number_of_resources_in_chan(const ChannelKey& channel_key) const;
+  void add_resource_to_chan(const ChannelKey& channel, const std::string& resource);
+  void remove_resource_from_chan(const ChannelKey& channel, const std::string& resource);
+  bool is_resource_in_chan(const ChannelKey& channel, const std::string& resource) const;
+  void remove_all_resources_from_chan(const ChannelKey& channel);
+  std::size_t number_of_resources_in_chan(const ChannelKey& channel) const;
 
   void add_resource_to_server(const IrcHostname& irc_hostname, const std::string& resource);
   void remove_resource_from_server(const IrcHostname& irc_hostname, const std::string& resource);
