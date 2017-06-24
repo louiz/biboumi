@@ -22,7 +22,7 @@ include /usr/share/cdbs/1/class/cmake.mk
 
 pkg = $(DEB_SOURCE_PACKAGE)
 
-dev-deps = expat1 idn11 systemd c-ares botan1.10
+dev-deps = expat1 idn11 systemd udns botan1.10
 CDBS_BUILD_DEPENDS += , cmake, catch, uuid-dev, pandoc
 CDBS_BUILD_DEPENDS += , $(patsubst %,$(comma) lib%-dev,$(dev-deps))
 
