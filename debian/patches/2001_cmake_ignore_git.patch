@@ -4,10 +4,12 @@ Last-Update: 2016-12-21
 
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
-@@ -198,23 +198,6 @@
-   database)
- endif()
+@@ -282,27 +282,6 @@
+ endforeach()
  
+ #
+-## Add a rule to download the catch unit test framework
+-#
 -include(ExternalProject)
 -ExternalProject_Add(catch
 -  GIT_REPOSITORY "https://lab.louiz.org/louiz/Catch.git"
@@ -25,10 +27,12 @@ Last-Update: 2016-12-21
 -    )
 -  add_dependencies(test_suite catch)
 -endif()
+-
+-#
+ ## Add some custom rules to launch the tests
+ #
  add_custom_target(check COMMAND "test_suite"
-   DEPENDS test_suite biboumi)
- add_custom_target(e2e COMMAND "python3" "${CMAKE_CURRENT_SOURCE_DIR}/tests/end_to_end/"
-@@ -263,8 +246,7 @@
+@@ -362,8 +341,7 @@
    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
    )
  add_custom_target(dist
