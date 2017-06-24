@@ -22,7 +22,8 @@ include /usr/share/cdbs/1/class/cmake.mk
 
 pkg = $(DEB_SOURCE_PACKAGE)
 
-dev-deps = expat1 idn11 systemd udns botan1.10
+# TODO: Build-dpend on libbotan1.11-dev or libbotan2.0 when available
+dev-deps = expat1 idn11 systemd udns gcrypt20
 CDBS_BUILD_DEPENDS += , cmake, catch, uuid-dev, pandoc
 CDBS_BUILD_DEPENDS += , $(patsubst %,$(comma) lib%-dev,$(dev-deps))
 
