@@ -5,7 +5,7 @@
 #include <irc/irc_channel.hpp>
 #include <irc/iid.hpp>
 
-#include <network/tcp_socket_handler.hpp>
+#include <network/tcp_client_socket_handler.hpp>
 #include <network/resolver.hpp>
 
 #include <unordered_map>
@@ -23,12 +23,12 @@ class Bridge;
  * Represent one IRC client, i.e. an endpoint connected to a single IRC
  * server, through a TCP socket, receiving and sending commands to it.
  */
-class IrcClient: public TCPSocketHandler
+class IrcClient: public TCPClientSocketHandler
 {
 public:
-  explicit IrcClient(std::shared_ptr<Poller> poller, const std::string& hostname,
-                     const std::string& nickname, const std::string& username,
-                     const std::string& realname, const std::string& user_hostname,
+  explicit IrcClient(std::shared_ptr<Poller>& poller, std::string  hostname,
+                     std::string nickname, std::string username,
+                     std::string realname, std::string user_hostname,
                      Bridge& bridge);
   ~IrcClient();
 
@@ -52,7 +52,7 @@ public:
   /**
    * Close the connection, remove us from the poller
    */
-  void on_connection_close(const std::string& error) override final;
+  void on_connection_close(const std::string& error_msg) override final;
   /**
    * Parse the data we have received so far and try to get one or more
    * complete messages from it.
@@ -222,6 +222,8 @@ public:
    * received etc), send the self presence and topic to the XMPP user.
    */
   void on_channel_completely_joined(const IrcMessage& message);
+  void on_banlist(const IrcMessage& message);
+  void on_banlist_end(const IrcMessage& message);
   /**
    * Save our own host, as reported by the server
    */
@@ -257,6 +259,7 @@ public:
   void on_nick(const IrcMessage& message);
   void on_kick(const IrcMessage& message);
   void on_mode(const IrcMessage& message);
+  void on_channel_bad_key(const IrcMessage& message);
   /**
    * A mode towards our own user is received (note, that is different from a
    * channel mode towards or own nick, see
@@ -282,7 +285,7 @@ public:
    * Leave the dummy channel: forward a message to the user to indicate that
    * he left it, and mark it as not joined.
    */
-  void leave_dummy_channel(const std::string& exit_message);
+  void leave_dummy_channel(const std::string& exit_message, const std::string& resource);
 
   const std::string& get_hostname() const { return this->hostname; }
   std::string get_nick() const { return this->current_nick; }

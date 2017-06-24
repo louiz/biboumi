@@ -4,6 +4,7 @@
 #include <xmpp/adhoc_command.hpp>
 #include <xmpp/adhoc_session.hpp>
 #include <xmpp/xmpp_stanza.hpp>
+#include <xmpp/jid.hpp>
 
 class XmppComponent;
 
@@ -17,7 +18,9 @@ void ConfigureIrcServerStep1(XmppComponent&, AdhocSession& session, XmlNode& com
 void ConfigureIrcServerStep2(XmppComponent&, AdhocSession& session, XmlNode& command_node);
 
 void ConfigureIrcChannelStep1(XmppComponent&, AdhocSession& session, XmlNode& command_node);
+void insert_irc_channel_configuration_form(XmlNode& node, const Jid& requester, const Jid& target);
 void ConfigureIrcChannelStep2(XmppComponent&, AdhocSession& session, XmlNode& command_node);
+bool handle_irc_channel_configuration_form(const XmlNode& node, const Jid& requester, const Jid& target);
 
 void DisconnectUserFromServerStep1(XmppComponent&, AdhocSession& session, XmlNode& command_node);
 void DisconnectUserFromServerStep2(XmppComponent&, AdhocSession& session, XmlNode& command_node);

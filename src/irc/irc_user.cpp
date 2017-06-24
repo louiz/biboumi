@@ -21,7 +21,7 @@ IrcUser::IrcUser(const std::string& name,
       name_begin++;
     }
 
-  const std::string::size_type sep = name.find("!", name_begin);
+  const std::string::size_type sep = name.find('!', name_begin);
   if (sep == std::string::npos)
     this->nick = name.substr(name_begin);
   else

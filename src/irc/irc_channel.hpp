@@ -27,7 +27,7 @@ public:
   bool parting{false};
   std::string topic{};
   std::string topic_author{};
-  void set_self(const std::string& name);
+  void set_self(IrcUser* user);
   IrcUser* get_self() const;
   IrcUser* add_user(const std::string& name,
                     const std::map<char, char>& prefix_to_mode);
@@ -38,7 +38,8 @@ public:
   { return this->users; }
 
 protected:
-  std::unique_ptr<IrcUser> self{};
+  // Pointer to one IrcUser stored in users
+  IrcUser* self{nullptr};
   std::vector<std::unique_ptr<IrcUser>> users{};
 };
 

@@ -157,13 +157,10 @@ FUNCTION(SETUP_TARGET_FOR_COVERAGE _targetname _testrunner _outputname)
 
         # Remove information about source files that are not part of
         # the test (system file, external libraries, etc)
-        COMMAND ${LCOV_PATH} --remove ${_outputname}.info 'tests/*' '/usr/*' 'external/*' 'build/*' --output-file ${_outputname}.info.cleaned -q
+        COMMAND ${LCOV_PATH} --remove ${_outputname}.info 'tests/*' '/usr/*' 'external/*' 'build/*' --output-file ${_outputname}.info -q
 
         # Generate the report
-        COMMAND ${GENHTML_PATH} -o ${_outputname} ${_outputname}.info.cleaned
-
-        # Clean the temporary files we created
-        COMMAND ${CMAKE_COMMAND} -E remove ${_outputname}.info ${_outputname}.info.cleaned
+        COMMAND ${GENHTML_PATH} -o ${_outputname} ${_outputname}.info
 
         WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
         COMMENT "Resetting code coverage counters to zero.\nProcessing code coverage counters and generating report."
