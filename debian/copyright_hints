@@ -11,6 +11,9 @@ Files: CHANGELOG.rst
  README.rst
  biboumi.h.cmake
  conf/biboumi.cfg
+ conf/irc.mozilla.org.policy.txt
+ conf/irc.ppirc.net.policy.txt
+ conf/policy.txt
  database/database.xml
  debian/compat
  debian/control
@@ -25,66 +28,17 @@ Files: CHANGELOG.rst
  debian/watch
  doc/biboumi.1.rst
  doc/example.conf
+ docker/biboumi-test/alpine/Dockerfile
+ docker/biboumi-test/alpine/Dockerfile.base
+ docker/biboumi-test/archlinux/Dockerfile
  docker/biboumi-test/debian/Dockerfile
+ docker/biboumi-test/debian/Dockerfile.base
  docker/biboumi-test/fedora/Dockerfile
- louloulibs/CMakeLists.txt
- louloulibs/config/config.cpp
- louloulibs/config/config.hpp
- louloulibs/logger/logger.cpp
- louloulibs/logger/logger.hpp
- louloulibs/louloulibs.h.cmake
- louloulibs/network/credentials_manager.cpp
- louloulibs/network/credentials_manager.hpp
- louloulibs/network/dns_handler.cpp
- louloulibs/network/dns_handler.hpp
- louloulibs/network/dns_socket_handler.cpp
- louloulibs/network/dns_socket_handler.hpp
- louloulibs/network/poller.cpp
- louloulibs/network/poller.hpp
- louloulibs/network/resolver.cpp
- louloulibs/network/resolver.hpp
- louloulibs/network/socket_handler.hpp
- louloulibs/network/tcp_socket_handler.cpp
- louloulibs/network/tcp_socket_handler.hpp
- louloulibs/utils/encoding.cpp
- louloulibs/utils/encoding.hpp
- louloulibs/utils/get_first_non_empty.cpp
- louloulibs/utils/get_first_non_empty.hpp
- louloulibs/utils/revstr.cpp
- louloulibs/utils/revstr.hpp
- louloulibs/utils/scopeguard.hpp
- louloulibs/utils/sha1.cpp
- louloulibs/utils/sha1.hpp
- louloulibs/utils/split.cpp
- louloulibs/utils/split.hpp
- louloulibs/utils/string.cpp
- louloulibs/utils/string.hpp
- louloulibs/utils/time.cpp
- louloulibs/utils/time.hpp
- louloulibs/utils/timed_events.cpp
- louloulibs/utils/timed_events.hpp
- louloulibs/utils/timed_events_manager.cpp
- louloulibs/utils/tolower.cpp
- louloulibs/utils/tolower.hpp
- louloulibs/utils/xdg.cpp
- louloulibs/utils/xdg.hpp
- louloulibs/xmpp/adhoc_command.cpp
- louloulibs/xmpp/adhoc_command.hpp
- louloulibs/xmpp/adhoc_commands_handler.cpp
- louloulibs/xmpp/adhoc_commands_handler.hpp
- louloulibs/xmpp/adhoc_session.cpp
- louloulibs/xmpp/adhoc_session.hpp
- louloulibs/xmpp/auth.cpp
- louloulibs/xmpp/auth.hpp
- louloulibs/xmpp/body.hpp
- louloulibs/xmpp/jid.cpp
- louloulibs/xmpp/jid.hpp
- louloulibs/xmpp/xmpp_component.cpp
- louloulibs/xmpp/xmpp_component.hpp
- louloulibs/xmpp/xmpp_parser.cpp
- louloulibs/xmpp/xmpp_parser.hpp
- louloulibs/xmpp/xmpp_stanza.cpp
- louloulibs/xmpp/xmpp_stanza.hpp
+ docker/biboumi-test/fedora/Dockerfile.base
+ docker/biboumi/Dockerfile
+ docker/biboumi/README.md
+ docker/biboumi/biboumi.cfg
+ docker/packaging/debian/Dockerfile
  packaging/biboumi.spec.cmake
  src/bridge/bridge.cpp
  src/bridge/bridge.hpp
@@ -92,8 +46,13 @@ Files: CHANGELOG.rst
  src/bridge/colors.hpp
  src/bridge/list_element.hpp
  src/bridge/result_set_management.hpp
+ src/config/config.cpp
+ src/config/config.hpp
  src/database/database.cpp
  src/database/database.hpp
+ src/identd/identd_server.hpp
+ src/identd/identd_socket.cpp
+ src/identd/identd_socket.hpp
  src/irc/iid.cpp
  src/irc/iid.hpp
  src/irc/irc_channel.cpp
@@ -104,14 +63,77 @@ Files: CHANGELOG.rst
  src/irc/irc_message.hpp
  src/irc/irc_user.cpp
  src/irc/irc_user.hpp
+ src/logger/logger.cpp
+ src/logger/logger.hpp
  src/main.cpp
+ src/network/credentials_manager.cpp
+ src/network/credentials_manager.hpp
+ src/network/dns_handler.cpp
+ src/network/dns_handler.hpp
+ src/network/dns_socket_handler.cpp
+ src/network/dns_socket_handler.hpp
+ src/network/poller.cpp
+ src/network/poller.hpp
+ src/network/resolver.cpp
+ src/network/resolver.hpp
+ src/network/socket_handler.hpp
+ src/network/tcp_client_socket_handler.cpp
+ src/network/tcp_client_socket_handler.hpp
+ src/network/tcp_server_socket.hpp
+ src/network/tcp_socket_handler.cpp
+ src/network/tcp_socket_handler.hpp
+ src/network/tls_policy.cpp
+ src/network/tls_policy.hpp
+ src/utils/dirname.cpp
+ src/utils/dirname.hpp
  src/utils/empty_if_fixed_server.hpp
+ src/utils/encoding.cpp
+ src/utils/encoding.hpp
+ src/utils/get_first_non_empty.cpp
+ src/utils/get_first_non_empty.hpp
  src/utils/reload.cpp
  src/utils/reload.hpp
+ src/utils/revstr.cpp
+ src/utils/revstr.hpp
+ src/utils/scopeguard.hpp
+ src/utils/sha1.cpp
+ src/utils/sha1.hpp
+ src/utils/split.cpp
+ src/utils/split.hpp
+ src/utils/string.cpp
+ src/utils/string.hpp
+ src/utils/system.cpp
+ src/utils/system.hpp
+ src/utils/time.cpp
+ src/utils/time.hpp
+ src/utils/timed_events.cpp
+ src/utils/timed_events.hpp
+ src/utils/timed_events_manager.cpp
+ src/utils/tolower.cpp
+ src/utils/tolower.hpp
+ src/utils/xdg.cpp
+ src/utils/xdg.hpp
+ src/xmpp/adhoc_command.cpp
+ src/xmpp/adhoc_command.hpp
+ src/xmpp/adhoc_commands_handler.cpp
+ src/xmpp/adhoc_commands_handler.hpp
+ src/xmpp/adhoc_session.cpp
+ src/xmpp/adhoc_session.hpp
+ src/xmpp/auth.cpp
+ src/xmpp/auth.hpp
  src/xmpp/biboumi_adhoc_commands.cpp
  src/xmpp/biboumi_adhoc_commands.hpp
  src/xmpp/biboumi_component.cpp
  src/xmpp/biboumi_component.hpp
+ src/xmpp/body.hpp
+ src/xmpp/jid.cpp
+ src/xmpp/jid.hpp
+ src/xmpp/xmpp_component.cpp
+ src/xmpp/xmpp_component.hpp
+ src/xmpp/xmpp_parser.cpp
+ src/xmpp/xmpp_parser.hpp
+ src/xmpp/xmpp_stanza.cpp
+ src/xmpp/xmpp_stanza.hpp
  tests/colors.cpp
  tests/config.cpp
  tests/database.cpp
@@ -122,6 +144,7 @@ Files: CHANGELOG.rst
  tests/io_tester.hpp
  tests/jid.cpp
  tests/logger.cpp
+ tests/network.cpp
  tests/test.cpp
  tests/timed_events.cpp
  tests/utils.cpp
@@ -132,13 +155,14 @@ Copyright: NONE
 License: UNKNOWN
  FIXME
 
-Files: cmake/Modules/FindLITESQL.cmake
- louloulibs/cmake/Modules/FindBOTAN.cmake
- louloulibs/cmake/Modules/FindCARES.cmake
- louloulibs/cmake/Modules/FindICONV.cmake
- louloulibs/cmake/Modules/FindLIBIDN.cmake
- louloulibs/cmake/Modules/FindLIBUUID.cmake
- louloulibs/cmake/Modules/FindSYSTEMD.cmake
+Files: cmake/Modules/FindBOTAN.cmake
+ cmake/Modules/FindGCRYPT.cmake
+ cmake/Modules/FindICONV.cmake
+ cmake/Modules/FindLIBIDN.cmake
+ cmake/Modules/FindLIBUUID.cmake
+ cmake/Modules/FindLITESQL.cmake
+ cmake/Modules/FindSYSTEMD.cmake
+ cmake/Modules/FindUDNS.cmake
 Copyright: NONE
 License: public-domain
  FIXME
@@ -154,8 +178,8 @@ License: GPL-3+
  FIXME
 
 Files: debian/rules
-Copyright: 2016, Jonas Smedegaard <dr@jones.dk>
-  2016, Vasudev Kamath <vasudev@copyninja.info>
+Copyright: 2016, Vasudev Kamath <vasudev@copyninja.info>
+  2016-2017, Jonas Smedegaard <dr@jones.dk>
 License: GPL-3+
  FIXME
 

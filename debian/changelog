@@ -1,3 +1,31 @@
+biboumi (5.0-1) unstable; urgency=medium
+
+  [ upstream ]
+  * New release.
+    + Add identd server.
+    + Add persistent option for channels, to behave like an IRC bouncer.
+    + Use udns library (not c-ares) for asynchronous DNS resolution.
+    + Update MAM implementation to version 6.0 (namespace mam:2).
+    + Limit MAM to 100 messages per channel by default.
+    + Properly handle multiline topics.
+    + Support overriding configuration options by environment values.
+    + Support customizing Botan TLS policies per IRC server.
+    + IRC channel config form now available via MUC config.
+    + Notices starting with "#channel" now treated as welcome messages.
+
+  [ Jonas Smedegaard ]
+  * Declare compliance with Debian Policy 4.0.0.
+  * Modernize Vcs-Browser field:
+    + Use git (not cgit) in path.
+  * Update package relations:
+    + Build-depend on libudns-dev (not libc-ares-dev).
+    + Build-depend on libgcrypt20-dev.
+    + Stop build-depend on libbotan1.10-dev (unused: Too old).
+  * Drop patch 2002: Fixed upstream.
+  * Unfuzz patch 2001.
+
+ -- Jonas Smedegaard <dr@jones.dk>  Sat, 24 Jun 2017 10:15:23 +0200
+
 biboumi (4.3-1) unstable; urgency=medium
 
   [ upstream ]
