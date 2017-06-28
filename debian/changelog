@@ -1,3 +1,11 @@
+biboumi (6.0-1) unstable; urgency=medium
+
+  * New upstream release
+  * Build against sqlite3, to provide all the database features that
+    were previously disabled.
+
+ -- Florent Le Coz <louiz@louiz.org>  Wed, 28 Jun 2017 12:00:00 +0200
+
 biboumi (5.0-1) unstable; urgency=medium
 
   [ upstream ]
