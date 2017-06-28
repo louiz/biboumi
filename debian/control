@@ -12,7 +12,8 @@ Build-Depends: cdbs,
  libidn11-dev,
  libsystemd-dev,
  libudns-dev,
- libgcrypt20-dev
+ libgcrypt20-dev,
+ libsqlite3-dev
 Maintainer: Debian VoIP Team <pkg-voip-maintainers@lists.alioth.debian.org>
 Uploaders: Jonas Smedegaard <dr@jones.dk>,
  Vasudev Kamath <vasudev@copyninja.info>
