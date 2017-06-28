@@ -28,6 +28,7 @@ CDBS_BUILD_DEPENDS += , cmake, catch, uuid-dev, pandoc
 CDBS_BUILD_DEPENDS += , $(patsubst %,$(comma) lib%-dev,$(dev-deps))
 
 DEB_CMAKE_EXTRA_FLAGS = \
+ -DCMAKE_BUILD_TYPE=Release \
  -DSERVICE_USER=nobody -DSERVICE_GROUP=nogroup
 
 DEB_MAKE_CHECK_TARGET = check
