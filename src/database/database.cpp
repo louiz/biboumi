@@ -2,175 +2,185 @@
 #ifdef USE_DATABASE
 
 #include <database/database.hpp>
-#include <logger/logger.hpp>
-#include <irc/iid.hpp>
 #include <uuid/uuid.h>
 #include <utils/get_first_non_empty.hpp>
 #include <utils/time.hpp>
 
-using namespace std::string_literals;
+#include <sqlite3.h>
 
-std::unique_ptr<db::BibouDB> Database::db;
+sqlite3* Database::db;
+Database::MucLogLineTable Database::muc_log_lines("MucLogLine_");
+Database::GlobalOptionsTable Database::global_options("GlobalOptions_");
+Database::IrcServerOptionsTable Database::irc_server_options("IrcServerOptions_");
+Database::IrcChannelOptionsTable Database::irc_channel_options("IrcChannelOptions_");
 
-void Database::open(const std::string& filename, const std::string& db_type)
+void Database::open(const std::string& filename)
 {
-  try
+  // Try to open the specified database.
+  // Close and replace the previous database pointer if it succeeded. If it did
+  // not, just leave things untouched
+  sqlite3* new_db;
+  auto res = sqlite3_open_v2(filename.data(), &new_db, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, nullptr);
+  if (res != SQLITE_OK)
     {
-      auto new_db = std::make_unique<db::BibouDB>(db_type,
-                                             "database="s + filename);
-      if (new_db->needsUpgrade())
-        new_db->upgrade();
-      Database::db = std::move(new_db);
-    } catch (const litesql::DatabaseError& e) {
-      log_error("Failed to open database ", filename, ". ", e.what());
-      throw;
+      log_error("Failed to open database file ", filename, ": ", sqlite3_errmsg(Database::db));
+      throw std::runtime_error("");
     }
+  Database::close();
+  Database::db = new_db;
+  Database::muc_log_lines.create(Database::db);
+  Database::muc_log_lines.upgrade(Database::db);
+  Database::global_options.create(Database::db);
+  Database::global_options.upgrade(Database::db);
+  Database::irc_server_options.create(Database::db);
+  Database::irc_server_options.upgrade(Database::db);
+  Database::irc_channel_options.create(Database::db);
+  Database::irc_channel_options.upgrade(Database::db);
 }
 
-void Database::set_verbose(const bool val)
+
+Database::GlobalOptions Database::get_global_options(const std::string& owner)
 {
-  Database::db->verbose = val;
+  auto request = Database::global_options.select();
+  request.where() << Owner{} << "=" << owner;
+
+  Database::GlobalOptions options{Database::global_options.get_name()};
+  auto result = request.execute(Database::db);
+  if (result.size() == 1)
+    options = result.front();
+  else
+    options.col<Owner>() = owner;
+  return options;
 }
 
-db::GlobalOptions Database::get_global_options(const std::string& owner)
+Database::IrcServerOptions Database::get_irc_server_options(const std::string& owner, const std::string& server)
 {
-  try {
-    auto options = litesql::select<db::GlobalOptions>(*Database::db,
-                                                      db::GlobalOptions::Owner == owner).one();
-    return options;
-  } catch (const litesql::NotFound& e) {
-    db::GlobalOptions options(*Database::db);
-    options.owner = owner;
-    return options;
-  }
+  auto request = Database::irc_server_options.select();
+  request.where() << Owner{} << "=" << owner << " and " << Server{} << "=" << server;
+
+  Database::IrcServerOptions options{Database::irc_server_options.get_name()};
+  auto result = request.execute(Database::db);
+  if (result.size() == 1)
+    options = result.front();
+  else
+    {
+      options.col<Owner>() = owner;
+      options.col<Server>() = server;
+    }
+  return options;
 }
 
-db::IrcServerOptions Database::get_irc_server_options(const std::string& owner,
-                                                      const std::string& server)
+Database::IrcChannelOptions Database::get_irc_channel_options(const std::string& owner, const std::string& server, const std::string& channel)
 {
-  try {
-    auto options = litesql::select<db::IrcServerOptions>(*Database::db,
-                             db::IrcServerOptions::Owner == owner &&
-                             db::IrcServerOptions::Server == server).one();
-    return options;
-  } catch (const litesql::NotFound& e) {
-    db::IrcServerOptions options(*Database::db);
-    options.owner = owner;
-    options.server = server;
-    // options.update();
-    return options;
-  }
+  auto request = Database::irc_channel_options.select();
+  request.where() << Owner{} << "=" << owner <<\
+          " and " << Server{} << "=" << server <<\
+          " and " << Channel{} << "=" << channel;
+  Database::IrcChannelOptions options{Database::irc_channel_options.get_name()};
+  auto result = request.execute(Database::db);
+  if (result.size() == 1)
+    options = result.front();
+  else
+    {
+      options.col<Owner>() = owner;
+      options.col<Server>() = server;
+      options.col<Channel>() = channel;
+    }
+  return options;
 }
 
-db::IrcChannelOptions Database::get_irc_channel_options(const std::string& owner,
-                                                        const std::string& server,
-                                                        const std::string& channel)
-{
-  try {
-    auto options = litesql::select<db::IrcChannelOptions>(*Database::db,
-                                                         db::IrcChannelOptions::Owner == owner &&
-                                                         db::IrcChannelOptions::Server == server &&
-                                                         db::IrcChannelOptions::Channel == channel).one();
-    return options;
-  } catch (const litesql::NotFound& e) {
-    db::IrcChannelOptions options(*Database::db);
-    options.owner = owner;
-    options.server = server;
-    options.channel = channel;
-    return options;
-  }
-}
-
-db::IrcChannelOptions Database::get_irc_channel_options_with_server_default(const std::string& owner,
-                                                                            const std::string& server,
-                                                                            const std::string& channel)
+Database::IrcChannelOptions Database::get_irc_channel_options_with_server_default(const std::string& owner, const std::string& server,
+                                                                                  const std::string& channel)
 {
   auto coptions = Database::get_irc_channel_options(owner, server, channel);
   auto soptions = Database::get_irc_server_options(owner, server);
 
-  coptions.encodingIn = get_first_non_empty(coptions.encodingIn.value(),
-                                            soptions.encodingIn.value());
-  coptions.encodingOut = get_first_non_empty(coptions.encodingOut.value(),
-                                             soptions.encodingOut.value());
+  coptions.col<EncodingIn>() = get_first_non_empty(coptions.col<EncodingIn>(),
+                                                   soptions.col<EncodingIn>());
+  coptions.col<EncodingOut>() = get_first_non_empty(coptions.col<EncodingOut>(),
+                                                    soptions.col<EncodingOut>());
 
-  coptions.maxHistoryLength = get_first_non_empty(coptions.maxHistoryLength.value(),
-                                                  soptions.maxHistoryLength.value());
+  coptions.col<MaxHistoryLength>() = get_first_non_empty(coptions.col<MaxHistoryLength>(),
+                                                         soptions.col<MaxHistoryLength>());
 
   return coptions;
 }
 
-db::IrcChannelOptions Database::get_irc_channel_options_with_server_and_global_default(const std::string& owner,
-                                                                                       const std::string& server,
-                                                                                       const std::string& channel)
+Database::IrcChannelOptions Database::get_irc_channel_options_with_server_and_global_default(const std::string& owner, const std::string& server, const std::string& channel)
 {
   auto coptions = Database::get_irc_channel_options(owner, server, channel);
   auto soptions = Database::get_irc_server_options(owner, server);
   auto goptions = Database::get_global_options(owner);
 
-  coptions.encodingIn = get_first_non_empty(coptions.encodingIn.value(),
-                                            soptions.encodingIn.value());
-  coptions.encodingOut = get_first_non_empty(coptions.encodingOut.value(),
-                                             soptions.encodingOut.value());
+  coptions.col<EncodingIn>() = get_first_non_empty(coptions.col<EncodingIn>(),
+                                                   soptions.col<EncodingIn>());
 
-  coptions.maxHistoryLength = get_first_non_empty(coptions.maxHistoryLength.value(),
-                                                  soptions.maxHistoryLength.value(),
-                                                  goptions.maxHistoryLength.value());
+  coptions.col<EncodingOut>() = get_first_non_empty(coptions.col<EncodingOut>(),
+                                                    soptions.col<EncodingOut>());
+
+  coptions.col<MaxHistoryLength>() = get_first_non_empty(coptions.col<MaxHistoryLength>(),
+                                                         soptions.col<MaxHistoryLength>(),
+                                                         goptions.col<MaxHistoryLength>());
 
   return coptions;
 }
 
-std::string Database::store_muc_message(const std::string& owner, const Iid& iid,
-                                        Database::time_point date,
-                                        const std::string& body,
-                                        const std::string& nick)
+std::string Database::store_muc_message(const std::string& owner, const std::string& chan_name,
+                                        const std::string& server_name, Database::time_point date,
+                                        const std::string& body, const std::string& nick)
 {
-  db::MucLogLine line(*Database::db);
+  auto line = Database::muc_log_lines.row();
 
   auto uuid = Database::gen_uuid();
 
-  line.uuid = uuid;
-  line.owner = owner;
-  line.ircChanName = iid.get_local();
-  line.ircServerName = iid.get_server();
-  line.date = std::chrono::duration_cast<std::chrono::seconds>(date.time_since_epoch()).count();
-  line.body = body;
-  line.nick = nick;
+  line.col<Uuid>() = uuid;
+  line.col<Owner>() = owner;
+  line.col<IrcChanName>() = chan_name;
+  line.col<IrcServerName>() = server_name;
+  line.col<Date>() = std::chrono::duration_cast<std::chrono::seconds>(date.time_since_epoch()).count();
+  line.col<Body>() = body;
+  line.col<Nick>() = nick;
 
-  line.update();
+  line.save(Database::db);
 
   return uuid;
 }
 
-std::vector<db::MucLogLine> Database::get_muc_logs(const std::string& owner, const std::string& chan_name, const std::string& server,
+std::vector<Database::MucLogLine> Database::get_muc_logs(const std::string& owner, const std::string& chan_name, const std::string& server,
                                                    int limit, const std::string& start, const std::string& end)
 {
-  auto request = litesql::select<db::MucLogLine>(*Database::db,
-                                              db::MucLogLine::Owner == owner &&
-                                              db::MucLogLine::IrcChanName == chan_name &&
-                                              db::MucLogLine::IrcServerName == server);
-  request.orderBy(db::MucLogLine::Id, false);
+  auto request = Database::muc_log_lines.select();
+  request.where() << Database::Owner{} << "=" << owner << \
+          " and " << Database::IrcChanName{} << "=" << chan_name << \
+          " and " << Database::IrcServerName{} << "=" << server;
 
-  if (limit >= 0)
-    request.limit(limit);
   if (!start.empty())
     {
       const auto start_time = utils::parse_datetime(start);
       if (start_time != -1)
-        request.where(db::MucLogLine::Date >= start_time);
+        request << " and " << Database::Date{} << ">=" << start_time;
     }
   if (!end.empty())
     {
       const auto end_time = utils::parse_datetime(end);
       if (end_time != -1)
-        request.where(db::MucLogLine::Date <= end_time);
+        request << " and " << Database::Date{} << "<=" << end_time;
     }
-  const auto& res = request.all();
-  return {res.crbegin(), res.crend()};
+
+  request.order_by() << Id{} << " DESC ";
+
+  if (limit >= 0)
+    request.limit() << limit;
+
+  auto result = request.execute(Database::db);
+
+  return {result.crbegin(), result.crend()};
 }
 
 void Database::close()
 {
-  Database::db.reset(nullptr);
+  sqlite3_close_v2(Database::db);
+  Database::db = nullptr;
 }
 
 std::string Database::gen_uuid()
@@ -181,6 +191,5 @@ std::string Database::gen_uuid()
   uuid_unparse(uuid, uuid_str);
   return uuid_str;
 }
-
 
 #endif

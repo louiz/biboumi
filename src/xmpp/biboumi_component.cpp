@@ -18,8 +18,6 @@
 
 #include <biboumi.h>
 
-#include <uuid/uuid.h>
-
 #ifdef SYSTEMD_FOUND
 # include <systemd/sd-daemon.h>
 #endif
@@ -648,9 +646,9 @@ bool BiboumiComponent::handle_mam_request(const Stanza& stanza)
             limit = 100;
           }
         const auto lines = Database::get_muc_logs(from.bare(), iid.get_local(), iid.get_server(), limit, start, end);
-        for (const db::MucLogLine& line: lines)
+        for (const Database::MucLogLine& line: lines)
         {
-          if (!line.nick.value().empty())
+          if (!line.col<Database::Nick>().empty())
             this->send_archived_message(line, to.full(), from.full(), query_id);
         }
         this->send_iq_result_full_jid(id, from.full(), to.full());
@@ -659,7 +657,7 @@ bool BiboumiComponent::handle_mam_request(const Stanza& stanza)
   return false;
 }
 
-void BiboumiComponent::send_archived_message(const db::MucLogLine& log_line, const std::string& from, const std::string& to,
+void BiboumiComponent::send_archived_message(const Database::MucLogLine& log_line, const std::string& from, const std::string& to,
                                              const std::string& queryid)
 {
   Stanza message("message");
@@ -671,22 +669,22 @@ void BiboumiComponent::send_archived_message(const db::MucLogLine& log_line, con
     result["xmlns"] = MAM_NS;
     if (!queryid.empty())
       result["queryid"] = queryid;
-    result["id"] = log_line.uuid.value();
+    result["id"] = log_line.col<Database::Uuid>();
 
     XmlSubNode forwarded(result, "forwarded");
     forwarded["xmlns"] = FORWARD_NS;
 
     XmlSubNode delay(forwarded, "delay");
     delay["xmlns"] = DELAY_NS;
-    delay["stamp"] = utils::to_string(log_line.date.value().timeStamp());
+    delay["stamp"] = utils::to_string(log_line.col<Database::Date>());
 
     XmlSubNode submessage(forwarded, "message");
     submessage["xmlns"] = CLIENT_NS;
-    submessage["from"] = from + "/" + log_line.nick.value();
+    submessage["from"] = from + "/" + log_line.col<Database::Nick>();
     submessage["type"] = "groupchat";
 
     XmlSubNode body(submessage, "body");
-    body.set_inner(log_line.body.value());
+    body.set_inner(log_line.col<Database::Body>());
   }
   this->send_stanza(message);
 }
@@ -721,7 +719,7 @@ bool BiboumiComponent::handle_room_configuration_form(const XmlNode& query, cons
     return false;
 
   Jid requester(from);
-  if (!handle_irc_channel_configuration_form(query, requester, to))
+  if (!handle_irc_channel_configuration_form(*this, query, requester, to))
     return false;
 
   Stanza iq("iq");

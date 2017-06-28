@@ -32,6 +32,12 @@ libiconv_
 libuuid_
  Generate unique IDs
 
+sqlite3_ (option, but highly recommended)
+ Provides a way to store various options in a (sqlite3) database. Each user
+ of the gateway can store their own values (for example their prefered port,
+ or their IRC password). Without this dependency, many interesting features
+ are missing.
+
 libidn_ (optional, but recommended)
  Provides the stringprep functionality. Without it, JIDs for IRC users are
  not provided.
@@ -47,11 +53,6 @@ libbotan_ 1.11 or 2.0 (optional)
 
 gcrypt_ (mandatory only if botan is absent)
  Provides the SHA-1 hash function, for the case where Botan is absent.
-
-litesql_ (optional)
- Provides a way to store various options in a (sqlite3) database. Each user
- of the gateway can store their own values (for example their prefered port,
- or their IRC password).
 
 systemd_ (optional)
  Provides the support for a systemd service of Type=notify. This is useful only
@@ -160,7 +161,7 @@ to use biboumi.
 .. _libidn: http://www.gnu.org/software/libidn/
 .. _libbotan: http://botan.randombit.net/
 .. _udns: http://www.corpit.ru/mjt/udns.html
-.. _litesql: http://git.louiz.org/litesql
+.. _sqlite3: https://sqlite.org
 .. _systemd: https://www.freedesktop.org/wiki/Software/systemd/
 .. _biboumi.1.rst: doc/biboumi.1.rst
 .. _gcrypt: https://www.gnu.org/software/libgcrypt/
