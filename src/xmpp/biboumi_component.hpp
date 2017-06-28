@@ -2,6 +2,7 @@
 
 
 #include <xmpp/xmpp_component.hpp>
+#include <xmpp/jid.hpp>
 
 #include <bridge/bridge.hpp>
 
@@ -27,7 +28,7 @@ using iq_responder_callback_t = std::function<void(Bridge* bridge, const Stanza&
 class BiboumiComponent: public XmppComponent
 {
 public:
-  explicit BiboumiComponent(std::shared_ptr<Poller> poller, const std::string& hostname, const std::string& secret);
+  explicit BiboumiComponent(std::shared_ptr<Poller>& poller, const std::string& hostname, const std::string& secret);
   ~BiboumiComponent() = default;
 
   BiboumiComponent(const BiboumiComponent&) = delete;
@@ -69,7 +70,8 @@ public:
    * Sends the allowed namespaces in MUC message, according to
    * http://xmpp.org/extensions/xep-0045.html#impl-service-traffic
    */
-   void send_irc_channel_muc_traffic_info(const std::string id, const std::string& jid_to, const std::string& jid_from);
+   void send_irc_channel_muc_traffic_info(const std::string& id, const std::string& jid_to, const std::string& jid_from);
+   void send_irc_channel_disco_info(const std::string& id, const std::string& jid_to, const std::string& jid_from);
   /**
    * Send a ping request
    */
@@ -96,6 +98,8 @@ public:
   bool handle_mam_request(const Stanza& stanza);
   void send_archived_message(const db::MucLogLine& log_line, const std::string& from, const std::string& to,
                              const std::string& queryid);
+  bool handle_room_configuration_form_request(const std::string& from, const Jid& to, const std::string& id);
+  bool handle_room_configuration_form(const XmlNode& query, const std::string& from, const Jid& to, const std::string& id);
 #endif
 
   /**

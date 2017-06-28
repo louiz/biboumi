@@ -16,7 +16,6 @@
 
 #include <cstdlib>
 
-#include <louloulibs.h>
 #include <biboumi.h>
 
 #include <uuid/uuid.h>
@@ -44,7 +43,7 @@ static std::set<std::string> kickable_errors{
     };
 
 
-BiboumiComponent::BiboumiComponent(std::shared_ptr<Poller> poller, const std::string& hostname, const std::string& secret):
+BiboumiComponent::BiboumiComponent(std::shared_ptr<Poller>& poller, const std::string& hostname, const std::string& secret):
   XmppComponent(poller, hostname, secret),
   irc_server_adhoc_commands_handler(*this),
   irc_channel_adhoc_commands_handler(*this)
@@ -84,10 +83,8 @@ BiboumiComponent::BiboumiComponent(std::shared_ptr<Poller> poller, const std::st
 
 void BiboumiComponent::shutdown()
 {
-  for (auto it = this->bridges.begin(); it != this->bridges.end(); ++it)
-  {
-    it->second->shutdown("Gateway shutdown");
-  }
+  for (auto& pair: this->bridges)
+    pair.second->shutdown("Gateway shutdown");
 }
 
 void BiboumiComponent::clean()
@@ -395,6 +392,11 @@ void BiboumiComponent::handle_iq(const Stanza& stanza)
           if (this->handle_mam_request(stanza))
             stanza_error.disable();
         }
+      else if ((query = stanza.get_child("query", MUC_OWNER_NS)))
+        {
+          if (this->handle_room_configuration_form(*query, from, to, id))
+            stanza_error.disable();
+        }
 #endif
     }
   else if (type == "get")
@@ -423,7 +425,12 @@ void BiboumiComponent::handle_iq(const Stanza& stanza)
             }
           else if (iid.type == Iid::Type::Channel)
             {
-              if (node == MUC_TRAFFIC_NS)
+              if (node.empty())
+                {
+                  this->send_irc_channel_disco_info(id, from, to_str);
+                  stanza_error.disable();
+                }
+              else if (node == MUC_TRAFFIC_NS)
                 {
                   this->send_irc_channel_muc_traffic_info(id, from, to_str);
                   stanza_error.disable();
@@ -501,6 +508,8 @@ void BiboumiComponent::handle_iq(const Stanza& stanza)
                     rs_info.max = std::atoi(max->get_inner().data());
 
                 }
+              if (rs_info.max == -1)
+                rs_info.max = 100;
               bridge->send_irc_channel_list_request(iid, id, from, std::move(rs_info));
               stanza_error.disable();
             }
@@ -525,6 +534,13 @@ void BiboumiComponent::handle_iq(const Stanza& stanza)
             }
           stanza_error.disable();
         }
+#ifdef USE_DATABASE
+      else if ((query = stanza.get_child("query", MUC_OWNER_NS)))
+        {
+          if (this->handle_room_configuration_form_request(from, to, id))
+            stanza_error.disable();
+        }
+#endif
     }
   else if (type == "result")
     {
@@ -560,6 +576,12 @@ void BiboumiComponent::handle_iq(const Stanza& stanza)
   else if (type == "error")
     {
       stanza_error.disable();
+      const auto it = this->waiting_iq.find(id);
+      if (it != this->waiting_iq.end())
+        {
+          it->second(bridge, stanza);
+          this->waiting_iq.erase(it);
+        }
     }
   }
   catch (const IRCNotConnected& ex)
@@ -611,7 +633,21 @@ bool BiboumiComponent::handle_mam_request(const Stanza& stanza)
                   }
               }
           }
-        const auto lines = Database::get_muc_logs(from.bare(), iid.get_local(), iid.get_server(), -1, start, end);
+        const XmlNode* set = query->get_child("set", RSM_NS);
+        int limit = -1;
+        if (set)
+          {
+            const XmlNode* max = set->get_child("max", RSM_NS);
+            if (max)
+              limit = std::atoi(max->get_inner().data());
+          }
+        // If the archive is really big, and the client didn’t specify any
+        // limit, we avoid flooding it: we set an arbitrary max limit.
+        if (limit == -1 && start.empty() && end.empty())
+          {
+            limit = 100;
+          }
+        const auto lines = Database::get_muc_logs(from.bare(), iid.get_local(), iid.get_server(), limit, start, end);
         for (const db::MucLogLine& line: lines)
         {
           if (!line.nick.value().empty())
@@ -655,6 +691,50 @@ void BiboumiComponent::send_archived_message(const db::MucLogLine& log_line, con
   this->send_stanza(message);
 }
 
+bool BiboumiComponent::handle_room_configuration_form_request(const std::string& from, const Jid& to, const std::string& id)
+{
+  Iid iid(to.local, {'#', '&'});
+
+  if (iid.type != Iid::Type::Channel)
+    return false;
+
+  Stanza iq("iq");
+  {
+    iq["from"] = to.full();
+    iq["to"] = from;
+    iq["id"] = id;
+    iq["type"] = "result";
+    XmlSubNode query(iq, "query");
+    query["xmlns"] = MUC_OWNER_NS;
+    Jid requester(from);
+    insert_irc_channel_configuration_form(query, requester, to);
+  }
+  this->send_stanza(iq);
+  return true;
+}
+
+bool BiboumiComponent::handle_room_configuration_form(const XmlNode& query, const std::string &from, const Jid &to, const std::string &id)
+{
+  Iid iid(to.local, {'#', '&'});
+
+  if (iid.type != Iid::Type::Channel)
+    return false;
+
+  Jid requester(from);
+  if (!handle_irc_channel_configuration_form(query, requester, to))
+    return false;
+
+  Stanza iq("iq");
+  iq["type"] = "result";
+  iq["from"] = to.full();
+  iq["to"] = from;
+  iq["id"] = id;
+
+  this->send_stanza(iq);
+
+  return true;
+}
+
 #endif
 
 Bridge* BiboumiComponent::get_user_bridge(const std::string& user_jid)
@@ -686,8 +766,8 @@ Bridge* BiboumiComponent::find_user_bridge(const std::string& full_jid)
 std::vector<Bridge*> BiboumiComponent::get_bridges() const
 {
   std::vector<Bridge*> res;
-  for (auto it = this->bridges.begin(); it != this->bridges.end(); ++it)
-    res.push_back(it->second.get());
+  for (const auto& bridge: this->bridges)
+    res.push_back(bridge.second.get());
   return res;
 }
 
@@ -729,7 +809,7 @@ void BiboumiComponent::send_irc_server_disco_info(const std::string& id, const s
     identity["category"] = "conference";
     identity["type"] = "irc";
     identity["name"] = "IRC server "s + from.local + " over Biboumi";
-    for (const char *ns: {DISCO_INFO_NS, ADHOC_NS, PING_NS, VERSION_NS})
+    for (const char *ns: {DISCO_INFO_NS, MUC_NS, ADHOC_NS, PING_NS, MAM_NS, VERSION_NS})
       {
         XmlSubNode feature(query, "feature");
         feature["var"] = ns;
@@ -738,7 +818,7 @@ void BiboumiComponent::send_irc_server_disco_info(const std::string& id, const s
   this->send_stanza(iq);
 }
 
-void BiboumiComponent::send_irc_channel_muc_traffic_info(const std::string id, const std::string& jid_to, const std::string& jid_from)
+void BiboumiComponent::send_irc_channel_muc_traffic_info(const std::string& id, const std::string& jid_to, const std::string& jid_from)
 {
   Stanza iq("iq");
   {
@@ -752,6 +832,31 @@ void BiboumiComponent::send_irc_channel_muc_traffic_info(const std::string id, c
     query["node"] = MUC_TRAFFIC_NS;
     // We drop all “special” traffic (like xhtml-im, chatstates, etc), so
     // don’t include any <feature/>
+  }
+  this->send_stanza(iq);
+}
+
+void BiboumiComponent::send_irc_channel_disco_info(const std::string& id, const std::string& jid_to, const std::string& jid_from)
+{
+  Jid from(jid_from);
+  Iid iid(from.local, {});
+  Stanza iq("iq");
+  {
+    iq["type"] = "result";
+    iq["id"] = id;
+    iq["to"] = jid_to;
+    iq["from"] = jid_from;
+    XmlSubNode query(iq, "query");
+    query["xmlns"] = DISCO_INFO_NS;
+    XmlSubNode identity(query, "identity");
+    identity["category"] = "conference";
+    identity["type"] = "irc";
+    identity["name"] = "IRC channel "s + iid.get_local() + " from server " + iid.get_server() + " over biboumi";
+    for (const char *ns: {DISCO_INFO_NS, MUC_NS, ADHOC_NS, PING_NS, MAM_NS, VERSION_NS})
+      {
+        XmlSubNode feature(query, "feature");
+        feature["var"] = ns;
+      }
   }
   this->send_stanza(iq);
 }
@@ -778,8 +883,14 @@ void BiboumiComponent::send_ping_request(const std::string& from,
         {
           log_error("Received a corresponding ping result, but the 'to' from "
                     "the response mismatches the 'from' of the request");
+          return;
         }
-      else
+      const std::string type = stanza.get_tag("type");
+      const XmlNode* error = stanza.get_child("error", COMPONENT_NS);
+      // Check if what we receive is considered a valid response. And yes, those errors are valid responses
+      if (type == "result" ||
+          (type == "error" && error && (error->get_child("feature-not-implemented", STANZA_NS) ||
+                                        error->get_child("service-unavailable", STANZA_NS))))
         bridge->send_irc_ping_result({from, bridge}, id);
     };
   this->waiting_iq[id] = result_cb;

@@ -59,7 +59,7 @@ public:
   Iid(const std::string& iid, const std::set<char>& chantypes);
   Iid(const std::string& iid, const std::initializer_list<char>& chantypes);
   Iid(const std::string& iid, const Bridge* bridge);
-  Iid(const std::string& local, const std::string& server, Type type);
+  Iid(std::string  local, std::string  server, Type type);
   Iid() = default;
   Iid(const Iid&) = default;
 

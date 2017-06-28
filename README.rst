@@ -4,13 +4,13 @@ Biboumi
 .. image:: https://lab.louiz.org/louiz/biboumi/badges/master/build.svg
    :target: https://lab.louiz.org/louiz/biboumi/pipelines
 
-.. image:: https://codecov.io/gh/louiz/biboumi/branch/master/graph/badge.svg
+.. image:: https://codecov.proxy.louiz.org/gh/louiz/biboumi/branch/master/graph/badge.svg
   :target: https://codecov.io/gh/louiz/biboumi
 
-.. image:: https://scan.coverity.com/projects/3726/badge.svg
+.. image:: https://coverity.proxy.louiz.org/projects/3726/badge.svg
    :target: https://scan.coverity.com/projects/louiz-biboumi
 
-.. image:: https://bestpractices.coreinfrastructure.org/projects/450/badge
+.. image:: https://coreinfrastructure.proxy.louiz.org/projects/450/badge
    :target: https://bestpractices.coreinfrastructure.org/projects/450
 
 Biboumi is an XMPP gateway that connects to IRC servers and translates

@@ -12,6 +12,7 @@ RUN apt install -y g++\
     clang\
     valgrind\
     libudns-dev\
+    libc-ares-dev\
     libsqlite3-dev\
     libuuid1\
     libgcrypt20-dev\

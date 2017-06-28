@@ -118,7 +118,9 @@ This command will configure the project to build a release, with TLS enabled
 
 Build
 -----
-Once you’ve configured everything using cmake, build the project
+Once you’ve configured everything using cmake, build the software:
+
+To build the biboumi binary:
 
   make
 

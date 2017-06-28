@@ -26,9 +26,9 @@ class Bridge;
 class IrcClient: public TCPClientSocketHandler
 {
 public:
-  explicit IrcClient(std::shared_ptr<Poller> poller, const std::string& hostname,
-                     const std::string& nickname, const std::string& username,
-                     const std::string& realname, const std::string& user_hostname,
+  explicit IrcClient(std::shared_ptr<Poller>& poller, std::string  hostname,
+                     std::string nickname, std::string username,
+                     std::string realname, std::string user_hostname,
                      Bridge& bridge);
   ~IrcClient();
 
@@ -52,7 +52,7 @@ public:
   /**
    * Close the connection, remove us from the poller
    */
-  void on_connection_close(const std::string& error) override final;
+  void on_connection_close(const std::string& error_msg) override final;
   /**
    * Parse the data we have received so far and try to get one or more
    * complete messages from it.
@@ -222,6 +222,8 @@ public:
    * received etc), send the self presence and topic to the XMPP user.
    */
   void on_channel_completely_joined(const IrcMessage& message);
+  void on_banlist(const IrcMessage& message);
+  void on_banlist_end(const IrcMessage& message);
   /**
    * Save our own host, as reported by the server
    */
@@ -283,7 +285,7 @@ public:
    * Leave the dummy channel: forward a message to the user to indicate that
    * he left it, and mark it as not joined.
    */
-  void leave_dummy_channel(const std::string& exit_message);
+  void leave_dummy_channel(const std::string& exit_message, const std::string& resource);
 
   const std::string& get_hostname() const { return this->hostname; }
   std::string get_nick() const { return this->current_nick; }

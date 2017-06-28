@@ -8,12 +8,12 @@ IrcMessage::IrcMessage(std::string&& line)
   // optional prefix
   if (line[0] == ':')
     {
-      pos = line.find(" ");
+      pos = line.find(' ');
       this->prefix = line.substr(1, pos - 1);
       line = line.substr(pos + 1, std::string::npos);
     }
   // command
-  pos = line.find(" ");
+  pos = line.find(' ');
   this->command = line.substr(0, pos);
   line = line.substr(pos + 1, std::string::npos);
   // arguments
@@ -24,7 +24,7 @@ IrcMessage::IrcMessage(std::string&& line)
           this->arguments.emplace_back(line.substr(1, std::string::npos));
           break ;
         }
-      pos = line.find(" ");
+      pos = line.find(' ');
       this->arguments.emplace_back(line.substr(0, pos));
       line = line.substr(pos + 1, std::string::npos);
     } while (pos != std::string::npos);

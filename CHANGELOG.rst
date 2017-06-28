@@ -1,9 +1,43 @@
-Version 5.0
-===========
+Version 5.0 - 2017-05-24
+========================
 
- - An identd server has been added
+ - An identd server has been added.
+ - Add a **persistent** option for channels. When a channel is configured
+   as persistent, when the user leaves the room, biboumi stays idle and keeps
+   saving the received messages in the archive, instead of leaving the channel
+   entirely.  When the user re-joins the room later, biboumi sends the message
+   history to her/him.  This feature can be used to make biboumi behave like
+   an IRC bouncer.
  - Use the udns library instead of c-ares, for asynchronous DNS resolution.
    It’s still fully optional.
+ - Update MAM implementation to version 6.0 (namespace mam:2)
+ - If the client doesn’t specify any limit in its MAM and channel list request,
+   the results returned by biboumi contain at most 100 messages, instead of
+   the potentially huge complete result.
+ - Multiline topics are now properly handled
+ - Configuration options can be overridden by values found in the process env.
+ - Botan’s TLS policies can be customized by the administrator, for each
+   IRC server, with simple text files.
+ - The IRC channel configuration form is now also available using the MUC
+   configuration, in addition to the ad-hoc command.
+ - Notices starting with [#channel] are considered as welcome messages coming
+   from that channel, instead of private messages.
+
+Version 4.3 - 2017-05-02
+========================
+
+  - Fix a segmentation fault that occured when trying to connect to an IRC
+    server without any port configured.
+
+Version 4.2 - 2017-04-26
+========================
+
+ - Fix a build issue when LiteSQL is absent from the system
+
+Version 4.1 - 2017-03-21
+========================
+
+ - Works with botan 2.x, as well as botan 1.11.x
 
 Version 4.0 - 2016-11-09
 ========================

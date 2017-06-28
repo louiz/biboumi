@@ -5,9 +5,9 @@ Build-Depends: @cdbs@
 Maintainer: Debian VoIP Team <pkg-voip-maintainers@lists.alioth.debian.org>
 Uploaders: Jonas Smedegaard <dr@jones.dk>,
  Vasudev Kamath <vasudev@copyninja.info>
-Standards-Version: 3.9.8
+Standards-Version: 4.0.0
 Vcs-Git: https://anonscm.debian.org/git/pkg-voip/biboumi.git
-Vcs-Browser: https://anonscm.debian.org/cgit/pkg-voip/biboumi.git
+Vcs-Browser: https://anonscm.debian.org/git/pkg-voip/biboumi.git
 Homepage: https://lab.louiz.org/louiz/biboumi/
 
 Package: biboumi

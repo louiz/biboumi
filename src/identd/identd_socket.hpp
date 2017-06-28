@@ -2,7 +2,6 @@
 
 #include <network/socket_handler.hpp>
 
-#include <cassert>
 #include <network/tcp_socket_handler.hpp>
 
 #include <logger/logger.hpp>
@@ -17,7 +16,7 @@ class TcpSocketServer;
 class IdentdSocket: public TCPSocketHandler
 {
  public:
-  IdentdSocket(std::shared_ptr<Poller> poller, const socket_t socket, TcpSocketServer<IdentdSocket>& server);
+  IdentdSocket(std::shared_ptr<Poller>& poller, const socket_t socket, TcpSocketServer<IdentdSocket>& server);
   ~IdentdSocket() = default;
   std::string generate_answer(const BiboumiComponent& biboumi, uint16_t local, uint16_t remote);
 

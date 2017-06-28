@@ -24,7 +24,7 @@ using namespace std::string_literals;
 
 void DisconnectUserStep1(XmppComponent& xmpp_component, AdhocSession&, XmlNode& command_node)
 {
-  auto& biboumi_component = static_cast<BiboumiComponent&>(xmpp_component);
+  auto& biboumi_component = dynamic_cast<BiboumiComponent&>(xmpp_component);
 
   XmlSubNode x(command_node, "jabber:x:data:x");
   x["type"] = "form";
@@ -55,7 +55,7 @@ void DisconnectUserStep1(XmppComponent& xmpp_component, AdhocSession&, XmlNode& 
 
 void DisconnectUserStep2(XmppComponent& xmpp_component, AdhocSession& session, XmlNode& command_node)
 {
-  auto& biboumi_component = static_cast<BiboumiComponent&>(xmpp_component);
+  auto& biboumi_component = dynamic_cast<BiboumiComponent&>(xmpp_component);
 
   // Find out if the jids, and the quit message are provided in the form.
   std::string quit_message;
@@ -151,7 +151,7 @@ void ConfigureGlobalStep1(XmppComponent&, AdhocSession& session, XmlNode& comman
 
 void ConfigureGlobalStep2(XmppComponent& xmpp_component, AdhocSession& session, XmlNode& command_node)
 {
-  BiboumiComponent& biboumi_component = static_cast<BiboumiComponent&>(xmpp_component);
+  auto& biboumi_component = dynamic_cast<BiboumiComponent&>(xmpp_component);
 
   const XmlNode* x = command_node.get_child("x", "jabber:x:data");
   if (x)
@@ -256,7 +256,8 @@ void ConfigureIrcServerStep1(XmppComponent&, AdhocSession& session, XmlNode& com
   XmlSubNode pass(x, "field");
   pass["var"] = "pass";
   pass["type"] = "text-private";
-  pass["label"] = "Server password (to be used in a PASS command when connecting)";
+  pass["label"] = "Server password";
+  pass["desc"] = "Will be used in a PASS command when connecting";
   if (!options.pass.value().empty())
     {
       XmlSubNode pass_value(pass, "value");
@@ -318,16 +319,6 @@ void ConfigureIrcServerStep1(XmppComponent&, AdhocSession& session, XmlNode& com
       XmlSubNode encoding_in_value(encoding_in, "value");
       encoding_in_value.set_inner(options.encodingIn.value());
     }
-
-  XmlSubNode linger_time(x, "field");
-  linger_time["var"] = "linger_time";
-  linger_time["type"] = "text-single";
-  linger_time["desc"] = "The number of seconds to wait before sending a QUIT command, after the last channel on that server has been left.";
-  linger_time["label"] = "Linger time";
-  {
-    XmlSubNode linger_time_value(linger_time, "value");
-    linger_time_value.set_inner(std::to_string(options.lingerTime.value()));
-  }
 }
 
 void ConfigureIrcServerStep2(XmppComponent&, AdhocSession& session, XmlNode& command_node)
@@ -407,10 +398,6 @@ void ConfigureIrcServerStep2(XmppComponent&, AdhocSession& session, XmlNode& com
                    value && !value->get_inner().empty())
             options.encodingIn = value->get_inner();
 
-          else if (field->get_tag("var") == "linger_time" &&
-                   value && !value->get_inner().empty())
-            options.lingerTime = value->get_inner();
-
         }
 
       options.update();
@@ -431,11 +418,18 @@ void ConfigureIrcChannelStep1(XmppComponent&, AdhocSession& session, XmlNode& co
 {
   const Jid owner(session.get_owner_jid());
   const Jid target(session.get_target_jid());
+
+  insert_irc_channel_configuration_form(command_node, owner, target);
+}
+
+void insert_irc_channel_configuration_form(XmlNode& node, const Jid& requester, const Jid& target)
+{
   const Iid iid(target.local, {});
-  auto options = Database::get_irc_channel_options_with_server_default(owner.local + "@" + owner.domain,
+
+  auto options = Database::get_irc_channel_options_with_server_default(requester.local + "@" + requester.domain,
                                                                        iid.get_server(), iid.get_local());
 
-  XmlSubNode x(command_node, "jabber:x:data:x");
+  XmlSubNode x(node, "jabber:x:data:x");
   x["type"] = "form";
   XmlSubNode title(x, "title");
   title.set_inner("Configure the IRC channel "s + iid.get_local() + " on server "s + iid.get_server());
@@ -463,43 +457,75 @@ void ConfigureIrcChannelStep1(XmppComponent&, AdhocSession& session, XmlNode& co
       XmlSubNode encoding_in_value(encoding_in, "value");
       encoding_in_value.set_inner(options.encodingIn.value());
     }
+
+  XmlSubNode persistent(x, "field");
+  persistent["var"] = "persistent";
+  persistent["type"] = "boolean";
+  persistent["desc"] = "If set to true, when all XMPP clients have left this channel, biboumi will stay idle in it, without sending a PART command.";
+  persistent["label"] = "Persistent";
+  {
+    XmlSubNode value(persistent, "value");
+    value.set_name("value");
+    if (options.persistent.value())
+      value.set_inner("true");
+    else
+      value.set_inner("false");
+  }
 }
 
 void ConfigureIrcChannelStep2(XmppComponent&, AdhocSession& session, XmlNode& command_node)
 {
-  const XmlNode* x = command_node.get_child("x", "jabber:x:data");
-  if (x)
+  const Jid owner(session.get_owner_jid());
+  const Jid target(session.get_target_jid());
+
+  if (handle_irc_channel_configuration_form(command_node, owner, target))
     {
-      const Jid owner(session.get_owner_jid());
-      const Jid target(session.get_target_jid());
-      const Iid iid(target.local, {});
-      auto options = Database::get_irc_channel_options(owner.local + "@" + owner.domain,
-                                                       iid.get_server(), iid.get_local());
-      for (const XmlNode* field: x->get_children("field", "jabber:x:data"))
-        {
-          const XmlNode* value = field->get_child("value", "jabber:x:data");
-
-          if (field->get_tag("var") == "encoding_out" &&
-              value && !value->get_inner().empty())
-            options.encodingOut = value->get_inner();
-
-          else if (field->get_tag("var") == "encoding_in" &&
-                   value && !value->get_inner().empty())
-            options.encodingIn = value->get_inner();
-        }
-
-      options.update();
-
       command_node.delete_all_children();
       XmlSubNode note(command_node, "note");
       note["type"] = "info";
       note.set_inner("Configuration successfully applied.");
-      return;
     }
-  XmlSubNode error(command_node, ADHOC_NS":error");
-  error["type"] = "modify";
-  XmlSubNode condition(error, STANZA_NS":bad-request");
-  session.terminate();
+  else
+    {
+      XmlSubNode error(command_node, ADHOC_NS":error");
+      error["type"] = "modify";
+      XmlSubNode condition(error, STANZA_NS":bad-request");
+      session.terminate();
+    }
+}
+
+bool handle_irc_channel_configuration_form(const XmlNode& node, const Jid& requester, const Jid& target)
+{
+  const XmlNode* x = node.get_child("x", "jabber:x:data");
+  if (x)
+    {
+      if (x->get_tag("type") == "submit")
+        {
+          const Iid iid(target.local, {});
+          auto options = Database::get_irc_channel_options(requester.local + "@" + requester.domain,
+                                                           iid.get_server(), iid.get_local());
+          for (const XmlNode *field: x->get_children("field", "jabber:x:data"))
+            {
+              const XmlNode *value = field->get_child("value", "jabber:x:data");
+
+              if (field->get_tag("var") == "encoding_out" &&
+                  value && !value->get_inner().empty())
+                options.encodingOut = value->get_inner();
+
+              else if (field->get_tag("var") == "encoding_in" &&
+                       value && !value->get_inner().empty())
+                options.encodingIn = value->get_inner();
+
+              else if (field->get_tag("var") == "persistent" &&
+                       value)
+                options.persistent = to_bool(value->get_inner());
+            }
+
+          options.update();
+        }
+      return true;
+    }
+  return false;
 }
 #endif  // USE_DATABASE
 
@@ -514,7 +540,7 @@ void DisconnectUserFromServerStep1(XmppComponent& xmpp_component, AdhocSession& 
     }
   else
     { // Send a form to select the user to disconnect
-      auto& biboumi_component = static_cast<BiboumiComponent&>(xmpp_component);
+      auto& biboumi_component = dynamic_cast<BiboumiComponent&>(xmpp_component);
 
       XmlSubNode x(command_node, "jabber:x:data:x");
       x["type"] = "form";
@@ -559,7 +585,7 @@ void DisconnectUserFromServerStep2(XmppComponent& xmpp_component, AdhocSession& 
   // Send a data form to let the user choose which server to disconnect the
   // user from
   command_node.delete_all_children();
-  auto& biboumi_component = static_cast<BiboumiComponent&>(xmpp_component);
+  auto& biboumi_component = dynamic_cast<BiboumiComponent&>(xmpp_component);
 
   XmlSubNode x(command_node, "jabber:x:data:x");
   x["type"] = "form";
@@ -624,7 +650,7 @@ void DisconnectUserFromServerStep3(XmppComponent& xmpp_component, AdhocSession& 
         }
     }
 
-  auto& biboumi_component = static_cast<BiboumiComponent&>(xmpp_component);
+  auto& biboumi_component = dynamic_cast<BiboumiComponent&>(xmpp_component);
   Bridge* bridge = biboumi_component.find_user_bridge(jid_to_disconnect);
   auto& clients = bridge->get_irc_clients();
 
@@ -652,7 +678,7 @@ void DisconnectUserFromServerStep3(XmppComponent& xmpp_component, AdhocSession& 
 
 void GetIrcConnectionInfoStep1(XmppComponent& component, AdhocSession& session, XmlNode& command_node)
 {
-  BiboumiComponent& biboumi_component = static_cast<BiboumiComponent&>(component);
+  auto& biboumi_component = dynamic_cast<BiboumiComponent&>(component);
 
   const Jid owner(session.get_owner_jid());
   const Jid target(session.get_target_jid());

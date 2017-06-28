@@ -1,6 +1,6 @@
 #!/usr/bin/make -f
 
-# Copyright 2016 Jonas Smedegaard <dr@jones.dk>
+# Copyright 2016-2017 Jonas Smedegaard <dr@jones.dk>
 # Copyright 2016 Vasudev Kamath <vasudev@copyninja.info>
 # Description: Main Debian packaging script for biboumi
 #
@@ -18,15 +18,19 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 include /usr/share/cdbs/1/rules/debhelper.mk
-include /usr/share/cdbs/1/rules/utils.mk
-
 include /usr/share/cdbs/1/class/cmake.mk
 
 pkg = $(DEB_SOURCE_PACKAGE)
 
-dev-deps = expat1 idn11 systemd udns0 gcrypt20
+# TODO: Build-dpend on libbotan1.11-dev or libbotan2.0 when available
+dev-deps = expat1 idn11 systemd udns gcrypt20
 CDBS_BUILD_DEPENDS += , cmake, catch, uuid-dev, pandoc
 CDBS_BUILD_DEPENDS += , $(patsubst %,$(comma) lib%-dev,$(dev-deps))
+
+DEB_CMAKE_EXTRA_FLAGS = \
+ -DSERVICE_USER=nobody -DSERVICE_GROUP=nogroup \
+ -DBOTAN_LIBRARIES="$(shell pkg-config botan-1.10 --libs-only-L)" \
+ -DBOTAN_INCLUDE_DIRS="$(shell pkg-config botan-1.10 --cflags-only-I)"
 
 DEB_MAKE_CHECK_TARGET = check
 

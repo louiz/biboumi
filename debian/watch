@@ -1,4 +1,5 @@
 # run "uscan --report" to check or "gpb import-orig --uscan" to update
 version=4
+opts="filenamemangle=s%(?:.*?)?archive\.tar\.bz2\?ref=(\d[\d.]*)%@PACKAGE@-$1.tar.bz2%" \
 https://lab.louiz.org/louiz/biboumi/tags \
  .*/archive@ARCHIVE_EXT@\?ref=@ANY_VERSION@

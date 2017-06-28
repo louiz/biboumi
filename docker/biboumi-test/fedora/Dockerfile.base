@@ -10,6 +10,7 @@ RUN dnf --refresh install -y\
     clang\
     valgrind\
     udns-devel\
+    c-ares-devel\
     sqlite-devel\
     libuuid-devel\
     libgcrypt-devel\
@@ -56,4 +57,3 @@ RUN chown -R tester:tester /home/tester/ircd
 RUN yes "" | openssl req -nodes -x509 -newkey rsa:4096 -keyout /home/tester/ircd/etc/ssl.key -out /home/tester/ircd/etc/ssl.pem
 
 COPY coverity /home/tester/coverity
-COPY sonar-scanner-2.8 /home/tester/sonar-scanner

@@ -1,0 +1,2 @@
+key_exchange_methods = RSA
+minimum_rsa_bits = 1024

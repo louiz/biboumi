@@ -1,3 +1,4 @@
+#include <utility>
 #include <utils/tolower.hpp>
 #include <config/config.hpp>
 #include <bridge/bridge.hpp>
@@ -7,10 +8,10 @@
 
 constexpr char Iid::separator[];
 
-Iid::Iid(const std::string& local, const std::string& server, Iid::Type type):
+Iid::Iid(std::string local, std::string server, Iid::Type type):
         type(type),
-        local(local),
-        server(server)
+        local(std::move(local)),
+        server(std::move(server))
 {
 }
 

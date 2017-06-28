@@ -32,14 +32,12 @@ docker run --network=host \
 Variables
 ---------
 
-The configuration file inside the image is a template that is completed when the container is started, using the following environment variables:
+The configuration file inside the image contains only a few default values.  To be able to run, biboumi needs additional configuration.  Additional options can be passed using environment variables.  Any configuration option can be customized this way (see biboumi’s doc), but the main are listed here for convenience:
 
 * BIBOUMI_HOSTNAME: Sets the value of the *hostname* option.
-* BIBOUMI_SECRET: Sets the value of the *password* option.
+* BIBOUMI_PASSWORD: Sets the value of the *password* option.
 * BIBOUMI_ADMIN: Sets the value of the *admin* option.
-* BIBOUMI_XMPP_SERVER_IP: Sets the value of the *xmpp_server_ip* option. The default is **xmpp**.
-
-All these variables are optional, but biboumi will probably fail to start if the hostname and secret are missing.
+* BIBOUMI_XMPP_SERVER_IP: Sets the value of the *xmpp_server_ip* option. The default value is **xmpp**.
 
 You can also directly provide your own configuration file by mounting it inside the container using the -v option:
 
@@ -48,6 +46,8 @@ docker run --link prosody:xmpp \
     -v $PWD/biboumi.cfg:/etc/biboumi/biboumi.cfg \
     biboumi
 ```
+
+If both a custom configuration file and custom environment variables are passed to the container, the environment variables will take precedence.
 
 Linking with the XMPP server
 ----------------------------
@@ -60,3 +60,9 @@ Volumes
 -------
 
 The database is stored in the /var/lib/biboumi/ directory. If you don’t bind a local directory to it, the database will be lost when the container is stopped. If you want to keep your database between each run, bind it with the -v option, like this: **-v /srv/biboumi/:/var/lib/biboumi**.
+
+Note: Due to a limitation in Docker, to be able to read and write into this database, make sure this mounted directory is owned by UID and GID 1001:1001, on the host.
+
+```
+chown -R 1001:1001 database/
+```
