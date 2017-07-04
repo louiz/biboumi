@@ -90,6 +90,9 @@ public:
   void accept_subscription(const std::string& from, const std::string& to);
   void ask_subscription(const std::string& from, const std::string& to);
   void send_presence_to_contact(const std::string& from, const std::string& to, const std::string& type, const std::string& id="");
+  void on_irc_client_connected(const std::string& irc_hostname, const std::string& jid);
+  void on_irc_client_disconnected(const std::string& irc_hostname, const std::string& jid);
+
   /**
    * Handle the various stanza types
    */

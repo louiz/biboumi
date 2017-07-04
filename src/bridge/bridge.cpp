@@ -1075,6 +1075,16 @@ void Bridge::send_xmpp_invitation(const Iid& iid, const std::string& author)
     this->xmpp.send_invitation(std::to_string(iid), this->user_jid + "/" + resource, author);
 }
 
+void Bridge::on_irc_client_connected(const std::string& hostname)
+{
+  this->xmpp.on_irc_client_connected(hostname, this->user_jid);
+}
+
+void Bridge::on_irc_client_disconnected(const std::string& hostname)
+{
+  this->xmpp.on_irc_client_disconnected(hostname, this->user_jid);
+}
+
 void Bridge::set_preferred_from_jid(const std::string& nick, const std::string& full_jid)
 {
   auto it = this->preferred_user_from.find(nick);

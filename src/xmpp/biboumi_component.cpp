@@ -84,8 +84,7 @@ void BiboumiComponent::shutdown()
   for (auto& pair: this->bridges)
     pair.second->shutdown("Gateway shutdown");
 #ifdef USE_DATABASE
-  const auto full_roster = Database::get_full_roster();
-  for (const Database::RosterItem& roster_item: full_roster)
+  for (const Database::RosterItem& roster_item: Database::get_full_roster())
     {
       this->send_presence_to_contact(roster_item.col<Database::LocalJid>(),
                                      roster_item.col<Database::RemoteJid>(),
@@ -170,7 +169,7 @@ void BiboumiComponent::handle_presence(const Stanza& stanza)
       if (type == "subscribe")
         { // Auto-accept any subscription request for an IRC server
           this->send_presence_to_contact(to_str, from.bare(), "subscribed", id);
-          if (iid.type == Iid::Type::None)
+          if (iid.type == Iid::Type::None || bridge->find_irc_client(iid.get_server()))
             this->send_presence_to_contact(to_str, from.bare(), "");
           this->send_presence_to_contact(to_str, from.bare(), "subscribe");
 #ifdef USE_DATABASE
@@ -192,7 +191,8 @@ void BiboumiComponent::handle_presence(const Stanza& stanza)
       else if (type.empty())
         { // We just receive a presence from someone (as the result of a probe,
           // or a directed presence, or a normal presence change)
-          this->send_presence_to_contact(to_str, from.bare(), "");
+          if (iid.type == Iid::Type::None)
+            this->send_presence_to_contact(to_str, from.bare(), "");
         }
     }
   else
@@ -1021,6 +1021,16 @@ void BiboumiComponent::send_presence_to_contact(const std::string& from, const s
   if (!id.empty())
     presence["id"] = id;
   this->send_stanza(presence);
+}
+
+void BiboumiComponent::on_irc_client_connected(const std::string& irc_hostname, const std::string& jid)
+{
+  this->send_presence_to_contact(irc_hostname + "@" + this->served_hostname, jid, "");
+}
+
+void BiboumiComponent::on_irc_client_disconnected(const std::string& irc_hostname, const std::string& jid)
+{
+  this->send_presence_to_contact(irc_hostname + "@" + this->served_hostname, jid, "unavailable");
 }
 
 void BiboumiComponent::after_handshake()

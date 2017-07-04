@@ -297,6 +297,7 @@ void IrcClient::on_connected()
 #endif
   this->send_gateway_message("Connected to IRC server"s + (this->use_tls ? " (encrypted)": "") + ".");
   this->send_pending_data();
+  this->bridge.on_irc_client_connected(this->get_hostname());
 }
 
 void IrcClient::on_connection_close(const std::string& error_msg)
@@ -309,6 +310,7 @@ void IrcClient::on_connection_close(const std::string& error_msg)
   const IrcMessage error{"ERROR", {message}};
   this->on_error(error);
   log_warning(message);
+  this->bridge.on_irc_client_disconnected(this->get_hostname());
 }
 
 IrcChannel* IrcClient::get_channel(const std::string& n)
