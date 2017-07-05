@@ -1025,7 +1025,9 @@ void BiboumiComponent::send_presence_to_contact(const std::string& from, const s
 
 void BiboumiComponent::on_irc_client_connected(const std::string& irc_hostname, const std::string& jid)
 {
-  this->send_presence_to_contact(irc_hostname + "@" + this->served_hostname, jid, "");
+  const auto local_jid = irc_hostname + "@" + this->served_hostname;
+  if (Database::has_roster_item(local_jid, jid))
+    this->send_presence_to_contact(local_jid, jid, "");
 }
 
 void BiboumiComponent::on_irc_client_disconnected(const std::string& irc_hostname, const std::string& jid)
