@@ -98,7 +98,7 @@ class Database
   using MucLogLineTable = Table<Id, Uuid, Owner, IrcChanName, IrcServerName, Date, Body, Nick>;
   using MucLogLine = MucLogLineTable::RowType;
 
-  using GlobalOptionsTable = Table<Id, Owner, MaxHistoryLength, RecordHistory>;
+  using GlobalOptionsTable = Table<Id, Owner, MaxHistoryLength, RecordHistory, Persistent>;
   using GlobalOptions = GlobalOptionsTable::RowType;
 
   using IrcServerOptionsTable = Table<Id, Owner, Server, Pass, AfterConnectionCommand, TlsPorts, Ports, Username, Realname, VerifyCert, TrustedFingerprint, EncodingOut, EncodingIn, MaxHistoryLength>;

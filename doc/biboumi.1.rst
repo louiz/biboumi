@@ -558,6 +558,10 @@ On the gateway itself (e.g on the JID biboumi.example.com):
       the database.
     * Max history length: The maximum number of lines in the history
       that the server is allowed to send when joining a channel.
+    * Persistent: Overrides the value specified in each individual channel,
+      all channels are persistent, whether or not their specific value is
+      true or false. See below for more details on what a persistent
+      channel is.
 
 On a server JID (e.g on the JID chat.freenode.org@biboumi.example.com)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

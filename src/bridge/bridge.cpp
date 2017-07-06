@@ -436,9 +436,14 @@ void Bridge::leave_irc_channel(Iid&& iid, const std::string& status_message, con
       // acknowledgment from the server
       bool persistent = false;
 #ifdef USE_DATABASE
-      const auto coptions = Database::get_irc_channel_options_with_server_default(this->user_jid,
-                                                                                  iid.get_server(), iid.get_local());
-      persistent = coptions.col<Database::Persistent>();
+      const auto goptions = Database::get_global_options(this->user_jid);
+      if (goptions.col<Database::Persistent>())
+        persistent = true;
+      else
+        {
+          const auto coptions = Database::get_irc_channel_options_with_server_default(this->user_jid, iid.get_server(), iid.get_local());
+          persistent = coptions.col<Database::Persistent>();
+        }
 #endif
       if (channel->joined && !channel->parting && !persistent)
         {

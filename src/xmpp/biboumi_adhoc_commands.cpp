@@ -147,6 +147,21 @@ void ConfigureGlobalStep1(XmppComponent&, AdhocSession& session, XmlNode& comman
     else
       value.set_inner("false");
   }
+
+  XmlSubNode persistent(x, "field");
+  persistent["var"] = "persistent";
+  persistent["type"] = "boolean";
+  persistent["label"] = "Make all channels persistent";
+  persistent["desc"] = "If true, all channels will be persistent";
+
+  {
+    XmlSubNode value(persistent, "value");
+    value.set_name("value");
+    if (options.col<Database::Persistent>())
+      value.set_inner("true");
+    else
+      value.set_inner("false");
+  }
 }
 
 void ConfigureGlobalStep2(XmppComponent& xmpp_component, AdhocSession& session, XmlNode& command_node)
@@ -173,6 +188,9 @@ void ConfigureGlobalStep2(XmppComponent& xmpp_component, AdhocSession& session, 
               if (bridge)
                 bridge->set_record_history(options.col<Database::RecordHistory>());
             }
+          else if (field->get_tag("var") == "persistent" &&
+                   value)
+            options.col<Database::Persistent>() = to_bool(value->get_inner());
         }
 
       options.save(Database::db);

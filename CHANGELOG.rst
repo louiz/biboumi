@@ -5,6 +5,7 @@ Version 6.0
    to work with the database.
  - The RecordHistory option can now also be configured for each IRC channel,
    individually.
+ - Add a global option to make all channels persistent.
 
 Version 5.0 - 2017-05-24
 ========================
