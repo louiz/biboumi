@@ -92,7 +92,7 @@ void XmppComponent::on_connected()
 {
   log_info("connected to XMPP server");
   this->first_connection_try = true;
-  auto data = "<stream:stream to='"s + this->served_hostname + \
+  auto data = "<stream:stream to='" + this->served_hostname + \
     "' xmlns:stream='http://etherx.jabber.org/streams' xmlns='" COMPONENT_NS "'>";
   log_debug("XMPP SENDING: ", data);
   this->send_data(std::move(data));
@@ -142,7 +142,7 @@ void XmppComponent::on_remote_stream_open(const XmlNode& node)
     }
 
   // Try to authenticate
-  auto data = "<handshake xmlns='" COMPONENT_NS "'>"s + get_handshake_digest(this->stream_id, this->secret) + "</handshake>";
+  auto data = "<handshake xmlns='" COMPONENT_NS "'>" + get_handshake_digest(this->stream_id, this->secret) + "</handshake>";
   log_debug("XMPP SENDING: ", data);
   this->send_data(std::move(data));
 }
@@ -642,7 +642,7 @@ void XmppComponent::send_iq_version_request(const std::string& from,
   Stanza iq("iq");
   {
     iq["type"] = "get";
-    iq["id"] = "version_"s + XmppComponent::next_id();
+    iq["id"] = "version_" + XmppComponent::next_id();
     iq["from"] = from + "@" + this->served_hostname;
     iq["to"] = jid_to;
     XmlSubNode query(iq, "query");

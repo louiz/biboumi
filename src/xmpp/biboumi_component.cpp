@@ -177,7 +177,7 @@ void BiboumiComponent::handle_presence(const Stanza& stanza)
       if (type != "unavailable")
         this->send_stanza_error("presence", from_str, to_str, id,
                                 "cancel", "remote-server-not-found",
-                                "Not connected to IRC server "s + ex.hostname,
+                                "Not connected to IRC server " + ex.hostname,
                                 true);
     }
   stanza_error.disable();
@@ -277,7 +277,7 @@ void BiboumiComponent::handle_message(const Stanza& stanza)
     {
       this->send_stanza_error("message", from_str, to_str, id,
                               "cancel", "remote-server-not-found",
-                              "Not connected to IRC server "s + ex.hostname,
+                              "Not connected to IRC server " + ex.hostname,
                               true);
     }
   stanza_error.disable();
@@ -586,7 +586,7 @@ void BiboumiComponent::handle_iq(const Stanza& stanza)
     {
       this->send_stanza_error("iq", from, to_str, id,
                               "cancel", "remote-server-not-found",
-                              "Not connected to IRC server "s + ex.hostname,
+                              "Not connected to IRC server " + ex.hostname,
                               true);
       stanza_error.disable();
       return;
@@ -806,7 +806,7 @@ void BiboumiComponent::send_irc_server_disco_info(const std::string& id, const s
     XmlSubNode identity(query, "identity");
     identity["category"] = "conference";
     identity["type"] = "irc";
-    identity["name"] = "IRC server "s + from.local + " over Biboumi";
+    identity["name"] = "IRC server " + from.local + " over Biboumi";
     for (const char *ns: {DISCO_INFO_NS, MUC_NS, ADHOC_NS, PING_NS, MAM_NS, VERSION_NS})
       {
         XmlSubNode feature(query, "feature");
@@ -849,7 +849,7 @@ void BiboumiComponent::send_irc_channel_disco_info(const std::string& id, const 
     XmlSubNode identity(query, "identity");
     identity["category"] = "conference";
     identity["type"] = "irc";
-    identity["name"] = "IRC channel "s + iid.get_local() + " from server " + iid.get_server() + " over biboumi";
+    identity["name"] = "IRC channel " + iid.get_local() + " from server " + iid.get_server() + " over biboumi";
     for (const char *ns: {DISCO_INFO_NS, MUC_NS, ADHOC_NS, PING_NS, MAM_NS, VERSION_NS})
       {
         XmlSubNode feature(query, "feature");

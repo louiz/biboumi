@@ -378,7 +378,7 @@ void Bridge::forward_affiliation_role_change(const Iid& iid, const std::string& 
       }
     else if (message.command == "472" && message.arguments.size() >= 2)
       {
-          std::string error_message = "Unknown mode: "s + message.arguments[1];
+          std::string error_message = "Unknown mode: " + message.arguments[1];
           if (message.arguments.size() >= 3)
             error_message = message.arguments[2];
           this->xmpp.send_stanza_error("iq", from, std::to_string(iid), id, "cancel", "not-allowed",
@@ -465,7 +465,7 @@ void Bridge::leave_irc_channel(Iid&& iid, const std::string& status_message, con
     {
       if (channel && channel->joined)
         this->send_muc_leave(iid, channel->get_self()->nick,
-                             "Biboumi note: "s + std::to_string(resources - 1) + " resources are still in this channel.",
+                             "Biboumi note: " + std::to_string(resources - 1) + " resources are still in this channel.",
                              true, resource);
       this->remove_resource_from_chan(key, resource);
       if (this->number_of_channels_the_resource_is_in(iid.get_server(), resource) == 0)
@@ -702,12 +702,12 @@ void Bridge::send_xmpp_version_to_irc(const Iid& iid, const std::string& name, c
 {
   std::string result(name + " " + version + " " + os);
 
-  this->send_private_message(iid, "\01VERSION "s + result + "\01", "NOTICE");
+  this->send_private_message(iid, "\01VERSION " + result + "\01", "NOTICE");
 }
 
 void Bridge::send_irc_ping_result(const Iid& iid, const std::string& id)
 {
-  this->send_private_message(iid, "\01PING "s + utils::revstr(id) + "\01", "NOTICE");
+  this->send_private_message(iid, "\01PING " + utils::revstr(id) + "\01", "NOTICE");
 }
 
 void Bridge::send_irc_user_ping_request(const std::string& irc_hostname, const std::string& nick,
@@ -923,7 +923,7 @@ void Bridge::send_xmpp_message(const std::string& from, const std::string& autho
   if (!author.empty())
     {
       IrcUser user(author);
-      body = "\u000303"s + user.nick + (user.host.empty()?
+      body = "\u000303" + user.nick + (user.host.empty()?
                                         "\u0003: ":
                                         (" (\u000310" + user.host + "\u000303)\u0003: ")) + msg;
     }

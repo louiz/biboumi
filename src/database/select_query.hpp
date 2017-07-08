@@ -79,7 +79,7 @@ struct SelectQuery: public Query
       using ColumnsType = std::tuple<T...>;
       using ColumnType = typename std::remove_reference<decltype(std::get<N>(std::declval<ColumnsType>()))>::type;
 
-      this->body += " "s + ColumnType::name;
+      this->body += " " + std::string{ColumnType::name};
 
       if (N < (sizeof...(T) - 1))
         this->body += ", ";

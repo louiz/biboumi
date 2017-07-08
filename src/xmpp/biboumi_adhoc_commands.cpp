@@ -223,9 +223,9 @@ void ConfigureIrcServerStep1(XmppComponent&, AdhocSession& session, XmlNode& com
   XmlSubNode x(command_node, "jabber:x:data:x");
   x["type"] = "form";
   XmlSubNode title(x, "title");
-  title.set_inner("Configure the IRC server "s + server_domain);
+  title.set_inner("Configure the IRC server " + server_domain);
   XmlSubNode instructions(x, "instructions");
-  instructions.set_inner("Edit the form, to configure the settings of the IRC server "s + server_domain);
+  instructions.set_inner("Edit the form, to configure the settings of the IRC server " + server_domain);
 
   {
     XmlSubNode ports(x, "field");
@@ -469,9 +469,9 @@ void insert_irc_channel_configuration_form(XmlNode& node, const Jid& requester, 
   XmlSubNode x(node, "jabber:x:data:x");
   x["type"] = "form";
   XmlSubNode title(x, "title");
-  title.set_inner("Configure the IRC channel "s + iid.get_local() + " on server "s + iid.get_server());
+  title.set_inner("Configure the IRC channel " + iid.get_local() + " on server " + iid.get_server());
   XmlSubNode instructions(x, "instructions");
-  instructions.set_inner("Edit the form, to configure the settings of the IRC channel "s + iid.get_local());
+  instructions.set_inner("Edit the form, to configure the settings of the IRC channel " + iid.get_local());
 
   {
     XmlSubNode record_history(x, "field");
@@ -693,7 +693,7 @@ void DisconnectUserFromServerStep2(XmppComponent& xmpp_component, AdhocSession& 
     {
       XmlSubNode note(command_node, "note");
       note["type"] = "info";
-      note.set_inner("User "s + jid_to_disconnect + " is not connected to any IRC server.");
+      note.set_inner("User " + jid_to_disconnect + " is not connected to any IRC server.");
       session.terminate();
       return ;
     }
@@ -797,7 +797,7 @@ void GetIrcConnectionInfoStep1(XmppComponent& component, AdhocSession& session, 
   IrcClient* irc = bridge->find_irc_client(hostname);
   if (!irc || !irc->is_connected())
     {
-      message = "You are not connected to the IRC server "s + hostname;
+      message = "You are not connected to the IRC server " + hostname;
       return;
     }
 

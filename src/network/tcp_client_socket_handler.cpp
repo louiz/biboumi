@@ -146,7 +146,7 @@ void TCPClientSocketHandler::connect(const std::string& address, const std::stri
           || errno == EISCONN)
         {
           log_info("Connection success.");
-          TimedEventsManager::instance().cancel("connection_timeout"s +
+          TimedEventsManager::instance().cancel("connection_timeout" +
                                                 std::to_string(this->socket));
           this->poller->add_socket_handler(this);
           this->connected = true;
@@ -196,7 +196,7 @@ void TCPClientSocketHandler::connect(const std::string& address, const std::stri
           TimedEventsManager::instance().add_event(
                                                    TimedEvent(std::chrono::steady_clock::now() + 5s,
                                                               std::bind(&TCPClientSocketHandler::on_connection_timeout, this),
-                                                              "connection_timeout"s + std::to_string(this->socket)));
+                                                              "connection_timeout" + std::to_string(this->socket)));
           return ;
         }
       log_info("Connection failed:", std::strerror(errno));
@@ -220,7 +220,7 @@ void TCPClientSocketHandler::connect()
 
 void TCPClientSocketHandler::close()
 {
-  TimedEventsManager::instance().cancel("connection_timeout"s +
+  TimedEventsManager::instance().cancel("connection_timeout" +
                                         std::to_string(this->socket));
 
   TCPSocketHandler::close();

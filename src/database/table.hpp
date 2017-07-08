@@ -17,7 +17,7 @@ template <typename ColumnType>
 void add_column_to_table(sqlite3* db, const std::string& table_name)
 {
   const std::string name = ColumnType::name;
-  std::string query{"ALTER TABLE "s + table_name + " ADD " + ColumnType::name + " " + TypeToSQLType<typename ColumnType::real_type>::type};
+  std::string query{"ALTER TABLE " + table_name + " ADD " + ColumnType::name + " " + TypeToSQLType<typename ColumnType::real_type>::type};
   log_debug(query);
   char* error;
   const auto result = sqlite3_exec(db, query.data(), nullptr, nullptr, &error);
