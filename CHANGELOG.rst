@@ -6,6 +6,8 @@ Version 6.0
  - The RecordHistory option can now also be configured for each IRC channel,
    individually.
  - Add a global option to make all channels persistent.
+ - Status code='332' is sent with the unavailable presences when biboumi is
+   being shutdown or the connection to the IRC server is cut unexpectedly.
 
 Version 5.0 - 2017-05-24
 ========================

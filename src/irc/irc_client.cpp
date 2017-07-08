@@ -981,7 +981,7 @@ void IrcClient::on_part(const IrcMessage& message)
         // channel pointer is now invalid
         channel = nullptr;
       }
-      this->bridge.send_muc_leave(iid, std::move(nick), txt, self);
+      this->bridge.send_muc_leave(iid, std::move(nick), txt, self, true);
     }
 }
 
@@ -999,7 +999,7 @@ void IrcClient::on_error(const IrcMessage& message)
     if (!channel->joined)
       continue;
     std::string own_nick = channel->get_self()->nick;
-    this->bridge.send_muc_leave(iid, std::move(own_nick), leave_message, true);
+      this->bridge.send_muc_leave(iid, std::move(own_nick), leave_message, true, false);
   }
   this->channels.clear();
   this->send_gateway_message("ERROR: " + leave_message);
@@ -1026,7 +1026,7 @@ void IrcClient::on_quit(const IrcMessage& message)
           iid.set_local(chan_name);
           iid.set_server(this->hostname);
           iid.type = Iid::Type::Channel;
-          this->bridge.send_muc_leave(iid, std::move(nick), txt, self);
+          this->bridge.send_muc_leave(iid, std::move(nick), txt, self, false);
         }
     }
 }
@@ -1255,7 +1255,7 @@ void IrcClient::leave_dummy_channel(const std::string& exit_message, const std::
   this->dummy_channel.joined = false;
   this->dummy_channel.joining = false;
   this->dummy_channel.remove_all_users();
-  this->bridge.send_muc_leave(Iid("%" + this->hostname, this->chantypes), std::string(this->current_nick), exit_message, true, resource);
+  this->bridge.send_muc_leave(Iid("%" + this->hostname, this->chantypes), std::string(this->current_nick), exit_message, true, true, resource);
 }
 
 #ifdef BOTAN_FOUND

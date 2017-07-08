@@ -169,7 +169,10 @@ public:
   /**
    * Send an unavailable presence from this participant
    */
-  void send_muc_leave(const Iid& iid, const std::string& nick, const std::string& message, const bool self, const std::string& resource = "");
+  void send_muc_leave(const Iid& iid, const std::string& nick,
+                      const std::string& message, const bool self,
+                      const bool user_requested,
+                      const std::string& resource="");
   /**
    * Send presences to indicate that an user old_nick (ourself if self ==
    * true) changed his nick to new_nick.  The user_mode is needed because

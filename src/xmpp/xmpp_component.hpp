@@ -146,7 +146,12 @@ public:
   /**
    * Send an unavailable presence for this nick
    */
-  void send_muc_leave(const std::string& muc_name, const std::string& nick, Xmpp::body&& message, const std::string& jid_to, const bool self);
+  void send_muc_leave(const std::string& muc_name,
+                      const std::string& nick,
+                      Xmpp::body&& message,
+                      const std::string& jid_to,
+                      const bool self,
+                      const bool user_requested);
   /**
    * Indicate that a participant changed his nick
    */

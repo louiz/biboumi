@@ -441,7 +441,8 @@ void XmppComponent::send_history_message(const std::string& muc_name, const std:
   this->send_stanza(message);
 }
 
-void XmppComponent::send_muc_leave(const std::string& muc_name, const std::string& nick, Xmpp::body&& message, const std::string& jid_to, const bool self)
+void XmppComponent::send_muc_leave(const std::string& muc_name, const std::string& nick, Xmpp::body&& message,
+                                   const std::string& jid_to, const bool self, const bool user_requested)
 {
   Stanza presence("presence");
   {
@@ -455,6 +456,11 @@ void XmppComponent::send_muc_leave(const std::string& muc_name, const std::strin
       {
         XmlSubNode status(x, "status");
         status["code"] = "110";
+      }
+    if (!user_requested)
+      {
+        XmlSubNode status(x, "status");
+        status["code"] = "332";
       }
     if (!message_str.empty())
       {

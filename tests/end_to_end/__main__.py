@@ -565,7 +565,7 @@ if __name__ == '__main__':
                              ),
                      partial(expect_stanza, "/message[@from='#foo%{irc_server_one}'][@type='groupchat']/subject[not(text())]"),
                  ]),
-        Scenario("quit_message",
+        Scenario("quit",
                  [
                      handshake_sequence(),
                      partial(send_stanza,
@@ -581,7 +581,8 @@ if __name__ == '__main__':
 
                      # Send a raw QUIT message
                      partial(send_stanza, "<message from='{jid_one}/{resource_one}' to='{irc_server_one}' type='chat'><body>QUIT bye bye</body></message>"),
-                     partial(expect_stanza, "/presence[@from='#foo%{irc_server_one}/{nick_one}'][@type='unavailable']/muc_user:x/muc_user:status[@code='110']"),
+                     partial(expect_stanza, ("/presence[@from='#foo%{irc_server_one}/{nick_one}'][@type='unavailable']/muc_user:x/muc_user:status[@code='110']",
+                                             "/presence[@from='#foo%{irc_server_one}/{nick_one}'][@type='unavailable']/muc_user:x/muc_user:status[@code='110']",)),
                      partial(expect_stanza, "/message[@from='{irc_server_one}']/body[text()='ERROR: Closing Link: localhost (Client Quit)']"),
                      partial(expect_stanza, "/message[@from='{irc_server_one}']/body[text()='ERROR: Connection closed.']"),
                  ]),

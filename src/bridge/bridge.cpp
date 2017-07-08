@@ -455,7 +455,7 @@ void Bridge::leave_irc_channel(Iid&& iid, const std::string& status_message, con
         }
       else if (channel->joined)
         {
-          this->send_muc_leave(iid, channel->get_self()->nick, "", true, resource);
+          this->send_muc_leave(iid, channel->get_self()->nick, "", true, true, resource);
         }
       // Since there are no resources left in that channel, we don't
       // want to receive private messages using this room's JID
@@ -466,7 +466,7 @@ void Bridge::leave_irc_channel(Iid&& iid, const std::string& status_message, con
       if (channel && channel->joined)
         this->send_muc_leave(iid, channel->get_self()->nick,
                              "Biboumi note: " + std::to_string(resources - 1) + " resources are still in this channel.",
-                             true, resource);
+                             true, true, resource);
       this->remove_resource_from_chan(key, resource);
       if (this->number_of_channels_the_resource_is_in(iid.get_server(), resource) == 0)
         this->remove_resource_from_server(iid.get_server(), resource);
@@ -883,16 +883,17 @@ void Bridge::send_presence_error(const Iid& iid, const std::string& nick,
 
 void Bridge::send_muc_leave(const Iid& iid, const std::string& nick,
                             const std::string& message, const bool self,
+                            const bool user_requested,
                             const std::string& resource)
 {
   if (!resource.empty())
     this->xmpp.send_muc_leave(std::to_string(iid), nick, this->make_xmpp_body(message),
-                              this->user_jid + "/" + resource, self);
+                              this->user_jid + "/" + resource, self, user_requested);
   else
     {
       for (const auto &res: this->resources_in_chan[iid.to_tuple()])
         this->xmpp.send_muc_leave(std::to_string(iid), nick, this->make_xmpp_body(message),
-                                  this->user_jid + "/" + res, self);
+                                  this->user_jid + "/" + res, self, user_requested);
       if (self)
         this->remove_all_resources_from_chan(iid.to_tuple());
 
