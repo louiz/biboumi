@@ -28,6 +28,17 @@ void add_column_to_table(sqlite3* db, const std::string& table_name)
     }
 }
 
+
+template <typename ColumnType, decltype(ColumnType::options) = nullptr>
+void append_option(std::string& s)
+{
+  s += " "s + ColumnType::options;
+}
+
+template <typename>
+void append_option(...)
+{ }
+
 template <typename... T>
 class Table
 {
@@ -110,14 +121,13 @@ class Table
     str += ColumnType::name;
     str += " ";
     str += TypeToSQLType<RealType>::type;
-    str += " "s + ColumnType::options;
+    append_option<ColumnType>(str);
     if (N != sizeof...(T) - 1)
       str += ",";
     str += "\n";
 
     add_column_create<N+1>(str);
   }
-
   template <std::size_t N=0>
   typename std::enable_if<N == sizeof...(T), void>::type
   add_column_create(std::string&)
