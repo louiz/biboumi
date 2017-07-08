@@ -2,7 +2,6 @@
 
 #include <database/select_query.hpp>
 #include <database/type_to_sql.hpp>
-#include <logger/logger.hpp>
 #include <database/row.hpp>
 
 #include <algorithm>
@@ -18,7 +17,6 @@ void add_column_to_table(sqlite3* db, const std::string& table_name)
 {
   const std::string name = ColumnType::name;
   std::string query{"ALTER TABLE " + table_name + " ADD " + ColumnType::name + " " + TypeToSQLType<typename ColumnType::real_type>::type};
-  log_debug(query);
   char* error;
   const auto result = sqlite3_exec(db, query.data(), nullptr, nullptr, &error);
   if (result != SQLITE_OK)
@@ -66,11 +64,8 @@ class Table
     this->add_column_create(res);
     res += ")";
 
-    log_debug(res);
-
     char* error;
     const auto result = sqlite3_exec(db, res.data(), nullptr, nullptr, &error);
-    log_debug("result: ", +result);
     if (result != SQLITE_OK)
       {
         log_error("Error executing query: ", error);

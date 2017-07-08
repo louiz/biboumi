@@ -17,9 +17,7 @@ typename std::enable_if<std::is_same<std::decay_t<ColumnType>, Id>::value, void>
 update_id(std::tuple<T...>& columns, sqlite3* db)
 {
   auto&& column = std::get<ColumnType>(columns);
-  log_debug("Found an autoincrement col.");
   auto res = sqlite3_last_insert_rowid(db);
-  log_debug("Value is now: ", res);
   column.value = static_cast<Id::real_type>(res);
 }
 
@@ -63,7 +61,6 @@ struct Row
       InsertQuery query(this->table_name);
       query.insert_col_names(this->columns);
       query.insert_values(this->columns);
-      log_debug(query.body);
 
       query.execute(this->columns, db);
 

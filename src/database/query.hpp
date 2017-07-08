@@ -23,7 +23,6 @@ struct Query
     Statement prepare(sqlite3* db)
     {
       sqlite3_stmt* stmt;
-      log_debug(this->body);
       auto res = sqlite3_prepare(db, this->body.data(), static_cast<int>(this->body.size()) + 1,
                                  &stmt, nullptr);
       if (res != SQLITE_OK)
@@ -36,9 +35,7 @@ struct Query
       for (const std::string& param: this->params)
         {
           if (sqlite3_bind_text(statement.get(), i, param.data(), static_cast<int>(param.size()), SQLITE_TRANSIENT) != SQLITE_OK)
-            log_debug("Failed to bind ", param, " to param ", i);
-          else
-            log_debug("Bound ", param, " to ", i);
+            log_error("Failed to bind ", param, " to param ", i);
           i++;
         }
 
