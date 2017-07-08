@@ -1015,6 +1015,9 @@ void IrcClient::on_quit(const IrcMessage& message)
       const std::string& chan_name = pair.first;
       IrcChannel* channel = pair.second.get();
       const IrcUser* user = channel->find_user(message.prefix);
+      bool self = false;
+      if (user == channel->get_self())
+        self = true;
       if (user)
         {
           std::string nick = user->nick;
@@ -1023,7 +1026,7 @@ void IrcClient::on_quit(const IrcMessage& message)
           iid.set_local(chan_name);
           iid.set_server(this->hostname);
           iid.type = Iid::Type::Channel;
-          this->bridge.send_muc_leave(iid, std::move(nick), txt, false);
+          this->bridge.send_muc_leave(iid, std::move(nick), txt, self);
         }
     }
 }
