@@ -403,11 +403,11 @@ def handshake_sequence():
             partial(send_stanza, "<handshake xmlns='jabber:component:accept'/>"))
 
 
-def connection_begin_sequence(irc_host, jid):
+def connection_begin_sequence(irc_host, jid, expected_irc_presence=False):
     jid = jid.format_map(common_replacements)
     xpath    = "/message[@to='" + jid + "'][@from='" + irc_host + "@biboumi.localhost']/body[text()='%s']"
     xpath_re = "/message[@to='" + jid + "'][@from='" + irc_host + "@biboumi.localhost']/body[re:test(text(), '%s')]"
-    return (
+    result = (
     partial(expect_stanza,
             xpath % ('Connecting to %s:6697 (encrypted)' % irc_host)),
     partial(expect_stanza,
@@ -419,8 +419,13 @@ def connection_begin_sequence(irc_host, jid):
     partial(expect_stanza,
             xpath % ('Connecting to %s:6667 (not encrypted)' % irc_host)),
     partial(expect_stanza,
-            xpath % 'Connected to IRC server.'),
+            xpath % 'Connected to IRC server.'))
+
+    if expected_irc_presence:
+        result += (partial(expect_stanza, "/presence[@from='" + irc_host + "@biboumi.localhost']"),)
+
     # These five messages can be receive in any order
+    result += (
     partial(expect_stanza,
             xpath_re % (r'^%s: (\*\*\* Checking Ident|\*\*\* Looking up your hostname\.\.\.|\*\*\* Found your hostname: .*|ACK multi-prefix|\*\*\* Got Ident response)$' % 'irc.localhost')),
     partial(expect_stanza,
@@ -432,6 +437,8 @@ def connection_begin_sequence(irc_host, jid):
     partial(expect_stanza,
             xpath_re % (r'^%s: (\*\*\* Checking Ident|\*\*\* Looking up your hostname\.\.\.|\*\*\* Found your hostname: .*|ACK multi-prefix|\*\*\* Got Ident response)$' % 'irc.localhost')),
     )
+
+    return result
 
 def connection_tls_begin_sequence(irc_host, jid):
     jid = jid.format_map(common_replacements)
@@ -494,8 +501,8 @@ def connection_middle_sequence(irc_host, jid):
     )
 
 
-def connection_sequence(irc_host, jid):
-    return connection_begin_sequence(irc_host, jid) +\
+def connection_sequence(irc_host, jid, expected_irc_presence=False):
+    return connection_begin_sequence(irc_host, jid, expected_irc_presence) +\
            connection_middle_sequence(irc_host, jid) +\
            connection_end_sequence(irc_host, jid)
 
@@ -2696,6 +2703,38 @@ if __name__ == '__main__':
                      partial(expect_stanza, "/presence[@type='unsubscribe']"),
                      partial(send_stanza, "<presence from='{jid_one}' to='{biboumi_host}' type='unavailable' />"),
                      partial(send_stanza, "<presence from='{jid_one}' to='{biboumi_host}' type='unsubscribed' />"),
+                 ]),
+        Scenario("irc_server_presence_in_roster",
+                 [
+                     handshake_sequence(),
+
+                     # Mutual subscription exchange
+                     partial(send_stanza, "<presence from='{jid_one}' to='{irc_server_one}' type='subscribe' id='subid1' />"),
+                     partial(expect_stanza, "/presence[@type='subscribed'][@id='subid1']"),
+
+                     partial(expect_stanza, "/presence[@type='subscribe']"),
+                     partial(send_stanza, "<presence from='{jid_one}' to='{irc_server_one}' type='subscribed' />"),
+
+                     # Join a channel on that server
+                     partial(send_stanza,
+                             "<presence from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}/{nick_one}' />"),
+
+                     # We must receive the IRC server presence, in the connection sequence
+                     connection_sequence("irc.localhost", '{jid_one}/{resource_one}', True),
+                     partial(expect_stanza,
+                             "/message/body[text()='Mode #foo [+nt] by {irc_host_one}']"),
+                     partial(expect_stanza,
+                             ("/presence[@to='{jid_one}/{resource_one}'][@from='#foo%{irc_server_one}/{nick_one}']/muc_user:x/muc_user:item[@affiliation='admin'][@role='moderator']",
+                             "/presence/muc_user:x/muc_user:status[@code='110']")
+                             ),
+                     partial(expect_stanza, "/message[@from='#foo%{irc_server_one}'][@type='groupchat']/subject[not(text())]"),
+
+                     # Leave the channel, and thus the IRC server
+                     partial(send_stanza, "<presence type='unavailable' from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}/{nick_one}' />"),
+                     partial(expect_stanza, "/presence[@type='unavailable'][@from='#foo%{irc_server_one}/{nick_one}']"),
+                     partial(expect_stanza, "/message[@from='{irc_server_one}']/body[text()='ERROR: Closing Link: localhost (Client Quit)']"),
+                     partial(expect_stanza, "/message[@from='{irc_server_one}']/body[text()='ERROR: Connection closed.']"),
+                     partial(expect_stanza, "/presence[@from='{irc_server_one}'][@to='{jid_one}'][@type='unavailable']"),
                  ])
     )
 
