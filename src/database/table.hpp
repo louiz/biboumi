@@ -33,8 +33,8 @@ void append_option(std::string& s)
   s += " "s + ColumnType::options;
 }
 
-template <typename>
-void append_option(...)
+template <typename, typename... Args>
+void append_option(Args&& ...)
 { }
 
 template <typename... T>
