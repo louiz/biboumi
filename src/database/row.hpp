@@ -45,7 +45,7 @@ struct Row
     {}
 
     template <typename Type>
-    auto& col()
+    typename Type::real_type& col()
     {
       auto&& col = std::get<Type>(this->columns);
       return col.value;
