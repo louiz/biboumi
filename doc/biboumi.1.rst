@@ -344,6 +344,29 @@ connect you to the IRC server without joining any channel), then send your
 authentication message to the user ``bot%irc.example.com@biboumi.example.com``
 and finally join the room ``#foo%irc.example.com@biboumi.example.com``.
 
+Roster
+------
+
+You can add some JIDs provided by biboumi into your own roster, to receive
+presence from them. Biboumi will always automatically accept your requests.
+
+Biboumi’s JID
+-------------
+
+By adding the component JID into your roster, the user will receive an available
+presence whenever it is started, and an unavailable presence whenever it is being
+shutdown.  This is useful to quickly view if that biboumi instance is started or
+not.
+
+IRC server JID
+--------------
+
+These presence will appear online in the user’s roster whenever they are
+connected to that IRC server (see *Connect to an IRC server* for more
+details). This is useful to keep track of which server an user is connected
+to: this is sometimes hard to remember, when they have many clients, or if
+they are using persistent channels.
+
 Channel messages
 ----------------
 
