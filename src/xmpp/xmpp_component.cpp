@@ -454,13 +454,15 @@ void XmppComponent::send_muc_leave(const std::string& muc_name, const std::strin
     x["xmlns"] = MUC_USER_NS;
     if (self)
       {
-        XmlSubNode status(x, "status");
-        status["code"] = "110";
-      }
-    if (!user_requested)
-      {
-        XmlSubNode status(x, "status");
-        status["code"] = "332";
+        {
+          XmlSubNode status(x, "status");
+          status["code"] = "110";
+        }
+        if (!user_requested)
+          {
+            XmlSubNode status(x, "status");
+            status["code"] = "332";
+          }
       }
     if (!message_str.empty())
       {
