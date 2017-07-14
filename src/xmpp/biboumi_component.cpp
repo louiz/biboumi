@@ -190,9 +190,18 @@ void BiboumiComponent::handle_presence(const Stanza& stanza)
         }
       else if (type == "probe")
         {
-          if ((iid.type == Iid::Type::Server && bridge->find_irc_client(iid.get_server())) ||
-              iid.type == Iid::Type::None)
-            this->send_presence_to_contact(to_str, from.bare(), "");
+          if ((iid.type == Iid::Type::Server && bridge->find_irc_client(iid.get_server()))
+              || iid.type == Iid::Type::None)
+            {
+#ifdef USE_DATABASE
+              if (Database::has_roster_item(to_str, from.bare()))
+#endif
+                this->send_presence_to_contact(to_str, from.bare(), "");
+#ifdef USE_DATABASE
+              else // rfc 6121 4.3.2.1
+                this->send_presence_to_contact(to_str, from.bare(), "unsubscribed");
+#endif
+            }
         }
       else if (type.empty())
         { // We just receive a presence from someone (as the result of a probe,
@@ -1057,6 +1066,12 @@ void BiboumiComponent::after_handshake()
   for (const Database::RosterItem& roster_item: contacts)
     {
       const auto remote_jid = roster_item.col<Database::RemoteJid>();
+      // In response, we will receive a presence indicating the
+      // contact is online, to which we will respond with our own
+      // presence.
+      // If the contact removed us from their roster while we were
+      // offline, we will receive an unsubscribed presence, letting us
+      // stay in sync.
       this->send_presence_to_contact(this->get_served_hostname(), remote_jid, "probe");
     }
 #endif
