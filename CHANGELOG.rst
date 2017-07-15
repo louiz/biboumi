@@ -3,6 +3,9 @@ Version 6.0
 
  - The LiteSQL dependency was removed. Only libsqlite3 is now necessary
    to work with the database.
+ - Some JIDs can be added into users’ rosters. The component JID tells if
+   biboumi is started or not, and the IRC-server JIDs tell if the user is
+   currently connected to that server.
  - The RecordHistory option can now also be configured for each IRC channel,
    individually.
  - Add a global option to make all channels persistent.
