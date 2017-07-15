@@ -83,6 +83,14 @@ void BiboumiComponent::shutdown()
 {
   for (auto& pair: this->bridges)
     pair.second->shutdown("Gateway shutdown");
+#ifdef USE_DATABASE
+  for (const Database::RosterItem& roster_item: Database::get_full_roster())
+    {
+      this->send_presence_to_contact(roster_item.col<Database::LocalJid>(),
+                                     roster_item.col<Database::RemoteJid>(),
+                                     "unavailable");
+    }
+#endif
 }
 
 void BiboumiComponent::clean()
@@ -160,10 +168,47 @@ void BiboumiComponent::handle_presence(const Stanza& stanza)
     {
       if (type == "subscribe")
         { // Auto-accept any subscription request for an IRC server
-          this->accept_subscription(to_str, from.bare());
-          this->ask_subscription(to_str, from.bare());
+          this->send_presence_to_contact(to_str, from.bare(), "subscribed", id);
+          if (iid.type == Iid::Type::None || bridge->find_irc_client(iid.get_server()))
+            this->send_presence_to_contact(to_str, from.bare(), "");
+          this->send_presence_to_contact(to_str, from.bare(), "subscribe");
+#ifdef USE_DATABASE
+          if (!Database::has_roster_item(to_str, from.bare()))
+            Database::add_roster_item(to_str, from.bare());
+#endif
         }
-
+      else if (type == "unsubscribe")
+        {
+          this->send_presence_to_contact(to_str, from.bare(), "unavailable", id);
+          this->send_presence_to_contact(to_str, from.bare(), "unsubscribed");
+          this->send_presence_to_contact(to_str, from.bare(), "unsubscribe");
+#ifdef USE_DATABASE
+          const bool res = Database::has_roster_item(to_str, from.bare());
+          if (res)
+            Database::delete_roster_item(to_str, from.bare());
+#endif
+        }
+      else if (type == "probe")
+        {
+          if ((iid.type == Iid::Type::Server && bridge->find_irc_client(iid.get_server()))
+              || iid.type == Iid::Type::None)
+            {
+#ifdef USE_DATABASE
+              if (Database::has_roster_item(to_str, from.bare()))
+#endif
+                this->send_presence_to_contact(to_str, from.bare(), "");
+#ifdef USE_DATABASE
+              else // rfc 6121 4.3.2.1
+                this->send_presence_to_contact(to_str, from.bare(), "unsubscribed");
+#endif
+            }
+        }
+      else if (type.empty())
+        { // We just receive a presence from someone (as the result of a probe,
+          // or a directed presence, or a normal presence change)
+          if (iid.type == Iid::Type::None)
+            this->send_presence_to_contact(to_str, from.bare(), "");
+        }
     }
   else
     {
@@ -978,4 +1023,56 @@ void BiboumiComponent::ask_subscription(const std::string& from, const std::stri
   presence["id"] = this->next_id();
   presence["type"] = "subscribe";
   this->send_stanza(presence);
+}
+
+void BiboumiComponent::send_presence_to_contact(const std::string& from, const std::string& to,
+                                                const std::string& type, const std::string& id)
+{
+  Stanza presence("presence");
+  presence["from"] = from;
+  presence["to"] = to;
+  if (!type.empty())
+    presence["type"] = type;
+  if (!id.empty())
+    presence["id"] = id;
+  this->send_stanza(presence);
+}
+
+void BiboumiComponent::on_irc_client_connected(const std::string& irc_hostname, const std::string& jid)
+{
+#ifdef USE_DATABASE
+  const auto local_jid = irc_hostname + "@" + this->served_hostname;
+  if (Database::has_roster_item(local_jid, jid))
+    this->send_presence_to_contact(local_jid, jid, "");
+#endif
+}
+
+void BiboumiComponent::on_irc_client_disconnected(const std::string& irc_hostname, const std::string& jid)
+{
+#ifdef USE_DATABASE
+  const auto local_jid = irc_hostname + "@" + this->served_hostname;
+  if (Database::has_roster_item(local_jid, jid))
+    this->send_presence_to_contact(irc_hostname + "@" + this->served_hostname, jid, "unavailable");
+#endif
+}
+
+void BiboumiComponent::after_handshake()
+{
+  XmppComponent::after_handshake();
+
+#ifdef USE_DATABASE
+  const auto contacts = Database::get_contact_list(this->get_served_hostname());
+
+  for (const Database::RosterItem& roster_item: contacts)
+    {
+      const auto remote_jid = roster_item.col<Database::RemoteJid>();
+      // In response, we will receive a presence indicating the
+      // contact is online, to which we will respond with our own
+      // presence.
+      // If the contact removed us from their roster while we were
+      // offline, we will receive an unsubscribed presence, letting us
+      // stay in sync.
+      this->send_presence_to_contact(this->get_served_hostname(), remote_jid, "probe");
+    }
+#endif
 }
