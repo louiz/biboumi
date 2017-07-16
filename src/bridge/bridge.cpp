@@ -457,6 +457,8 @@ void Bridge::leave_irc_channel(Iid&& iid, const std::string& status_message, con
         {
           this->send_muc_leave(iid, channel->get_self()->nick, "", true, true, resource);
         }
+      if (persistent)
+        this->remove_resource_from_chan(key, resource);
       // Since there are no resources left in that channel, we don't
       // want to receive private messages using this room's JID
       this->remove_all_preferred_from_jid_of_room(iid.get_local());
