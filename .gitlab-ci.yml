@@ -9,11 +9,6 @@ before_script:
   - whoami
   - mkdir -p build/
   - cd build/
-  # When we extract the artifacts from a previous build, the timestamp of all target are identicall to
-  # the timestamps of the generated source files (like biboumi.h, etc), so Makefile thinks the targets
-  # are not up to date, and everything is rebuilt.  We change the modification time of all these files
-  # to be 15 minutes older, to avoid any unnecessary building.
-  - find . \( -name \*.hpp -or -name \*.h -or -name \*.cpp \) -exec touch -r {} -d '-15 minute' {} \;
 
 variables:
   COMPILER: "g++"
