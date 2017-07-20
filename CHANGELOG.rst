@@ -13,6 +13,8 @@ Version 6.0
    being shutdown or the connection to the IRC server is cut unexpectedly.
  - Support for botan version 1.11.x has been dropped, only version 2.x is
    supported.
+ - Invitations can now be sent to any JID, not only JIDs served by the biboumi
+   instance itself.
 
 Version 5.0 - 2017-05-24
 ========================

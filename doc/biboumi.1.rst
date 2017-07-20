@@ -455,17 +455,22 @@ be replaced by a space, because the IRC server wouldn’t accept it.
 Invitations
 -----------
 
-Biboumi forwards the mediated invitations to the target nick.  If the user
-wishes to invite the user “FooBar” into a room, they can invite one of the
-following “JIDs” (one of them is not a JID, actually):
+If the invited JID is a user JID served by this biboumi instance, it will forward the
+invitation to the target nick, over IRC.
+Otherwise, the mediated instance will directly be sent to the invited JID, over XMPP.
 
-- foobar%anything@anything
-- anything@anything/FooBar
+Example: if the user wishes to invite the IRC user “FooBar” into a room, they can
+invite one of the following “JIDs” (one of them is not a JID, actually):
+
+- foobar%anything@biboumi.example.com
+- anything@biboumi.example.com/FooBar
 - FooBar
 
-Note that the “anything” part are simply ignored because they have no
-meaning for the IRC server: we already know which IRC server is targeted
-using the JID of the target channel.
+(Note that the “anything” parts are simply ignored because they carry no
+additional meaning for biboumi: we already know which IRC server is targeted
+using the JID of the target channel.)
+
+Otherwise, any valid JID can be used, to invite any XMPP user.
 
 Kicks and bans
 --------------

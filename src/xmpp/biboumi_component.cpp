@@ -310,7 +310,11 @@ void BiboumiComponent::handle_message(const Stanza& stanza)
             const auto invite_to = invite->get_tag("to");
             if (!invite_to.empty())
               {
-                bridge->send_irc_invitation(iid, invite_to);
+                Jid invited_jid{invite_to};
+                if (invited_jid.domain == this->get_served_hostname() || invited_jid.local.empty())
+                  bridge->send_irc_invitation(iid, invite_to);
+                else
+                  this->send_invitation_from_fulljid(std::to_string(iid), invite_to, from_str);
               }
           }
 
@@ -987,6 +991,16 @@ void BiboumiComponent::send_invitation(const std::string& room_target,
                                        const std::string& jid_to,
                                        const std::string& author_nick)
 {
+  if (author_nick.empty())
+    this->send_invitation_from_fulljid(room_target, jid_to, room_target + "@" + this->served_hostname);
+  else
+    this->send_invitation_from_fulljid(room_target, jid_to, room_target + "@" + this->served_hostname + "/" + author_nick);
+}
+
+void BiboumiComponent::send_invitation_from_fulljid(const std::string& room_target,
+                                       const std::string& jid_to,
+                                       const std::string& from)
+{
   Stanza message("message");
   {
     message["from"] = room_target + "@" + this->served_hostname;
@@ -994,10 +1008,7 @@ void BiboumiComponent::send_invitation(const std::string& room_target,
     XmlSubNode x(message, "x");
     x["xmlns"] = MUC_USER_NS;
     XmlSubNode invite(x, "invite");
-    if (author_nick.empty())
-      invite["from"] = room_target + "@" + this->served_hostname;
-    else
-      invite["from"] = room_target + "@" + this->served_hostname + "/" + author_nick;
+    invite["from"] = from;
   }
   this->send_stanza(message);
 }

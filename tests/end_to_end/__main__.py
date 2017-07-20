@@ -2406,6 +2406,9 @@ if __name__ == '__main__':
                      partial(send_stanza, "<message from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}'><x xmlns='http://jabber.org/protocol/muc#user'><invite to='{nick_two}'/></x></message>"),
                      partial(expect_stanza, "/message/body[text()='{nick_two} has been invited to #foo']"),
                      partial(expect_stanza, "/message[@to='{jid_two}/{resource_two}'][@from='#foo%{irc_server_one}']/muc_user:x/muc_user:invite[@from='#foo%{irc_server_one}/{nick_one}']"),
+
+                     partial(send_stanza, "<message from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}'><x xmlns='http://jabber.org/protocol/muc#user'><invite to='bertrand@example.com'/></x></message>"),
+                     partial(expect_stanza, "/message[@to='bertrand@example.com'][@from='#foo%{irc_server_one}']/muc_user:x/muc_user:invite[@from='{jid_one}/{resource_one}']"),
                 ]),
                 Scenario("virtual_channel_multisession",
                  [
