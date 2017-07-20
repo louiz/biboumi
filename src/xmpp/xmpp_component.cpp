@@ -261,7 +261,6 @@ void XmppComponent::handle_error(const Stanza& stanza)
   if (!this->ever_auth)
     sd_notifyf(0, "STATUS=Failed to authenticate to the XMPP server: %s", error_message.data());
 #endif
-
 }
 
 void* XmppComponent::get_receive_buffer(const size_t size) const
@@ -334,35 +333,6 @@ void XmppComponent::send_user_join(const std::string& from,
         XmlSubNode status(x, "status");
         status["code"] = "110";
       }
-  }
-  this->send_stanza(presence);
-}
-
-void XmppComponent::send_invalid_room_error(const std::string& muc_name,
-                                            const std::string& nick,
-                                            const std::string& to)
-{
-  Stanza presence("presence");
-  {
-    if (!muc_name.empty ())
-      presence["from"] = muc_name + "@" + this->served_hostname + "/" + nick;
-    else
-      presence["from"] = this->served_hostname;
-    presence["to"] = to;
-    presence["type"] = "error";
-    XmlSubNode x(presence, "x");
-    x["xmlns"] = MUC_NS;
-    XmlSubNode error(presence, "error");
-    error["by"] = muc_name + "@" + this->served_hostname;
-    error["type"] = "cancel";
-    XmlSubNode item_not_found(error, "item-not-found");
-    item_not_found["xmlns"] = STANZA_NS;
-    XmlSubNode text(error, "text");
-    text["xmlns"] = STANZA_NS;
-    text["xml:lang"] = "en";
-    text.set_inner(muc_name +
-                   " is not a valid IRC channel name. A correct room jid is of the form: #<chan>%<server>@" +
-                   this->served_hostname);
   }
   this->send_stanza(presence);
 }
