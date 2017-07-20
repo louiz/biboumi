@@ -19,15 +19,14 @@ include(FindPkgConfig)
 
 if(NOT BOTAN_FOUND)
   pkg_check_modules(BOTAN botan-2)
-  pkg_check_modules(BOTAN botan-1.11)
 endif()
 
 if(NOT BOTAN_FOUND)
   find_path(BOTAN_INCLUDE_DIRS NAMES botan/botan.h
-      PATH_SUFFIXES botan-2 botan-1.11
+      PATH_SUFFIXES botan-2
       DOC "The botan include directory")
 
-  find_library(BOTAN_LIBRARIES NAMES botan botan-2 botan-1.11
+  find_library(BOTAN_LIBRARIES NAMES botan botan-2
       DOC "The botan library")
 
   # Use some standard module to handle the QUIETLY and REQUIRED arguments, and

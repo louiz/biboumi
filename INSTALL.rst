@@ -47,7 +47,7 @@ udns_ (optional, but recommended)
  performances when connecting to a big number of IRC servers at the same
  time.
 
-libbotan_ 1.11 or 2.0 (optional)
+libbotan_ 2.x (optional)
  Provides TLS support. Without it, IRC connections are all made in
  plain-text mode.
 

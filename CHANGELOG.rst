@@ -11,6 +11,8 @@ Version 6.0
  - Add a global option to make all channels persistent.
  - Status code='332' is sent with the unavailable presences when biboumi is
    being shutdown or the connection to the IRC server is cut unexpectedly.
+ - Support for botan version 1.11.x has been dropped, only version 2.x is
+   supported.
 
 Version 5.0 - 2017-05-24
 ========================

@@ -54,29 +54,6 @@ void check_tls_certificate(const std::vector<Botan::X509_Certificate>& certs,
     std::rethrow_exception(exc);
 }
 
-#if BOTAN_VERSION_CODE < BOTAN_VERSION_CODE_FOR(1,11,34)
-void BasicCredentialsManager::verify_certificate_chain(const std::string& type,
-                                                       const std::string& purported_hostname,
-                                                       const std::vector<Botan::X509_Certificate>& certs)
-{
-  log_debug("Checking remote certificate (", type, ") for hostname ", purported_hostname);
-  try
-    {
-      Botan::Credentials_Manager::verify_certificate_chain(type, purported_hostname, certs);
-      log_debug("Certificate is valid");
-    }
-  catch (const std::exception& tls_exception)
-    {
-      log_warning("TLS certificate check failed: ", tls_exception.what());
-      std::exception_ptr exception_ptr{};
-      if (this->socket_handler->abort_on_invalid_cert())
-        exception_ptr = std::current_exception();
-
-      check_tls_certificate(certs, purported_hostname, this->trusted_fingerprint, exception_ptr);
-    }
-}
-#endif
-
 bool BasicCredentialsManager::try_to_open_one_ca_bundle(const std::vector<std::string>& paths)
 {
   for (const auto& path: paths)
