@@ -35,7 +35,8 @@ Iid::Iid(const std::string& iid, const Bridge *bridge)
 
 void Iid::set_type(const std::set<char>& chantypes)
 {
-  if (this->local.empty() && this->server.empty())
+  if (this->local.empty() && (
+      !Config::get("fixed_irc_server", "").empty() || this->server.empty()))
     this->type = Iid::Type::None;
   if (this->local.empty())
     return;
