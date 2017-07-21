@@ -399,24 +399,20 @@ void ConfigureIrcServerStep2(XmppComponent&, AdhocSession& session, XmlNode& com
               options.col<Database::VerifyCert>() = val;
             }
 
-          else if (field->get_tag("var") == "fingerprint" && value &&
-                   !value->get_inner().empty())
+          else if (field->get_tag("var") == "fingerprint" && value)
             {
               options.col<Database::TrustedFingerprint>() = value->get_inner();
             }
 
 #endif // BOTAN_FOUND
 
-          else if (field->get_tag("var") == "pass" &&
-                   value && !value->get_inner().empty())
+          else if (field->get_tag("var") == "pass" && value)
             options.col<Database::Pass>() = value->get_inner();
 
-          else if (field->get_tag("var") == "after_connect_command" &&
-                   value && !value->get_inner().empty())
+          else if (field->get_tag("var") == "after_connect_command")
             options.col<Database::AfterConnectionCommand>() = value->get_inner();
 
-          else if (field->get_tag("var") == "username" &&
-                   value && !value->get_inner().empty())
+          else if (field->get_tag("var") == "username" && value)
             {
               auto username = value->get_inner();
               // The username must not contain spaces
@@ -424,16 +420,13 @@ void ConfigureIrcServerStep2(XmppComponent&, AdhocSession& session, XmlNode& com
               options.col<Database::Username>() = username;
             }
 
-          else if (field->get_tag("var") == "realname" &&
-                   value && !value->get_inner().empty())
+          else if (field->get_tag("var") == "realname" && value)
             options.col<Database::Realname>() = value->get_inner();
 
-          else if (field->get_tag("var") == "encoding_out" &&
-                   value && !value->get_inner().empty())
+          else if (field->get_tag("var") == "encoding_out" && value)
             options.col<Database::EncodingOut>() = value->get_inner();
 
-          else if (field->get_tag("var") == "encoding_in" &&
-                   value && !value->get_inner().empty())
+          else if (field->get_tag("var") == "encoding_in" && value)
             options.col<Database::EncodingIn>() = value->get_inner();
 
         }
@@ -572,16 +565,13 @@ bool handle_irc_channel_configuration_form(XmppComponent& xmpp_component, const 
             {
               const XmlNode *value = field->get_child("value", "jabber:x:data");
 
-              if (field->get_tag("var") == "encoding_out" &&
-                  value && !value->get_inner().empty())
+              if (field->get_tag("var") == "encoding_out" && value)
                 options.col<Database::EncodingOut>() = value->get_inner();
 
-              else if (field->get_tag("var") == "encoding_in" &&
-                       value && !value->get_inner().empty())
+              else if (field->get_tag("var") == "encoding_in" && value)
                 options.col<Database::EncodingIn>() = value->get_inner();
 
-              else if (field->get_tag("var") == "persistent" &&
-                       value)
+              else if (field->get_tag("var") == "persistent" && value)
                 options.col<Database::Persistent>() = to_bool(value->get_inner());
               else if (field->get_tag("var") == "record_history" &&
                        value && !value->get_inner().empty())

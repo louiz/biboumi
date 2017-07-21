@@ -2551,6 +2551,41 @@ if __name__ == '__main__':
                              ),
                      partial(send_stanza, "<iq type='set' id='id4' from='{jid_one}/{resource_one}' to='{irc_server_one}'><command xmlns='http://jabber.org/protocol/commands' action='cancel' node='configure' sessionid='{sessionid}' /></iq>"),
                      partial(expect_stanza, "/iq[@type='result']/commands:command[@node='configure'][@status='canceled']"),
+
+                     # Same thing, but try to empty some values
+                     partial(send_stanza, "<iq type='set' id='id1' from='{jid_one}/{resource_one}' to='{irc_server_one}'><command xmlns='http://jabber.org/protocol/commands' node='configure' action='execute' /></iq>"),
+                     partial(expect_stanza, "/iq[@type='result']",
+                             after = partial(save_value, "sessionid", partial(extract_attribute, "/iq[@type='result']/commands:command[@node='configure']", "sessionid"))
+                             ),
+                     partial(send_stanza, "<iq type='set' id='id2' from='{jid_one}/{resource_one}' to='{irc_server_one}'>"
+                                          "<command xmlns='http://jabber.org/protocol/commands' node='configure' sessionid='{sessionid}' action='next'>"
+                                          "<x xmlns='jabber:x:data' type='submit'>"
+                                          "<field var='pass'><value></value></field>"
+                                          "<field var='after_connect_command'><value></value></field>"
+                                          "<field var='username'><value></value></field>"
+                                          "<field var='realname'><value></value></field>"
+                                          "<field var='encoding_out'><value></value></field>"
+                                          "<field var='encoding_in'><value></value></field>"
+                                          "</x></command></iq>"),
+                     partial(expect_stanza, "/iq[@type='result']/commands:command[@node='configure'][@status='completed']/commands:note[@type='info'][text()='Configuration successfully applied.']"),
+
+                     partial(send_stanza, "<iq type='set' id='id3' from='{jid_one}/{resource_one}' to='{irc_server_one}'><command xmlns='http://jabber.org/protocol/commands' node='configure' action='execute' /></iq>"),
+                     partial(expect_stanza, ("/iq[@type='result']/commands:command[@node='configure'][@sessionid][@status='executing']",
+                                             "/iq/commands:command/dataform:x[@type='form']/dataform:title[text()='Configure the IRC server irc.localhost']",
+                                             "/iq/commands:command/dataform:x[@type='form']/dataform:instructions[text()='Edit the form, to configure the settings of the IRC server irc.localhost']",
+                                             "!/iq/commands:command/dataform:x[@type='form']/dataform:field[@var='pass']/dataform:value",
+                                             "!/iq/commands:command/dataform:x[@type='form']/dataform:field[@var='after_connect_command']/dataform:value",
+                                             "!/iq/commands:command/dataform:x[@type='form']/dataform:field[@var='username']/dataform:value",
+                                             "!/iq/commands:command/dataform:x[@type='form']/dataform:field[@var='realname']/dataform:value",
+                                             "!/iq/commands:command/dataform:x[@type='form']/dataform:field[@var='encoding_in']/dataform:value",
+                                             "!/iq/commands:command/dataform:x[@type='form']/dataform:field[@var='encoding_out']/dataform:value",
+                                             "/iq/commands:command/commands:actions/commands:next",
+                                             ),
+                             after = partial(save_value, "sessionid", partial(extract_attribute, "/iq[@type='result']/commands:command[@node='configure']", "sessionid"))
+                             ),
+                     partial(send_stanza, "<iq type='set' id='id4' from='{jid_one}/{resource_one}' to='{irc_server_one}'><command xmlns='http://jabber.org/protocol/commands' action='cancel' node='configure' sessionid='{sessionid}' /></iq>"),
+                     partial(expect_stanza, "/iq[@type='result']/commands:command[@node='configure'][@status='canceled']"),
+
                  ]),
         Scenario("irc_channel_configure",
                  [
