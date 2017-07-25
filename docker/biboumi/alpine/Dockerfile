@@ -1,4 +1,9 @@
 # This Dockerfile creates a docker image running biboumi
+#
+# It is built by compiling the sources and all its dependencies
+# directly inside the image.
+# This is the prefered way to build the release image, used by the
+# end users, in production.
 
 FROM docker.io/alpine:latest
 
@@ -32,7 +37,7 @@ RUN adduser biboumi -D -h /home/biboumi
 RUN mkdir /var/lib/biboumi
 RUN chown -R biboumi:biboumi /var/lib/biboumi
 
-COPY ./biboumi.cfg /etc/biboumi/biboumi.cfg
+COPY ../biboumi.cfg /etc/biboumi/biboumi.cfg
 RUN chown -R biboumi:biboumi /etc/biboumi
 
 WORKDIR /home/biboumi
