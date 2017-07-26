@@ -37,7 +37,7 @@ RUN adduser biboumi -D -h /home/biboumi
 RUN mkdir /var/lib/biboumi
 RUN chown -R biboumi:biboumi /var/lib/biboumi
 
-COPY ../biboumi.cfg /etc/biboumi/biboumi.cfg
+COPY ./biboumi.cfg /etc/biboumi/biboumi.cfg
 RUN chown -R biboumi:biboumi /etc/biboumi
 
 WORKDIR /home/biboumi
