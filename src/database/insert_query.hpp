@@ -20,8 +20,6 @@ actual_bind(Statement& statement, std::vector<std::string>& params, const std::t
   params.erase(params.begin());
   if (sqlite3_bind_text(statement.get(), N + 1, value.data(), static_cast<int>(value.size()), SQLITE_TRANSIENT) != SQLITE_OK)
     log_error("Failed to bind ", value, " to param ", N);
-  else
-    log_debug("Bound (not id) [", value, "] to ", N);
 }
 
 template <int N, typename ColumnType, typename... T>
@@ -36,8 +34,6 @@ actual_bind(Statement& statement, std::vector<std::string>&, const std::tuple<T.
     }
   else if (sqlite3_bind_null(statement.get(), N + 1) != SQLITE_OK)
     log_error("Failed to bind NULL to param ", N);
-  else
-    log_debug("Bound NULL to ", N);
 }
 
 struct InsertQuery: public Query

@@ -31,11 +31,6 @@ public:
   BasicCredentialsManager& operator=(const BasicCredentialsManager&) = delete;
   BasicCredentialsManager& operator=(BasicCredentialsManager&&) = delete;
 
-#if BOTAN_VERSION_CODE < BOTAN_VERSION_CODE_FOR(1,11,34)
-  void verify_certificate_chain(const std::string& type,
-                                const std::string& purported_hostname,
-                                const std::vector<Botan::X509_Certificate>&) override final;
-#endif
   std::vector<Botan::Certificate_Store*> trusted_certificate_authorities(const std::string& type,
                                                                          const std::string& context) override final;
   void set_trusted_fingerprint(const std::string& fingerprint);

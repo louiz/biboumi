@@ -19,7 +19,7 @@ void AdhocCommandsHandler::add_command(std::string name, AdhocCommand command)
 {
   const auto found = this->commands.find(name);
   if (found != this->commands.end())
-    throw std::runtime_error("Trying to add an ad-hoc command that already exist: "s + name);
+    throw std::runtime_error("Trying to add an ad-hoc command that already exist: " + name);
   this->commands.emplace(std::make_pair(std::move(name), std::move(command)));
 }
 
@@ -59,7 +59,7 @@ XmlNode AdhocCommandsHandler::handle_request(const std::string& executor_jid, co
                                  std::forward_as_tuple(command_it->second, executor_jid, to));
           TimedEventsManager::instance().add_event(TimedEvent(std::chrono::steady_clock::now() + 3600s,
                                                               std::bind(&AdhocCommandsHandler::remove_session, this, sessionid, executor_jid),
-                                                              "adhocsession"s + sessionid + executor_jid));
+                                                              "adhocsession" + sessionid + executor_jid));
         }
       auto session_it = this->sessions.find(std::make_pair(sessionid, executor_jid));
       if ((session_it != this->sessions.end()) &&
@@ -74,7 +74,7 @@ XmlNode AdhocCommandsHandler::handle_request(const std::string& executor_jid, co
             {
               this->sessions.erase(session_it);
               command_node["status"] = "completed";
-              TimedEventsManager::instance().cancel("adhocsession"s + sessionid + executor_jid);
+              TimedEventsManager::instance().cancel("adhocsession" + sessionid + executor_jid);
             }
           else
             {
@@ -87,7 +87,7 @@ XmlNode AdhocCommandsHandler::handle_request(const std::string& executor_jid, co
         {
           this->sessions.erase(session_it);
           command_node["status"] = "canceled";
-          TimedEventsManager::instance().cancel("adhocsession"s + sessionid + executor_jid);
+          TimedEventsManager::instance().cancel("adhocsession" + sessionid + executor_jid);
         }
       else                      // unsupported action
         {

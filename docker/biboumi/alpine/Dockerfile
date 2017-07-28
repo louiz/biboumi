@@ -1,4 +1,9 @@
 # This Dockerfile creates a docker image running biboumi
+#
+# It is built by compiling the sources and all its dependencies
+# directly inside the image.
+# This is the prefered way to build the release image, used by the
+# end users, in production.
 
 FROM docker.io/alpine:latest
 

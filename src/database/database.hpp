@@ -20,85 +20,67 @@ class Database
  public:
   using time_point = std::chrono::system_clock::time_point;
 
-  struct Uuid: Column<std::string> { static constexpr auto name = "uuid_";
-    static constexpr auto options = ""; };
+  struct Uuid: Column<std::string> { static constexpr auto name = "uuid_"; };
 
-  struct Owner: Column<std::string> { static constexpr auto name = "owner_";
-    static constexpr auto options = ""; };
+  struct Owner: Column<std::string> { static constexpr auto name = "owner_"; };
 
-  struct IrcChanName: Column<std::string> { static constexpr auto name = "ircChanName_";
-    static constexpr auto options = ""; };
+  struct IrcChanName: Column<std::string> { static constexpr auto name = "ircChanName_"; };
 
-  struct Channel: Column<std::string> { static constexpr auto name = "channel_";
-    static constexpr auto options = ""; };
+  struct Channel: Column<std::string> { static constexpr auto name = "channel_"; };
 
-  struct IrcServerName: Column<std::string> { static constexpr auto name = "ircServerName_";
-    static constexpr auto options = ""; };
+  struct IrcServerName: Column<std::string> { static constexpr auto name = "ircServerName_"; };
 
-  struct Server: Column<std::string> { static constexpr auto name = "server_";
-    static constexpr auto options = ""; };
+  struct Server: Column<std::string> { static constexpr auto name = "server_"; };
 
-  struct Date: Column<time_point::rep> { static constexpr auto name = "date_";
-    static constexpr auto options = ""; };
+  struct Date: Column<time_point::rep> { static constexpr auto name = "date_"; };
 
-  struct Body: Column<std::string> { static constexpr auto name = "body_";
-    static constexpr auto options = ""; };
+  struct Body: Column<std::string> { static constexpr auto name = "body_"; };
 
-  struct Nick: Column<std::string> { static constexpr auto name = "nick_";
-    static constexpr auto options = ""; };
+  struct Nick: Column<std::string> { static constexpr auto name = "nick_"; };
 
-  struct Pass: Column<std::string> { static constexpr auto name = "pass_";
-    static constexpr auto options = ""; };
+  struct Pass: Column<std::string> { static constexpr auto name = "pass_"; };
 
   struct Ports: Column<std::string> { static constexpr auto name = "ports_";
-    static constexpr auto options = "";
     Ports(): Column<std::string>("6667") {} };
 
   struct TlsPorts: Column<std::string> { static constexpr auto name = "tlsPorts_";
-    static constexpr auto options = "";
     TlsPorts(): Column<std::string>("6697;6670") {} };
 
-  struct Username: Column<std::string> { static constexpr auto name = "username_";
-    static constexpr auto options = ""; };
+  struct Username: Column<std::string> { static constexpr auto name = "username_"; };
 
-  struct Realname: Column<std::string> { static constexpr auto name = "realname_";
-    static constexpr auto options = ""; };
+  struct Realname: Column<std::string> { static constexpr auto name = "realname_"; };
 
-  struct AfterConnectionCommand: Column<std::string> { static constexpr auto name = "afterConnectionCommand_";
-    static constexpr auto options = ""; };
+  struct AfterConnectionCommand: Column<std::string> { static constexpr auto name = "afterConnectionCommand_"; };
 
-  struct TrustedFingerprint: Column<std::string> { static constexpr auto name = "trustedFingerprint_";
-    static constexpr auto options = ""; };
+  struct TrustedFingerprint: Column<std::string> { static constexpr auto name = "trustedFingerprint_"; };
 
-  struct EncodingOut: Column<std::string> { static constexpr auto name = "encodingOut_";
-    static constexpr auto options = ""; };
+  struct EncodingOut: Column<std::string> { static constexpr auto name = "encodingOut_"; };
 
-  struct EncodingIn: Column<std::string> { static constexpr auto name = "encodingIn_";
-    static constexpr auto options = ""; };
+  struct EncodingIn: Column<std::string> { static constexpr auto name = "encodingIn_"; };
 
   struct MaxHistoryLength: Column<int> { static constexpr auto name = "maxHistoryLength_";
-    static constexpr auto options = "";
     MaxHistoryLength(): Column<int>(20) {} };
 
   struct RecordHistory: Column<bool> { static constexpr auto name = "recordHistory_";
-    static constexpr auto options = "";
     RecordHistory(): Column<bool>(true) {}};
 
-  struct RecordHistoryOptional: Column<OptionalBool> { static constexpr auto name = "recordHistory_";
-    static constexpr auto options = ""; };
+  struct RecordHistoryOptional: Column<OptionalBool> { static constexpr auto name = "recordHistory_"; };
 
   struct VerifyCert: Column<bool> { static constexpr auto name = "verifyCert_";
-    static constexpr auto options = "";
     VerifyCert(): Column<bool>(true) {} };
 
   struct Persistent: Column<bool> { static constexpr auto name = "persistent_";
-    static constexpr auto options = "";
     Persistent(): Column<bool>(false) {} };
+
+  struct LocalJid: Column<std::string> { static constexpr auto name = "local"; };
+
+  struct RemoteJid: Column<std::string> { static constexpr auto name = "remote"; };
+
 
   using MucLogLineTable = Table<Id, Uuid, Owner, IrcChanName, IrcServerName, Date, Body, Nick>;
   using MucLogLine = MucLogLineTable::RowType;
 
-  using GlobalOptionsTable = Table<Id, Owner, MaxHistoryLength, RecordHistory>;
+  using GlobalOptionsTable = Table<Id, Owner, MaxHistoryLength, RecordHistory, Persistent>;
   using GlobalOptions = GlobalOptionsTable::RowType;
 
   using IrcServerOptionsTable = Table<Id, Owner, Server, Pass, AfterConnectionCommand, TlsPorts, Ports, Username, Realname, VerifyCert, TrustedFingerprint, EncodingOut, EncodingIn, MaxHistoryLength>;
@@ -106,6 +88,9 @@ class Database
 
   using IrcChannelOptionsTable = Table<Id, Owner, Server, Channel, EncodingOut, EncodingIn, MaxHistoryLength, Persistent, RecordHistoryOptional>;
   using IrcChannelOptions = IrcChannelOptionsTable::RowType;
+
+  using RosterTable = Table<LocalJid, RemoteJid>;
+  using RosterItem = RosterTable::RowType;
 
   Database() = default;
   ~Database() = default;
@@ -132,6 +117,12 @@ class Database
   static std::string store_muc_message(const std::string& owner, const std::string& chan_name, const std::string& server_name,
                                        time_point date, const std::string& body, const std::string& nick);
 
+  static void add_roster_item(const std::string& local, const std::string& remote);
+  static bool has_roster_item(const std::string& local, const std::string& remote);
+  static void delete_roster_item(const std::string& local, const std::string& remote);
+  static std::vector<Database::RosterItem> get_contact_list(const std::string& local);
+  static std::vector<Database::RosterItem> get_full_roster();
+
   static void close();
   static void open(const std::string& filename);
 
@@ -146,6 +137,7 @@ class Database
   static GlobalOptionsTable global_options;
   static IrcServerOptionsTable irc_server_options;
   static IrcChannelOptionsTable irc_channel_options;
+  static RosterTable roster;
   static sqlite3* db;
 
  private:

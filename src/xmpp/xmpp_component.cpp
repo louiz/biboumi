@@ -92,7 +92,7 @@ void XmppComponent::on_connected()
 {
   log_info("connected to XMPP server");
   this->first_connection_try = true;
-  auto data = "<stream:stream to='"s + this->served_hostname + \
+  auto data = "<stream:stream to='" + this->served_hostname + \
     "' xmlns:stream='http://etherx.jabber.org/streams' xmlns='" COMPONENT_NS "'>";
   log_debug("XMPP SENDING: ", data);
   this->send_data(std::move(data));
@@ -142,7 +142,7 @@ void XmppComponent::on_remote_stream_open(const XmlNode& node)
     }
 
   // Try to authenticate
-  auto data = "<handshake xmlns='" COMPONENT_NS "'>"s + get_handshake_digest(this->stream_id, this->secret) + "</handshake>";
+  auto data = "<handshake xmlns='" COMPONENT_NS "'>" + get_handshake_digest(this->stream_id, this->secret) + "</handshake>";
   log_debug("XMPP SENDING: ", data);
   this->send_data(std::move(data));
 }
@@ -261,7 +261,6 @@ void XmppComponent::handle_error(const Stanza& stanza)
   if (!this->ever_auth)
     sd_notifyf(0, "STATUS=Failed to authenticate to the XMPP server: %s", error_message.data());
 #endif
-
 }
 
 void* XmppComponent::get_receive_buffer(const size_t size) const
@@ -334,35 +333,6 @@ void XmppComponent::send_user_join(const std::string& from,
         XmlSubNode status(x, "status");
         status["code"] = "110";
       }
-  }
-  this->send_stanza(presence);
-}
-
-void XmppComponent::send_invalid_room_error(const std::string& muc_name,
-                                            const std::string& nick,
-                                            const std::string& to)
-{
-  Stanza presence("presence");
-  {
-    if (!muc_name.empty ())
-      presence["from"] = muc_name + "@" + this->served_hostname + "/" + nick;
-    else
-      presence["from"] = this->served_hostname;
-    presence["to"] = to;
-    presence["type"] = "error";
-    XmlSubNode x(presence, "x");
-    x["xmlns"] = MUC_NS;
-    XmlSubNode error(presence, "error");
-    error["by"] = muc_name + "@" + this->served_hostname;
-    error["type"] = "cancel";
-    XmlSubNode item_not_found(error, "item-not-found");
-    item_not_found["xmlns"] = STANZA_NS;
-    XmlSubNode text(error, "text");
-    text["xmlns"] = STANZA_NS;
-    text["xml:lang"] = "en";
-    text.set_inner(muc_name +
-                   " is not a valid IRC channel name. A correct room jid is of the form: #<chan>%<server>@" +
-                   this->served_hostname);
   }
   this->send_stanza(presence);
 }
@@ -441,7 +411,8 @@ void XmppComponent::send_history_message(const std::string& muc_name, const std:
   this->send_stanza(message);
 }
 
-void XmppComponent::send_muc_leave(const std::string& muc_name, const std::string& nick, Xmpp::body&& message, const std::string& jid_to, const bool self)
+void XmppComponent::send_muc_leave(const std::string& muc_name, const std::string& nick, Xmpp::body&& message,
+                                   const std::string& jid_to, const bool self, const bool user_requested)
 {
   Stanza presence("presence");
   {
@@ -453,8 +424,15 @@ void XmppComponent::send_muc_leave(const std::string& muc_name, const std::strin
     x["xmlns"] = MUC_USER_NS;
     if (self)
       {
-        XmlSubNode status(x, "status");
-        status["code"] = "110";
+        {
+          XmlSubNode status(x, "status");
+          status["code"] = "110";
+        }
+        if (!user_requested)
+          {
+            XmlSubNode status(x, "status");
+            status["code"] = "332";
+          }
       }
     if (!message_str.empty())
       {
@@ -642,7 +620,7 @@ void XmppComponent::send_iq_version_request(const std::string& from,
   Stanza iq("iq");
   {
     iq["type"] = "get";
-    iq["id"] = "version_"s + XmppComponent::next_id();
+    iq["id"] = "version_" + XmppComponent::next_id();
     iq["from"] = from + "@" + this->served_hostname;
     iq["to"] = jid_to;
     XmlSubNode query(iq, "query");

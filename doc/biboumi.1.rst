@@ -344,6 +344,29 @@ connect you to the IRC server without joining any channel), then send your
 authentication message to the user ``bot%irc.example.com@biboumi.example.com``
 and finally join the room ``#foo%irc.example.com@biboumi.example.com``.
 
+Roster
+------
+
+You can add some JIDs provided by biboumi into your own roster, to receive
+presence from them. Biboumi will always automatically accept your requests.
+
+Biboumi’s JID
+-------------
+
+By adding the component JID into your roster, the user will receive an available
+presence whenever it is started, and an unavailable presence whenever it is being
+shutdown.  This is useful to quickly view if that biboumi instance is started or
+not.
+
+IRC server JID
+--------------
+
+These presence will appear online in the user’s roster whenever they are
+connected to that IRC server (see *Connect to an IRC server* for more
+details). This is useful to keep track of which server an user is connected
+to: this is sometimes hard to remember, when they have many clients, or if
+they are using persistent channels.
+
 Channel messages
 ----------------
 
@@ -432,17 +455,22 @@ be replaced by a space, because the IRC server wouldn’t accept it.
 Invitations
 -----------
 
-Biboumi forwards the mediated invitations to the target nick.  If the user
-wishes to invite the user “FooBar” into a room, they can invite one of the
-following “JIDs” (one of them is not a JID, actually):
+If the invited JID is a user JID served by this biboumi instance, it will forward the
+invitation to the target nick, over IRC.
+Otherwise, the mediated instance will directly be sent to the invited JID, over XMPP.
 
-- foobar%anything@anything
-- anything@anything/FooBar
+Example: if the user wishes to invite the IRC user “FooBar” into a room, they can
+invite one of the following “JIDs” (one of them is not a JID, actually):
+
+- foobar%anything@biboumi.example.com
+- anything@biboumi.example.com/FooBar
 - FooBar
 
-Note that the “anything” part are simply ignored because they have no
-meaning for the IRC server: we already know which IRC server is targeted
-using the JID of the target channel.
+(Note that the “anything” parts are simply ignored because they carry no
+additional meaning for biboumi: we already know which IRC server is targeted
+using the JID of the target channel.)
+
+Otherwise, any valid JID can be used, to invite any XMPP user.
 
 Kicks and bans
 --------------
@@ -558,6 +586,10 @@ On the gateway itself (e.g on the JID biboumi.example.com):
       the database.
     * Max history length: The maximum number of lines in the history
       that the server is allowed to send when joining a channel.
+    * Persistent: Overrides the value specified in each individual channel,
+      all channels are persistent, whether or not their specific value is
+      true or false. See below for more details on what a persistent
+      channel is.
 
 On a server JID (e.g on the JID chat.freenode.org@biboumi.example.com)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

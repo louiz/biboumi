@@ -3,8 +3,18 @@ Version 6.0
 
  - The LiteSQL dependency was removed. Only libsqlite3 is now necessary
    to work with the database.
+ - Some JIDs can be added into users’ rosters. The component JID tells if
+   biboumi is started or not, and the IRC-server JIDs tell if the user is
+   currently connected to that server.
  - The RecordHistory option can now also be configured for each IRC channel,
    individually.
+ - Add a global option to make all channels persistent.
+ - Status code='332' is sent with the unavailable presences when biboumi is
+   being shutdown or the connection to the IRC server is cut unexpectedly.
+ - Support for botan version 1.11.x has been dropped, only version 2.x is
+   supported.
+ - Invitations can now be sent to any JID, not only JIDs served by the biboumi
+   instance itself.
 
 Version 5.0 - 2017-05-24
 ========================

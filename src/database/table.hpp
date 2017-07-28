@@ -2,7 +2,6 @@
 
 #include <database/select_query.hpp>
 #include <database/type_to_sql.hpp>
-#include <logger/logger.hpp>
 #include <database/row.hpp>
 
 #include <algorithm>
@@ -17,8 +16,7 @@ template <typename ColumnType>
 void add_column_to_table(sqlite3* db, const std::string& table_name)
 {
   const std::string name = ColumnType::name;
-  std::string query{"ALTER TABLE "s + table_name + " ADD " + ColumnType::name + " " + TypeToSQLType<typename ColumnType::real_type>::type};
-  log_debug(query);
+  std::string query{"ALTER TABLE " + table_name + " ADD " + ColumnType::name + " " + TypeToSQLType<typename ColumnType::real_type>::type};
   char* error;
   const auto result = sqlite3_exec(db, query.data(), nullptr, nullptr, &error);
   if (result != SQLITE_OK)
@@ -27,6 +25,17 @@ void add_column_to_table(sqlite3* db, const std::string& table_name)
       sqlite3_free(error);
     }
 }
+
+
+template <typename ColumnType, decltype(ColumnType::options) = nullptr>
+void append_option(std::string& s)
+{
+  s += " "s + ColumnType::options;
+}
+
+template <typename, typename... Args>
+void append_option(Args&& ...)
+{ }
 
 template <typename... T>
 class Table
@@ -55,11 +64,8 @@ class Table
     this->add_column_create(res);
     res += ")";
 
-    log_debug(res);
-
     char* error;
     const auto result = sqlite3_exec(db, res.data(), nullptr, nullptr, &error);
-    log_debug("result: ", +result);
     if (result != SQLITE_OK)
       {
         log_error("Error executing query: ", error);
@@ -110,14 +116,13 @@ class Table
     str += ColumnType::name;
     str += " ";
     str += TypeToSQLType<RealType>::type;
-    str += " "s + ColumnType::options;
+    append_option<ColumnType>(str);
     if (N != sizeof...(T) - 1)
       str += ",";
     str += "\n";
 
     add_column_create<N+1>(str);
   }
-
   template <std::size_t N=0>
   typename std::enable_if<N == sizeof...(T), void>::type
   add_column_create(std::string&)

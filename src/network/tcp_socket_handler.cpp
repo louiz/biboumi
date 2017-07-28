@@ -237,14 +237,7 @@ void TCPSocketHandler::start_tls(const std::string& address, const std::string& 
   this->policy.load(policy_directory + "policy.txt");
   this->policy.load(policy_directory + address + ".policy.txt");
   this->tls = std::make_unique<Botan::TLS::Client>(
-# if BOTAN_VERSION_CODE >= BOTAN_VERSION_CODE_FOR(1,11,32)
       *this,
-# else
-      [this](const Botan::byte* data, size_t size) { this->tls_emit_data(data, size); },
-      [this](const Botan::byte* data, size_t size) { this->tls_record_received(0, data, size); },
-      [this](Botan::TLS::Alert alert, const Botan::byte*, size_t) { this->tls_alert(alert); },
-      [this](const Botan::TLS::Session& session) { return this->tls_session_established(session); },
-# endif
       get_session_manager(), this->credential_manager, this->policy,
       get_rng(), server_info, Botan::TLS::Protocol_Version::latest_tls_version());
 }
@@ -327,7 +320,6 @@ bool TCPSocketHandler::tls_session_established(const Botan::TLS::Session& sessio
   return true;
 }
 
-#if BOTAN_VERSION_CODE >= BOTAN_VERSION_CODE_FOR(1,11,34)
 void TCPSocketHandler::tls_verify_cert_chain(const std::vector<Botan::X509_Certificate>& cert_chain,
                                              const std::vector<std::shared_ptr<const Botan::OCSP::Response>>& ocsp_responses,
                                              const std::vector<Botan::Certificate_Store*>& trusted_roots,
@@ -350,7 +342,6 @@ void TCPSocketHandler::tls_verify_cert_chain(const std::vector<Botan::X509_Certi
       check_tls_certificate(cert_chain, hostname, this->credential_manager.get_trusted_fingerprint(), exception_ptr);
     }
 }
-#endif
 
 void TCPSocketHandler::on_tls_activated()
 {

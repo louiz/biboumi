@@ -36,6 +36,8 @@ public:
   BiboumiComponent& operator=(const BiboumiComponent&) = delete;
   BiboumiComponent& operator=(BiboumiComponent&&) = delete;
 
+  void after_handshake() override final;
+
   /**
    * Returns the bridge for the given user. If it does not exist, return
    * nullptr.
@@ -85,8 +87,15 @@ public:
                                 const ChannelList& channel_list, std::vector<ListElement>::const_iterator begin,
                                 std::vector<ListElement>::const_iterator end, const ResultSetInfo& rs_info);
   void send_invitation(const std::string& room_target, const std::string& jid_to, const std::string& author_nick);
+private:
+  void send_invitation_from_fulljid(const std::string& room_target, const std::string& jid_to, const std::string& from);
+public:
   void accept_subscription(const std::string& from, const std::string& to);
   void ask_subscription(const std::string& from, const std::string& to);
+  void send_presence_to_contact(const std::string& from, const std::string& to, const std::string& type, const std::string& id="");
+  void on_irc_client_connected(const std::string& irc_hostname, const std::string& jid);
+  void on_irc_client_disconnected(const std::string& irc_hostname, const std::string& jid);
+
   /**
    * Handle the various stanza types
    */

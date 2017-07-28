@@ -378,7 +378,7 @@ void Bridge::forward_affiliation_role_change(const Iid& iid, const std::string& 
       }
     else if (message.command == "472" && message.arguments.size() >= 2)
       {
-          std::string error_message = "Unknown mode: "s + message.arguments[1];
+          std::string error_message = "Unknown mode: " + message.arguments[1];
           if (message.arguments.size() >= 3)
             error_message = message.arguments[2];
           this->xmpp.send_stanza_error("iq", from, std::to_string(iid), id, "cancel", "not-allowed",
@@ -436,9 +436,14 @@ void Bridge::leave_irc_channel(Iid&& iid, const std::string& status_message, con
       // acknowledgment from the server
       bool persistent = false;
 #ifdef USE_DATABASE
-      const auto coptions = Database::get_irc_channel_options_with_server_default(this->user_jid,
-                                                                                  iid.get_server(), iid.get_local());
-      persistent = coptions.col<Database::Persistent>();
+      const auto goptions = Database::get_global_options(this->user_jid);
+      if (goptions.col<Database::Persistent>())
+        persistent = true;
+      else
+        {
+          const auto coptions = Database::get_irc_channel_options_with_server_default(this->user_jid, iid.get_server(), iid.get_local());
+          persistent = coptions.col<Database::Persistent>();
+        }
 #endif
       if (channel->joined && !channel->parting && !persistent)
         {
@@ -450,8 +455,10 @@ void Bridge::leave_irc_channel(Iid&& iid, const std::string& status_message, con
         }
       else if (channel->joined)
         {
-          this->send_muc_leave(iid, channel->get_self()->nick, "", true, resource);
+          this->send_muc_leave(iid, channel->get_self()->nick, "", true, true, resource);
         }
+      if (persistent)
+        this->remove_resource_from_chan(key, resource);
       // Since there are no resources left in that channel, we don't
       // want to receive private messages using this room's JID
       this->remove_all_preferred_from_jid_of_room(iid.get_local());
@@ -460,8 +467,8 @@ void Bridge::leave_irc_channel(Iid&& iid, const std::string& status_message, con
     {
       if (channel && channel->joined)
         this->send_muc_leave(iid, channel->get_self()->nick,
-                             "Biboumi note: "s + std::to_string(resources - 1) + " resources are still in this channel.",
-                             true, resource);
+                             "Biboumi note: " + std::to_string(resources - 1) + " resources are still in this channel.",
+                             true, true, resource);
       this->remove_resource_from_chan(key, resource);
       if (this->number_of_channels_the_resource_is_in(iid.get_server(), resource) == 0)
         this->remove_resource_from_server(iid.get_server(), resource);
@@ -697,12 +704,12 @@ void Bridge::send_xmpp_version_to_irc(const Iid& iid, const std::string& name, c
 {
   std::string result(name + " " + version + " " + os);
 
-  this->send_private_message(iid, "\01VERSION "s + result + "\01", "NOTICE");
+  this->send_private_message(iid, "\01VERSION " + result + "\01", "NOTICE");
 }
 
 void Bridge::send_irc_ping_result(const Iid& iid, const std::string& id)
 {
-  this->send_private_message(iid, "\01PING "s + utils::revstr(id) + "\01", "NOTICE");
+  this->send_private_message(iid, "\01PING " + utils::revstr(id) + "\01", "NOTICE");
 }
 
 void Bridge::send_irc_user_ping_request(const std::string& irc_hostname, const std::string& nick,
@@ -851,7 +858,6 @@ void Bridge::send_message(const Iid& iid, const std::string& nick, const std::st
     }
   else
     {
-      std::string target = std::to_string(iid);
       const auto it = this->preferred_user_from.find(iid.get_local());
       if (it != this->preferred_user_from.end())
         {
@@ -878,16 +884,17 @@ void Bridge::send_presence_error(const Iid& iid, const std::string& nick,
 
 void Bridge::send_muc_leave(const Iid& iid, const std::string& nick,
                             const std::string& message, const bool self,
+                            const bool user_requested,
                             const std::string& resource)
 {
   if (!resource.empty())
     this->xmpp.send_muc_leave(std::to_string(iid), nick, this->make_xmpp_body(message),
-                              this->user_jid + "/" + resource, self);
+                              this->user_jid + "/" + resource, self, user_requested);
   else
     {
       for (const auto &res: this->resources_in_chan[iid.to_tuple()])
         this->xmpp.send_muc_leave(std::to_string(iid), nick, this->make_xmpp_body(message),
-                                  this->user_jid + "/" + res, self);
+                                  this->user_jid + "/" + res, self, user_requested);
       if (self)
         this->remove_all_resources_from_chan(iid.to_tuple());
 
@@ -918,7 +925,7 @@ void Bridge::send_xmpp_message(const std::string& from, const std::string& autho
   if (!author.empty())
     {
       IrcUser user(author);
-      body = "\u000303"s + user.nick + (user.host.empty()?
+      body = "\u000303" + user.nick + (user.host.empty()?
                                         "\u0003: ":
                                         (" (\u000310" + user.host + "\u000303)\u0003: ")) + msg;
     }
@@ -1074,6 +1081,16 @@ void Bridge::send_xmpp_invitation(const Iid& iid, const std::string& author)
 {
   for (const auto& resource: this->resources_in_server[iid.get_server()])
     this->xmpp.send_invitation(std::to_string(iid), this->user_jid + "/" + resource, author);
+}
+
+void Bridge::on_irc_client_connected(const std::string& hostname)
+{
+  this->xmpp.on_irc_client_connected(hostname, this->user_jid);
+}
+
+void Bridge::on_irc_client_disconnected(const std::string& hostname)
+{
+  this->xmpp.on_irc_client_disconnected(hostname, this->user_jid);
 }
 
 void Bridge::set_preferred_from_jid(const std::string& nick, const std::string& full_jid)

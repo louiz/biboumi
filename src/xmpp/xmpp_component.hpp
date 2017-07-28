@@ -124,12 +124,6 @@ public:
                       const std::string& to,
                       const bool self);
   /**
-   * Send an error to indicate that the user tried to join an invalid room
-   */
-  void send_invalid_room_error(const std::string& muc_jid,
-                               const std::string& nick,
-                               const std::string& to);
-  /**
    * Send the MUC topic to the user
    */
   void send_topic(const std::string& from, Xmpp::body&& xmpp_topic, const std::string& to, const std::string& who);
@@ -146,7 +140,12 @@ public:
   /**
    * Send an unavailable presence for this nick
    */
-  void send_muc_leave(const std::string& muc_name, const std::string& nick, Xmpp::body&& message, const std::string& jid_to, const bool self);
+  void send_muc_leave(const std::string& muc_name,
+                      const std::string& nick,
+                      Xmpp::body&& message,
+                      const std::string& jid_to,
+                      const bool self,
+                      const bool user_requested);
   /**
    * Indicate that a participant changed his nick
    */

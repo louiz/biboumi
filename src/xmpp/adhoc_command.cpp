@@ -59,7 +59,7 @@ void HelloStep2(XmppComponent&, AdhocSession& session, XmlNode& command_node)
               command_node.delete_all_children();
               XmlSubNode note(command_node, "note");
               note["type"] = "info";
-              note.set_inner("Hello "s + value_str + "!"s);
+              note.set_inner("Hello " + value_str + "!"s);
               return;
             }
         }

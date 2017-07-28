@@ -125,4 +125,10 @@ TEST_CASE("Iid creation in fixed_server mode")
     CHECK(iid6.get_local() == "##channel%");
     CHECK(iid6.get_server() == "fixed.example.com");
     CHECK(iid6.type == Iid::Type::Channel);
+
+    Iid iid7("", chantypes);
+    CHECK(std::to_string(iid7) == "");
+    CHECK(iid7.get_local() == "");
+    CHECK(iid7.get_server() == "fixed.example.com");
+    CHECK(iid7.type == Iid::Type::None);
 }

@@ -169,7 +169,10 @@ public:
   /**
    * Send an unavailable presence from this participant
    */
-  void send_muc_leave(const Iid& iid, const std::string& nick, const std::string& message, const bool self, const std::string& resource = "");
+  void send_muc_leave(const Iid& iid, const std::string& nick,
+                      const std::string& message, const bool self,
+                      const bool user_requested,
+                      const std::string& resource="");
   /**
    * Send presences to indicate that an user old_nick (ourself if self ==
    * true) changed his nick to new_nick.  The user_mode is needed because
@@ -198,6 +201,8 @@ public:
   void send_xmpp_ping_request(const std::string& nick, const std::string& hostname,
                               const std::string& id);
   void send_xmpp_invitation(const Iid& iid, const std::string& author);
+  void on_irc_client_connected(const std::string& hostname);
+  void on_irc_client_disconnected(const std::string& hostname);
 
   /**
    * Misc
@@ -298,8 +303,8 @@ private:
   using ChannelKey = std::tuple<ChannelName, IrcHostname>;
 public:
   std::map<ChannelKey, std::set<Resource>> resources_in_chan;
-private:
   std::map<IrcHostname, std::set<Resource>> resources_in_server;
+private:
   /**
    * Manage which resource is in which channel
    */

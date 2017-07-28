@@ -29,7 +29,6 @@ struct CountQuery: public Query
       if (sqlite3_step(statement.get()) != SQLITE_DONE)
         log_warning("Count request returned more than one result.");
 
-      log_debug("Returning count: ", res);
       return res;
     }
 };
