@@ -3,12 +3,11 @@ stages:
   - test      # Use the build artifacts to run the tests
   - packaging # Publish some packages (rpm, deb…)
   - external  # Interact with some external service (codecov, coverity…)
+  - deploy
 
 before_script:
   - uname -a
   - whoami
-  - mkdir -p build/
-  - cd build/
 
 variables:
   COMPILER: "g++"
@@ -29,6 +28,8 @@ variables:
     - docker
   script:
     - "echo Running cmake with the following parameters: -DCMAKE_CXX_COMPILER=${COMPILER} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ${BOTAN} ${UDNS} ${SYSTEMD} ${LIBIDN} ${SQLITE3}"
+    - mkdir build/
+    - cd build/
     - cmake .. -DCMAKE_CXX_COMPILER=${COMPILER} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ${BOTAN} ${UDNS} ${SYSTEMD} ${LIBIDN} ${SQLITE3}
     - make everything -j$(nproc || echo 1)
     - make coverage_check -j$(nproc || echo 1)
@@ -39,17 +40,17 @@ variables:
 
 .template:fedora_build: &fedora_build
   <<: *basic_build
-  image: docker.louiz.org/biboumi-test-fedora:latest
+  image: docker.louiz.org/louiz/biboumi/test-fedora:latest
 
 .template:debian_build: &debian_build
   <<: *basic_build
-  image: docker.louiz.org/biboumi-test-debian:latest
+  image: docker.louiz.org/louiz/biboumi/test-debian:latest
 
 .template:alpine_build: &alpine_build
   variables:
     SYSTEMD: "-DWITHOUT_SYSTEMD=1"
   <<: *basic_build
-  image: docker.louiz.org/biboumi-test-alpine:latest
+  image: docker.louiz.org/louiz/biboumi/test-alpine:latest
 
 build:fedora:
   <<: *fedora_build
@@ -109,6 +110,7 @@ build:7:
   tags:
     - docker
   script:
+    - cd build/
     - make coverage_e2e -j$(nproc || echo 1)
     - make coverage
   artifacts:
@@ -122,29 +124,30 @@ build:7:
     name: $CI_PROJECT_NAME-test-$CI_JOB_ID
 
 test:debian:
-  image: docker.louiz.org/biboumi-test-debian:latest
+  image: docker.louiz.org/louiz/biboumi/test-debian:latest
   <<: *basic_test
   dependencies:
     - build:debian
 
 test:fedora:
-  image: docker.louiz.org/biboumi-test-fedora:latest
+  image: docker.louiz.org/louiz/biboumi/test-fedora:latest
   <<: *basic_test
   dependencies:
     - build:fedora
 
 test:without_udns:
-  image: docker.louiz.org/biboumi-test-fedora:latest
+  image: docker.louiz.org/louiz/biboumi/test-fedora:latest
   <<: *basic_test
   dependencies:
     - build:7
 
 test:alpine:
-  image: docker.louiz.org/biboumi-test-alpine:latest
+  image: docker.louiz.org/louiz/biboumi/test-alpine:latest
   stage: test
   tags:
     - docker
   script:
+    - cd build/
     - make e2e
   dependencies:
     - build:alpine
@@ -158,6 +161,8 @@ test:freebsd:
     SYSTEMD: "-DWITHOUT_SYSTEMD=1"
   stage: test
   script:
+    - mkdir build/
+    - cd build/
     - cmake .. -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ${BOTAN} ${UDNS} ${SYSTEMD} ${LIBIDN} ${SQLITE3}
     - make check
     - make e2e
@@ -170,7 +175,7 @@ test:freebsd:
   stage: external
   tags:
     - docker
-  image: docker.louiz.org/biboumi-test-fedora:latest
+  image: docker.louiz.org/louiz/biboumi/test-fedora:latest
 
 .template:codecov_unittests: &codecov_unittests
   <<: *codecov
@@ -238,16 +243,22 @@ coverity:
     - branches@louiz/biboumi
   tags:
     - docker
-  image: docker.louiz.org/biboumi-test-fedora:latest
+  image: docker.louiz.org/louiz/biboumi/test-fedora:latest
   allow_failure: true
   when: manual
   script:
     - export PATH=$PATH:~/coverity/bin
+    - mkdir build/
+    - cd build/
     - cmake .. -DWITHOUT_SYSTEMD=1
     - cov-build --dir cov-int   make everything -j$(nproc || echo 1)
     - tar czvf biboumi_coverity.tgz cov-int
     - curl --form token=$COVERITY_TOKEN   --form email=louiz@louiz.org   --form file=@biboumi_coverity.tgz  --form version="$(git rev-parse --short HEAD)" --form description="Automatic submission by gitlab-ci" https://scan.coverity.com/builds?project=louiz%2Fbiboumi
   dependencies: []
+
+#
+## Packaging jobs
+#
 
 packaging:rpm:
   stage: packaging
@@ -255,8 +266,9 @@ packaging:rpm:
     - master@louiz/biboumi
   tags:
     - docker
-  image: docker.louiz.org/biboumi-test-fedora:latest
+  image: docker.louiz.org/louiz/biboumi/test-fedora:latest
   script:
+    - cd build/
     - make rpm -j$(nproc || echo 1)
   artifacts:
     paths:
@@ -297,7 +309,7 @@ packaging:archlinux:
     - master@louiz/biboumi
   tags:
     - docker
-  image: docker.louiz.org/biboumi-test-archlinux:latest
+  image: docker.louiz.org/louiz/biboumi/test-archlinux:latest
   before_script: []
   script:
     - sudo pacman -Syuu --noconfirm
@@ -305,4 +317,34 @@ packaging:archlinux:
     - cd biboumi-git
     - makepkg -si --noconfirm
     - test -e /usr/bin/biboumi
+  dependencies: []
+
+#
+## Deploy jobs
+#
+
+deploy:docker:
+  stage: deploy
+  tags:
+    - docker-in-docker
+  only:
+    - master@louiz/biboumi
+  variables:
+    DOCKER_HOST: tcp://docker.louiz.org:2376
+    DOCKER_TLS_VERIFY: 1
+    SERVICE_NAME: biboumi
+    BIBOUMI_HOSTNAME: test.biboumi.louiz.org
+  script:
+    - mkdir -p ~/.docker
+    - echo "$TLSCACERT" > ~/.docker/ca.pem
+    - echo "$TLSCERT" > ~/.docker/cert.pem
+    - echo "$TLSKEY" > ~/.docker/key.pem
+    - docker version
+    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN docker.louiz.org
+    - docker build -t docker.louiz.org/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME:$CI_COMMIT_REF_NAME docker/biboumi/alpine
+    - docker push docker.louiz.org/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME:$CI_COMMIT_REF_NAME
+    - docker service create --detach=false --name $CI_PROJECT_NAMESPACE-$CI_PROJECT_NAME  -e BIBOUMI_PASSWORD=password -e BIBOUMI_XMPP_SERVER_IP=prosody -e BIBOUMI_HOSTNAME=$BIBOUMI_HOSTNAME --network xmpp docker.louiz.org/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME:$CI_COMMIT_REF_NAME || docker service update $CI_PROJECT_NAMESPACE-$CI_PROJECT_NAME
+  environment:
+    name: master
+    url: https://biboumi.louiz.org
   dependencies: []
