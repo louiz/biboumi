@@ -23,7 +23,7 @@ RUN apt install -y g++\
     uuid-dev\
     libsystemd-dev\
     pandoc\
-    libasan1\
+    libasan3\
     libubsan0\
     git\
     python3-lxml\
