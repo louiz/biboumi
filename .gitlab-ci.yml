@@ -286,7 +286,7 @@ packaging:deb:
     - debian@louiz/biboumi
   tags:
     - docker
-  image: docker.louiz.org/packaging-debian:latest
+  image: docker.louiz.org/louiz/biboumi/packaging-debian:latest
   before_script: []
   script:
     - git checkout debian
