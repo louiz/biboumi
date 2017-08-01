@@ -54,9 +54,10 @@ RUN git clone https://github.com/charybdis-ircd/charybdis.git && cd charybdis &&
 
 RUN chown -R tester:tester /home/tester/ircd
 
+USER tester
+
 RUN yes "" | openssl req -nodes -x509 -newkey rsa:4096 -keyout /home/tester/ircd/etc/ssl.key -out /home/tester/ircd/etc/ssl.pem
 
 COPY coverity /home/tester/coverity
 
 WORKDIR /home/tester
-USER tester

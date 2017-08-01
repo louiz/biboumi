@@ -4,8 +4,10 @@ stages:
 before_script:
   - uname -a
   - whoami
-  - mkdir -p build/
-  - cd build/
+
+#
+## Packaging jobs
+#
 
 packaging:deb:
   stage: packaging
@@ -14,7 +16,7 @@ packaging:deb:
     - debian@louiz/biboumi
   tags:
     - docker
-  image: docker.louiz.org/packaging-debian:latest
+  image: docker.louiz.org/louiz/biboumi/packaging-debian:latest
   before_script: []
   script:
     - git checkout debian
