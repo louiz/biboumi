@@ -333,7 +333,6 @@ deploy:docker:
     DOCKER_HOST: tcp://docker.louiz.org:2376
     DOCKER_TLS_VERIFY: 1
     SERVICE_NAME: biboumi
-    BIBOUMI_HOSTNAME: test.biboumi.louiz.org
   script:
     - mkdir -p ~/.docker
     - echo "$TLSCACERT" > ~/.docker/ca.pem
@@ -343,7 +342,9 @@ deploy:docker:
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN docker.louiz.org
     - docker build -t docker.louiz.org/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME:$CI_COMMIT_REF_NAME docker/biboumi/alpine
     - docker push docker.louiz.org/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME:$CI_COMMIT_REF_NAME
-    - docker service create --with-registry-auth --detach=false --name $CI_PROJECT_NAMESPACE-$CI_PROJECT_NAME  -e BIBOUMI_PASSWORD=password -e BIBOUMI_XMPP_SERVER_IP=prosody -e BIBOUMI_HOSTNAME=$BIBOUMI_HOSTNAME --network xmpp docker.louiz.org/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME:$CI_COMMIT_REF_NAME || docker service update $CI_PROJECT_NAMESPACE-$CI_PROJECT_NAME
+    - docker service create --with-registry-auth --detach=false --name $CI_PROJECT_NAMESPACE-$CI_PROJECT_NAME-1  -e BIBOUMI_PASSWORD=password -e BIBOUMI_XMPP_SERVER_IP=prosody -e BIBOUMI_HOSTNAME=test.biboumi.louiz.org --network xmpp docker.louiz.org/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME:$CI_COMMIT_REF_NAME || docker service update $CI_PROJECT_NAMESPACE-$CI_PROJECT_NAME-1
+    - docker service create --with-registry-auth --detach=false --name $CI_PROJECT_NAMESPACE-$CI_PROJECT_NAME-2  -e BIBOUMI_PASSWORD=password -e BIBOUMI_XMPP_SERVER_IP=prosody -e BIBOUMI_HOSTNAME=test2.biboumi.louiz.org --network xmpp docker.louiz.org/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME:$CI_COMMIT_REF_NAME || docker service update $CI_PROJECT_NAMESPACE-$CI_PROJECT_NAME-2
+    - docker service create --with-registry-auth --detach=false --name $CI_PROJECT_NAMESPACE-$CI_PROJECT_NAME-3  -e BIBOUMI_PASSWORD=password -e BIBOUMI_XMPP_SERVER_IP=prosody -e BIBOUMI_HOSTNAME=test2.biboumi.louiz.org --network xmpp docker.louiz.org/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME:$CI_COMMIT_REF_NAME || docker service update $CI_PROJECT_NAMESPACE-$CI_PROJECT_NAME-3
   environment:
     name: master
     url: https://biboumi.louiz.org
