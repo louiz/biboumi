@@ -292,6 +292,7 @@ packaging:deb:
   before_script: []
   script:
     - git checkout debian
+    - git pull
     - git merge --no-commit --no-ff master
     - mk-build-deps
     - apt update -y
