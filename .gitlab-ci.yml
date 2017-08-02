@@ -347,7 +347,7 @@ deploy:docker:
     - docker push docker.louiz.org/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME:$CI_COMMIT_REF_NAME
     - docker service create --with-registry-auth --detach=false --name $CI_PROJECT_NAMESPACE-$CI_PROJECT_NAME-1  -e BIBOUMI_PASSWORD=password -e BIBOUMI_XMPP_SERVER_IP=prosody -e BIBOUMI_HOSTNAME=test.biboumi.louiz.org --network xmpp docker.louiz.org/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME:$CI_COMMIT_REF_NAME || docker service update $CI_PROJECT_NAMESPACE-$CI_PROJECT_NAME-1
     - docker service create --with-registry-auth --detach=false --name $CI_PROJECT_NAMESPACE-$CI_PROJECT_NAME-2  -e BIBOUMI_PASSWORD=password -e BIBOUMI_XMPP_SERVER_IP=prosody -e BIBOUMI_HOSTNAME=test2.biboumi.louiz.org --network xmpp docker.louiz.org/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME:$CI_COMMIT_REF_NAME || docker service update $CI_PROJECT_NAMESPACE-$CI_PROJECT_NAME-2
-    - docker service create --with-registry-auth --detach=false --name $CI_PROJECT_NAMESPACE-$CI_PROJECT_NAME-3  -e BIBOUMI_PASSWORD=password -e BIBOUMI_XMPP_SERVER_IP=prosody -e BIBOUMI_HOSTNAME=test2.biboumi.louiz.org --network xmpp docker.louiz.org/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME:$CI_COMMIT_REF_NAME || docker service update $CI_PROJECT_NAMESPACE-$CI_PROJECT_NAME-3
+    - docker service create --with-registry-auth --detach=false --name $CI_PROJECT_NAMESPACE-$CI_PROJECT_NAME-3  -e BIBOUMI_PASSWORD=password -e BIBOUMI_XMPP_SERVER_IP=prosody -e BIBOUMI_HOSTNAME=test3.biboumi.louiz.org --network xmpp docker.louiz.org/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME:$CI_COMMIT_REF_NAME || docker service update $CI_PROJECT_NAMESPACE-$CI_PROJECT_NAME-3
   environment:
     name: master
     url: https://biboumi.louiz.org
