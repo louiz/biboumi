@@ -1,13 +1,284 @@
 stages:
+  - build     # Build in various conf, keeps the artifacts
+  - test      # Use the build artifacts to run the tests
   - packaging # Publish some packages (rpm, deb…)
+  - external  # Interact with some external service (codecov, coverity…)
+  - deploy
 
 before_script:
   - uname -a
   - whoami
 
+variables:
+  COMPILER: "g++"
+  BUILD_TYPE: "Debug"
+  BOTAN: "-DWITH_BOTAN=1"
+  UDNS: "-DWITH_UDNS=1"
+  SYSTEMD: "-DWITH_SYSTEMD=1"
+  LIBIDN: "-DWITH_LIBIDN=1"
+  SQLITE3: "-DWITH_SQLITE3=1"
+
+#
+## Build jobs
+#
+
+.template:basic_build: &basic_build
+  stage: build
+  tags:
+    - docker
+  script:
+    - "echo Running cmake with the following parameters: -DCMAKE_CXX_COMPILER=${COMPILER} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ${BOTAN} ${UDNS} ${SYSTEMD} ${LIBIDN} ${SQLITE3}"
+    - mkdir build/
+    - cd build/
+    - cmake .. -DCMAKE_CXX_COMPILER=${COMPILER} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ${BOTAN} ${UDNS} ${SYSTEMD} ${LIBIDN} ${SQLITE3}
+    - make everything -j$(nproc || echo 1)
+    - make coverage_check -j$(nproc || echo 1)
+  artifacts:
+    expire_in: 2 weeks
+    paths:
+      - build/
+
+.template:fedora_build: &fedora_build
+  <<: *basic_build
+  image: docker.louiz.org/louiz/biboumi/test-fedora:latest
+
+.template:debian_build: &debian_build
+  <<: *basic_build
+  image: docker.louiz.org/louiz/biboumi/test-debian:latest
+
+.template:alpine_build: &alpine_build
+  variables:
+    SYSTEMD: "-DWITHOUT_SYSTEMD=1"
+  <<: *basic_build
+  image: docker.louiz.org/louiz/biboumi/test-alpine:latest
+
+build:fedora:
+  <<: *fedora_build
+
+build:debian:
+  <<: *debian_build
+
+build:alpine:
+  <<: *alpine_build
+
+build:1:
+  variables:
+    BOTAN: "-DWITHOUT_BOTAN=1"
+  <<: *fedora_build
+
+build:2:
+  variables:
+    UDNS: "-DWITHOUT_UDNS=1"
+  <<: *fedora_build
+
+build:3:
+  variables:
+    SQLITE3: "-DWITHOUT_SQLITE3=1"
+  <<: *fedora_build
+
+build:4:
+  variables:
+    SQLITE3: "-DWITHOUT_SQLITE3=1"
+    BOTAN: "-DWITHOUT_BOTAN=1"
+    LIBIDN: "-DWITHOUT_LIBIDN=1"
+  <<: *fedora_build
+
+build:5:
+  variables:
+    SQLITE3: "-DWITHOUT_SQLITE3=1"
+    UDNS: "-DWITHOUT_UDNS=1"
+  <<: *fedora_build
+
+build:6:
+  variables:
+    BOTAN: "-DWITHOUT_BOTAN=1"
+    UDNS: "-DWITHOUT_UDNS=1"
+  <<: *fedora_build
+
+build:7:
+  variables:
+    UDNS: "-DWITHOUT_UDNS=1"
+  <<: *fedora_build
+
+
+#
+## Test jobs
+#
+
+.template:basic_test: &basic_test
+  stage: test
+  tags:
+    - docker
+  script:
+    - cd build/
+    - make coverage_e2e -j$(nproc || echo 1)
+    - make coverage
+  artifacts:
+    expire_in: 2 weeks
+    paths:
+      - build/coverage_test_suite/
+      - build/coverage_e2e/
+      - build/coverage_total/
+      - build/coverage_e2e.info
+    when: always
+    name: $CI_PROJECT_NAME-test-$CI_JOB_ID
+
+test:debian:
+  image: docker.louiz.org/louiz/biboumi/test-debian:latest
+  <<: *basic_test
+  dependencies:
+    - build:debian
+
+test:fedora:
+  image: docker.louiz.org/louiz/biboumi/test-fedora:latest
+  <<: *basic_test
+  dependencies:
+    - build:fedora
+
+test:without_udns:
+  image: docker.louiz.org/louiz/biboumi/test-fedora:latest
+  <<: *basic_test
+  dependencies:
+    - build:7
+
+test:alpine:
+  image: docker.louiz.org/louiz/biboumi/test-alpine:latest
+  stage: test
+  tags:
+    - docker
+  script:
+    - cd build/
+    - make e2e
+  dependencies:
+    - build:alpine
+
+test:freebsd:
+  only:
+    - branches@louiz/biboumi
+  tags:
+    - freebsd
+  variables:
+    SYSTEMD: "-DWITHOUT_SYSTEMD=1"
+  stage: test
+  script:
+    - mkdir build/
+    - cd build/
+    - cmake .. -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ${BOTAN} ${UDNS} ${SYSTEMD} ${LIBIDN} ${SQLITE3}
+    - make check
+    - make e2e
+
+#
+## External jobs
+#
+
+.template:codecov: &codecov
+  stage: external
+  tags:
+    - docker
+  image: docker.louiz.org/louiz/biboumi/test-fedora:latest
+
+.template:codecov_unittests: &codecov_unittests
+  <<: *codecov
+  script:
+    - bash <(curl -s https://codecov.io/bash) -X gcov -X coveragepy -f ./coverage_test_suite.info -F $(echo $CI_JOB_NAME | sed s/:/_/g | sed s/codecov_//)
+
+.template:codecov_e2e: &codecov_e2e
+  <<: *codecov
+  script:
+    - bash <(curl -s https://codecov.io/bash) -X gcov -X coveragepy -f ./coverage_e2e.info -F $(echo $CI_JOB_NAME | sed s/:/_/g | sed s/codecov_//)
+
+codecov:fedora:
+  <<: *codecov_e2e
+  dependencies:
+    - test:fedora
+
+codecov:without_udns:
+  <<: *codecov_e2e
+  dependencies:
+    - test:without_udns
+
+codecov:debian:
+  <<: *codecov_e2e
+  dependencies:
+    - test:debian
+
+codecov:build:1:
+  <<: *codecov_unittests
+  dependencies:
+    - build:1
+
+codecov:build:2:
+  <<: *codecov_unittests
+  dependencies:
+    - build:2
+
+codecov:build:3:
+  <<: *codecov_unittests
+  dependencies:
+    - build:3
+
+codecov:build:4:
+  <<: *codecov_unittests
+  dependencies:
+    - build:4
+
+codecov:build:5:
+  <<: *codecov_unittests
+  dependencies:
+    - build:5
+
+codecov:build:6:
+  <<: *codecov_unittests
+  dependencies:
+    - build:6
+
+codecov:build:7:
+  <<: *codecov_unittests
+  dependencies:
+    - build:7
+
+coverity:
+  stage: external
+  only:
+    - branches@louiz/biboumi
+  tags:
+    - docker
+  image: docker.louiz.org/louiz/biboumi/test-fedora:latest
+  allow_failure: true
+  when: manual
+  script:
+    - export PATH=$PATH:~/coverity/bin
+    - mkdir build/
+    - cd build/
+    - cmake .. -DWITHOUT_SYSTEMD=1
+    - cov-build --dir cov-int   make everything -j$(nproc || echo 1)
+    - tar czvf biboumi_coverity.tgz cov-int
+    - curl --form token=$COVERITY_TOKEN   --form email=louiz@louiz.org   --form file=@biboumi_coverity.tgz  --form version="$(git rev-parse --short HEAD)" --form description="Automatic submission by gitlab-ci" https://scan.coverity.com/builds?project=louiz%2Fbiboumi
+  dependencies: []
+
 #
 ## Packaging jobs
 #
+
+packaging:rpm:
+  stage: packaging
+  only:
+    - master@louiz/biboumi
+  tags:
+    - docker
+  allow_failure: true
+  image: docker.louiz.org/louiz/biboumi/test-fedora:latest
+  script:
+    - cd build/
+    - make rpm -j$(nproc || echo 1)
+  artifacts:
+    paths:
+      - build/rpmbuild/RPMS
+      - build/rpmbuild/SRPMS
+    when: always
+    name: $CI_PROJECT_NAME-rpm-$CI_BUILD_ID
+  dependencies:
+    - build:fedora
 
 packaging:deb:
   stage: packaging
@@ -16,6 +287,7 @@ packaging:deb:
     - debian@louiz/biboumi
   tags:
     - docker
+  allow_failure: true
   image: docker.louiz.org/louiz/biboumi/packaging-debian:latest
   before_script: []
   script:
@@ -32,3 +304,51 @@ packaging:deb:
   artifacts:
     untracked: true
     name: $CI_PROJECT_NAME-deb-$CI_BUILD_ID
+
+packaging:archlinux:
+  stage: packaging
+  only:
+    - master@louiz/biboumi
+  tags:
+    - docker
+  allow_failure: true
+  image: docker.louiz.org/louiz/biboumi/test-archlinux:latest
+  before_script: []
+  script:
+    - sudo pacman -Syuu --noconfirm
+    - git clone https://aur.archlinux.org/biboumi-git.git
+    - cd biboumi-git
+    - makepkg -si --noconfirm
+    - test -e /usr/bin/biboumi
+  dependencies: []
+
+#
+## Deploy jobs
+#
+
+deploy:docker:
+  stage: deploy
+  tags:
+    - docker-in-docker
+  only:
+    - master@louiz/biboumi
+  variables:
+    DOCKER_HOST: tcp://docker.louiz.org:2376
+    DOCKER_TLS_VERIFY: 1
+    SERVICE_NAME: biboumi
+  script:
+    - mkdir -p ~/.docker
+    - echo "$TLSCACERT" > ~/.docker/ca.pem
+    - echo "$TLSCERT" > ~/.docker/cert.pem
+    - echo "$TLSKEY" > ~/.docker/key.pem
+    - docker version
+    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN docker.louiz.org
+    - docker build -t docker.louiz.org/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME:$CI_COMMIT_REF_NAME docker/biboumi/alpine
+    - docker push docker.louiz.org/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME:$CI_COMMIT_REF_NAME
+    - docker service create --with-registry-auth --detach=false --name $CI_PROJECT_NAMESPACE-$CI_PROJECT_NAME-1  -e BIBOUMI_PASSWORD=password -e BIBOUMI_XMPP_SERVER_IP=prosody -e BIBOUMI_HOSTNAME=test.biboumi.louiz.org --network xmpp docker.louiz.org/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME:$CI_COMMIT_REF_NAME || docker service update $CI_PROJECT_NAMESPACE-$CI_PROJECT_NAME-1
+    - docker service create --with-registry-auth --detach=false --name $CI_PROJECT_NAMESPACE-$CI_PROJECT_NAME-2  -e BIBOUMI_PASSWORD=password -e BIBOUMI_XMPP_SERVER_IP=prosody -e BIBOUMI_HOSTNAME=test2.biboumi.louiz.org --network xmpp docker.louiz.org/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME:$CI_COMMIT_REF_NAME || docker service update $CI_PROJECT_NAMESPACE-$CI_PROJECT_NAME-2
+    - docker service create --with-registry-auth --detach=false --name $CI_PROJECT_NAMESPACE-$CI_PROJECT_NAME-3  -e BIBOUMI_PASSWORD=password -e BIBOUMI_XMPP_SERVER_IP=prosody -e BIBOUMI_HOSTNAME=test2.biboumi.louiz.org --network xmpp docker.louiz.org/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME:$CI_COMMIT_REF_NAME || docker service update $CI_PROJECT_NAMESPACE-$CI_PROJECT_NAME-3
+  environment:
+    name: master
+    url: https://biboumi.louiz.org
+  dependencies: []
