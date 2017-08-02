@@ -1,0 +1,42 @@
+#!/usr/bin/make -f
+
+# Copyright 2016-2017 Jonas Smedegaard <dr@jones.dk>
+# Copyright 2016 Vasudev Kamath <vasudev@copyninja.info>
+# Description: Main Debian packaging script for biboumi
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3, or (at your option)
+# any later version.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+include /usr/share/cdbs/1/rules/debhelper.mk
+include /usr/share/cdbs/1/class/cmake.mk
+
+pkg = $(DEB_SOURCE_PACKAGE)
+
+# TODO: Build-dpend on libbotan1.11-dev or libbotan2.0 when available
+dev-deps = expat1 idn11 systemd udns gcrypt20 sqlite3
+CDBS_BUILD_DEPENDS += , cmake, catch, uuid-dev, pandoc
+CDBS_BUILD_DEPENDS += , $(patsubst %,$(comma) lib%-dev,$(dev-deps))
+
+DEB_CMAKE_EXTRA_FLAGS = \
+ -DCMAKE_BUILD_TYPE=Release \
+ -DSERVICE_USER=nobody -DSERVICE_GROUP=nogroup
+
+DEB_MAKE_CHECK_TARGET = check
+
+DEB_INSTALL_CHANGELOGS_ALL += CHANGELOG.rst
+DEB_INSTALL_DOCS_$(pkg) += README.rst CONTRIBUTING.rst
+DEB_INSTALL_EXAMPLES_$(pkg) = doc/example.conf
+
+binary-post-install/$(pkg)::
+	mkdir -p $(cdbs_curdestdir)/lib
+	mv $(cdbs_curdestdir)/usr/lib/systemd $(cdbs_curdestdir)/lib

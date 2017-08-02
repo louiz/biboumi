@@ -1,0 +1,44 @@
+Description: Avoid cmake messing with git
+Author: Jonas Smedegaard <dr@jones.dk>
+Last-Update: 2016-12-21
+
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -282,27 +282,6 @@
+ endforeach()
+ 
+ #
+-## Add a rule to download the catch unit test framework
+-#
+-include(ExternalProject)
+-ExternalProject_Add(catch
+-  GIT_REPOSITORY "https://lab.louiz.org/louiz/Catch.git"
+-  PREFIX "external"
+-  UPDATE_COMMAND ""
+-  CONFIGURE_COMMAND ""
+-  BUILD_COMMAND ""
+-  INSTALL_COMMAND ""
+-  )
+-set_target_properties(catch PROPERTIES EXCLUDE_FROM_ALL TRUE)
+-ExternalProject_Get_Property(catch SOURCE_DIR)
+-if(NOT EXISTS ${CMAKE_SOURCE_DIR}/tests/catch.hpp)
+-  target_include_directories(test_suite
+-    PUBLIC "${SOURCE_DIR}/include/"
+-    )
+-  add_dependencies(test_suite catch)
+-endif()
+-
+-#
+ ## Add some custom rules to launch the tests
+ #
+ add_custom_target(check COMMAND "test_suite"
+@@ -362,8 +341,7 @@
+   WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+   )
+ add_custom_target(dist
+-  DEPENDS ${ARCHIVE_NAME}.tar.xz
+-  DEPENDS catch)
++  DEPENDS ${ARCHIVE_NAME}.tar.xz)
+ 
+ add_custom_target(rpm
+   DEPENDS dist
