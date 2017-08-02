@@ -409,7 +409,7 @@ void ConfigureIrcServerStep2(XmppComponent&, AdhocSession& session, XmlNode& com
           else if (field->get_tag("var") == "pass" && value)
             options.col<Database::Pass>() = value->get_inner();
 
-          else if (field->get_tag("var") == "after_connect_command")
+          else if (field->get_tag("var") == "after_connect_command" && value)
             options.col<Database::AfterConnectionCommand>() = value->get_inner();
 
           else if (field->get_tag("var") == "username" && value)
