@@ -266,6 +266,7 @@ packaging:rpm:
     - master@louiz/biboumi
   tags:
     - docker
+  allow_failure: true
   image: docker.louiz.org/louiz/biboumi/test-fedora:latest
   script:
     - cd build/
@@ -286,6 +287,7 @@ packaging:deb:
     - debian@louiz/biboumi
   tags:
     - docker
+  allow_failure: true
   image: docker.louiz.org/louiz/biboumi/packaging-debian:latest
   before_script: []
   script:
@@ -309,6 +311,7 @@ packaging:archlinux:
     - master@louiz/biboumi
   tags:
     - docker
+  allow_failure: true
   image: docker.louiz.org/louiz/biboumi/test-archlinux:latest
   before_script: []
   script:
