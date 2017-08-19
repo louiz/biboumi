@@ -25,7 +25,7 @@ void Database::open(const std::string& filename)
   auto res = sqlite3_open_v2(filename.data(), &new_db, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, nullptr);
   if (res != SQLITE_OK)
     {
-      log_error("Failed to open database file ", filename, ": ", sqlite3_errmsg(Database::db));
+      log_error("Failed to open database file ", filename, ": ", sqlite3_errmsg(new_db));
       throw std::runtime_error("");
     }
   Database::close();
