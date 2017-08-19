@@ -61,8 +61,9 @@ Volumes
 
 The database is stored in the /var/lib/biboumi/ directory. If you don’t bind a local directory to it, the database will be lost when the container is stopped. If you want to keep your database between each run, bind it with the -v option, like this: **-v /srv/biboumi/:/var/lib/biboumi**.
 
-Note: Due to a limitation in Docker, to be able to read and write into this database, make sure this mounted directory is owned by UID and GID 1001:1001, on the host.
+Note: Due to a limitation in Docker, to be able to read and write into this database, make sure this mounted directory has the proper read and write permissions on the host: it can be owned by UID and GID 1000:1000, or use chmod to give permissions to everyone, for example.
 
 ```
-chown -R 1001:1001 database/
+chown -R 1000:1000 database/
+chmod 777 database/
 ```
