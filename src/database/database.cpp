@@ -23,12 +23,13 @@ void Database::open(const std::string& filename)
   // not, just leave things untouched
   sqlite3* new_db;
   auto res = sqlite3_open_v2(filename.data(), &new_db, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, nullptr);
+  Database::close();
   if (res != SQLITE_OK)
     {
       log_error("Failed to open database file ", filename, ": ", sqlite3_errmsg(new_db));
+      sqlite3_close_v2(new_db);
       throw std::runtime_error("");
     }
-  Database::close();
   Database::db = new_db;
   Database::muc_log_lines.create(Database::db);
   Database::muc_log_lines.upgrade(Database::db);
