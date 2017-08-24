@@ -1480,6 +1480,24 @@ if __name__ == '__main__':
                          ("/message/subject",),
                          ]),
 
+                     # demonstrate bug https://lab.louiz.org/louiz/biboumi/issues/3291
+                     # First user joins an other channel
+                     partial(send_stanza,
+                     "<presence from='{jid_one}/{resource_one}' to='#bar%{irc_server_one}/{nick_one}' />"),
+                     partial(expect_stanza, "/message"),
+                     partial(expect_stanza, "/presence/muc_user:x/muc_user:status[@code='110']"),
+                     partial(expect_stanza, "/message[@type='groupchat']/subject"),
+
+                     # Second user joins
+                     partial(send_stanza,
+                     "<presence from='{jid_two}/{resource_one}' to='#bar%{irc_server_one}/{nick_two}' />"),
+                     partial(expect_unordered, [
+                         ("/presence/muc_user:x/muc_user:item[@affiliation='none'][@role='participant']",),
+                         ("/presence/muc_user:x/muc_user:item[@affiliation='admin'][@role='moderator']",),
+                         ("/presence/muc_user:x/muc_user:status[@code='110']",),
+                         ("/message/subject",),
+                         ]),
+
                      # Moderator kicks participant
                      partial(send_stanza,
                      "<iq id='kick1' to='#foo%{irc_server_one}' from='{jid_one}/{resource_one}' type='set'><query xmlns='http://jabber.org/protocol/muc#admin'><item nick='{nick_two}' role='none'><reason>reported</reason></item></query></iq>"),
@@ -1495,6 +1513,14 @@ if __name__ == '__main__':
                               ),
                              ("/iq[@id='kick1'][@type='result']",),
                      ]),
+
+                    # Bug 3291, suite. We must not receive any presence from #foo, here
+                    partial(send_stanza, "<message from='{jid_two}/{resource_one}' to='{irc_server_one}' type='chat'><body>QUIT bye bye</body></message>"),
+                    partial(expect_unordered,
+                            [("/presence[@from='#bar%{irc_server_one}/{nick_two}'][@to='{jid_one}/{resource_one}']",),
+                             ("/presence[@from='#bar%{irc_server_one}/{nick_two}'][@to='{jid_two}/{resource_one}']",),
+                             ("/message",),
+                             ("/message",)])
                 ]),
         Scenario("mode_change",
                 [
