@@ -1073,12 +1073,18 @@ void IrcClient::on_nick(const IrcMessage& message)
 void IrcClient::on_kick(const IrcMessage& message)
 {
   const std::string chan_name = utils::tolower(message.arguments[0]);
-  const std::string target = message.arguments[1];
+  const std::string target_nick = message.arguments[1];
   const std::string reason = message.arguments[2];
   IrcChannel* channel = this->get_channel(chan_name);
   if (!channel->joined)
     return ;
-  const bool self = channel->get_self()->nick == target;
+  const IrcUser* target = channel->find_user(target_nick);
+  if (!target)
+    {
+      log_warning("Received a KICK command from a nick absent from the channel.");
+      return;
+    }
+  const bool self = channel->get_self() == target;
   if (self)
     channel->joined = false;
   IrcUser author(message.prefix);
@@ -1086,7 +1092,8 @@ void IrcClient::on_kick(const IrcMessage& message)
   iid.set_local(chan_name);
   iid.set_server(this->hostname);
   iid.type = Iid::Type::Channel;
-  this->bridge.kick_muc_user(std::move(iid), target, reason, author.nick, self);
+  this->bridge.kick_muc_user(std::move(iid), target_nick, reason, author.nick, self);
+  channel->remove_user(target);
 }
 
 void IrcClient::on_invite(const IrcMessage& message)
