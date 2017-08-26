@@ -13,6 +13,7 @@
 #include <string>
 
 #include <memory>
+#include <map>
 
 
 class Database
@@ -140,7 +141,41 @@ class Database
   static RosterTable roster;
   static sqlite3* db;
 
+  /**
+   * Some caches, to avoid doing very frequent query requests for a few options.
+   */
+  using CacheKey = std::tuple<std::string, std::string, std::string>;
+
+  static EncodingIn::real_type get_encoding_in(const std::string& owner,
+                                        const std::string& server,
+                                        const std::string& channel)
+  {
+    CacheKey channel_key{owner, server, channel};
+    auto it = Database::encoding_in_cache.find(channel_key);
+    if (it == Database::encoding_in_cache.end())
+      {
+        auto options = Database::get_irc_channel_options_with_server_default(owner, server, channel);
+        EncodingIn::real_type result = options.col<Database::EncodingIn>();
+        if (result.empty())
+          result = "ISO-8859-1";
+        it = Database::encoding_in_cache.insert(std::make_pair(channel_key, result)).first;
+      }
+    return it->second;
+  }
+  static void invalidate_encoding_in_cache(const std::string& owner,
+                                           const std::string& server,
+                                           const std::string& channel)
+  {
+    CacheKey channel_key{owner, server, channel};
+    Database::encoding_in_cache.erase(channel_key);
+  }
+  static void invalidate_encoding_in_cache()
+  {
+    Database::encoding_in_cache.clear();
+  }
+
  private:
   static std::string gen_uuid();
+  static std::map<CacheKey, EncodingIn::real_type> encoding_in_cache;
 };
 #endif /* USE_DATABASE */

@@ -14,6 +14,7 @@ Database::GlobalOptionsTable Database::global_options("GlobalOptions_");
 Database::IrcServerOptionsTable Database::irc_server_options("IrcServerOptions_");
 Database::IrcChannelOptionsTable Database::irc_channel_options("IrcChannelOptions_");
 Database::RosterTable Database::roster("roster");
+std::map<Database::CacheKey, Database::EncodingIn::real_type> Database::encoding_in_cache{};
 
 
 void Database::open(const std::string& filename)

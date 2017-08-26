@@ -430,7 +430,7 @@ void ConfigureIrcServerStep2(XmppComponent&, AdhocSession& session, XmlNode& com
             options.col<Database::EncodingIn>() = value->get_inner();
 
         }
-
+      Database::invalidate_encoding_in_cache();
       options.save(Database::db);
 
       command_node.delete_all_children();
@@ -599,7 +599,7 @@ bool handle_irc_channel_configuration_form(XmppComponent& xmpp_component, const 
                 }
 
             }
-
+          Database::invalidate_encoding_in_cache(requester.bare(), iid.get_server(), iid.get_local());
           options.save(Database::db);
         }
       return true;
