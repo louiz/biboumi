@@ -6,6 +6,8 @@
 #include <utils/get_first_non_empty.hpp>
 #include <utils/time.hpp>
 
+#include <database/index.hpp>
+
 #include <sqlite3.h>
 
 sqlite3* Database::db;
@@ -42,6 +44,7 @@ void Database::open(const std::string& filename)
   Database::irc_channel_options.upgrade(Database::db);
   Database::roster.create(Database::db);
   Database::roster.upgrade(Database::db);
+  create_index<Database::Owner, Database::IrcChanName, Database::IrcServerName>(Database::db, "archive_index", Database::muc_log_lines.get_name());
 }
 
 
