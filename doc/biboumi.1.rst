@@ -383,13 +383,22 @@ History
 Public channel messages are saved into archives, inside the database, unless
 the `record_history` option is set to false by that user (see `Ad-hoc commands`).
 Private messages (messages that are sent directly to a nickname, not a
-channel) are never stored in the database. When a channel is joined, biboumi
-sends the `max_history_length` messages found in the database as the MUC
-history.
+channel) are never stored in the database.
 
 A channel history can be retrieved by using `Message archive management (MAM)
 <https://xmpp.org/extensions/xep-0313.htm>`_ on the channel JID.  The results
 can be filtered by start and end dates.
+
+When a channel is joined, if the client doesn’t specify any limit, biboumi
+sends the `max_history_length` last messages found in the database as the
+MUC history.  If a client wants to only use MAM for the archives (because
+it’s more convenient and powerful), it should request to receive no
+history by using an attribute maxchars='0' or maxstanzas='0' as defined in
+XEP 0045, and do a proper MAM request instead.
+
+Note: the maxchars attribute is ignored unless its value is exactly 0.
+Supporting it properly would be very hard and would introduce a lot of
+complexity for almost no benefit.
 
 For a given channel, each user has her or his own archive.  The content of
 the archives are never shared, and thus a user can not use someone else’s
