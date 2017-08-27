@@ -160,7 +160,6 @@ void BiboumiComponent::handle_presence(const Stanza& stanza)
           HistoryLimit history_limit;
           if (history)
             {
-              // TODO implement the "seconds"
               const auto seconds = history->get_tag("seconds");
               if (!seconds.empty())
                 {
