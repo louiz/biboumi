@@ -281,6 +281,7 @@ void BiboumiComponent::handle_message(const Stanza& stanza)
     {
       if (body && !body->get_inner().empty())
         {
+          const auto fixed_irc_server = Config::get("fixed_irc_server", "");
           // a message for nick!server
           if (iid.type == Iid::Type::User && !iid.get_local().empty())
             {
@@ -296,9 +297,11 @@ void BiboumiComponent::handle_message(const Stanza& stanza)
               bridge->set_preferred_from_jid(user_iid.get_local(), to_str);
             }
           else if (iid.type == Iid::Type::Server)
+            bridge->send_raw_message(iid.get_server(), body->get_inner());
+          else if (iid.type == Iid::Type::None && !fixed_irc_server.empty())
             { // Message sent to the server JID
               // Convert the message body into a raw IRC message
-              bridge->send_raw_message(iid.get_server(), body->get_inner());
+              bridge->send_raw_message(fixed_irc_server, body->get_inner());
             }
         }
     }

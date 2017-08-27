@@ -403,10 +403,14 @@ def handshake_sequence():
             partial(send_stanza, "<handshake xmlns='jabber:component:accept'/>"))
 
 
-def connection_begin_sequence(irc_host, jid, expected_irc_presence=False):
+def connection_begin_sequence(irc_host, jid, expected_irc_presence=False, fixed_irc_server=False):
     jid = jid.format_map(common_replacements)
-    xpath    = "/message[@to='" + jid + "'][@from='" + irc_host + "@biboumi.localhost']/body[text()='%s']"
-    xpath_re = "/message[@to='" + jid + "'][@from='" + irc_host + "@biboumi.localhost']/body[re:test(text(), '%s')]"
+    if fixed_irc_server:
+        xpath    = "/message[@to='" + jid + "'][@from='biboumi.localhost']/body[text()='%s']"
+        xpath_re = "/message[@to='" + jid + "'][@from='biboumi.localhost']/body[re:test(text(), '%s')]"
+    else:
+        xpath    = "/message[@to='" + jid + "'][@from='" + irc_host + "@biboumi.localhost']/body[text()='%s']"
+        xpath_re = "/message[@to='" + jid + "'][@from='" + irc_host + "@biboumi.localhost']/body[re:test(text(), '%s')]"
     result = (
     partial(expect_stanza,
             xpath % ('Connecting to %s:6697 (encrypted)' % irc_host)),
@@ -440,10 +444,14 @@ def connection_begin_sequence(irc_host, jid, expected_irc_presence=False):
 
     return result
 
-def connection_tls_begin_sequence(irc_host, jid):
+def connection_tls_begin_sequence(irc_host, jid, fixed_irc_server):
     jid = jid.format_map(common_replacements)
-    xpath    = "/message[@to='" + jid + "'][@from='" + irc_host + "@biboumi.localhost']/body[text()='%s']"
-    xpath_re = "/message[@to='" + jid + "'][@from='" + irc_host + "@biboumi.localhost']/body[re:test(text(), '%s')]"
+    if fixed_irc_server:
+        xpath    = "/message[@to='" + jid + "'][@from='biboumi.localhost']/body[text()='%s']"
+        xpath_re = "/message[@to='" + jid + "'][@from='biboumi.localhost']/body[re:test(text(), '%s')]"
+    else:
+        xpath    = "/message[@to='" + jid + "'][@from='" + irc_host + "@biboumi.localhost']/body[text()='%s']"
+        xpath_re = "/message[@to='" + jid + "'][@from='" + irc_host + "@biboumi.localhost']/body[re:test(text(), '%s')]"
     irc_host = 'irc.localhost'
     return (
         partial(expect_stanza,
@@ -463,10 +471,14 @@ def connection_tls_begin_sequence(irc_host, jid):
                 xpath_re % (r'^%s: (\*\*\* Checking Ident|\*\*\* Looking up your hostname\.\.\.|\*\*\* Found your hostname: .*|ACK multi-prefix|\*\*\* Got Ident response)$' % irc_host)),
     )
 
-def connection_end_sequence(irc_host, jid):
+def connection_end_sequence(irc_host, jid, fixed_irc_server=False):
     jid = jid.format_map(common_replacements)
-    xpath    = "/message[@to='" + jid + "'][@from='" + irc_host + "@biboumi.localhost']/body[text()='%s']"
-    xpath_re = "/message[@to='" + jid + "'][@from='" + irc_host + "@biboumi.localhost']/body[re:test(text(), '%s')]"
+    if fixed_irc_server:
+        xpath    = "/message[@to='" + jid + "'][@from='biboumi.localhost']/body[text()='%s']"
+        xpath_re = "/message[@to='" + jid + "'][@from='biboumi.localhost']/body[re:test(text(), '%s')]"
+    else:
+        xpath    = "/message[@to='" + jid + "'][@from='" + irc_host + "@biboumi.localhost']/body[text()='%s']"
+        xpath_re = "/message[@to='" + jid + "'][@from='" + irc_host + "@biboumi.localhost']/body[re:test(text(), '%s')]"
     irc_host = 'irc.localhost'
     return (
     partial(expect_stanza,
@@ -493,23 +505,26 @@ def connection_end_sequence(irc_host, jid):
             xpath_re % r'^User mode for \w+ is \[\+Z?i\]$'),
     )
 
-def connection_middle_sequence(irc_host, jid):
-    xpath_re = "/message[@to='" + jid + "'][@from='" + irc_host + "@biboumi.localhost']/body[re:test(text(), '%s')]"
+def connection_middle_sequence(irc_host, jid, fixed_irc_server=False):
+    if fixed_irc_server:
+        xpath_re = "/message[@to='" + jid + "'][@from='biboumi.localhost']/body[re:test(text(), '%s')]"
+    else:
+        xpath_re = "/message[@to='" + jid + "'][@from='" + irc_host + "@biboumi.localhost']/body[re:test(text(), '%s')]"
     irc_host = 'irc.localhost'
     return (
         partial(expect_stanza, xpath_re % (r'^%s: \*\*\* You are exempt from flood limits$' % irc_host)),
     )
 
 
-def connection_sequence(irc_host, jid, expected_irc_presence=False):
-    return connection_begin_sequence(irc_host, jid, expected_irc_presence) +\
-           connection_middle_sequence(irc_host, jid) +\
-           connection_end_sequence(irc_host, jid)
+def connection_sequence(irc_host, jid, expected_irc_presence=False, fixed_irc_server=False):
+    return connection_begin_sequence(irc_host, jid, expected_irc_presence, fixed_irc_server=fixed_irc_server) +\
+           connection_middle_sequence(irc_host, jid, fixed_irc_server=fixed_irc_server) +\
+           connection_end_sequence(irc_host, jid, fixed_irc_server=fixed_irc_server)
 
-def connection_tls_sequence(irc_host, jid):
-    return connection_tls_begin_sequence(irc_host, jid) + \
-           connection_middle_sequence(irc_host, jid) +\
-           connection_end_sequence(irc_host, jid)
+def connection_tls_sequence(irc_host, jid, fixed_irc_server=False):
+    return connection_tls_begin_sequence(irc_host, jid, fixed_irc_server) + \
+           connection_middle_sequence(irc_host, jid, fixed_irc_server) +\
+           connection_end_sequence(irc_host, jid, fixed_irc_server)
 
 
 def extract_attribute(xpath, name, stanza):
@@ -824,7 +839,7 @@ if __name__ == '__main__':
                      handshake_sequence(),
                      partial(send_stanza,
                      "<presence from='{jid_one}/{resource_one}' to='#zgeg@{biboumi_host}/{nick_one}' />"),
-                     connection_sequence("irc.localhost", '{jid_one}/{resource_one}'),
+                     connection_sequence("irc.localhost", '{jid_one}/{resource_one}', fixed_irc_server=True),
                      partial(expect_stanza,
                      "/message/body[text()='Mode #zgeg [+nt] by {irc_host_one}']"),
                      partial(expect_stanza,
@@ -1437,7 +1452,7 @@ if __name__ == '__main__':
                      handshake_sequence(),
                      partial(send_stanza,
                              "<presence from='{jid_one}/{resource_one}' to='#foo@{biboumi_host}/{nick_one}' />"),
-                     connection_sequence("irc.localhost", '{jid_one}/{resource_one}'),
+                     connection_sequence("irc.localhost", '{jid_one}/{resource_one}', fixed_irc_server=True),
                      partial(expect_stanza,
                              "/message/body[text()='Mode #foo [+nt] by {irc_host_one}']"),
                      partial(expect_stanza,
@@ -1933,7 +1948,7 @@ if __name__ == '__main__':
 
                      partial(send_stanza,
                              "<presence from='{jid_one}/{resource_one}' to='#foo@{biboumi_host}/{nick_one}' />"),
-                     connection_sequence("irc.localhost", '{jid_one}/{resource_one}'),
+                     connection_sequence("irc.localhost", '{jid_one}/{resource_one}', fixed_irc_server=True),
                      partial(expect_stanza,
                              "/message/body[text()='Mode #foo [+nt] by {irc_host_one}']"),
                      partial(expect_stanza,
@@ -2011,7 +2026,7 @@ if __name__ == '__main__':
                      # First user join
                      partial(send_stanza,
                              "<presence from='{jid_one}/{resource_one}' to='#foo@{biboumi_host}/{nick_one}' />"),
-                     connection_sequence("irc.localhost", '{jid_one}/{resource_one}'),
+                     connection_sequence("irc.localhost", '{jid_one}/{resource_one}', fixed_irc_server=True),
                      partial(expect_stanza,
                              "/message/body[text()='Mode #foo [+nt] by {irc_host_one}']"),
                      partial(expect_stanza,
@@ -2402,6 +2417,18 @@ if __name__ == '__main__':
                      partial(send_stanza, "<message from='{jid_one}/{resource_one}' to='{irc_server_one}' type='chat'><body>WHOIS {nick_one}</body></message>"),
                      partial(expect_stanza, "/message[@from='{irc_server_one}'][@type='chat']/body[text()='irc.localhost: {nick_one} ~{nick_one} localhost * {nick_one}']"),
                 ]),
+                Scenario("raw_message_fixed_irc_server",
+                [
+                     handshake_sequence(),
+                     partial(send_stanza, "<presence from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}/{nick_one}' />"),
+                     connection_sequence("irc.localhost", '{jid_one}/{resource_one}', fixed_irc_server=True),
+                     partial(expect_stanza, "/message"),
+                     partial(expect_stanza, "/presence"),
+                     partial(expect_stanza, "/message"),
+
+                     partial(send_stanza, "<message from='{jid_one}/{resource_one}' to='{biboumi_host}' type='chat'><body>WHOIS {nick_one}</body></message>"),
+                     partial(expect_stanza, "/message[@from='{biboumi_host}'][@type='chat']/body[text()='irc.localhost: {nick_one} ~{nick_one} localhost * {nick_one}']"),
+                ], conf='fixed_server'),
                 Scenario("self_disco_info",
                 [
                      handshake_sequence(),
@@ -2752,7 +2779,7 @@ if __name__ == '__main__':
 
                      partial(send_stanza,
                              "<presence from='{jid_one}/{resource_one}' to='#foo@{biboumi_host}/{nick_one}' />"),
-                     connection_sequence("irc.localhost", '{jid_one}/{resource_one}'),
+                     connection_sequence("irc.localhost", '{jid_one}/{resource_one}', fixed_irc_server=True),
                      partial(expect_stanza, "/message"),
                      partial(expect_stanza, "/presence"),
                      partial(expect_stanza, "/message"),
@@ -2827,7 +2854,7 @@ if __name__ == '__main__':
                              "<presence from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}/{nick_one}' />"),
 
                      # We must receive the IRC server presence, in the connection sequence
-                     connection_sequence("irc.localhost", '{jid_one}/{resource_one}', True),
+                     connection_sequence("irc.localhost", '{jid_one}/{resource_one}', expected_irc_presence=True),
                      partial(expect_stanza,
                              "/message/body[text()='Mode #foo [+nt] by {irc_host_one}']"),
                      partial(expect_stanza,

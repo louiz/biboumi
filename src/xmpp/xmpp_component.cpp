@@ -277,7 +277,12 @@ void XmppComponent::send_message(const std::string& from, Xmpp::body&& body, con
     if (fulljid)
       message["from"] = from;
     else
-      message["from"] = from + "@" + this->served_hostname;
+      {
+        if (!from.empty())
+          message["from"] = from + "@" + this->served_hostname;
+        else
+          message["from"] = this->served_hostname;
+      }
     if (!type.empty())
       message["type"] = type;
     XmlSubNode body_node(message, "body");

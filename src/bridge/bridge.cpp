@@ -932,7 +932,10 @@ void Bridge::send_xmpp_message(const std::string& from, const std::string& autho
   const auto encoding = in_encoding_for(*this, {from, this});
   for (const auto& resource: this->resources_in_server[from])
     {
-      this->xmpp.send_message(from, this->make_xmpp_body(body, encoding), this->user_jid + "/" + resource, "chat", false, false);
+      if (Config::get("fixed_irc_server", "").empty())
+        this->xmpp.send_message(from, this->make_xmpp_body(body, encoding), this->user_jid + "/" + resource, "chat", false, false);
+      else
+        this->xmpp.send_message("", this->make_xmpp_body(body, encoding), this->user_jid + "/" + resource, "chat", false, false);
     }
 }
 
@@ -947,7 +950,7 @@ void Bridge::send_user_join(const std::string& hostname, const std::string& chan
       const Iid iid(chan_name, hostname, Iid::Type::Channel);
       this->send_xmpp_invitation(iid, "");
     }
-    else
+  else
     {
       for (const auto& resource: resources)
         this->send_user_join(hostname, chan_name, user, user_mode, self, resource);
