@@ -2,6 +2,7 @@
 
 #include <bridge/result_set_management.hpp>
 #include <bridge/list_element.hpp>
+#include <bridge/history_limit.hpp>
 
 #include <irc/irc_message.hpp>
 #include <irc/irc_client.hpp>
@@ -74,7 +75,7 @@ public:
    * Try to join an irc_channel, does nothing and return true if the channel
    * was already joined.
    */
-  bool join_irc_channel(const Iid& iid, const std::string& nickname, const std::string& password, const std::string& resource);
+  bool join_irc_channel(const Iid& iid, const std::string& nickname, const std::string& password, const std::string& resource, HistoryLimit history_limit);
 
   void send_channel_message(const Iid& iid, const std::string& body);
   void send_private_message(const Iid& iid, const std::string& body, const std::string& type="PRIVMSG");
@@ -156,8 +157,8 @@ public:
   /**
    * Send the MUC history to the user
    */
-  void send_room_history(const std::string& hostname, const std::string& chan_name);
-  void send_room_history(const std::string& hostname, std::string chan_name, const std::string& resource);
+  void send_room_history(const std::string& hostname, const std::string& chan_name, const HistoryLimit& history_limit);
+  void send_room_history(const std::string& hostname, std::string chan_name, const std::string& resource, const HistoryLimit& history_limit);
   /**
    * Send a MUC message from some participant
    */

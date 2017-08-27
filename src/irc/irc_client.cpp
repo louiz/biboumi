@@ -784,7 +784,7 @@ void IrcClient::on_channel_completely_joined(const IrcMessage& message)
   channel->joined = true;
   this->bridge.send_user_join(this->hostname, chan_name, channel->get_self(),
                               channel->get_self()->get_most_significant_mode(this->sorted_user_modes), true);
-  this->bridge.send_room_history(this->hostname, chan_name);
+  this->bridge.send_room_history(this->hostname, chan_name, this->history_limit);
   this->bridge.send_topic(this->hostname, chan_name, channel->topic, channel->topic_author);
 }
 

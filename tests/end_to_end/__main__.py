@@ -1942,6 +1942,124 @@ if __name__ == '__main__':
                      partial(expect_stanza,
                              "/iq[@type='result'][@id='id8'][@from='#foo%{irc_server_one}'][@to='{jid_one}/{resource_one}']"),
                  ]),
+
+
+        Scenario("join_history_limits",
+                 [
+                     handshake_sequence(),
+                     partial(send_stanza,
+                             "<presence from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}/{nick_one}' />"),
+                     connection_sequence("irc.localhost", '{jid_one}/{resource_one}'),
+                     partial(expect_stanza,
+                             "/message/body[text()='Mode #foo [+nt] by {irc_host_one}']"),
+                     partial(expect_stanza,
+                             ("/presence[@to='{jid_one}/{resource_one}'][@from='#foo%{irc_server_one}/{nick_one}']/muc_user:x/muc_user:item[@affiliation='admin'][@role='moderator']",
+                              "/presence/muc_user:x/muc_user:status[@code='110']")
+                             ),
+                     partial(expect_stanza, "/message[@from='#foo%{irc_server_one}'][@type='groupchat']/subject[not(text())]"),
+
+                     # Send two channel messages
+                     partial(send_stanza, "<message from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}' type='groupchat'><body>coucou</body></message>"),
+                     partial(expect_stanza,
+                             ("/message[@from='#foo%{irc_server_one}/{nick_one}'][@to='{jid_one}/{resource_one}'][@type='groupchat']/body[text()='coucou']",
+                              "/message/stable_id:stanza-id[@by='#foo%{irc_server_one}'][@id]",)
+                             ),
+
+                     partial(send_stanza, "<message from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}' type='groupchat'><body>coucou 2</body></message>"),
+                     # Record the current time
+                     partial(expect_stanza, "/message[@from='#foo%{irc_server_one}/{nick_one}'][@to='{jid_one}/{resource_one}'][@type='groupchat']/body[text()='coucou 2']",
+                             after = partial(save_current_timestamp_plus_delta, "first_timestamp", datetime.timedelta(seconds=1))),
+
+                     # Wait two seconds before sending two new messages
+                     partial(sleep_for, 2),
+                     partial(send_stanza, "<message from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}' type='groupchat'><body>coucou 3</body></message>"),
+                     partial(send_stanza, "<message from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}' type='groupchat'><body>coucou 4</body></message>"),
+                     partial(expect_stanza, "/message[@type='groupchat']/body[text()='coucou 3']"),
+                     partial(expect_stanza, "/message[@type='groupchat']/body[text()='coucou 4']",
+                             after = partial(save_current_timestamp_plus_delta, "second_timestamp", datetime.timedelta(seconds=1))),
+
+                     # join the virtual channel, to stay connected to the server even after leaving #foo
+                     partial(send_stanza,
+                             "<presence from='{jid_one}/{resource_one}' to='%{irc_server_one}/{nick_one}' />"),
+                     partial(expect_stanza, "/presence/muc_user:x/muc_user:status[@code='110']"),
+                     partial(expect_stanza, "/message/subject"),
+
+                     # Leave #foo
+                     partial(send_stanza, "<presence from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}' type='unavailable' />"),
+                     partial(expect_stanza, "/presence[@type='unavailable']"),
+
+                     # Rejoin #foo, with some history limit
+                     partial(send_stanza,
+                             "<presence from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}/{nick_one}'><x xmlns='http://jabber.org/protocol/muc'><history maxchars='0'/></x></presence>"),
+                     partial(expect_stanza, "/message"),
+                     partial(expect_stanza, "/presence/muc_user:x/muc_user:status[@code='110']"),
+                     partial(expect_stanza, "/message/subject"),
+
+                     partial(send_stanza, "<presence from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}' type='unavailable' />"),
+                     partial(expect_stanza, "/presence[@type='unavailable']"),
+
+                     # Rejoin #foo, with some history limit
+                     partial(send_stanza,
+                             "<presence from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}/{nick_one}'><x xmlns='http://jabber.org/protocol/muc'><history maxstanzas='3'/></x></presence>"),
+                     partial(expect_stanza, "/message"),
+                     partial(expect_stanza, "/presence/muc_user:x/muc_user:status[@code='110']"),
+                     partial(expect_stanza,
+                              "/message[@from='#foo%{irc_server_one}/{nick_one}'][@type='groupchat']/body[text()='coucou 2']"),
+                     partial(expect_stanza,
+                              "/message[@from='#foo%{irc_server_one}/{nick_one}'][@type='groupchat']/body[text()='coucou 3']"),
+                     partial(expect_stanza,
+                              "/message[@from='#foo%{irc_server_one}/{nick_one}'][@type='groupchat']/body[text()='coucou 4']"),
+                     partial(expect_stanza, "/message/subject"),
+
+                     partial(send_stanza, "<presence from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}' type='unavailable' />"),
+                     partial(expect_stanza, "/presence[@type='unavailable']"),
+
+
+                     # Rejoin #foo, with some history limit
+                     partial(send_stanza,
+                             "<presence from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}/{nick_one}'><x xmlns='http://jabber.org/protocol/muc'><history since='{first_timestamp}'/></x></presence>"),
+                     partial(expect_stanza, "/message"),
+                     partial(expect_stanza, "/presence/muc_user:x/muc_user:status[@code='110']"),
+                     partial(expect_stanza,
+                              "/message[@from='#foo%{irc_server_one}/{nick_one}'][@type='groupchat']/body[text()='coucou 3']"),
+                     partial(expect_stanza,
+                              "/message[@from='#foo%{irc_server_one}/{nick_one}'][@type='groupchat']/body[text()='coucou 4']"),
+                     partial(expect_stanza, "/message/subject"),
+                     partial(send_stanza, "<presence from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}' type='unavailable' />"),
+                     partial(expect_stanza, "/presence[@type='unavailable']"),
+
+                     # Rejoin #foo, with some history limit
+                     partial(send_stanza,
+                             "<presence from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}/{nick_one}'><x xmlns='http://jabber.org/protocol/muc'><history seconds='1'/></x></presence>"),
+                     partial(expect_stanza, "/message"),
+                     partial(expect_stanza, "/presence/muc_user:x/muc_user:status[@code='110']"),
+                     partial(expect_stanza,
+                              "/message[@from='#foo%{irc_server_one}/{nick_one}'][@type='groupchat']/body[text()='coucou 3']"),
+                     partial(expect_stanza,
+                              "/message[@from='#foo%{irc_server_one}/{nick_one}'][@type='groupchat']/body[text()='coucou 4']"),
+                     partial(expect_stanza, "/message/subject"),
+                     partial(send_stanza, "<presence from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}' type='unavailable' />"),
+                     partial(expect_stanza, "/presence[@type='unavailable']"),
+
+                     # Rejoin #foo, with some history limit
+                     partial(send_stanza,
+                             "<presence from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}/{nick_one}'><x xmlns='http://jabber.org/protocol/muc'><history seconds='5'/></x></presence>"),
+                     partial(expect_stanza, "/message"),
+                     partial(expect_stanza, "/presence/muc_user:x/muc_user:status[@code='110']"),
+                     partial(expect_stanza,
+                              "/message[@from='#foo%{irc_server_one}/{nick_one}'][@type='groupchat']/body[text()='coucou']"),                     partial(expect_stanza,
+                              "/message[@from='#foo%{irc_server_one}/{nick_one}'][@type='groupchat']/body[text()='coucou 2']"),
+                     partial(expect_stanza,
+                              "/message[@from='#foo%{irc_server_one}/{nick_one}'][@type='groupchat']/body[text()='coucou 3']"),
+                     partial(expect_stanza,
+                              "/message[@from='#foo%{irc_server_one}/{nick_one}'][@type='groupchat']/body[text()='coucou 4']"),
+                     partial(expect_stanza, "/message/subject"),
+                     partial(send_stanza, "<presence from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}' type='unavailable' />"),
+                     partial(expect_stanza, "/presence[@type='unavailable']"),
+
+                 ]),
+
+
         Scenario("mam_on_fixed_server",
                  [
                      handshake_sequence(),

@@ -24,6 +24,7 @@
 
 #include <database/database.hpp>
 #include <bridge/result_set_management.hpp>
+#include <bridge/history_limit.hpp>
 
 using namespace std::string_literals;
 
@@ -155,8 +156,33 @@ void BiboumiComponent::handle_presence(const Stanza& stanza)
             bridge->send_irc_nick_change(iid, to.resource, from.resource);
           const XmlNode* x = stanza.get_child("x", MUC_NS);
           const XmlNode* password = x ? x->get_child("password", MUC_NS): nullptr;
+          const XmlNode* history = x ? x->get_child("history", MUC_NS): nullptr;
+          HistoryLimit history_limit;
+          if (history)
+            {
+              // TODO implement the "seconds"
+              const auto seconds = history->get_tag("seconds");
+              if (!seconds.empty())
+                {
+                  const auto now = std::chrono::system_clock::now();
+                  std::time_t timestamp = std::chrono::system_clock::to_time_t(now);
+                  int int_seconds = std::atoi(seconds.data());
+                  timestamp -= int_seconds;
+                  history_limit.since = utils::to_string(timestamp);
+                }
+              const auto since = history->get_tag("since");
+              if (!since.empty())
+                history_limit.since = since;
+              const auto maxstanzas = history->get_tag("maxstanzas");
+              if (!maxstanzas.empty())
+                history_limit.stanzas = std::atoi(maxstanzas.data());
+              // Ignore any other value, because this is too complex to implement,
+              // so I won’t do it.
+              if (history->get_tag("maxchars") == "0")
+                history_limit.stanzas = 0;
+            }
           bridge->join_irc_channel(iid, to.resource, password ? password->get_inner(): "",
-                                   from.resource);
+                                   from.resource, history_limit);
         }
       else if (type == "unavailable")
         {

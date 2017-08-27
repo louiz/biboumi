@@ -167,10 +167,11 @@ IrcClient* Bridge::find_irc_client(const std::string& hostname) const
 }
 
 bool Bridge::join_irc_channel(const Iid& iid, const std::string& nickname, const std::string& password,
-                              const std::string& resource)
+                              const std::string& resource, HistoryLimit history_limit)
 {
   const auto& hostname = iid.get_server();
   IrcClient* irc = this->make_irc_client(hostname, nickname);
+  irc->history_limit = history_limit;
   this->add_resource_to_server(hostname, resource);
   auto res_in_chan = this->is_resource_in_chan(ChannelKey{iid.get_local(), hostname}, resource);
   if (!res_in_chan)
@@ -993,17 +994,20 @@ void Bridge::send_topic(const std::string& hostname, const std::string& chan_nam
 
 }
 
-void Bridge::send_room_history(const std::string& hostname, const std::string& chan_name)
+void Bridge::send_room_history(const std::string& hostname, const std::string& chan_name, const HistoryLimit& history_limit)
 {
   for (const auto& resource: this->resources_in_chan[ChannelKey{chan_name, hostname}])
-    this->send_room_history(hostname, chan_name, resource);
+    this->send_room_history(hostname, chan_name, resource, history_limit);
 }
 
-void Bridge::send_room_history(const std::string& hostname, std::string chan_name, const std::string& resource)
+void Bridge::send_room_history(const std::string& hostname, std::string chan_name, const std::string& resource, const HistoryLimit& history_limit)
 {
 #ifdef USE_DATABASE
   const auto coptions = Database::get_irc_channel_options_with_server_and_global_default(this->user_jid, hostname, chan_name);
-  const auto lines = Database::get_muc_logs(this->user_jid, chan_name, hostname, coptions.col<Database::MaxHistoryLength>());
+  auto limit = coptions.col<Database::MaxHistoryLength>();
+  if (history_limit.stanzas >= 0 && history_limit.stanzas < limit)
+    limit = history_limit.stanzas;
+  const auto lines = Database::get_muc_logs(this->user_jid, chan_name, hostname, limit, history_limit.since);
   chan_name.append(utils::empty_if_fixed_server("%" + hostname));
   for (const auto& line: lines)
     {
@@ -1257,7 +1261,7 @@ void Bridge::generate_channel_join_for_resource(const Iid& iid, const std::strin
   this->send_user_join(iid.get_server(), iid.get_encoded_local(),
                        self, self->get_most_significant_mode(irc->get_sorted_user_modes()),
                        true, resource);
-  this->send_room_history(iid.get_server(), iid.get_local(), resource);
+  this->send_room_history(iid.get_server(), iid.get_local(), resource, irc->history_limit);
   this->send_topic(iid.get_server(), iid.get_encoded_local(), channel->topic, channel->topic_author, resource);
 }
 
