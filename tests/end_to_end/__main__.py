@@ -413,7 +413,11 @@ def connection_begin_sequence(irc_host, jid, expected_irc_presence=False, fixed_
         xpath_re = "/message[@to='" + jid + "'][@from='" + irc_host + "@biboumi.localhost']/body[re:test(text(), '%s')]"
     result = (
     partial(expect_stanza,
-            xpath % ('Connecting to %s:6697 (encrypted)' % irc_host)),
+            (xpath % ('Connecting to %s:6697 (encrypted)' % irc_host),
+            "/message/hints:no-copy",
+            "/message/carbon:private"
+            )
+           ),
     partial(expect_stanza,
             xpath % 'Connection failed: Connection refused'),
     partial(expect_stanza,
@@ -455,7 +459,11 @@ def connection_tls_begin_sequence(irc_host, jid, fixed_irc_server):
     irc_host = 'irc.localhost'
     return (
         partial(expect_stanza,
-                xpath % ('Connecting to %s:7778 (encrypted)' % irc_host)),
+                (xpath % ('Connecting to %s:7778 (encrypted)' % irc_host),
+                 "/message/hints:no-copy",
+                 "/message/carbon:private",
+                )
+               ),
         partial(expect_stanza,
                 xpath % 'Connected to IRC server (encrypted).'),
         # These five messages can be receive in any order

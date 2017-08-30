@@ -934,9 +934,9 @@ void Bridge::send_xmpp_message(const std::string& from, const std::string& autho
   for (const auto& resource: this->resources_in_server[from])
     {
       if (Config::get("fixed_irc_server", "").empty())
-        this->xmpp.send_message(from, this->make_xmpp_body(body, encoding), this->user_jid + "/" + resource, "chat", false, false);
+        this->xmpp.send_message(from, this->make_xmpp_body(body, encoding), this->user_jid + "/" + resource, "chat", false, true);
       else
-        this->xmpp.send_message("", this->make_xmpp_body(body, encoding), this->user_jid + "/" + resource, "chat", false, false);
+        this->xmpp.send_message("", this->make_xmpp_body(body, encoding), this->user_jid + "/" + resource, "chat", false, true);
     }
 }
 
