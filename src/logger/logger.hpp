@@ -11,6 +11,7 @@
 #include <memory>
 #include <iostream>
 #include <fstream>
+#include <sstream>
 
 #define debug_lvl 0
 #define info_lvl 1
@@ -19,7 +20,9 @@
 
 #include "biboumi.h"
 #ifdef SYSTEMD_FOUND
+#define SD_JOURNAL_SUPPRESS_LOCATION
 # include <systemd/sd-daemon.h>
+# include <systemd/sd-journal.h>
 #else
 # define SD_DEBUG    "[DEBUG]: "
 # define SD_INFO     "[INFO]: "
@@ -57,6 +60,15 @@ public:
   Logger(Logger&&) = delete;
   Logger& operator=(Logger&&) = delete;
 
+#ifdef SYSTEMD_FOUND
+  bool use_stdout() const
+  {
+    return this->stream.rdbuf() == std::cout.rdbuf();
+  }
+
+  bool use_systemd{false};
+#endif
+
 private:
   const int log_level;
   std::ofstream ofstream{};
@@ -65,8 +77,6 @@ private:
   NullBuffer null_buffer;
   std::ostream null_stream;
 };
-
-#define WHERE __FILENAME__, ":", __LINE__, ":\t"
 
 namespace logging_details
 {
@@ -84,45 +94,37 @@ namespace logging_details
   }
 
   template <typename... U>
-  void log_debug(U&&... args)
+  void do_logging(const int level, int syslog_level, const char* src_file, int line, U&&... args)
   {
-    auto& os = Logger::instance()->get_stream(debug_lvl);
-    os << SD_DEBUG;
-    log(os, std::forward<U>(args)...);
-  }
-
-  template <typename... U>
-  void log_info(U&&... args)
-  {
-    auto& os = Logger::instance()->get_stream(info_lvl);
-    os << SD_INFO;
-    log(os, std::forward<U>(args)...);
-  }
-
-  template <typename... U>
-  void log_warning(U&&... args)
-  {
-    auto& os = Logger::instance()->get_stream(warning_lvl);
-    os << SD_WARNING;
-    log(os, std::forward<U>(args)...);
-  }
-
-  template <typename... U>
-  void log_error(U&&... args)
-  {
-    auto& os = Logger::instance()->get_stream(error_lvl);
-    os << SD_ERR;
-    log(os, std::forward<U>(args)...);
+  #ifdef SYSTEMD_FOUND
+    if (Logger::instance()->use_systemd)
+      {
+        (void)level;
+        std::ostringstream os;
+        log(os, std::forward<U>(args)...);
+        sd_journal_send("MESSAGE=%s", os.str().data(),
+                        "PRIORITY=%i", syslog_level,
+                        "CODE_FILE=%s", src_file,
+                        "CODE_LINE=%i", line,
+                        nullptr);
+      }
+    else
+      {
+  #endif
+        static const char* priority_names[] = {"DEBUG", "INFO", "WARNING", "ERROR"};
+        auto& os = Logger::instance()->get_stream(level);
+        os << '[' << priority_names[level] << "]: " << src_file << ':' << line << ":\t";
+        log(os, std::forward<U>(args)...);
+#ifdef SYSTEMD_FOUND
+      }
+#endif
   }
 }
 
-#define log_info(...) logging_details::log_info(WHERE, __VA_ARGS__)
+#define log_debug(...) logging_details::do_logging(debug_lvl, LOG_DEBUG, __FILENAME__, __LINE__, __VA_ARGS__)
 
-#define log_warning(...) logging_details::log_warning(WHERE, __VA_ARGS__)
+#define log_info(...) logging_details::do_logging(info_lvl, LOG_INFO, __FILENAME__, __LINE__, __VA_ARGS__)
 
-#define log_error(...) logging_details::log_error(WHERE, __VA_ARGS__)
+#define log_warning(...) logging_details::do_logging(warning_lvl, LOG_WARNING, __FILENAME__, __LINE__, __VA_ARGS__)
 
-#define log_debug(...) logging_details::log_debug(WHERE, __VA_ARGS__)
-
-
-
+#define log_error(...) logging_details::do_logging(error_lvl, LOG_ERR, __FILENAME__, __LINE__, __VA_ARGS__)

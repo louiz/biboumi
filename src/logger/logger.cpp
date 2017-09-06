@@ -7,6 +7,10 @@ Logger::Logger(const int log_level):
   null_buffer{},
   null_stream{&null_buffer}
 {
+#ifdef SYSTEMD_FOUND
+  if (::getenv("JOURNAL_STREAM") != nullptr && this->use_stdout())
+    this->use_systemd = true;
+#endif
 }
 
 Logger::Logger(const int log_level, const std::string& log_file):
