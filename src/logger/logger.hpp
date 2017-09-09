@@ -28,6 +28,10 @@
 # define SD_INFO     "[INFO]: "
 # define SD_WARNING  "[WARNING]: "
 # define SD_ERR      "[ERROR]: "
+# define LOG_ERR 3
+# define LOG_WARNING 4
+# define LOG_INFO 6
+# define LOG_DEBUG 7
 #endif
 
 // Macro defined to get the filename instead of the full path. But if it is
@@ -111,6 +115,7 @@ namespace logging_details
     else
       {
   #endif
+        (void)syslog_level;
         static const char* priority_names[] = {"DEBUG", "INFO", "WARNING", "ERROR"};
         auto& os = Logger::instance()->get_stream(level);
         os << '[' << priority_names[level] << "]: " << src_file << ':' << line << ":\t";
