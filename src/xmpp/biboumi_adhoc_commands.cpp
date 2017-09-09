@@ -159,7 +159,7 @@ void ConfigureGlobalStep1(XmppComponent&, AdhocSession& session, XmlNode& comman
     {
       XmlSubNode value(persistent, "value");
       value.set_name("value");
-      if (options.col<Database::Persistent>())
+      if (options.col<Database::GlobalPersistent>())
         value.set_inner("true");
       else
         value.set_inner("false");
@@ -193,7 +193,7 @@ void ConfigureGlobalStep2(XmppComponent& xmpp_component, AdhocSession& session, 
             }
           else if (field->get_tag("var") == "persistent" &&
                    value)
-            options.col<Database::Persistent>() = to_bool(value->get_inner());
+            options.col<Database::GlobalPersistent>() = to_bool(value->get_inner());
         }
 
       options.save(Database::db);

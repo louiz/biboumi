@@ -15,6 +15,9 @@ Version 6.0
    supported.
  - Invitations can now be sent to any JID, not only JIDs served by the biboumi
    instance itself.
+ - The persistent_by_default configuration option has been added, this
+   lets the administrator decide whether or not the rooms should be
+   persistent or not by default, for all users.
 
 Version 5.0 - 2017-05-24
 ========================

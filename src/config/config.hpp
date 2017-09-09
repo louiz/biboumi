@@ -44,6 +44,7 @@ public:
    * the second argument as the default.
    */
   static int get_int(const std::string&, const int&);
+  static bool get_bool(const std::string&, const bool);
   /**
    * Set a value for the given option. And write all the config
    * in the file from which it was read if save is true.

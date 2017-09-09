@@ -377,7 +377,15 @@ port=8811
 fixed_irc_server=irc.localhost
 admin=admin@example.com
 identd_port=1113
-"""}
+""",
+
+'persistent_by_default':
+"""hostname=biboumi.localhost
+password=coucou
+db_name=e2e_test.sqlite
+port=8811
+persistent_by_default=true
+""",}
 
 common_replacements = {
     'irc_server_one': 'irc.localhost@biboumi.localhost',
@@ -2650,6 +2658,7 @@ if __name__ == '__main__':
                                             "/iq/commands:command/dataform:x[@type='form']/dataform:instructions[text()='Edit the form, to configure your global settings for the component.']",
                                             "/iq/commands:command/dataform:x[@type='form']/dataform:field[@type='text-single'][@var='max_history_length']/dataform:value[text()='20']",
                                             "/iq/commands:command/dataform:x[@type='form']/dataform:field[@type='boolean'][@var='record_history']/dataform:value[text()='true']",
+                                            "/iq/commands:command/dataform:x[@type='form']/dataform:field[@type='boolean'][@var='persistent']/dataform:value[text()='false']",
                                             "/iq/commands:command/commands:actions/commands:next",
                                             ),
                             after = partial(save_value, "sessionid", partial(extract_attribute, "/iq[@type='result']/commands:command[@node='configure']", "sessionid"))
@@ -2671,6 +2680,20 @@ if __name__ == '__main__':
                     partial(send_stanza, "<iq type='set' id='id4' from='{jid_one}/{resource_one}' to='{biboumi_host}'><command xmlns='http://jabber.org/protocol/commands' action='cancel' node='configure' sessionid='{sessionid}' /></iq>"),
                     partial(expect_stanza, "/iq[@type='result']/commands:command[@node='configure'][@status='canceled']"),
                 ]),
+         Scenario("global_configure_persistent_by_default",
+                [
+                    handshake_sequence(),
+                    partial(send_stanza, "<iq type='set' id='id1' from='{jid_one}/{resource_one}' to='{biboumi_host}'><command xmlns='http://jabber.org/protocol/commands' node='configure' action='execute' /></iq>"),
+                    partial(expect_stanza, ("/iq[@type='result']/commands:command[@node='configure'][@sessionid][@status='executing']",
+                                            "/iq/commands:command/dataform:x[@type='form']/dataform:title[text()='Configure some global default settings.']",
+                                            "/iq/commands:command/dataform:x[@type='form']/dataform:instructions[text()='Edit the form, to configure your global settings for the component.']",
+                                            "/iq/commands:command/dataform:x[@type='form']/dataform:field[@type='text-single'][@var='max_history_length']/dataform:value[text()='20']",
+                                            "/iq/commands:command/dataform:x[@type='form']/dataform:field[@type='boolean'][@var='record_history']/dataform:value[text()='true']",
+                                            "/iq/commands:command/dataform:x[@type='form']/dataform:field[@type='boolean'][@var='persistent']/dataform:value[text()='true']",
+                                            "/iq/commands:command/commands:actions/commands:next",
+                                            ),
+                    ),
+                ],conf='persistent_by_default'),
         Scenario("irc_server_configure",
                  [
                      handshake_sequence(),

@@ -73,6 +73,9 @@ class Database
   struct Persistent: Column<bool> { static constexpr auto name = "persistent_";
     Persistent(): Column<bool>(false) {} };
 
+  struct GlobalPersistent: Column<bool> { static constexpr auto name = "persistent_";
+    GlobalPersistent(); };
+
   struct LocalJid: Column<std::string> { static constexpr auto name = "local"; };
 
   struct RemoteJid: Column<std::string> { static constexpr auto name = "remote"; };
@@ -81,7 +84,7 @@ class Database
   using MucLogLineTable = Table<Id, Uuid, Owner, IrcChanName, IrcServerName, Date, Body, Nick>;
   using MucLogLine = MucLogLineTable::RowType;
 
-  using GlobalOptionsTable = Table<Id, Owner, MaxHistoryLength, RecordHistory, Persistent>;
+  using GlobalOptionsTable = Table<Id, Owner, MaxHistoryLength, RecordHistory, GlobalPersistent>;
   using GlobalOptions = GlobalOptionsTable::RowType;
 
   using IrcServerOptionsTable = Table<Id, Owner, Server, Pass, AfterConnectionCommand, TlsPorts, Ports, Username, Realname, VerifyCert, TrustedFingerprint, EncodingOut, EncodingIn, MaxHistoryLength>;

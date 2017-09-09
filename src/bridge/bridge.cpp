@@ -435,7 +435,7 @@ void Bridge::leave_irc_channel(Iid&& iid, const std::string& status_message, con
       bool persistent = false;
 #ifdef USE_DATABASE
       const auto goptions = Database::get_global_options(this->user_jid);
-      if (goptions.col<Database::Persistent>())
+      if (goptions.col<Database::GlobalPersistent>())
         persistent = true;
       else
         {

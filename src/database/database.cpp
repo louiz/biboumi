@@ -6,6 +6,8 @@
 #include <utils/get_first_non_empty.hpp>
 #include <utils/time.hpp>
 
+#include <config/config.hpp>
+
 #include <database/index.hpp>
 
 #include <sqlite3.h>
@@ -18,6 +20,9 @@ Database::IrcChannelOptionsTable Database::irc_channel_options("IrcChannelOption
 Database::RosterTable Database::roster("roster");
 std::map<Database::CacheKey, Database::EncodingIn::real_type> Database::encoding_in_cache{};
 
+Database::GlobalPersistent::GlobalPersistent():
+    Column<bool>{Config::get_bool("persistent_by_default", false)}
+{}
 
 void Database::open(const std::string& filename)
 {

@@ -100,6 +100,21 @@ be used by an administrator that just wants to let their users join their own
 IRC server using an XMPP client, while forbidding access to any other IRC
 server.
 
+persistent_by_default
+---------------------
+
+If this option is set to `true`, all rooms will be persistent by default:
+the value of the “persistent” option in the global configuration of each
+user will be “true”, but the value of each individual room will still
+default to false. This means that a user just needs to change the global
+“persistent” configuration option to false in order to override this.
+
+If it is set to false (the default value), all rooms are not persistent by
+default.
+
+Each room can be configured individually by each user, to override this
+default value. See `Ad-hoc commands`_.
+
 realname_customization
 ----------------------
 
@@ -595,10 +610,13 @@ On the gateway itself (e.g on the JID biboumi.example.com):
       the database.
     * Max history length: The maximum number of lines in the history
       that the server is allowed to send when joining a channel.
-    * Persistent: Overrides the value specified in each individual channel,
-      all channels are persistent, whether or not their specific value is
-      true or false. See below for more details on what a persistent
-      channel is.
+
+    * Persistent: Overrides the value specified in each individual channel.
+      If this option is set to true, all channels are persistent, whether
+      or not their specific value is true or false. This option is true by
+      default for everyone if the `persistent_by_default` configuration
+      option is true, otherwise it’s false. See below for more details on
+      what a persistent channel is. This value is
 
 On a server JID (e.g on the JID chat.freenode.org@biboumi.example.com)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
