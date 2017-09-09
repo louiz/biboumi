@@ -29,7 +29,7 @@ Available command line options:
 config_filename
 ---------------
 
-Specify the file to read for configuration. See *CONFIG* section for more
+Specify the file to read for configuration. See the `Configuration`_ section for more
 details on its content.
 
 Configuration
@@ -283,7 +283,7 @@ ISUPPORT extension) then it’s a channel name, otherwise this is a nickname.
 
 As a special case, the channel name can also be empty (for example
 ``%irc.example.com``), in that case this represents the virtual channel
-provided by biboumi.  See *Connect to an IRC server* for more details.
+provided by biboumi.  See `Connect to an IRC server`_ for more details.
 
 There is two ways to address an IRC user, using a local part like this:
 ``nickname`` % ``irc_server`` or by using the in-room address of the
@@ -377,7 +377,7 @@ IRC server JID
 --------------
 
 These presence will appear online in the user’s roster whenever they are
-connected to that IRC server (see *Connect to an IRC server* for more
+connected to that IRC server (see `Connect to an IRC server`_ for more
 details). This is useful to keep track of which server an user is connected
 to: this is sometimes hard to remember, when they have many clients, or if
 they are using persistent channels.
@@ -396,7 +396,7 @@ History
 -------
 
 Public channel messages are saved into archives, inside the database, unless
-the `record_history` option is set to false by that user (see `Ad-hoc commands`).
+the `record_history` option is set to false by that user (see `Ad-hoc commands`_).
 Private messages (messages that are sent directly to a nickname, not a
 channel) are never stored in the database.
 
@@ -702,7 +702,7 @@ Raw IRC messages
 Biboumi tries to support as many IRC features as possible, but doesn’t
 handle everything yet (or ever).  In order to let the user send any
 arbitrary IRC message, biboumi forwards any XMPP message received on an IRC
-Server JID (see *ADDRESSING*) as a raw command to that IRC server.
+Server JID (see `Addressing`_) as a raw command to that IRC server.
 
 For example, to WHOIS the user Foo on the server irc.example.com, a user can
 send the message “WHOIS Foo” to ``irc.example.com@biboumi.example.com``.
