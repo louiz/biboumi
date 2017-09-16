@@ -9,15 +9,17 @@ Version 6.0
  - The RecordHistory option can now also be configured for each IRC channel,
    individually.
  - Add a global option to make all channels persistent.
- - Status code='332' is sent with the unavailable presences when biboumi is
+ - The persistent_by_default configuration option has been added, this
+   lets the administrator decide whether or not the rooms should be
+   persistent or not by default, for all users.
+- Status code='332' is sent with the unavailable presences when biboumi is
    being shutdown or the connection to the IRC server is cut unexpectedly.
  - Support for botan version 1.11.x has been dropped, only version 2.x is
    supported.
  - Invitations can now be sent to any JID, not only JIDs served by the biboumi
    instance itself.
- - The persistent_by_default configuration option has been added, this
-   lets the administrator decide whether or not the rooms should be
-   persistent or not by default, for all users.
+ - The history limits sent by the client when they request to join a
+   channel is now supported.
 
 Version 5.0 - 2017-05-24
 ========================
