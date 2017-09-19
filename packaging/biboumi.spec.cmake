@@ -61,11 +61,8 @@ make check %{?_smp_mflags}
 
 
 %changelog
-* ${RPM_DATE} Le Coz Florent <louiz@louiz.org> - ${RPM_VERSION}-1
-- Build latest git revision
-
-* Wed Jun 14 2017 Le Coz Florent <louiz@louiz.org> - 6.0-1
-  Enable database support by building with sqlite3
+* Tue Sep 19 2017 Le Coz Florent <louiz@louiz.org> - 6.0-1
+  Update to version 6.0
 
 * Wed May 24 2017 Le Coz Florent <louiz@louiz.org> - 5.0-1
 - Update to version 5.0
