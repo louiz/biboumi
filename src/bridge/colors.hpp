@@ -6,19 +6,11 @@
  * vice versa.
  */
 
+#include <xmpp/body.hpp>
+
 #include <string>
 #include <memory>
 #include <tuple>
-
-class XmlNode;
-
-namespace Xmpp
-{
-// Contains:
-// - an XMPP-valid UTF-8 body
-// - an XML node representing the XHTML-IM body, or null
-  using body = std::tuple<const std::string, std::unique_ptr<XmlNode>>;
-}
 
 #define IRC_FORMAT_BOLD_CHAR       '\x02' // done
 #define IRC_FORMAT_COLOR_CHAR      '\x03' // done

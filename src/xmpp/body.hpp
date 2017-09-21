@@ -1,5 +1,9 @@
 #pragma once
 
+#include <tuple>
+#include <memory>
+
+class XmlNode;
 
 namespace Xmpp
 {
