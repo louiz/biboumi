@@ -35,7 +35,7 @@ void Database::open(const std::string& filename)
   if (res != SQLITE_OK)
     {
       log_error("Failed to open database file ", filename, ": ", sqlite3_errmsg(new_db));
-      sqlite3_close_v2(new_db);
+      sqlite3_close(new_db);
       throw std::runtime_error("");
     }
   Database::db = new_db;
@@ -238,7 +238,7 @@ std::vector<Database::RosterItem> Database::get_full_roster()
 
 void Database::close()
 {
-  sqlite3_close_v2(Database::db);
+  sqlite3_close(Database::db);
   Database::db = nullptr;
 }
 
