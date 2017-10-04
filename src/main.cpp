@@ -6,6 +6,8 @@
 #include <utils/xdg.hpp>
 #include <utils/reload.hpp>
 
+#include <libpq-fe.h>
+
 #ifdef UDNS_FOUND
 # include <network/dns_handler.hpp>
 #endif
