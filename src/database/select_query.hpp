@@ -1,5 +1,7 @@
 #pragma once
 
+#include <database/engine.hpp>
+
 #include <database/statement.hpp>
 #include <database/query.hpp>
 #include <logger/logger.hpp>
@@ -18,24 +20,21 @@ template <typename T>
 typename std::enable_if<std::is_integral<T>::value, sqlite3_int64>::type
 extract_row_value(Statement& statement, const int i)
 {
-  return sqlite3_column_int64(statement.get(), i);
+  return statement.get_column_int64(i);
 }
 
 template <typename T>
 typename std::enable_if<std::is_same<std::string, T>::value, T>::type
 extract_row_value(Statement& statement, const int i)
 {
-  const auto size = sqlite3_column_bytes(statement.get(), i);
-  const unsigned char* str = sqlite3_column_text(statement.get(), i);
-  std::string result(reinterpret_cast<const char*>(str), static_cast<std::size_t>(size));
-  return result;
+  return statement.get_column_text(i);
 }
 
 template <typename T>
 typename std::enable_if<std::is_same<OptionalBool, T>::value, T>::type
 extract_row_value(Statement& statement, const int i)
 {
-  const auto integer = sqlite3_column_int(statement.get(), i);
+  const auto integer = statement.get_column_int(i);
   OptionalBool result;
   if (integer > 0)
     result.set_value(true);
@@ -109,16 +108,21 @@ struct SelectQuery: public Query
       return *this;
     }
 
-    auto execute(sqlite3* db)
+    auto execute(DatabaseEngine& db)
     {
-      auto statement = this->prepare(db);
       std::vector<Row<T...>> rows;
-      while (sqlite3_step(statement.get()) == SQLITE_ROW)
+
+      auto statement = db.prepare(this->body);
+      statement->bind(std::move(this->params));
+
+      while (statement->step() == StepResult::Row)
         {
+          log_debug("one result.");
           Row<T...> row(this->table_name);
-          extract_row_values(row, statement);
+          extract_row_values(row, *statement);
           rows.push_back(row);
         }
+
       return rows;
     }
 

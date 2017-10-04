@@ -20,7 +20,7 @@ struct OptionalBool
     this->is_set = false;
   }
 
-  std::string to_string()
+  std::string to_string() const
   {
     if (this->is_set == false)
       return "unset";
@@ -33,3 +33,5 @@ struct OptionalBool
   bool is_set{false};
   bool value{false};
 };
+
+std::ostream& operator<<(std::ostream& os, const OptionalBool& o);

@@ -130,6 +130,12 @@ elseif(NOT WITHOUT_SQLITE3)
   find_package(SQLITE3)
 endif()
 
+if(WITH_POSTGRESQL)
+  find_package(PQ REQUIRED)
+elseif(NOT WITHOUT_POSTGRESQL)
+  find_package(PQ)
+endif()
+
 #
 ## Set all the include directories, depending on what libraries are used
 #
@@ -193,6 +199,7 @@ if(SQLITE3_FOUND)
   add_library(database OBJECT ${source_database})
 
   include_directories(database ${SQLITE3_INCLUDE_DIRS})
+  include_directories(database ${PQ_INCLUDE_DIRS})
   set(USE_DATABASE TRUE)
 else()
   add_library(database OBJECT "")
@@ -261,7 +268,9 @@ if(LIBIDN_FOUND)
 endif()
 if(USE_DATABASE)
   target_link_libraries(${PROJECT_NAME} ${SQLITE3_LIBRARIES})
+  target_link_libraries(${PROJECT_NAME} ${PQ_LIBRARIES})
   target_link_libraries(test_suite ${SQLITE3_LIBRARIES})
+  target_link_libraries(test_suite ${PQ_LIBRARIES})
 endif()
 
 # Define a __FILENAME__ macro with the relative path (from the base project directory)

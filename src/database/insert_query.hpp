@@ -12,62 +12,63 @@
 
 #include <sqlite3.h>
 
-template <int N, typename ColumnType, typename... T>
-typename std::enable_if<!std::is_same<std::decay_t<ColumnType>, Id>::value, void>::type
-actual_bind(Statement& statement, std::vector<std::string>& params, const std::tuple<T...>&)
+template <std::size_t N=0, typename... T>
+typename std::enable_if<N < sizeof...(T), void>::type
+update_autoincrement_id(std::tuple<T...>& columns, Statement& statement)
 {
-  const auto value = params.front();
-  params.erase(params.begin());
-  if (sqlite3_bind_text(statement.get(), N + 1, value.data(), static_cast<int>(value.size()), SQLITE_TRANSIENT) != SQLITE_OK)
-    log_error("Failed to bind ", value, " to param ", N);
+  using ColumnType = typename std::decay<decltype(std::get<N>(columns))>::type;
+  if (std::is_same<ColumnType, Id>::value)
+    {
+      log_debug("EXTRACTING LAST ID");
+      auto&& column = std::get<Id>(columns);
+    }
+  update_autoincrement_id<N+1>(columns, statement);
 }
 
-template <int N, typename ColumnType, typename... T>
-typename std::enable_if<std::is_same<std::decay_t<ColumnType>, Id>::value, void>::type
-actual_bind(Statement& statement, std::vector<std::string>&, const std::tuple<T...>& columns)
-{
-  auto&& column = std::get<Id>(columns);
-  if (column.value != 0)
-    {
-      if (sqlite3_bind_int64(statement.get(), N + 1, static_cast<sqlite3_int64>(column.value)) != SQLITE_OK)
-        log_error("Failed to bind ", column.value, " to id.");
-    }
-  else if (sqlite3_bind_null(statement.get(), N + 1) != SQLITE_OK)
-    log_error("Failed to bind NULL to param ", N);
-}
+template <std::size_t N=0, typename... T>
+typename std::enable_if<N == sizeof...(T), void>::type
+update_autoincrement_id(std::tuple<T...>&, Statement& statement)
+{}
 
 struct InsertQuery: public Query
 {
-  InsertQuery(const std::string& name):
-      Query("INSERT OR REPLACE INTO ")
+  template <typename... T>
+  InsertQuery(const std::string& name, const std::tuple<T...>& columns):
+      Query("INSERT INTO ")
   {
     this->body += name;
+    this->insert_col_names(columns);
+    this->insert_values(columns);
   }
 
   template <typename... T>
-  void execute(const std::tuple<T...>& columns, sqlite3* db)
+  void execute(DatabaseEngine& db, std::tuple<T...>& columns)
   {
-    auto statement = this->prepare(db);
-    {
-      this->bind_param(columns, statement);
-      if (sqlite3_step(statement.get()) != SQLITE_DONE)
-        log_error("Failed to execute query: ", sqlite3_errmsg(db));
-    }
+    auto statement = db.prepare(this->body);
+    this->bind_param(columns, *statement);
+
+    if (statement->step() != StepResult::Error)
+      db.extract_last_insert_rowid(*statement);
+    else
+      log_error("Failed to extract the rowid from the last INSERT");
   }
 
   template <int N=0, typename... T>
   typename std::enable_if<N < sizeof...(T), void>::type
-  bind_param(const std::tuple<T...>& columns, Statement& statement)
+  bind_param(const std::tuple<T...>& columns, Statement& statement, int index=1)
   {
-    using ColumnType = typename std::remove_reference<decltype(std::get<N>(columns))>::type;
+    auto&& column = std::get<N>(columns);
+    using ColumnType = std::decay_t<decltype(column)>;
 
-    actual_bind<N, ColumnType>(statement, this->params, columns);
-    this->bind_param<N+1>(columns, statement);
+    if (!std::is_same<ColumnType, Id>::value)
+      actual_bind(statement, column.value, index++);
+
+    this->bind_param<N+1>(columns, statement, index);
   }
 
   template <int N=0, typename... T>
   typename std::enable_if<N == sizeof...(T), void>::type
-  bind_param(const std::tuple<T...>&, Statement&)
+  bind_param(const std::tuple<T...>&, Statement&, int)
   {}
 
   template <typename... T>
@@ -80,18 +81,21 @@ struct InsertQuery: public Query
 
   template <int N=0, typename... T>
   typename std::enable_if<N < sizeof...(T), void>::type
-  insert_value(const std::tuple<T...>& columns)
+  insert_value(const std::tuple<T...>& columns, int index=1)
   {
-    this->body += "?";
-    if (N != sizeof...(T) - 1)
-      this->body += ",";
-    this->body += " ";
-    add_param(*this, std::get<N>(columns));
-    this->insert_value<N+1>(columns);
+    using ColumnType = std::decay_t<decltype(std::get<N>(columns))>;
+
+    if (!std::is_same<ColumnType, Id>::value)
+      {
+        this->body += "$" + std::to_string(index++);
+        if (N != sizeof...(T) - 1)
+          this->body += ", ";
+      }
+    this->insert_value<N+1>(columns, index);
   }
   template <int N=0, typename... T>
   typename std::enable_if<N == sizeof...(T), void>::type
-  insert_value(const std::tuple<T...>&)
+  insert_value(const std::tuple<T...>&, const int)
   { }
 
   template <typename... T>
@@ -99,27 +103,28 @@ struct InsertQuery: public Query
   {
     this->body += " (";
     this->insert_col_name(columns);
-    this->body += ")\n";
+    this->body += ")";
   }
 
   template <int N=0, typename... T>
   typename std::enable_if<N < sizeof...(T), void>::type
   insert_col_name(const std::tuple<T...>& columns)
   {
-    using ColumnType = typename std::remove_reference<decltype(std::get<N>(columns))>::type;
+    using ColumnType = std::decay_t<decltype(std::get<N>(columns))>;
 
-    this->body += ColumnType::name;
+    if (!std::is_same<ColumnType, Id>::value)
+      {
+        this->body += ColumnType::name;
 
-    if (N < (sizeof...(T) - 1))
-      this->body += ", ";
+        if (N < (sizeof...(T) - 1))
+          this->body += ", ";
+      }
 
     this->insert_col_name<N+1>(columns);
   }
+
   template <int N=0, typename... T>
   typename std::enable_if<N == sizeof...(T), void>::type
   insert_col_name(const std::tuple<T...>&)
   {}
-
-
- private:
 };

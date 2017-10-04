@@ -32,10 +32,12 @@ libiconv_
 libuuid_
  Generate unique IDs
 
-sqlite3_ (option, but highly recommended)
- Provides a way to store various options in a (sqlite3) database. Each user
- of the gateway can store their own values (for example their prefered port,
- or their IRC password). Without this dependency, many interesting features
+sqlite3_
+or
+libpq_
+ Provides a way to store various options in a database. Each user of the
+ gateway can store their own values (for example their prefered port, or
+ their IRC password). Without this dependency, many interesting features
  are missing.
 
 libidn_ (optional, but recommended)
@@ -165,3 +167,4 @@ to use biboumi.
 .. _systemd: https://www.freedesktop.org/wiki/Software/systemd/
 .. _biboumi.1.rst: doc/biboumi.1.rst
 .. _gcrypt: https://www.gnu.org/software/libgcrypt/
+.. _libpq: https://www.postgresql.org/docs/current/static/libpq.html

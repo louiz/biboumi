@@ -7,13 +7,25 @@
 TEST_CASE("Database")
 {
 #ifdef USE_DATABASE
+//  Database::open("postgresql://test");
   Database::open(":memory:");
+  Database::raw_exec("DELETE FROM " + Database::irc_server_options.get_name());
+  Database::raw_exec("DELETE FROM " + Database::irc_channel_options.get_name());
 
   SECTION("Basic retrieve and update")
     {
       auto o = Database::get_irc_server_options("zouzou@example.com", "irc.example.com");
+      CHECK(Database::count(Database::irc_server_options) == 0);
       o.save(Database::db);
+      CHECK(Database::count(Database::irc_server_options) == 1);
+      o.col<Database::Realname>() = "Different realname";
+      CHECK(o.col<Database::Realname>() == "Different realname");
+      o.save(Database::db);
+      CHECK(o.col<Database::Realname>() == "Different realname");
+      CHECK(Database::count(Database::irc_server_options) == 1);
+
       auto a = Database::get_irc_server_options("zouzou@example.com", "irc.example.com");
+      CHECK(a.col<Database::Realname>() == "Different realname");
       auto b = Database::get_irc_server_options("moumou@example.com", "irc.example.com");
 
       // b does not yet exist in the db, the object is created but not yet
@@ -28,7 +40,6 @@ TEST_CASE("Database")
 
   SECTION("channel options")
     {
-      Config::set("db_name", ":memory:");
       auto o = Database::get_irc_channel_options("zouzou@example.com", "irc.example.com", "#foo");
 
       CHECK(o.col<Database::EncodingIn>() == "");

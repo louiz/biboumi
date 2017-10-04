@@ -1,6 +1,6 @@
 #pragma once
 
-#include <sqlite3.h>
+#include <database/engine.hpp>
 
 #include <string>
 #include <tuple>
@@ -25,18 +25,14 @@ add_column_name(std::string& out)
 }
 
 template <typename... Columns>
-void create_index(sqlite3* db, const std::string& name, const std::string& table)
+void create_index(DatabaseEngine& db, const std::string& name, const std::string& table)
 {
-  std::string res{"CREATE INDEX IF NOT EXISTS "};
-  res += name + " ON " + table + "(";
-  add_column_name<0, Columns...>(res);
-  res += ")";
+  std::string query{"CREATE INDEX IF NOT EXISTS "};
+  query += name + " ON " + table + "(";
+  add_column_name<0, Columns...>(query);
+  query += ")";
 
-  char* error;
-  const auto result = sqlite3_exec(db, res.data(), nullptr, nullptr, &error);
-  if (result != SQLITE_OK)
-    {
-      log_error("Error executing query: ", error);
-      sqlite3_free(error);
-    }
+  auto result = db.raw_exec(query);
+  if (std::get<0>(result) == false)
+    log_error("Error executing query: ", std::get<1>(result));
 }
