@@ -5,6 +5,7 @@
 #include <network/credentials_manager.hpp>
 #include <logger/logger.hpp>
 #include <botan/tls_exceptn.h>
+#include <botan/data_src.h>
 #include <config/config.hpp>
 
 /**
