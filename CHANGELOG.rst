@@ -1,3 +1,10 @@
+Version 6.1
+===========
+
+ - Fix compilation with botan 2.3
+ - Fix compilation with very old distributions (such as debian wheezy or
+   centos 6) that ship antique softwares (sqlite3 < 3.7.14)
+
 Version 6.0 - 2017-09-17
 ========================
 
