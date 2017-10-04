@@ -1,72 +1,73 @@
 #pragma once
 
 #include <database/insert_query.hpp>
+#include <database/update_query.hpp>
 #include <logger/logger.hpp>
+
+#include <utils/is_one_of.hpp>
 
 #include <type_traits>
 
 #include <sqlite3.h>
 
-template <typename ColumnType, typename... T>
-typename std::enable_if<!std::is_same<std::decay_t<ColumnType>, Id>::value, void>::type
-update_id(std::tuple<T...>&, sqlite3*)
-{}
-
-template <typename ColumnType, typename... T>
-typename std::enable_if<std::is_same<std::decay_t<ColumnType>, Id>::value, void>::type
-update_id(std::tuple<T...>& columns, sqlite3* db)
-{
-  auto&& column = std::get<ColumnType>(columns);
-  auto res = sqlite3_last_insert_rowid(db);
-  column.value = static_cast<Id::real_type>(res);
-}
-
-template <std::size_t N=0, typename... T>
-typename std::enable_if<N < sizeof...(T), void>::type
-update_autoincrement_id(std::tuple<T...>& columns, sqlite3* db)
-{
-  using ColumnType = typename std::remove_reference<decltype(std::get<N>(columns))>::type;
-  update_id<ColumnType>(columns, db);
-  update_autoincrement_id<N+1>(columns, db);
-}
-
-template <std::size_t N=0, typename... T>
-typename std::enable_if<N == sizeof...(T), void>::type
-update_autoincrement_id(std::tuple<T...>&, sqlite3*)
-{}
-
 template <typename... T>
 struct Row
 {
-    Row(std::string name):
-    table_name(std::move(name))
-    {}
+  Row(std::string name):
+      table_name(std::move(name))
+  {}
 
-    template <typename Type>
-    typename Type::real_type& col()
-    {
-      auto&& col = std::get<Type>(this->columns);
-      return col.value;
-    }
+  template <typename Type>
+  typename Type::real_type& col()
+  {
+    auto&& col = std::get<Type>(this->columns);
+    return col.value;
+  }
 
-    template <typename Type>
-    const auto& col() const
-    {
-      auto&& col = std::get<Type>(this->columns);
-      return col.value;
-    }
+  template <typename Type>
+  const auto& col() const
+  {
+    auto&& col = std::get<Type>(this->columns);
+    return col.value;
+  }
 
-    void save(sqlite3* db)
-    {
-      InsertQuery query(this->table_name);
-      query.insert_col_names(this->columns);
-      query.insert_values(this->columns);
+  template <bool Coucou=true>
+  void save(std::unique_ptr<DatabaseEngine>& db,  typename std::enable_if<!is_one_of<Id, T...> && Coucou>::type* = nullptr)
+  {
+    this->insert(*db);
+  }
 
-      query.execute(this->columns, db);
+  template <bool Coucou=true>
+  void save(std::unique_ptr<DatabaseEngine>& db,  typename std::enable_if<is_one_of<Id, T...> && Coucou>::type* = nullptr)
+  {
+    const Id& id = std::get<Id>(this->columns);
+    if (id.value == Id::unset_value)
+      {
+        this->insert(*db);
+        std::get<Id>(this->columns).value = db->last_inserted_rowid;
+      }
+    else
+      this->update(*db);
+  }
 
-      update_autoincrement_id(this->columns, db);
-    }
+ private:
+  void insert(DatabaseEngine& db)
+  {
+    InsertQuery query(this->table_name, this->columns);
+    // Ugly workaround for non portable stuff
+    query.body += db.get_returning_id_sql_string(Id::name);
+    query.execute(db, this->columns);
+  }
 
-    std::tuple<T...> columns;
-    std::string table_name;
+  void update(DatabaseEngine& db)
+  {
+    UpdateQuery query(this->table_name, this->columns);
+
+    query.execute(db, this->columns);
+  }
+
+public:
+  std::tuple<T...> columns;
+  std::string table_name;
+
 };

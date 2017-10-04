@@ -11,6 +11,7 @@
 #include <utils/system.hpp>
 #include <utils/scopeguard.hpp>
 #include <utils/dirname.hpp>
+#include <utils/is_one_of.hpp>
 
 using namespace std::string_literals;
 
@@ -170,4 +171,15 @@ TEST_CASE("dirname")
   CHECK(utils::dirname("../") == "../");
   CHECK(utils::dirname(".") == ".");
   CHECK(utils::dirname("./") == "./");
+}
+
+TEST_CASE("is_in")
+{
+  CHECK((is_one_of<int, float, std::string, int>) == true);
+  CHECK((is_one_of<int, float, std::string>) == false);
+  CHECK((is_one_of<int>) == false);
+  CHECK((is_one_of<int, int>) == true);
+  CHECK((is_one_of<bool, int>) == false);
+  CHECK((is_one_of<bool, bool>) == true);
+  CHECK((is_one_of<bool, bool, bool, bool, bool, int>) == true);
 }

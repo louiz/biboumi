@@ -13,5 +13,10 @@ struct Column
     T value{};
 };
 
-struct Id: Column<std::size_t> { static constexpr auto name = "id_";
-                                 static constexpr auto options = "PRIMARY KEY AUTOINCREMENT"; };
+struct Id: Column<std::size_t> {
+    static constexpr std::size_t unset_value = static_cast<std::size_t>(-1);
+    static constexpr auto name = "id_";
+    static constexpr auto options = "PRIMARY KEY";
+
+    Id(): Column<std::size_t>(-1) {}
+};
