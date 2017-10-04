@@ -1,5 +1,5 @@
-Version 6.1
-===========
+Version 6.1 - 2017-10-04
+========================
 
  - Fix compilation with botan 2.3
  - Fix compilation with very old distributions (such as debian wheezy or
