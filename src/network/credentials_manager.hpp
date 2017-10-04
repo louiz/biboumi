@@ -4,7 +4,8 @@
 
 #ifdef BOTAN_FOUND
 
-#include <botan/botan.h>
+#include <botan/credentials_manager.h>
+#include <botan/certstor.h>
 #include <botan/tls_client.h>
 
 class TCPSocketHandler;

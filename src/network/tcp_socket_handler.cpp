@@ -13,6 +13,7 @@
 
 #ifdef BOTAN_FOUND
 # include <botan/hex.h>
+# include <botan/auto_rng.h>
 # include <botan/tls_exceptn.h>
 # include <config/config.hpp>
 # include <utils/dirname.hpp>

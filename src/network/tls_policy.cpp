@@ -8,6 +8,8 @@
 
 #include <network/tls_policy.hpp>
 #include <logger/logger.hpp>
+#include <botan/parsing.h>
+#include <botan/exceptn.h>
 
 bool BiboumiTLSPolicy::load(const std::string& filename)
 {
