@@ -28,6 +28,8 @@ namespace
     Botan::TLS::Session_Manager_In_Memory& get_session_manager()
     {
       static Botan::TLS::Session_Manager_In_Memory session_manager{get_rng()};
+      // workaround for https://github.com/randombit/botan/issues/1276
+      session_manager.remove_all();
       return session_manager;
     }
 }
