@@ -468,9 +468,9 @@ void Bridge::leave_irc_channel(Iid&& iid, const std::string& status_message, con
                              "Biboumi note: " + std::to_string(resources - 1) + " resources are still in this channel.",
                              true, true, resource);
       this->remove_resource_from_chan(key, resource);
+    }
       if (this->number_of_channels_the_resource_is_in(iid.get_server(), resource) == 0)
         this->remove_resource_from_server(iid.get_server(), resource);
-    }
 
 }
 
