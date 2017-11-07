@@ -894,7 +894,19 @@ void Bridge::send_muc_leave(const Iid& iid, const std::string& nick,
         this->xmpp.send_muc_leave(std::to_string(iid), nick, this->make_xmpp_body(message),
                                   this->user_jid + "/" + res, self, user_requested);
       if (self)
-        this->remove_all_resources_from_chan(iid.to_tuple());
+        {
+          // Copy the resources currently in that channel
+          const auto resources_in_chan = this->resources_in_chan[iid.to_tuple()];
+
+          this->remove_all_resources_from_chan(iid.to_tuple());
+
+          // Now, for each resource that was in that channel, remove it from the server if it’s
+          // not in any other channel
+          for (const auto& r: resources_in_chan)
+          if (this->number_of_channels_the_resource_is_in(iid.get_server(), r) == 0)
+            this->remove_resource_from_server(iid.get_server(), r);
+
+        }
 
     }
   IrcClient* irc = this->find_irc_client(iid.get_server());
@@ -1236,9 +1248,13 @@ std::size_t Bridge::number_of_channels_the_resource_is_in(const std::string& irc
   std::size_t res = 0;
   for (auto pair: this->resources_in_chan)
     {
-      if (std::get<0>(pair.first) == irc_hostname && pair.second.count(resource) != 0)
+      if (std::get<1>(pair.first) == irc_hostname && pair.second.count(resource) != 0)
         res++;
     }
+
+  IrcClient* irc = this->find_irc_client(irc_hostname);
+  if (irc && (irc->get_dummy_channel().joined || irc->get_dummy_channel().joining))
+    res++;
   return res;
 }
 

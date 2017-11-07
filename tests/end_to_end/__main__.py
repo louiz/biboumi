@@ -623,8 +623,6 @@ if __name__ == '__main__':
                      partial(send_stanza, "<message from='{jid_one}/{resource_one}' to='{irc_server_one}' type='chat'><body>QUIT bye bye</body></message>"),
                      partial(expect_stanza, ("/presence[@from='#foo%{irc_server_one}/{nick_one}'][@type='unavailable']/muc_user:x/muc_user:status[@code='110']",
                                              "/presence[@from='#foo%{irc_server_one}/{nick_one}'][@type='unavailable']/muc_user:x/muc_user:status[@code='110']",)),
-                     partial(expect_stanza, "/message[@from='{irc_server_one}']/body[text()='ERROR: Closing Link: localhost (Client Quit)']"),
-                     partial(expect_stanza, "/message[@from='{irc_server_one}']/body[text()='ERROR: Connection closed.']"),
                  ]),
         Scenario("multiple_channels_join",
                  [
@@ -678,8 +676,6 @@ if __name__ == '__main__':
                      connection_end_sequence("irc.localhost", '{jid_one}/{resource_one}'),
                      partial(send_stanza, "<presence type='unavailable' from='{jid_one}/{resource_one}' to='%{irc_server_one}/{nick_one}' />"),
                      partial(expect_stanza, "/presence[@type='unavailable'][@from='%{irc_server_one}/{nick_one}']"),
-                     partial(expect_stanza, "/message[@from='{irc_server_one}']/body[text()='ERROR: Closing Link: localhost (Client Quit)']"),
-                     partial(expect_stanza, "/message[@from='{irc_server_one}']/body[text()='ERROR: Connection closed.']"),
                  ]),
         Scenario("not_connected_error",
                  [
@@ -724,8 +720,6 @@ if __name__ == '__main__':
 
                      partial(send_stanza, "<presence type='unavailable' from='{jid_one}/{resource_one}' to='%{irc_server_one}/{nick_two}' />"),
                      partial(expect_stanza, "/presence[@type='unavailable'][@from='%{irc_server_one}/{nick_two}']"),
-                     partial(expect_stanza, "/message[@from='{irc_server_one}']/body[text()='ERROR: Closing Link: localhost (Client Quit)']"),
-                     partial(expect_stanza, "/message[@from='{irc_server_one}']/body[text()='ERROR: Connection closed.']"),
                  ]),
         Scenario("channel_join_with_two_users",
                  [
@@ -1030,7 +1024,6 @@ if __name__ == '__main__':
                      partial(send_stanza, "<iq type='set' id='command2' from='{jid_admin}/{resource_one}' to='{biboumi_host}'><command xmlns='http://jabber.org/protocol/commands' node='disconnect-from-irc-server' sessionid='{sessionid}' action='next'><x xmlns='jabber:x:data' type='submit'><field var='irc-servers'><value>localhost</value></field><field var='quit-message'><value>Disconnected by e2e</value></field></x></command></iq>"),
                      partial(expect_unordered, [("/presence[@type='unavailable'][@to='{jid_one}/{resource_one}'][@from='#bon%{irc_server_two}/{nick_three}']",),
                                                 ("/iq[@type='result']/commands:command[@node='disconnect-from-irc-server'][@status='completed']/commands:note[@type='info'][text()='{jid_one} was disconnected from 1 IRC server.']",),
-                                                ("/message[@to='{jid_one}/{resource_one}']/body[text()='ERROR: Disconnected by e2e']",),
                                                 ]),
 
 
@@ -1048,7 +1041,6 @@ if __name__ == '__main__':
                      partial(send_stanza, "<iq type='set' id='command2' from='{jid_one}/{resource_one}' to='{biboumi_host}'><command xmlns='http://jabber.org/protocol/commands' node='disconnect-from-irc-server' sessionid='{sessionid}' action='next'><x xmlns='jabber:x:data' type='submit'><field var='irc-servers'><value>irc.localhost</value></field><field var='quit-message'><value>Disconnected by e2e</value></field></x></command></iq>"),
                      partial(expect_unordered, [("/presence[@type='unavailable'][@to='{jid_one}/{resource_one}'][@from='#foo%{irc_server_one}/{nick_two}']",),
                                                 ("/iq[@type='result']/commands:command[@node='disconnect-from-irc-server'][@status='completed']/commands:note[@type='info'][text()='{jid_one}/{resource_one} was disconnected from 1 IRC server.']",),
-                                                ("/message[@to='{jid_one}/{resource_one}']/body[text()='ERROR: Disconnected by e2e']",),
                                                 ]),
                  ]),
         Scenario("multisessionnick",
@@ -1203,8 +1195,6 @@ if __name__ == '__main__':
                      # Second user leaves the channel
                      partial(send_stanza, "<presence type='unavailable' from='{jid_two}/{resource_one}' to='#foo%{irc_server_one}/{nick_two}' />"),
                      partial(expect_stanza, "/presence[@type='unavailable'][@from='#foo%{irc_server_one}/{nick_two}']"),
-                     partial(expect_stanza, "/message[@from='{irc_server_one}']/body[text()='ERROR: Closing Link: localhost (Client Quit)']"),
-                     partial(expect_stanza, "/message[@from='{irc_server_one}']/body[text()='ERROR: Connection closed.']"),
                  ]),
         Scenario("channel_join_with_different_nick",
                  [
@@ -2646,8 +2636,6 @@ if __name__ == '__main__':
 
                      partial(send_stanza, "<presence type='unavailable' from='{jid_one}/{resource_two}' to='%{irc_server_one}/{nick_two}' />"),
                      partial(expect_stanza, "/presence[@type='unavailable'][@from='%{irc_server_one}/{nick_two}']"),
-                     partial(expect_stanza, "/message[@from='{irc_server_one}']/body[text()='ERROR: Closing Link: localhost (Client Quit)']"),
-                     partial(expect_stanza, "/message[@from='{irc_server_one}']/body[text()='ERROR: Connection closed.']"),
                  ]),
                 Scenario("global_configure",
                 [
@@ -3015,8 +3003,6 @@ if __name__ == '__main__':
                      # Leave the channel, and thus the IRC server
                      partial(send_stanza, "<presence type='unavailable' from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}/{nick_one}' />"),
                      partial(expect_stanza, "/presence[@type='unavailable'][@from='#foo%{irc_server_one}/{nick_one}']"),
-                     partial(expect_stanza, "/message[@from='{irc_server_one}']/body[text()='ERROR: Closing Link: localhost (Client Quit)']"),
-                     partial(expect_stanza, "/message[@from='{irc_server_one}']/body[text()='ERROR: Connection closed.']"),
                      partial(expect_stanza, "/presence[@from='{irc_server_one}'][@to='{jid_one}'][@type='unavailable']"),
                  ])
     )
