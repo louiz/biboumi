@@ -14,6 +14,7 @@ enum class StepResult
 class Statement
 {
  public:
+  virtual ~Statement() = default;
   virtual StepResult step() = 0;
 
   virtual void bind(std::vector<std::string> params) = 0;
