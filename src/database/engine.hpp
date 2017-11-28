@@ -20,6 +20,7 @@ class DatabaseEngine
  public:
 
   DatabaseEngine() = default;
+  virtual ~DatabaseEngine() = default;
 
   DatabaseEngine(const DatabaseEngine&) = delete;
   DatabaseEngine& operator=(const DatabaseEngine&) = delete;
