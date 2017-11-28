@@ -11,7 +11,7 @@ class Sqlite3Statement: public Statement
  public:
   Sqlite3Statement(sqlite3_stmt* stmt):
       stmt(stmt) {}
-  ~Sqlite3Statement()
+  virtual ~Sqlite3Statement()
   {
     sqlite3_finalize(this->stmt);
   }

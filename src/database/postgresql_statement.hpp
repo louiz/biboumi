@@ -13,7 +13,7 @@ class PostgresqlStatement: public Statement
       body(std::move(body)),
       conn(conn)
   {}
-  ~PostgresqlStatement()
+  virtual ~PostgresqlStatement()
   {}
   PostgresqlStatement(const PostgresqlStatement&) = delete;
   PostgresqlStatement& operator=(const PostgresqlStatement&) = delete;
