@@ -37,7 +37,7 @@ void Database::open(const std::string& filename)
   std::unique_ptr<DatabaseEngine> new_db;
   static const auto psql_prefix = "postgresql://"s;
   if (filename.substr(0, psql_prefix.size()) == psql_prefix)
-    new_db = PostgresqlEngine::open("dbname="s + filename.substr(psql_prefix.size()));
+    new_db = PostgresqlEngine::open(filename);
   else
     new_db = Sqlite3Engine::open(filename);
   if (!new_db)
@@ -242,7 +242,7 @@ std::vector<Database::RosterItem> Database::get_full_roster()
 
 void Database::close()
 {
-  Database::db.release();
+  Database::db = nullptr;
 }
 
 std::string Database::gen_uuid()
