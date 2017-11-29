@@ -242,7 +242,7 @@ std::vector<Database::RosterItem> Database::get_full_roster()
 
 void Database::close()
 {
-  Database::db.release();
+  Database::db = nullptr;
 }
 
 std::string Database::gen_uuid()
