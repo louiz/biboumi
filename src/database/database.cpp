@@ -15,8 +15,6 @@
 
 #include <memory>
 
-#include <sqlite3.h>
-
 std::unique_ptr<DatabaseEngine> Database::db;
 Database::MucLogLineTable Database::muc_log_lines("muclogline_");
 Database::GlobalOptionsTable Database::global_options("globaloptions_");

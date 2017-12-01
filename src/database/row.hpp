@@ -8,8 +8,6 @@
 
 #include <type_traits>
 
-#include <sqlite3.h>
-
 template <typename... T>
 struct Row
 {
