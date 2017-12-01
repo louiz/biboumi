@@ -73,12 +73,12 @@ class PostgresqlStatement: public Statement
     this->params.push_back(data);
     return true;
   }
-  bool bind_int64(const int pos, const std::int64_t value) override
+  bool bind_int64(const int, const std::int64_t value) override
   {
     this->params.push_back(std::to_string(value));
     return true;
   }
-  bool bind_null(const int pos) override
+  bool bind_null(const int) override
   {
     this->params.push_back("NULL");
     return true;
@@ -99,8 +99,9 @@ private:
       }
 
     log_debug("body: ", body);
+    const int param_size = static_cast<int>(this->params.size());
     this->result = PQexecParams(this->conn, this->body.data(),
-                                this->params.size(),
+                                param_size,
                                 nullptr,
                                 params.data(),
                                 nullptr,
