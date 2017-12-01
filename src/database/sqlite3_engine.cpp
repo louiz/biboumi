@@ -1,3 +1,7 @@
+#include <biboumi.h>
+
+#ifdef SQLITE3_FOUND
+
 #include <database/sqlite3_engine.hpp>
 
 #include <database/sqlite3_statement.hpp>
@@ -91,3 +95,5 @@ std::string Sqlite3Engine::id_column_type()
 {
   return "INTEGER PRIMARY KEY AUTOINCREMENT";
 }
+
+#endif

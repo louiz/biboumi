@@ -1,15 +1,19 @@
 #pragma once
 
-#include <database/engine.hpp>
+#include <biboumi.h>
+#include <string>
+#include <stdexcept>
+#include <memory>
 
 #include <database/statement.hpp>
+#include <database/engine.hpp>
 
-#include <libpq-fe.h>
-
-#include <memory>
-#include <string>
 #include <tuple>
 #include <set>
+
+#ifdef PQ_FOUND
+
+#include <libpq-fe.h>
 
 class PostgresqlEngine: public DatabaseEngine
 {
@@ -29,3 +33,16 @@ class PostgresqlEngine: public DatabaseEngine
 private:
   PGconn* const conn;
 };
+
+#else
+
+class PostgresqlEngine
+{
+public:
+  static std::unique_ptr<DatabaseEngine> open(const std::string& string)
+  {
+    throw std::runtime_error("Cannot open postgresql database "s + string + ": biboumi is not compiled with libpq.");
+  }
+};
+
+#endif

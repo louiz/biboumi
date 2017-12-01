@@ -9,8 +9,6 @@
 #include <vector>
 #include <string>
 
-#include <sqlite3.h>
-
 void actual_bind(Statement& statement, const std::string& value, int index);
 void actual_bind(Statement& statement, const std::size_t value, int index);
 void actual_bind(Statement& statement, const OptionalBool& value, int index);

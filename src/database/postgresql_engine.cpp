@@ -1,3 +1,6 @@
+#include <biboumi.h>
+#ifdef PQ_FOUND
+
 #include <database/postgresql_engine.hpp>
 
 #include <database/postgresql_statement.hpp>
@@ -75,3 +78,5 @@ std::string PostgresqlEngine::id_column_type()
 {
   return "SERIAL";
 }
+
+#endif

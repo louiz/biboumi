@@ -6,8 +6,6 @@
 
 #include <string>
 
-#include <sqlite3.h>
-
 struct CountQuery: public Query
 {
     CountQuery(std::string name):

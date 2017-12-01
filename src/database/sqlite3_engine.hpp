@@ -4,11 +4,16 @@
 
 #include <database/statement.hpp>
 
-#include <sqlite3.h>
 #include <memory>
 #include <string>
 #include <tuple>
 #include <set>
+
+#include <biboumi.h>
+
+#ifdef SQLITE3_FOUND
+
+#include <sqlite3.h>
 
 class Sqlite3Engine: public DatabaseEngine
 {
@@ -28,3 +33,15 @@ private:
   sqlite3* const db;
 };
 
+#else
+
+class Sqlite3Engine
+{
+public:
+  static std::unique_ptr<DatabaseEngine> open(const std::string& string)
+  {
+    throw std::runtime_error("Cannot open sqlite3 database "s + string + ": biboumi is not compiled with sqlite3 lib.");
+  }
+};
+
+#endif

@@ -10,8 +10,6 @@
 #include <string>
 #include <tuple>
 
-#include <sqlite3.h>
-
 template <std::size_t N=0, typename... T>
 typename std::enable_if<N < sizeof...(T), void>::type
 update_autoincrement_id(std::tuple<T...>& columns, Statement& statement)

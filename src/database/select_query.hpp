@@ -12,12 +12,10 @@
 #include <vector>
 #include <string>
 
-#include <sqlite3.h>
-
 using namespace std::string_literals;
 
 template <typename T>
-typename std::enable_if<std::is_integral<T>::value, sqlite3_int64>::type
+typename std::enable_if<std::is_integral<T>::value, std::int64_t>::type
 extract_row_value(Statement& statement, const int i)
 {
   return statement.get_column_int64(i);
