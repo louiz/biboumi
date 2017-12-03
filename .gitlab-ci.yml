@@ -74,7 +74,7 @@ build:2:
 build:3:
   variables:
     SQLITE3: "-DWITHOUT_SQLITE3=1"
-    TEST_POSTGRES_URI: "postgresql://postgres@postgres/postgres"
+    TEST_POSTGRES_URI: "postgres@postgres/postgres"
   services:
     - postgres:latest
   <<: *fedora_build
@@ -84,7 +84,7 @@ build:4:
     SQLITE3: "-DWITHOUT_SQLITE3=1"
     BOTAN: "-DWITHOUT_BOTAN=1"
     LIBIDN: "-DWITHOUT_LIBIDN=1"
-    TEST_POSTGRES_URI: "postgresql://postgres@postgres/postgres"
+    TEST_POSTGRES_URI: "postgres@postgres/postgres"
   services:
     - postgres:latest
   <<: *fedora_build
@@ -93,7 +93,7 @@ build:5:
   variables:
     SQLITE3: "-DWITHOUT_SQLITE3=1"
     UDNS: "-DWITHOUT_UDNS=1"
-    TEST_POSTGRES_URI: "postgresql://postgres@postgres/postgres"
+    TEST_POSTGRES_URI: "postgres@postgres/postgres"
   services:
     - postgres:latest
   <<: *fedora_build
