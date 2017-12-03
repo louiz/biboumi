@@ -14,7 +14,7 @@ endif()
 #
 ## Find optional instrumentation libraries that will be used in debug only
 #
-find_library(LIBASAN NAMES asan libasan.so.3 libasan.so.2 libasan.so.1)
+find_library(LIBASAN NAMES asan libasan.so.4 libasan.so.3 libasan.so.2 libasan.so.1)
 find_library(LIBUBSAN NAMES ubsan libubsan.so.0)
 
 #
