@@ -1,14 +1,29 @@
 #include "catch.hpp"
 
+#include <biboumi.h>
+
+#ifdef USE_DATABASE
+
+#include <cstdlib>
+
 #include <database/database.hpp>
 
 #include <config/config.hpp>
 
 TEST_CASE("Database")
 {
-#ifdef USE_DATABASE
-//  Database::open("postgresql://test");
+#ifdef PQ_FOUND
+  std::string postgresql_uri{"postgresql://"};
+  const char* env_value = ::getenv("TEST_POSTGRES_URI");
+  if (env_value != nullptr)
+    postgresql_uri += env_value;
+  else
+    postgresql_uri += "/test";
+  Database::open(postgresql_uri);
+#else
   Database::open(":memory:");
+#endif
+
   Database::raw_exec("DELETE FROM " + Database::irc_server_options.get_name());
   Database::raw_exec("DELETE FROM " + Database::irc_channel_options.get_name());
 
