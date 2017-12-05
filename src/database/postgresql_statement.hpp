@@ -14,7 +14,10 @@ class PostgresqlStatement: public Statement
       conn(conn)
   {}
   ~PostgresqlStatement()
-  {}
+  {
+    PQclear(this->result);
+    this->result = nullptr;
+  }
   PostgresqlStatement(const PostgresqlStatement&) = delete;
   PostgresqlStatement& operator=(const PostgresqlStatement&) = delete;
   PostgresqlStatement(PostgresqlStatement&& other) = delete;

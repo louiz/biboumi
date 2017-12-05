@@ -1,6 +1,8 @@
 #include <biboumi.h>
 #ifdef PQ_FOUND
 
+#include <utils/scopeguard.hpp>
+
 #include <database/postgresql_engine.hpp>
 
 #include <database/postgresql_statement.hpp>
@@ -53,6 +55,10 @@ std::tuple<bool, std::string> PostgresqlEngine::raw_exec(const std::string& quer
 {
   log_debug("raw_exec:", query);
   PGresult* res = PQexec(this->conn, query.data());
+  auto sg = utils::make_scope_guard([res](){
+      PQclear(res);
+  });
+
   auto res_status = PQresultStatus(res);
   if (res_status != PGRES_COMMAND_OK)
     return std::make_tuple(false, PQresultErrorMessage(res));
