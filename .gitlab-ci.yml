@@ -65,13 +65,11 @@ build:alpine:
 build:1:
   variables:
     BOTAN: "-DWITHOUT_BOTAN=1"
-    POSTGRESQL: "-DWITHOUT_POSTGRESQL=1"
   <<: *fedora_build
 
 build:2:
   variables:
     UDNS: "-DWITHOUT_UDNS=1"
-    POSTGRESQL: "-DWITHOUT_POSTGRESQL=1"
   <<: *fedora_build
 
 build:3:
@@ -92,7 +90,6 @@ build:4:
 
 build:5:
   variables:
-    SQLITE3: "-DWITHOUT_SQLITE3=1"
     UDNS: "-DWITHOUT_UDNS=1"
     TEST_POSTGRES_URI: "postgres@postgres/postgres"
   services:
@@ -103,20 +100,12 @@ build:6:
   variables:
     BOTAN: "-DWITHOUT_BOTAN=1"
     UDNS: "-DWITHOUT_UDNS=1"
-    POSTGRESQL: "-DWITHOUT_POSTGRESQL=1"
   <<: *fedora_build
 
 build:7:
   variables:
     UDNS: "-DWITHOUT_UDNS=1"
-    POSTGRESQL: "-DWITHOUT_POSTGRESQL=1"
   <<: *fedora_build
-
-build:8:
-  variables:
-    POSTGRESQL: "-DWITHOUT_POSTGRESQL=1"
-  <<: *fedora_build
-
 
 #
 ## Test jobs
