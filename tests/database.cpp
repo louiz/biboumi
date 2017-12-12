@@ -16,12 +16,10 @@ TEST_CASE("Database")
   std::string postgresql_uri{"postgresql://"};
   const char* env_value = ::getenv("TEST_POSTGRES_URI");
   if (env_value != nullptr)
-    postgresql_uri += env_value;
+    Database::open("postgresql://"s + env_value);
   else
-    postgresql_uri += "/test";
-  Database::open(postgresql_uri);
 #else
-  Database::open(":memory:");
+    Database::open(":memory:");
 #endif
 
   Database::raw_exec("DELETE FROM " + Database::irc_server_options.get_name());
