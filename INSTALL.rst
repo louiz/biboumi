@@ -35,10 +35,10 @@ libuuid_
 sqlite3_
 or
 libpq_
- Provides a way to store various options in a database. Each user of the
- gateway can store their own values (for example their prefered port, or
- their IRC password). Without this dependency, many interesting features
- are missing.
+ Provides a way to store various options and messages archives in a
+ database. Each user of the gateway can store their own values (for
+ example their prefered port, or their IRC password). Without this
+ dependency, many interesting features are missing.
 
 libidn_ (optional, but recommended)
  Provides the stringprep functionality. Without it, JIDs for IRC users are
