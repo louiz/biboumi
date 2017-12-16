@@ -38,6 +38,7 @@ The configuration file inside the image contains only a few default values.  To 
 * BIBOUMI_PASSWORD: Sets the value of the *password* option.
 * BIBOUMI_ADMIN: Sets the value of the *admin* option.
 * BIBOUMI_XMPP_SERVER_IP: Sets the value of the *xmpp_server_ip* option. The default value is **xmpp**.
+* BIBOUMI_DB_NAME: Sets the database name to be used by biboumi: a filesystem path pointing at a Sqlite3 file, or a postgresql URI (starting with “postgresql://”). See below to learn how to mount a host directory (to save your Sqlite3 database) or how to link with a postgresql docker container.
 
 You can also directly provide your own configuration file by mounting it inside the container using the -v option:
 
@@ -59,11 +60,33 @@ If you want to connect to the XMPP server running on the host machine, use the *
 Volumes
 -------
 
-The database is stored in the /var/lib/biboumi/ directory. If you don’t bind a local directory to it, the database will be lost when the container is stopped. If you want to keep your database between each run, bind it with the -v option, like this: **-v /srv/biboumi/:/var/lib/biboumi**.
+By default, a sqlite3 database is stored in the /var/lib/biboumi/ directory. If you don’t bind a local directory to it, the database will be lost when the container is stopped. If you want to keep your database between each run, bind it with the -v option, like this: **-v /srv/biboumi/:/var/lib/biboumi**.
 
 Note: Due to a limitation in Docker, to be able to read and write into this database, make sure this mounted directory has the proper read and write permissions on the host: it can be owned by UID and GID 1000:1000, or use chmod to give permissions to everyone, for example.
 
 ```
 chown -R 1000:1000 database/
 chmod 777 database/
+```
+
+Linking with a PostgreSQL container
+-----------------------------------
+
+If you want to use a PostgreSQL database, you need to either access the host database (run the biboumi container with --network=host), or link with a [postgresql docker image](https://hub.docker.com/_/postgres/).
+
+To do that, start the PostgreSQL container like this:
+
+```
+docker run --name postgres postgres:latest
+```
+
+This will run a postgresql instance with a configured superuser named “postgres”, with no password and a database named “postgres” as well. If you want different values, please refer to the PostgreSQL’s image documentation.
+
+Then start your biboumi container, by linking with this PostgreSQL container, and by specifying the correct db_name value (of course, also specify all the other options, like the XMPP hostname and password):
+
+```
+docker run --name biboumi \
+    --link=postgres \
+    -e BIBOUMI_DB_NAME=postgres://postgres@postgres/postgres \
+    biboumi
 ```

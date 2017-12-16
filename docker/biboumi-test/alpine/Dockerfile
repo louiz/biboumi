@@ -32,7 +32,8 @@ RUN apk add --no-cache g++\
     openssl\
     libressl-dev\
     zlib-dev\
-    curl
+    curl\
+    postgresql-dev
 
 # Install botan
 RUN git clone https://github.com/randombit/botan.git && cd botan && ./configure.py --prefix=/usr && make -j8 && make install && rm -rf /botan
