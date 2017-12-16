@@ -34,7 +34,9 @@ void Database::open(const std::string& filename)
   // not, just leave things untouched
   std::unique_ptr<DatabaseEngine> new_db;
   static const auto psql_prefix = "postgresql://"s;
-  if (filename.substr(0, psql_prefix.size()) == psql_prefix)
+  static const auto psql_prefix2 = "postgres://"s;
+  if ((filename.substr(0, psql_prefix.size()) == psql_prefix) ||
+      (filename.substr(0, psql_prefix2.size()) == psql_prefix2))
     new_db = PostgresqlEngine::open(filename);
   else
     new_db = Sqlite3Engine::open(filename);
