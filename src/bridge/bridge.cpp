@@ -1031,6 +1031,7 @@ void Bridge::send_room_history(const std::string& hostname, std::string chan_nam
   (void)hostname;
   (void)chan_name;
   (void)resource;
+  (void)history_limit;
 #endif
 }
 

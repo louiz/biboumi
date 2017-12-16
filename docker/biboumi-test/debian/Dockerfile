@@ -39,7 +39,8 @@ RUN apt install -y g++\
     openssl\
     zlib1g-dev\
     libssl-dev\
-    curl
+    curl\
+    libpq-dev
 
 # Install botan
 RUN git clone https://github.com/randombit/botan.git && cd botan && ./configure.py --prefix=/usr && make -j8 && make install && rm -rf /botan

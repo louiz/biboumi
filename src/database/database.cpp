@@ -7,16 +7,19 @@
 #include <utils/time.hpp>
 
 #include <config/config.hpp>
+#include <database/sqlite3_engine.hpp>
+#include <database/postgresql_engine.hpp>
 
+#include <database/engine.hpp>
 #include <database/index.hpp>
 
-#include <sqlite3.h>
+#include <memory>
 
-sqlite3* Database::db;
-Database::MucLogLineTable Database::muc_log_lines("MucLogLine_");
-Database::GlobalOptionsTable Database::global_options("GlobalOptions_");
-Database::IrcServerOptionsTable Database::irc_server_options("IrcServerOptions_");
-Database::IrcChannelOptionsTable Database::irc_channel_options("IrcChannelOptions_");
+std::unique_ptr<DatabaseEngine> Database::db;
+Database::MucLogLineTable Database::muc_log_lines("muclogline_");
+Database::GlobalOptionsTable Database::global_options("globaloptions_");
+Database::IrcServerOptionsTable Database::irc_server_options("ircserveroptions_");
+Database::IrcChannelOptionsTable Database::irc_channel_options("ircchanneloptions_");
 Database::RosterTable Database::roster("roster");
 std::map<Database::CacheKey, Database::EncodingIn::real_type> Database::encoding_in_cache{};
 
@@ -29,27 +32,28 @@ void Database::open(const std::string& filename)
   // Try to open the specified database.
   // Close and replace the previous database pointer if it succeeded. If it did
   // not, just leave things untouched
-  sqlite3* new_db;
-  auto res = sqlite3_open_v2(filename.data(), &new_db, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, nullptr);
-  Database::close();
-  if (res != SQLITE_OK)
-    {
-      log_error("Failed to open database file ", filename, ": ", sqlite3_errmsg(new_db));
-      sqlite3_close(new_db);
-      throw std::runtime_error("");
-    }
-  Database::db = new_db;
-  Database::muc_log_lines.create(Database::db);
-  Database::muc_log_lines.upgrade(Database::db);
-  Database::global_options.create(Database::db);
-  Database::global_options.upgrade(Database::db);
-  Database::irc_server_options.create(Database::db);
-  Database::irc_server_options.upgrade(Database::db);
-  Database::irc_channel_options.create(Database::db);
-  Database::irc_channel_options.upgrade(Database::db);
-  Database::roster.create(Database::db);
-  Database::roster.upgrade(Database::db);
-  create_index<Database::Owner, Database::IrcChanName, Database::IrcServerName>(Database::db, "archive_index", Database::muc_log_lines.get_name());
+  std::unique_ptr<DatabaseEngine> new_db;
+  static const auto psql_prefix = "postgresql://"s;
+  static const auto psql_prefix2 = "postgres://"s;
+  if ((filename.substr(0, psql_prefix.size()) == psql_prefix) ||
+      (filename.substr(0, psql_prefix2.size()) == psql_prefix2))
+    new_db = PostgresqlEngine::open(filename);
+  else
+    new_db = Sqlite3Engine::open(filename);
+  if (!new_db)
+    return;
+  Database::db = std::move(new_db);
+  Database::muc_log_lines.create(*Database::db);
+  Database::muc_log_lines.upgrade(*Database::db);
+  Database::global_options.create(*Database::db);
+  Database::global_options.upgrade(*Database::db);
+  Database::irc_server_options.create(*Database::db);
+  Database::irc_server_options.upgrade(*Database::db);
+  Database::irc_channel_options.create(*Database::db);
+  Database::irc_channel_options.upgrade(*Database::db);
+  Database::roster.create(*Database::db);
+  Database::roster.upgrade(*Database::db);
+  create_index<Database::Owner, Database::IrcChanName, Database::IrcServerName>(*Database::db, "archive_index", Database::muc_log_lines.get_name());
 }
 
 
@@ -59,7 +63,7 @@ Database::GlobalOptions Database::get_global_options(const std::string& owner)
   request.where() << Owner{} << "=" << owner;
 
   Database::GlobalOptions options{Database::global_options.get_name()};
-  auto result = request.execute(Database::db);
+  auto result = request.execute(*Database::db);
   if (result.size() == 1)
     options = result.front();
   else
@@ -73,7 +77,7 @@ Database::IrcServerOptions Database::get_irc_server_options(const std::string& o
   request.where() << Owner{} << "=" << owner << " and " << Server{} << "=" << server;
 
   Database::IrcServerOptions options{Database::irc_server_options.get_name()};
-  auto result = request.execute(Database::db);
+  auto result = request.execute(*Database::db);
   if (result.size() == 1)
     options = result.front();
   else
@@ -91,7 +95,7 @@ Database::IrcChannelOptions Database::get_irc_channel_options(const std::string&
           " and " << Server{} << "=" << server <<\
           " and " << Channel{} << "=" << channel;
   Database::IrcChannelOptions options{Database::irc_channel_options.get_name()};
-  auto result = request.execute(Database::db);
+  auto result = request.execute(*Database::db);
   if (result.size() == 1)
     options = result.front();
   else
@@ -186,7 +190,7 @@ std::vector<Database::MucLogLine> Database::get_muc_logs(const std::string& owne
   if (limit >= 0)
     request.limit() << limit;
 
-  auto result = request.execute(Database::db);
+  auto result = request.execute(*Database::db);
 
   return {result.crbegin(), result.crend()};
 }
@@ -207,7 +211,7 @@ void Database::delete_roster_item(const std::string& local, const std::string& r
   query << " WHERE " << Database::RemoteJid{} << "=" << remote << \
            " AND " << Database::LocalJid{} << "=" << local;
 
-  query.execute(Database::db);
+//  query.execute(*Database::db);
 }
 
 bool Database::has_roster_item(const std::string& local, const std::string& remote)
@@ -216,7 +220,7 @@ bool Database::has_roster_item(const std::string& local, const std::string& remo
   query.where() << Database::LocalJid{} << "=" << local << \
         " and " << Database::RemoteJid{} << "=" << remote;
 
-  auto res = query.execute(Database::db);
+  auto res = query.execute(*Database::db);
 
   return !res.empty();
 }
@@ -226,19 +230,18 @@ std::vector<Database::RosterItem> Database::get_contact_list(const std::string& 
   auto query = Database::roster.select();
   query.where() << Database::LocalJid{} << "=" << local;
 
-  return query.execute(Database::db);
+  return query.execute(*Database::db);
 }
 
 std::vector<Database::RosterItem> Database::get_full_roster()
 {
   auto query = Database::roster.select();
 
-  return query.execute(Database::db);
+  return query.execute(*Database::db);
 }
 
 void Database::close()
 {
-  sqlite3_close(Database::db);
   Database::db = nullptr;
 }
 

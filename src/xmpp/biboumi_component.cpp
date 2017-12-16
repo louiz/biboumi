@@ -1080,6 +1080,9 @@ void BiboumiComponent::on_irc_client_connected(const std::string& irc_hostname, 
   const auto local_jid = irc_hostname + "@" + this->served_hostname;
   if (Database::has_roster_item(local_jid, jid))
     this->send_presence_to_contact(local_jid, jid, "");
+#else
+  (void)irc_hostname;
+  (void)jid;
 #endif
 }
 
@@ -1089,6 +1092,9 @@ void BiboumiComponent::on_irc_client_disconnected(const std::string& irc_hostnam
   const auto local_jid = irc_hostname + "@" + this->served_hostname;
   if (Database::has_roster_item(local_jid, jid))
     this->send_presence_to_contact(irc_hostname + "@" + this->served_hostname, jid, "unavailable");
+#else
+  (void)irc_hostname;
+  (void)jid;
 #endif
 }
 

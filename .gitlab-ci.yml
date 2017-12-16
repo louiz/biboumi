@@ -17,6 +17,7 @@ variables:
   SYSTEMD: "-DWITH_SYSTEMD=1"
   LIBIDN: "-DWITH_LIBIDN=1"
   SQLITE3: "-DWITH_SQLITE3=1"
+  POSTGRESQL: "-WITH_POSTGRESQL=1"
 
 #
 ## Build jobs
@@ -27,10 +28,10 @@ variables:
   tags:
     - docker
   script:
-    - "echo Running cmake with the following parameters: -DCMAKE_CXX_COMPILER=${COMPILER} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ${BOTAN} ${UDNS} ${SYSTEMD} ${LIBIDN} ${SQLITE3}"
+    - "echo Running cmake with the following parameters: -DCMAKE_CXX_COMPILER=${COMPILER} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ${BOTAN} ${UDNS} ${SYSTEMD} ${LIBIDN} ${SQLITE3} ${POSTGRESQL}"
     - mkdir build/
     - cd build/
-    - cmake .. -DCMAKE_CXX_COMPILER=${COMPILER} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ${BOTAN} ${UDNS} ${SYSTEMD} ${LIBIDN} ${SQLITE3}
+    - cmake .. -DCMAKE_CXX_COMPILER=${COMPILER} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ${BOTAN} ${UDNS} ${SYSTEMD} ${LIBIDN} ${SQLITE3} ${POSTGRESQL}
     - make everything -j$(nproc || echo 1)
     - make coverage_check -j$(nproc || echo 1)
   artifacts:
@@ -74,19 +75,25 @@ build:2:
 build:3:
   variables:
     SQLITE3: "-DWITHOUT_SQLITE3=1"
+    TEST_POSTGRES_URI: "postgres@postgres/postgres"
+  services:
+    - postgres:latest
   <<: *fedora_build
 
 build:4:
   variables:
     SQLITE3: "-DWITHOUT_SQLITE3=1"
+    POSTGRESQL: "-DWITHOUT_POSTGRESQL=1"
     BOTAN: "-DWITHOUT_BOTAN=1"
     LIBIDN: "-DWITHOUT_LIBIDN=1"
   <<: *fedora_build
 
 build:5:
   variables:
-    SQLITE3: "-DWITHOUT_SQLITE3=1"
     UDNS: "-DWITHOUT_UDNS=1"
+    TEST_POSTGRES_URI: "postgres@postgres/postgres"
+  services:
+    - postgres:latest
   <<: *fedora_build
 
 build:6:
@@ -99,7 +106,6 @@ build:7:
   variables:
     UDNS: "-DWITHOUT_UDNS=1"
   <<: *fedora_build
-
 
 #
 ## Test jobs

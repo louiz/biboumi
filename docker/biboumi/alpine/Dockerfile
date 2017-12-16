@@ -13,6 +13,7 @@ RUN apk add --no-cache\
     make\
     udns-dev\
     sqlite-dev\
+    postgresql-dev\
     libuuid\
     util-linux-dev\
     expat-dev\
@@ -30,6 +31,7 @@ RUN git clone git://git.louiz.org/biboumi && mkdir ./biboumi/build && cd ./bibou
             -DWITH_BOTAN=1\
             -DWITH_SQLITE3=1\
             -DWITH_LIBIDN=1\
+            -DWITH_POSTGRESQL=1\
    && make -j8 && make install && rm -rf /biboumi
 
 RUN adduser biboumi -D -h /home/biboumi

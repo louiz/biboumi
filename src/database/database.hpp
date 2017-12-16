@@ -7,6 +7,8 @@
 #include <database/column.hpp>
 #include <database/count_query.hpp>
 
+#include <database/engine.hpp>
+
 #include <utils/optional_bool.hpp>
 
 #include <chrono>
@@ -25,11 +27,11 @@ class Database
 
   struct Owner: Column<std::string> { static constexpr auto name = "owner_"; };
 
-  struct IrcChanName: Column<std::string> { static constexpr auto name = "ircChanName_"; };
+  struct IrcChanName: Column<std::string> { static constexpr auto name = "ircchanname_"; };
 
   struct Channel: Column<std::string> { static constexpr auto name = "channel_"; };
 
-  struct IrcServerName: Column<std::string> { static constexpr auto name = "ircServerName_"; };
+  struct IrcServerName: Column<std::string> { static constexpr auto name = "ircservername_"; };
 
   struct Server: Column<std::string> { static constexpr auto name = "server_"; };
 
@@ -44,30 +46,30 @@ class Database
   struct Ports: Column<std::string> { static constexpr auto name = "ports_";
     Ports(): Column<std::string>("6667") {} };
 
-  struct TlsPorts: Column<std::string> { static constexpr auto name = "tlsPorts_";
+  struct TlsPorts: Column<std::string> { static constexpr auto name = "tlsports_";
     TlsPorts(): Column<std::string>("6697;6670") {} };
 
   struct Username: Column<std::string> { static constexpr auto name = "username_"; };
 
   struct Realname: Column<std::string> { static constexpr auto name = "realname_"; };
 
-  struct AfterConnectionCommand: Column<std::string> { static constexpr auto name = "afterConnectionCommand_"; };
+  struct AfterConnectionCommand: Column<std::string> { static constexpr auto name = "afterconnectioncommand_"; };
 
-  struct TrustedFingerprint: Column<std::string> { static constexpr auto name = "trustedFingerprint_"; };
+  struct TrustedFingerprint: Column<std::string> { static constexpr auto name = "trustedfingerprint_"; };
 
-  struct EncodingOut: Column<std::string> { static constexpr auto name = "encodingOut_"; };
+  struct EncodingOut: Column<std::string> { static constexpr auto name = "encodingout_"; };
 
-  struct EncodingIn: Column<std::string> { static constexpr auto name = "encodingIn_"; };
+  struct EncodingIn: Column<std::string> { static constexpr auto name = "encodingin_"; };
 
-  struct MaxHistoryLength: Column<int> { static constexpr auto name = "maxHistoryLength_";
+  struct MaxHistoryLength: Column<int> { static constexpr auto name = "maxhistorylength_";
     MaxHistoryLength(): Column<int>(20) {} };
 
-  struct RecordHistory: Column<bool> { static constexpr auto name = "recordHistory_";
+  struct RecordHistory: Column<bool> { static constexpr auto name = "recordhistory_";
     RecordHistory(): Column<bool>(true) {}};
 
-  struct RecordHistoryOptional: Column<OptionalBool> { static constexpr auto name = "recordHistory_"; };
+  struct RecordHistoryOptional: Column<OptionalBool> { static constexpr auto name = "recordhistory_"; };
 
-  struct VerifyCert: Column<bool> { static constexpr auto name = "verifyCert_";
+  struct VerifyCert: Column<bool> { static constexpr auto name = "verifycert_";
     VerifyCert(): Column<bool>(true) {} };
 
   struct Persistent: Column<bool> { static constexpr auto name = "persistent_";
@@ -134,7 +136,7 @@ class Database
   static int64_t count(const TableType& table)
   {
     CountQuery query{table.get_name()};
-    return query.execute(Database::db);
+    return query.execute(*Database::db);
   }
 
   static MucLogLineTable muc_log_lines;
@@ -142,7 +144,7 @@ class Database
   static IrcServerOptionsTable irc_server_options;
   static IrcChannelOptionsTable irc_channel_options;
   static RosterTable roster;
-  static sqlite3* db;
+  static std::unique_ptr<DatabaseEngine> db;
 
   /**
    * Some caches, to avoid doing very frequent query requests for a few options.
@@ -175,6 +177,11 @@ class Database
   static void invalidate_encoding_in_cache()
   {
     Database::encoding_in_cache.clear();
+  }
+
+  static auto raw_exec(const std::string& query)
+  {
+    Database::db->raw_exec(query);
   }
 
  private:

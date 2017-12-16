@@ -1,35 +1,29 @@
 #pragma once
 
-#include <sqlite3.h>
+#include <cstdint>
+#include <string>
+#include <vector>
+
+enum class StepResult
+{
+  Row,
+  Done,
+  Error,
+};
 
 class Statement
 {
  public:
-  Statement(sqlite3_stmt* stmt):
-      stmt(stmt) {}
-  ~Statement()
-  {
-    sqlite3_finalize(this->stmt);
-  }
+  virtual ~Statement() = default;
+  virtual StepResult step() = 0;
 
-  Statement(const Statement&) = delete;
-  Statement& operator=(const Statement&) = delete;
-  Statement(Statement&& other):
-      stmt(other.stmt)
-  {
-    other.stmt = nullptr;
-  }
-  Statement& operator=(Statement&& other)
-  {
-    this->stmt = other.stmt;
-    other.stmt = nullptr;
-    return *this;
-  }
-  sqlite3_stmt* get()
-  {
-    return this->stmt;
-  }
+  virtual void bind(std::vector<std::string> params) = 0;
 
- private:
-  sqlite3_stmt* stmt;
+  virtual std::int64_t get_column_int64(const int col) = 0;
+  virtual std::string get_column_text(const int col) = 0;
+  virtual int get_column_int(const int col) = 0;
+
+  virtual bool bind_text(const int pos, const std::string& data) = 0;
+  virtual bool bind_int64(const int pos, const std::int64_t value) = 0;
+  virtual bool bind_null(const int pos) = 0;
 };

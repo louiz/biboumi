@@ -14,7 +14,7 @@ endif()
 #
 ## Find optional instrumentation libraries that will be used in debug only
 #
-find_library(LIBASAN NAMES asan libasan.so.3 libasan.so.2 libasan.so.1)
+find_library(LIBASAN NAMES asan libasan.so.4 libasan.so.3 libasan.so.2 libasan.so.1)
 find_library(LIBUBSAN NAMES ubsan libubsan.so.0)
 
 #
@@ -130,6 +130,12 @@ elseif(NOT WITHOUT_SQLITE3)
   find_package(SQLITE3)
 endif()
 
+if(WITH_POSTGRESQL)
+  find_package(PQ REQUIRED)
+elseif(NOT WITHOUT_POSTGRESQL)
+  find_package(PQ)
+endif()
+
 #
 ## Set all the include directories, depending on what libraries are used
 #
@@ -187,12 +193,17 @@ file(GLOB source_network
         src/network/*.[hc]pp)
 add_library(network OBJECT ${source_network})
 
-if(SQLITE3_FOUND)
+if(SQLITE3_FOUND OR PQ_FOUND)
   file(GLOB source_database
           src/database/*.[hc]pp)
   add_library(database OBJECT ${source_database})
 
-  include_directories(database ${SQLITE3_INCLUDE_DIRS})
+  if(SQLITE3_FOUND)
+    include_directories(database ${SQLITE3_INCLUDE_DIRS})
+  endif()
+  if(PQ_FOUND)
+    include_directories(database ${PQ_INCLUDE_DIRS})
+  endif()
   set(USE_DATABASE TRUE)
 else()
   add_library(database OBJECT "")
@@ -260,8 +271,14 @@ if(LIBIDN_FOUND)
   target_link_libraries(test_suite ${LIBIDN_LIBRARIES})
 endif()
 if(USE_DATABASE)
-  target_link_libraries(${PROJECT_NAME} ${SQLITE3_LIBRARIES})
-  target_link_libraries(test_suite ${SQLITE3_LIBRARIES})
+  if(SQLITE3_FOUND)
+    target_link_libraries(${PROJECT_NAME} ${SQLITE3_LIBRARIES})
+    target_link_libraries(test_suite ${SQLITE3_LIBRARIES})
+  endif()
+  if(PQ_FOUND)
+    target_link_libraries(${PROJECT_NAME} ${PQ_LIBRARIES})
+    target_link_libraries(test_suite ${PQ_LIBRARIES})
+endif()
 endif()
 
 # Define a __FILENAME__ macro with the relative path (from the base project directory)

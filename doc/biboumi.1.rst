@@ -77,6 +77,20 @@ port
 The TCP port to use to connect to the local XMPP component. The default
 value is 5347.
 
+db_name
+-------
+
+The name of the database to use. This option can only be used if biboumi
+has been compiled with a database support (Sqlite3 and/or PostgreSQL). If
+the value begins with the postgresql scheme, “postgresql://” or
+“postgres://”, then biboumi will try to connect to the PostgreSQL database
+specified by the URI. See
+https://www.postgresql.org/docs/current/static/libpq-connect.html#idm46428693970032
+for all possible values. For example the value could be
+“postgresql://user:secret@localhost”. If the value does not start with the
+postgresql scheme, then it specifies a filename that will be opened with
+Sqlite3. For example the value could be “/var/lib/biboumi/biboumi.sqlite”.
+
 admin
 -----
 
