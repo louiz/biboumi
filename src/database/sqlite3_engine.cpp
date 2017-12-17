@@ -85,7 +85,7 @@ std::unique_ptr<Statement> Sqlite3Engine::prepare(const std::string& query)
   return std::make_unique<Sqlite3Statement>(stmt);
 }
 
-void Sqlite3Engine::extract_last_insert_rowid(Statement& statement)
+void Sqlite3Engine::extract_last_insert_rowid(Statement&)
 {
   this->last_inserted_rowid = sqlite3_last_insert_rowid(this->db);
   log_debug("extracted inserted ID: ", this->last_inserted_rowid);
