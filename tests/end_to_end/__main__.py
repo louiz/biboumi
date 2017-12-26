@@ -130,6 +130,7 @@ def match(stanza, xpath):
                                             'dataform': 'jabber:x:data',
                                             'version': 'jabber:iq:version',
                                             'mam': 'urn:xmpp:mam:2',
+                                            'rms': 'http://jabber.org/protocol/rsm',
                                             'delay': 'urn:xmpp:delay',
                                             'forward': 'urn:xmpp:forward:0',
                                             'client': 'jabber:client',
@@ -1852,7 +1853,9 @@ if __name__ == '__main__':
                             ),
 
                     partial(expect_stanza,
-                            "/iq[@type='result'][@id='id1'][@from='#foo%{irc_server_one}'][@to='{jid_one}/{resource_one}']"),
+                            ("/iq[@type='result'][@id='id1'][@from='#foo%{irc_server_one}'][@to='{jid_one}/{resource_one}']",
+                             "/iq/mam:fin/rms:set/rsm:last",
+                             "/iq/mam:fin/rsm:set/rsm:first")),
 
                     # Retrieve an empty archive by specifying an early “end” date
                     partial(send_stanza, """<iq to='#foo%{irc_server_one}' from='{jid_one}/{resource_one}' type='set' id='id2'>

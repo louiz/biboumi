@@ -203,7 +203,7 @@ public:
    */
   void send_iq_result(const std::string& id, const std::string& to_jid, const std::string& from);
   void send_iq_result_full_jid(const std::string& id, const std::string& to_jid,
-                               const std::string& from_full_jid);
+                               const std::string& from_full_jid, std::unique_ptr<XmlNode> inner=nullptr);
 
   void handle_handshake(const Stanza& stanza);
   void handle_error(const Stanza& stanza);

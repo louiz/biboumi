@@ -725,7 +725,24 @@ bool BiboumiComponent::handle_mam_request(const Stanza& stanza)
           if (!line.col<Database::Nick>().empty())
             this->send_archived_message(line, to.full(), from.full(), query_id);
         }
-        this->send_iq_result_full_jid(id, from.full(), to.full());
+        {
+          auto fin_ptr = std::make_unique<XmlNode>("fin");
+          {
+            XmlNode& fin = *(fin_ptr.get());
+            fin["xmlns"] = MAM_NS;
+            XmlSubNode set(fin, "set");
+            set["xmlns"] = RSM_NS;
+            if (!lines.empty())
+              {
+                XmlSubNode first(set, "first");
+                first["index"] = "0";
+                first.set_inner(lines[0].col<Database::Uuid>());
+                XmlSubNode last(set, "last");
+                last.set_inner(lines[lines.size() - 1].col<Database::Uuid>());
+              }
+          }
+          this->send_iq_result_full_jid(id, from.full(), to.full(), std::move(fin_ptr));
+        }
         return true;
       }
   return false;
