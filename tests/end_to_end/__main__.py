@@ -1088,7 +1088,8 @@ if __name__ == '__main__':
                      # Message is received with a server-wide JID, by the two resources behind nick_one
                      partial(expect_stanza, ("/message[@from='{lower_nick_two}%{irc_server_one}'][@to='{jid_one}/{resource_one}'][@type='chat']/body[text()='RELLO']",
                                              "/message/hints:no-copy",
-                                             "/message/carbon:private")),
+                                             "/message/carbon:private",
+                                             "!/message/muc_user:x")),
                      partial(expect_stanza, "/message[@from='{lower_nick_two}%{irc_server_one}'][@to='{jid_one}/{resource_two}'][@type='chat']/body[text()='RELLO']"),
 
 
@@ -1280,7 +1281,8 @@ if __name__ == '__main__':
                      # Respond to the message, to the server-wide JID
                      partial(send_stanza, "<message from='{jid_two}/{resource_one}' to='{lower_nick_one}%{irc_server_one}' type='chat'><body>yes</body></message>"),
                      # The response is received from the in-room JID
-                     partial(expect_stanza, "/message[@from='#foo%{irc_server_one}/{nick_two}'][@to='{jid_one}/{resource_one}'][@type='chat']/body[text()='yes']"),
+                     partial(expect_stanza, ("/message[@from='#foo%{irc_server_one}/{nick_two}'][@to='{jid_one}/{resource_one}'][@type='chat']/body[text()='yes']",
+                                             "/message/muc_user:x")),
 
                      ## Do the exact same thing, from a different chan,
                      # to check if the response comes from the right JID

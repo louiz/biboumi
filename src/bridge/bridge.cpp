@@ -862,7 +862,8 @@ void Bridge::send_message(const Iid& iid, const std::string& nick, const std::st
           const auto chan_name = Iid(Jid(it->second).local, {}).get_local();
           for (const auto& resource: this->resources_in_chan[ChannelKey{chan_name, iid.get_server()}])
             this->xmpp.send_message(it->second, this->make_xmpp_body(body, encoding),
-                                    this->user_jid + "/" + resource, "chat", true, true);
+                                    this->user_jid + "/"
+                                    + resource, "chat", true, true, true);
         }
       else
         {

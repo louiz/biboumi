@@ -112,7 +112,8 @@ public:
    * server-part of the JID and must be added.
    */
   void send_message(const std::string& from, Xmpp::body&& body, const std::string& to,
-                    const std::string& type, const bool fulljid, const bool nocopy=false);
+                    const std::string& type, const bool fulljid, const bool nocopy=false,
+                    const bool muc_private=false);
   /**
    * Send a join from a new participant
    */

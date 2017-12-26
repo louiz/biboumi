@@ -269,7 +269,8 @@ void* XmppComponent::get_receive_buffer(const size_t size) const
 }
 
 void XmppComponent::send_message(const std::string& from, Xmpp::body&& body, const std::string& to,
-                                 const std::string& type, const bool fulljid, const bool nocopy)
+                                 const std::string& type, const bool fulljid, const bool nocopy,
+                                 const bool muc_private)
 {
   Stanza message("message");
   {
@@ -300,6 +301,11 @@ void XmppComponent::send_message(const std::string& from, Xmpp::body&& body, con
         private_node["xmlns"] = "urn:xmpp:carbons:2";
         XmlSubNode nocopy(message, "no-copy");
         nocopy["xmlns"] = "urn:xmpp:hints";
+      }
+    if (muc_private)
+      {
+        XmlSubNode x(message, "x");
+        x["xmlns"] = MUC_USER_NS;
       }
   }
   this->send_stanza(message);
