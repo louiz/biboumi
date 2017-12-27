@@ -909,7 +909,13 @@ if __name__ == '__main__':
                      partial(expect_stanza, ("/iq[@type='result']/disco_items:query[@node='http://jabber.org/protocol/commands']",
                                              "/iq/disco_items:query/disco_items:item[6]")),
                  ], conf='fixed_server'),
-
+        Scenario("list_muc_user_adhoc",
+                 [
+                     handshake_sequence(),
+                     partial(send_stanza, "<iq type='get' id='idwhatever' from='{jid_admin}/{resource_one}' to='#foo%{irc_server_one}/{nick_one}'><query xmlns='http://jabber.org/protocol/disco#items' node='http://jabber.org/protocol/commands' /></iq>"),
+                     partial(expect_stanza, "/iq[@type='error']/error[@type='cancel']/stanza:feature-not-implemented"),
+                 ]
+                 ),
         Scenario("execute_hello_adhoc_command",
                  [
                      handshake_sequence(),

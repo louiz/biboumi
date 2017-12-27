@@ -444,8 +444,13 @@ void BiboumiComponent::handle_iq(const Stanza& stanza)
           {
             if (iid.type == Iid::Type::Server)
               adhoc_handler = &this->irc_server_adhoc_commands_handler;
-            else
+            else if (iid.type == Iid::Type::Channel && to.resource.empty())
               adhoc_handler = &this->irc_channel_adhoc_commands_handler;
+            else
+              {
+                error_name = "feature-not-implemented";
+                return;
+              }
           }
           // Execute the command, if any, and get a result XmlNode that we
           // insert in our response
@@ -495,7 +500,7 @@ void BiboumiComponent::handle_iq(const Stanza& stanza)
                     stanza_error.disable();
                 }
             }
-          else if (iid.type == Iid::Type::Channel)
+          else if (iid.type == Iid::Type::Channel && to.resource.empty())
             {
               if (node.empty())
                 {
@@ -554,7 +559,7 @@ void BiboumiComponent::handle_iq(const Stanza& stanza)
                                                  this->irc_server_adhoc_commands_handler);
                   stanza_error.disable();
                 }
-              else if (iid.type == Iid::Type::Channel)
+              else if (iid.type == Iid::Type::Channel && to.resource.empty())
                 {               // Get the channel's adhoc commands
                   this->send_adhoc_commands_list(id, from, to_str,
                                                  (Config::get("admin", "") ==
@@ -562,6 +567,8 @@ void BiboumiComponent::handle_iq(const Stanza& stanza)
                                                  this->irc_channel_adhoc_commands_handler);
                   stanza_error.disable();
                 }
+              else // “to” is a MUC user, not the room itself
+                error_name = "feature-not-implemented";
             }
           else if (node.empty() && iid.type == Iid::Type::Server)
             { // Disco on an IRC server: get the list of channels
@@ -784,7 +791,7 @@ bool BiboumiComponent::handle_room_configuration_form_request(const std::string&
 {
   Iid iid(to.local, {'#', '&'});
 
-  if (iid.type != Iid::Type::Channel)
+  if (iid.type != Iid::Type::Channel || !to.resource.empty())
     return false;
 
   Stanza iq("iq");
@@ -806,7 +813,7 @@ bool BiboumiComponent::handle_room_configuration_form(const XmlNode& query, cons
 {
   Iid iid(to.local, {'#', '&'});
 
-  if (iid.type != Iid::Type::Channel)
+  if (iid.type != Iid::Type::Channel || !to.resource.empty())
     return false;
 
   Jid requester(from);
