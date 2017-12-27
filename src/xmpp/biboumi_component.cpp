@@ -436,7 +436,7 @@ void BiboumiComponent::handle_iq(const Stanza& stanza)
 
           // Depending on the 'to' jid in the request, we use one adhoc
           // command handler or an other
-          Iid iid(to.local, {});
+          Iid iid(to.local, {'#', '&'});
           AdhocCommandsHandler* adhoc_handler;
           if (to.local.empty())
             adhoc_handler = &this->adhoc_commands_handler;
