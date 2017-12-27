@@ -11,6 +11,35 @@ Version 7.0
  - Fix the iq result sent at the end of a MAM response. Some clients (e.g.
    gajim) would throw an error as a result.
 
+Sqlite3 to PostgreSQL migration
+-------------------------------
+
+If you used biboumi with the sqlite3 database backend and you want to
+start using postgresql instead, follow these simple steps:
+
+ - Make sure your Sqlite3 database has the correct format by running at
+   least biboumi version 6.0 against this database. Indeed: biboumi can
+   upgrade your database scheme by itself automatically when it starts, but
+   the migration process can only migrate from the latest known schema,
+   which is the one in version 6.x and 7.x.  If you are migrating from
+   version 6.x or 7.x, you have nothing to do.
+ - Start biboumi (at least version 7.0) with db_name configured to use
+   your postgresql database: this will create an empty database, create all
+   the tables with all the rights columns, ready to be filled.
+ - Backup your database if you value it. The migration process will not
+   write anything into it, so it your data should theorically be kept
+   intact, but we never know.
+ - Run the dump script found in biboumi’s sources:
+   `<scripts/dump_sqlite3.sh>`_. Its first and only argument must be the path
+   to your sqlite3 database. For example run `./scripts/dump_sqlite3.sh
+   /var/lib/biboumi/biboumi.sqlite`. This will create, in your current
+   directory, some sqlite files that contain instructions to be fed into
+   postgresql.
+ - Import all the ouput files thusly created into your PostgreSQL, with
+   something like this: `psql postgresql://user@password/biboumi < *.sql`.
+   This takes a few minutes if your database is huge (if it contains many
+   archived messages).
+
 Version 6.1 - 2017-10-04
 ========================
 
