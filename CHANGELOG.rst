@@ -1,3 +1,16 @@
+Version 7.0
+===========
+
+ - Support PostgreSQL as a database backend. See below for migration tips.
+ - Add a workaround for a bug in botan < 2.4 where session resumption
+   would sometime result in a TLS decode error
+ - Add a <x xmlns="…muc#user"/> node in our private MUC messages, to help
+   clients distinguish between MUC and non-MUC messages.
+ - Fix the identd outgoing responses: \r\n was missing, and some clients
+   would ignore our messages entirely.
+ - Fix the iq result sent at the end of a MAM response. Some clients (e.g.
+   gajim) would throw an error as a result.
+
 Version 6.1 - 2017-10-04
 ========================
 
