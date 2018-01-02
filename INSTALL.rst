@@ -32,9 +32,7 @@ libiconv_
 libuuid_
  Generate unique IDs
 
-sqlite3_
-or
-libpq_
+sqlite3_ or libpq_
  Provides a way to store various options and messages archives in a
  database. Each user of the gateway can store their own values (for
  example their prefered port, or their IRC password). Without this
