@@ -98,8 +98,8 @@ Version 5.0 - 2017-05-24
 Version 4.3 - 2017-05-02
 ========================
 
- - Fix a segmentation fault that occured when trying to connect to an IRC
-   server without any port configured.
+- Fix a segmentation fault that occured when trying to connect to an IRC
+  server without any port configured.
 
 Version 4.2 - 2017-04-26
 ========================
