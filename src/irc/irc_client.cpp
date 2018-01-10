@@ -483,12 +483,16 @@ bool IrcClient::send_channel_message(const std::string& chan_name, const std::st
     }
   // The max size is 512, taking into account the whole message, not just
   // the text we send.
-  // This includes our own nick, username and host (because this will be
-  // added by the server into our message), in addition to the basic
-  // components of the message we send (command name, chan name, \r\n et)
+  // This includes our own nick, constants for username and host (because these
+  // are notoriously hard to know what the server will use), in addition to the basic
+  // components of the message we send (command name, chan name, \r\n etc.)
   //  : + NICK + ! + USER + @ + HOST + <space> + PRIVMSG + <space> + CHAN + <space> + : + \r\n
+  // 63 is the maximum hostname length defined by the protocol.  10 seems to be
+  // the username limit.
+  constexpr auto max_username_size = 10;
+  constexpr auto max_hostname_size = 63;
   const auto line_size = 512 -
-                         this->current_nick.size() - this->username.size() - this->own_host.size() -
+                         this->current_nick.size() - max_username_size - max_hostname_size -
                          ::strlen(":!@ PRIVMSG ") - chan_name.length() - ::strlen(" :\r\n");
   const auto lines = cut(body, line_size);
   for (const auto& line: lines)
