@@ -10,6 +10,8 @@ Version 7.0
   would ignore our messages entirely.
 - Fix the iq result sent at the end of a MAM response. Some clients (e.g.
   gajim) would throw an error as a result.
+- log_level configuration option is no longer ignored if the logs are written
+  into journald
 
 Sqlite3 to PostgreSQL migration
 -------------------------------

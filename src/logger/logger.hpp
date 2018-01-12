@@ -74,8 +74,8 @@ public:
   bool use_systemd{false};
 #endif
 
-private:
   const int log_level;
+private:
   std::ofstream ofstream{};
   std::ostream stream;
 
@@ -105,13 +105,16 @@ namespace logging_details
     if (Logger::instance()->use_systemd)
       {
         (void)level;
-        std::ostringstream os;
-        log(os, std::forward<U>(args)...);
-        sd_journal_send("MESSAGE=%s", os.str().data(),
-                        "PRIORITY=%i", syslog_level,
-                        "CODE_FILE=%s", src_file,
-                        "CODE_LINE=%i", line,
-                        nullptr);
+        if (level >= Logger::instance()->log_level)
+          {
+            std::ostringstream os;
+            log(os, std::forward<U>(args)...);
+            sd_journal_send("MESSAGE=%s", os.str().data(),
+                            "PRIORITY=%i", syslog_level,
+                            "CODE_FILE=%s", src_file,
+                            "CODE_LINE=%i", line,
+                            nullptr);
+          }
       }
     else
       {
