@@ -39,6 +39,10 @@ struct InsertQuery: public Query
   template <typename... T>
   void execute(DatabaseEngine& db, std::tuple<T...>& columns)
   {
+#ifdef DEBUG_SQL_QUERIES
+    const auto timer = this->log_and_time();
+#endif
+
     auto statement = db.prepare(this->body);
     this->bind_param(columns, *statement);
 

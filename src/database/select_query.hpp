@@ -110,6 +110,10 @@ struct SelectQuery: public Query
     {
       std::vector<Row<T...>> rows;
 
+#ifdef DEBUG_SQL_QUERIES
+      const auto timer = this->log_and_time();
+#endif
+
       auto statement = db.prepare(this->body);
       statement->bind(std::move(this->params));
 

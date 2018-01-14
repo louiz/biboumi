@@ -16,6 +16,9 @@ struct CountQuery: public Query
 
     int64_t execute(DatabaseEngine& db)
     {
+#ifdef DEBUG_SQL_QUERIES
+      const auto timer = this->log_and_time();
+#endif
       auto statement = db.prepare(this->body);
       int64_t res = 0;
       if (statement->step() != StepResult::Error)

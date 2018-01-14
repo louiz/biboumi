@@ -193,6 +193,9 @@ file(GLOB source_network
         src/network/*.[hc]pp)
 add_library(network OBJECT ${source_network})
 
+option(DEBUG_SQL_QUERIES
+       "If set to true, every SQL statement executed will be logged and timed"
+       OFF)
 if(SQLITE3_FOUND OR PQ_FOUND)
   file(GLOB source_database
           src/database/*.[hc]pp)

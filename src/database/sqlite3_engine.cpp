@@ -6,6 +6,8 @@
 
 #include <database/sqlite3_statement.hpp>
 
+#include <database/query.hpp>
+
 #include <utils/tolower.hpp>
 #include <logger/logger.hpp>
 #include <vector>
@@ -57,6 +59,11 @@ std::unique_ptr<DatabaseEngine> Sqlite3Engine::open(const std::string& filename)
 
 std::tuple<bool, std::string> Sqlite3Engine::raw_exec(const std::string& query)
 {
+#ifdef DEBUG_SQL_QUERIES
+  log_debug("SQL QUERY: ", query);
+  const auto timer = make_sql_timer();
+#endif
+
   char* error;
   const auto result = sqlite3_exec(db, query.data(), nullptr, nullptr, &error);
   if (result != SQLITE_OK)

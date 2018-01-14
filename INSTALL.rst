@@ -96,6 +96,9 @@ The list of available options:
   - POLL: use the standard poll(2). This is the default value on all non-Linux
     platforms.
 
+- DEBUG_SQL_QUERIES: If set to ON, additional debug logging and timing will be
+  done for every SQL query that is executed. The default is OFF.
+
 - WITH_BOTAN and WITHOUT_BOTAN: The first force the usage of the Botan library,
   if it is not found, the configuration process will fail. The second will
   make the build process ignore the Botan library, it will not be used even

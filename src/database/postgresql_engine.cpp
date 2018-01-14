@@ -3,6 +3,8 @@
 
 #include <utils/scopeguard.hpp>
 
+#include <database/query.hpp>
+
 #include <database/postgresql_engine.hpp>
 
 #include <database/postgresql_statement.hpp>
@@ -51,6 +53,10 @@ std::set<std::string> PostgresqlEngine::get_all_columns_from_table(const std::st
 
 std::tuple<bool, std::string> PostgresqlEngine::raw_exec(const std::string& query)
 {
+#ifdef DEBUG_SQL_QUERIES
+  log_debug("SQL QUERY: ", query);
+  const auto timer = make_sql_timer();
+#endif
   PGresult* res = PQexec(this->conn, query.data());
   auto sg = utils::make_scope_guard([res](){
       PQclear(res);

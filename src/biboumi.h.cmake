@@ -12,3 +12,5 @@
 #cmakedefine PROJECT_NAME "${PROJECT_NAME}"
 #cmakedefine HAS_GET_TIME
 #cmakedefine HAS_PUT_TIME
+#cmakedefine DEBUG_SQL_QUERIES
+
