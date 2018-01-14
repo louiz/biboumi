@@ -19,7 +19,6 @@ class Sqlite3Statement: public Statement
   StepResult step() override final
   {
     auto res = sqlite3_step(this->get());
-    log_debug("step: ", res);
     if (res == SQLITE_ROW)
       return StepResult::Row;
     else if (res == SQLITE_DONE)

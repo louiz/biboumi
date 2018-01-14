@@ -65,11 +65,10 @@ class Table
   {
     std::string query{"CREATE TABLE IF NOT EXISTS "};
     query += this->name;
-    query += " (\n";
+    query += " (";
     this->add_column_create(db, query);
     query += ")";
 
-    log_debug("create:" , query);
     auto result = db.raw_exec(query);
     if (std::get<0>(result) == false)
       log_error("Error executing query: ", std::get<1>(result));
@@ -112,21 +111,11 @@ class Table
   add_column_create(DatabaseEngine& db, std::string& str)
   {
     using ColumnType = typename std::remove_reference<decltype(std::get<N>(std::declval<ColumnTypes>()))>::type;
-//    using RealType = typename ColumnType::real_type;
     str += ColumnType::name;
     str += " ";
-//    if (std::is_same<ColumnType, Id>::value)
-//      {
-//        str += "INTEGER PRIMARY KEY AUTOINCREMENT";
-//      }
-//    else
-//      {
-        str += ToSQLType<ColumnType>(db);
-//        append_option<ColumnType>(str);
-//      }
+    str += ToSQLType<ColumnType>(db);
     if (N != sizeof...(T) - 1)
       str += ",";
-    str += "\n";
 
     add_column_create<N+1>(db, str);
   }

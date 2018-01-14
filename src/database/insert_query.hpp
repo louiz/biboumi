@@ -16,10 +16,7 @@ update_autoincrement_id(std::tuple<T...>& columns, Statement& statement)
 {
   using ColumnType = typename std::decay<decltype(std::get<N>(columns))>::type;
   if (std::is_same<ColumnType, Id>::value)
-    {
-      log_debug("EXTRACTING LAST ID");
-      auto&& column = std::get<Id>(columns);
-    }
+    auto&& column = std::get<Id>(columns);
   update_autoincrement_id<N+1>(columns, statement);
 }
 

@@ -20,7 +20,6 @@ PostgresqlEngine::~PostgresqlEngine()
 
 std::unique_ptr<DatabaseEngine> PostgresqlEngine::open(const std::string& conninfo)
 {
-  log_debug("trying to open: ", conninfo);
   PGconn* con = PQconnectdb(conninfo.data());
 
   if (!con)
@@ -47,13 +46,11 @@ std::set<std::string> PostgresqlEngine::get_all_columns_from_table(const std::st
   while (statement->step() == StepResult::Row)
     columns.insert(statement->get_column_text(0));
 
-  log_debug("found ", columns.size(), " columns.");
   return columns;
 }
 
 std::tuple<bool, std::string> PostgresqlEngine::raw_exec(const std::string& query)
 {
-  log_debug("raw_exec:", query);
   PGresult* res = PQexec(this->conn, query.data());
   auto sg = utils::make_scope_guard([res](){
       PQclear(res);

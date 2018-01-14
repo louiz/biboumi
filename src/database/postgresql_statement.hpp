@@ -96,12 +96,7 @@ private:
     params.reserve(this->params.size());
 
     for (const auto& param: this->params)
-      {
-        log_debug("param:", param);
-        params.push_back(param.data());
-      }
-
-    log_debug("body: ", body);
+      params.push_back(param.data());
     const int param_size = static_cast<int>(this->params.size());
     this->result = PQexecParams(this->conn, this->body.data(),
                                 param_size,
@@ -111,11 +106,7 @@ private:
                                 nullptr,
                                 0);
     const auto status = PQresultStatus(this->result);
-    if (status == PGRES_TUPLES_OK)
-      {
-        log_debug("PGRES_TUPLES_OK");
-      }
-    else if (status != PGRES_COMMAND_OK)
+    if (status != PGRES_TUPLES_OK && status != PGRES_COMMAND_OK)
       {
         log_error("Failed to execute command: ", PQresultErrorMessage(this->result));
         return false;

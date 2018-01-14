@@ -39,9 +39,6 @@ std::set<std::string> Sqlite3Engine::get_all_columns_from_table(const std::strin
       sqlite3_free(errmsg);
     }
 
-  log_debug("List of columns in table ", table_name, ":");
-  for (const auto& c: result)
-    log_debug(c);
   return result;
 }
 
@@ -74,7 +71,6 @@ std::tuple<bool, std::string> Sqlite3Engine::raw_exec(const std::string& query)
 std::unique_ptr<Statement> Sqlite3Engine::prepare(const std::string& query)
 {
   sqlite3_stmt* stmt;
-  log_debug("SQLITE3: ", query);
   auto res = sqlite3_prepare(db, query.data(), static_cast<int>(query.size()) + 1,
                              &stmt, nullptr);
   if (res != SQLITE_OK)
@@ -88,7 +84,6 @@ std::unique_ptr<Statement> Sqlite3Engine::prepare(const std::string& query)
 void Sqlite3Engine::extract_last_insert_rowid(Statement&)
 {
   this->last_inserted_rowid = sqlite3_last_insert_rowid(this->db);
-  log_debug("extracted inserted ID: ", this->last_inserted_rowid);
 }
 
 std::string Sqlite3Engine::id_column_type()

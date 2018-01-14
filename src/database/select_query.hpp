@@ -115,7 +115,6 @@ struct SelectQuery: public Query
 
       while (statement->step() == StepResult::Row)
         {
-          log_debug("one result.");
           Row<T...> row(this->table_name);
           extract_row_values(row, *statement);
           rows.push_back(row);
