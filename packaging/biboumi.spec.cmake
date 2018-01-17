@@ -63,8 +63,8 @@ make check %{?_smp_mflags}
 
 
 %changelog
-* ${RPM_DATE} Le Coz Florent <louiz@louiz.org> - ${RPM_VERSION}-1
-- Build latest git revision
+* Wed Jan 17 2018 Le Coz Florent <louiz@louiz.org> - 7.0-1
+  Update to version 7.0
 
 * Wed Oct 4 2017 Le Coz Florent <louiz@louiz.org> - 6.1-1
   Update to version 6.1

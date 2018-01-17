@@ -1,5 +1,5 @@
-Version 7.0
-===========
+Version 7.0 - 2018-01-17
+========================
 
 - Support PostgreSQL as a database backend. See below for migration tips.
 - Add a workaround for a bug in botan < 2.4 where session resumption
