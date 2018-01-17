@@ -12,6 +12,7 @@
 #include <cstring>
 
 #ifdef BOTAN_FOUND
+# include <botan/version.h>
 # include <botan/hex.h>
 # include <botan/auto_rng.h>
 # include <botan/tls_exceptn.h>
@@ -28,8 +29,10 @@ namespace
     Botan::TLS::Session_Manager_In_Memory& get_session_manager()
     {
       static Botan::TLS::Session_Manager_In_Memory session_manager{get_rng()};
+#if BOTAN_VERSION_CODE < BOTAN_VERSION_CODE_FOR(2,4,0)
       // workaround for https://github.com/randombit/botan/issues/1276
       session_manager.remove_all();
+#endif
       return session_manager;
     }
 }
