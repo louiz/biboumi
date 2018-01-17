@@ -32,7 +32,7 @@ libiconv_
 libuuid_
  Generate unique IDs
 
-sqlite3_ or libpq_
+sqlite3_ or libpq_ (optional, but recommented)
  Provides a way to store various options and messages archives in a
  database. Each user of the gateway can store their own values (for
  example their prefered port, or their IRC password). Without this
@@ -47,12 +47,13 @@ udns_ (optional, but recommended)
  performances when connecting to a big number of IRC servers at the same
  time.
 
-libbotan_ 2.x (optional)
+libbotan_ 2.x (optional, but recommended)
  Provides TLS support. Without it, IRC connections are all made in
  plain-text mode.
 
 gcrypt_ (mandatory only if botan is absent)
- Provides the SHA-1 hash function, for the case where Botan is absent.
+ Provides the SHA-1 hash function, for the case where Botan is absent. It
+ does NOT provide any TLS or encryption feature.
 
 systemd_ (optional)
  Provides the support for a systemd service of Type=notify. This is useful only
