@@ -12,6 +12,7 @@ BuildRequires: expat-devel
 BuildRequires: libuuid-devel
 BuildRequires: systemd-devel
 BuildRequires: sqlite-devel
+BuildRequires: postgresql-devel
 BuildRequires: cmake
 BuildRequires: systemd
 BuildRequires: pandoc
@@ -39,7 +40,8 @@ cmake . -DCMAKE_CXX_FLAGS="%{optflags}" \
       -DWITHOUT_BOTAN=1 \
       -DWITH_SYSTEMD=1 \
       -DWITH_LIBIDN=1 \
-      -DWITH_SQLITE3=1
+      -DWITH_SQLITE3=1 \
+      -DWITH_POSTGRESQL=1
 
 make %{?_smp_mflags}
 
@@ -61,6 +63,9 @@ make check %{?_smp_mflags}
 
 
 %changelog
+* ${RPM_DATE} Le Coz Florent <louiz@louiz.org> - ${RPM_VERSION}-1
+- Build latest git revision
+
 * Wed Oct 4 2017 Le Coz Florent <louiz@louiz.org> - 6.1-1
   Update to version 6.1
 
