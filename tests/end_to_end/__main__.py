@@ -2254,6 +2254,21 @@ if __name__ == '__main__':
                          "/iq/disco_items:query/disco_items:item[@jid='#bar%{irc_server_one}']"
                      ))
                  ]),
+        Scenario("channel_list_escaping",
+                 [
+                     handshake_sequence(),
+
+                     partial(send_stanza,
+                             "<presence from='{jid_one}/{resource_one}' to='#true\\2ffalse%{irc_server_one}/{nick_one}' />"),
+                     connection_sequence("irc.localhost", '{jid_one}/{resource_one}'),
+                     partial(expect_stanza,
+                             "/message/body[text()='Mode #true/false [+nt] by {irc_host_one}']"),
+                     partial(expect_stanza,
+                             ("/presence[@to='{jid_one}/{resource_one}'][@from='#true\\2ffalse%{irc_server_one}/{nick_one}']/muc_user:x/muc_user:item[@affiliation='admin'][@role='moderator']",
+                             "/presence/muc_user:x/muc_user:status[@code='110']")
+                             ),
+                     partial(expect_stanza, "/message[@from='#true\\2ffalse%{irc_server_one}'][@type='groupchat']/subject[not(text())]"),
+                 ]),
         Scenario("channel_list_with_rsm",
                  [
                      handshake_sequence(),

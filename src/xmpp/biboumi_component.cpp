@@ -7,6 +7,7 @@
 #include <xmpp/adhoc_command.hpp>
 #include <xmpp/biboumi_adhoc_commands.hpp>
 #include <bridge/list_element.hpp>
+#include <utils/encoding.hpp>
 #include <config/config.hpp>
 #include <utils/time.hpp>
 #include <xmpp/jid.hpp>
@@ -1010,7 +1011,9 @@ void BiboumiComponent::send_iq_room_list_result(const std::string& id, const std
     for (auto it = begin; it != end; ++it)
       {
         XmlSubNode item(query, "item");
-        item["jid"] = it->channel + "@" + this->served_hostname;
+        std::string channel_name = it->channel;
+        xep0106::encode(channel_name);
+        item["jid"] = channel_name + "@" + this->served_hostname;
       }
 
     if ((rs_info.max >= 0 || !rs_info.after.empty() || !rs_info.before.empty()))
