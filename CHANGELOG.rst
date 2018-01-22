@@ -1,3 +1,8 @@
+Version 7.1 - 2018-01-22
+========================
+
+- Fix a crash happening if a user cancels a non-existing ad-hoc session
+
 Version 7.0 - 2018-01-17
 ========================
 

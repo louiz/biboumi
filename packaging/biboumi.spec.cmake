@@ -63,6 +63,9 @@ make check %{?_smp_mflags}
 
 
 %changelog
+* Wed Jan 22 2018 Le Coz Florent <louiz@louiz.org> - 7.1-1
+  Update to version 7.1
+
 * Wed Jan 17 2018 Le Coz Florent <louiz@louiz.org> - 7.0-1
   Update to version 7.0
 
