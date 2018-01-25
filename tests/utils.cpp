@@ -175,11 +175,11 @@ TEST_CASE("dirname")
 
 TEST_CASE("is_in")
 {
-  CHECK((is_one_of<int, float, std::string, int>::value) == true);
-  CHECK((is_one_of<int, float, std::string>::value) == false);
-  CHECK((is_one_of<int>::value) == false);
-  CHECK((is_one_of<int, int>::value) == true);
-  CHECK((is_one_of<bool, int>::value) == false);
-  CHECK((is_one_of<bool, bool>::value) == true);
-  CHECK((is_one_of<bool, bool, bool, bool, bool, int>::value) == true);
+  CHECK((is_one_of<int, float, std::string, int>) == true);
+  CHECK((is_one_of<int, float, std::string>) == false);
+  CHECK((is_one_of<int>) == false);
+  CHECK((is_one_of<int, int>) == true);
+  CHECK((is_one_of<bool, int>) == false);
+  CHECK((is_one_of<bool, bool>) == true);
+  CHECK((is_one_of<bool, bool, bool, bool, bool, int>) == true);
 }
