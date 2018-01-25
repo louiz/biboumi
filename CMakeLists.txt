@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.0)
 project(biboumi)
 
 set(${PROJECT_NAME}_VERSION_MAJOR 7)
-set(${PROJECT_NAME}_VERSION_MINOR 1)
+set(${PROJECT_NAME}_VERSION_MINOR 2)
 set(${PROJECT_NAME}_VERSION_SUFFIX "")
 
 if(NOT CMAKE_BUILD_TYPE)
