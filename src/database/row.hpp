@@ -30,13 +30,13 @@ struct Row
   }
 
   template <bool Coucou=true>
-  void save(std::unique_ptr<DatabaseEngine>& db,  typename std::enable_if<!is_one_of<Id, T...>::value && Coucou>::type* = nullptr)
+  void save(std::unique_ptr<DatabaseEngine>& db, typename std::enable_if<!is_one_of<Id, T...> && Coucou>::type* = nullptr)
   {
     this->insert(*db);
   }
 
   template <bool Coucou=true>
-  void save(std::unique_ptr<DatabaseEngine>& db,  typename std::enable_if<is_one_of<Id, T...>::value && Coucou>::type* = nullptr)
+  void save(std::unique_ptr<DatabaseEngine>& db, typename std::enable_if<is_one_of<Id, T...> && Coucou>::type* = nullptr)
   {
     const Id& id = std::get<Id>(this->columns);
     if (id.value == Id::unset_value)
