@@ -1,3 +1,9 @@
+Version 7.2 - 2018-01-24
+========================
+
+- Fix compilation with gcc 4.9. This is the last version to support this
+  old version.
+
 Version 7.1 - 2018-01-22
 ========================
 
