@@ -101,7 +101,7 @@ build:6:
     UDNS: "-DWITHOUT_UDNS=1"
   <<: *fedora_build
 
-build:7:
+build:without_udns:
   variables:
     UDNS: "-DWITHOUT_UDNS=1"
   <<: *fedora_build
@@ -144,7 +144,7 @@ test:without_udns:
   image: docker.louiz.org/louiz/biboumi/test-fedora:latest
   <<: *basic_test
   dependencies:
-    - build:7
+    - build:without_udns
 
 test:alpine:
   image: docker.louiz.org/louiz/biboumi/test-alpine:latest
@@ -248,7 +248,7 @@ packaging:archlinux:
   tags:
     - docker
   allow_failure: true
-  image: docker.louiz.org/louiz/biboumi/test-archlinux:latest
+  image: docker.louiz.org/louiz/biboumi/packaging-archlinux:latest
   before_script: []
   script:
     - sudo pacman -Syuu --noconfirm
