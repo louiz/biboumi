@@ -55,6 +55,13 @@ build:alpine:
   <<: *basic_build
   image: docker.louiz.org/louiz/biboumi/test-alpine:latest
 
+build:archlinux:
+  <<: *basic_build
+  only:
+    - branches@louiz/biboumi
+  tags:
+    - armv7l
+
 build:1:
   variables:
     BOTAN: "-DWITHOUT_BOTAN=1"
@@ -150,6 +157,18 @@ test:alpine:
     - make e2e
   dependencies:
     - build:alpine
+
+test:archlinux:
+  <<: *basic_test
+  only:
+    - branches@louiz/biboumi
+  tags:
+    - armv7l
+  script:
+    - cd build/
+    - make e2e
+  dependencies:
+    - build:archlinux
 
 test:freebsd:
   only:
