@@ -42,24 +42,18 @@ variables:
   <<: *basic_build
   image: docker.louiz.org/louiz/biboumi/test-fedora:latest
 
-.template:debian_build: &debian_build
-  <<: *basic_build
-  image: docker.louiz.org/louiz/biboumi/test-debian:latest
-
-.template:alpine_build: &alpine_build
-  variables:
-    SYSTEMD: "-DWITHOUT_SYSTEMD=1"
-  <<: *basic_build
-  image: docker.louiz.org/louiz/biboumi/test-alpine:latest
-
 build:fedora:
   <<: *fedora_build
 
 build:debian:
-  <<: *debian_build
+  <<: *basic_build
+  image: docker.louiz.org/louiz/biboumi/test-debian:latest
 
 build:alpine:
-  <<: *alpine_build
+  variables:
+    SYSTEMD: "-DWITHOUT_SYSTEMD=1"
+  <<: *basic_build
+  image: docker.louiz.org/louiz/biboumi/test-alpine:latest
 
 build:1:
   variables:
