@@ -30,7 +30,7 @@ variables:
     - "echo Running cmake with the following parameters: -DCMAKE_CXX_COMPILER=${COMPILER} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ${BOTAN} ${UDNS} ${SYSTEMD} ${LIBIDN} ${SQLITE3} ${POSTGRESQL}"
     - mkdir build/
     - cd build/
-    - cmake .. -DCMAKE_CXX_COMPILER=${COMPILER} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ${BOTAN} ${UDNS} ${SYSTEMD} ${LIBIDN} ${SQLITE3} ${POSTGRESQL}
+    - cmake .. -DCMAKE_CXX_FLAGS="-Werror -Wno-psabi" -DCMAKE_CXX_COMPILER=${COMPILER} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ${BOTAN} ${UDNS} ${SYSTEMD} ${LIBIDN} ${SQLITE3} ${POSTGRESQL}
     - make everything -j$(nproc || echo 1)
     - make coverage_check -j$(nproc || echo 1)
   artifacts:
