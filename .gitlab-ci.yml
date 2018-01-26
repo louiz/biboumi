@@ -55,6 +55,15 @@ build:alpine:
   <<: *basic_build
   image: docker.louiz.org/louiz/biboumi/test-alpine:latest
 
+build:archlinux:
+  <<: *basic_build
+  only:
+    - branches@louiz/biboumi
+  tags:
+    - armv7l
+  artifacts:
+    paths: []
+
 build:1:
   variables:
     BOTAN: "-DWITHOUT_BOTAN=1"
