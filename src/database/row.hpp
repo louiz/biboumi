@@ -42,7 +42,8 @@ struct Row
     if (id.value == Id::unset_value)
       {
         this->insert(*db);
-        std::get<Id>(this->columns).value = db->last_inserted_rowid;
+        if (db->last_inserted_rowid >= 0)
+          std::get<Id>(this->columns).value = static_cast<Id::real_type>(db->last_inserted_rowid);
       }
     else
       this->update(*db);

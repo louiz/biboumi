@@ -6,7 +6,7 @@ void actual_bind(Statement& statement, const std::string& value, int index)
   statement.bind_text(index, value);
 }
 
-void actual_bind(Statement& statement, const std::size_t value, int index)
+void actual_bind(Statement& statement, const std::int64_t value, int index)
 {
   statement.bind_int64(index, value);
 }
