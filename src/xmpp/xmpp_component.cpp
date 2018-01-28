@@ -22,6 +22,7 @@
 #include <biboumi.h>
 #ifdef SYSTEMD_FOUND
 # include <systemd/sd-daemon.h>
+#include <database/database.hpp>
 #endif
 
 using namespace std::string_literals;
@@ -398,7 +399,7 @@ void XmppComponent::send_muc_message(const std::string& muc_name, const std::str
   this->send_stanza(message);
 }
 
-void XmppComponent::send_history_message(const std::string& muc_name, const std::string& nick, const std::string& body_txt, const std::string& jid_to, std::time_t timestamp)
+void XmppComponent::send_history_message(const std::string& muc_name, const std::string& nick, const std::string& body_txt, const std::string& jid_to, Database::time_point::rep timestamp)
 {
   Stanza message("message");
   message["to"] = jid_to;
