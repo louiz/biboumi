@@ -4,6 +4,7 @@
 #include <logger/logger.hpp>
 
 #include <xmpp/xmpp_component.hpp>
+#include <database/database.hpp>
 #include <config/config.hpp>
 #include <utils/system.hpp>
 #include <utils/time.hpp>
@@ -22,7 +23,6 @@
 #include <biboumi.h>
 #ifdef SYSTEMD_FOUND
 # include <systemd/sd-daemon.h>
-#include <database/database.hpp>
 #endif
 
 using namespace std::string_literals;
