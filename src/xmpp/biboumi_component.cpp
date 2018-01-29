@@ -737,6 +737,7 @@ bool BiboumiComponent::handle_mam_request(const Stanza& stanza)
           {
             XmlNode& fin = *(fin_ptr.get());
             fin["xmlns"] = MAM_NS;
+            fin["complete"] = "true";
             XmlSubNode set(fin, "set");
             set["xmlns"] = RSM_NS;
             if (!lines.empty())
