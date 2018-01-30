@@ -721,13 +721,25 @@ bool BiboumiComponent::handle_mam_request(const Stanza& stanza)
             if (max)
               limit = std::atoi(max->get_inner().data());
           }
-        // If the archive is really big, and the client didn’t specify any
-        // limit, we avoid flooding it: we set an arbitrary max limit.
-        if (limit == -1 && start.empty() && end.empty())
+        // Do send more than 100 messages, even if the client asked for more,
+        // or if it didn’t specify any limit.
+        // 101 is just a trick to know if there are more available messages.
+        // If our query returns 101 message, we know it’s incomplete, but we
+        // still send only 100
+        if ((limit == -1 && start.empty() && end.empty())
+            || limit > 100)
+          limit = 101;
+        log_debug("limit: ", limit);
+        auto lines = Database::get_muc_logs(from.bare(), iid.get_local(), iid.get_server(), limit, start, end);
+        bool complete = true;
+        if (lines.size() > 100)
           {
-            limit = 100;
+            log_debug("incomplete");
+            complete = false;
+            log_debug("size of lines before erase: ", lines.size());
+            lines.erase(lines.begin(), std::prev(lines.end(), 100));
+            log_debug("size of lines after erase: ", lines.size());
           }
-        const auto lines = Database::get_muc_logs(from.bare(), iid.get_local(), iid.get_server(), limit, start, end);
         for (const Database::MucLogLine& line: lines)
         {
           if (!line.col<Database::Nick>().empty())
@@ -738,7 +750,8 @@ bool BiboumiComponent::handle_mam_request(const Stanza& stanza)
           {
             XmlNode& fin = *(fin_ptr.get());
             fin["xmlns"] = MAM_NS;
-            fin["complete"] = "true";
+            if (complete)
+              fin["complete"] = "true";
             XmlSubNode set(fin, "set");
             set["xmlns"] = RSM_NS;
             if (!lines.empty())

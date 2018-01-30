@@ -1,3 +1,8 @@
+Version 8.0
+===========
+
+- Add a complete='true' in MAM’s iq result when appropriate
+
 Version 7.2 - 2018-01-24
 ========================
 
