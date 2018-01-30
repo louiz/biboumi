@@ -1861,7 +1861,8 @@ if __name__ == '__main__':
                     partial(expect_stanza,
                             ("/iq[@type='result'][@id='id1'][@from='#foo%{irc_server_one}'][@to='{jid_one}/{resource_one}']",
                              "/iq/mam:fin/rms:set/rsm:last",
-                             "/iq/mam:fin/rsm:set/rsm:first")),
+                             "/iq/mam:fin/rsm:set/rsm:first",
+                             "/iq/mam:fin[@complete='true']")),
 
                     # Retrieve an empty archive by specifying an early “end” date
                     partial(send_stanza, """<iq to='#foo%{irc_server_one}' from='{jid_one}/{resource_one}' type='set' id='id2'>
@@ -1873,7 +1874,8 @@ if __name__ == '__main__':
                     </query></iq>"""),
 
                     partial(expect_stanza,
-                            "/iq[@type='result'][@id='id2'][@from='#foo%{irc_server_one}'][@to='{jid_one}/{resource_one}']"),
+                            ("/iq[@type='result'][@id='id2'][@from='#foo%{irc_server_one}'][@to='{jid_one}/{resource_one}']",
+                             "/iq/mam:fin[@complete='true']/rsm:set",)),
 
                     # Retrieve an empty archive by specifying a late “start” date
                     # (note that this test will break in ~1000 years)
@@ -1886,7 +1888,8 @@ if __name__ == '__main__':
                     </query></iq>"""),
 
                     partial(expect_stanza,
-                            "/iq[@type='result'][@id='id3'][@from='#foo%{irc_server_one}'][@to='{jid_one}/{resource_one}']"),
+                            ("/iq[@type='result'][@id='id3'][@from='#foo%{irc_server_one}'][@to='{jid_one}/{resource_one}']",
+                             "/iq/mam:fin[@complete='true']/rsm:set")),
 
                     # Retrieve a limited archive
                     partial(send_stanza, "<iq to='#foo%{irc_server_one}' from='{jid_one}/{resource_one}' type='set' id='id4'><query xmlns='urn:xmpp:mam:2' queryid='qid4'><set xmlns='http://jabber.org/protocol/rsm'><max>1</max></set></query></iq>"),
@@ -1897,7 +1900,8 @@ if __name__ == '__main__':
                             ),
 
                     partial(expect_stanza,
-                            "/iq[@type='result'][@id='id4'][@from='#foo%{irc_server_one}'][@to='{jid_one}/{resource_one}']"),
+                            ("/iq[@type='result'][@id='id4'][@from='#foo%{irc_server_one}'][@to='{jid_one}/{resource_one}']",
+                             "/iq/mam:fin[@complete='true']/rsm:set")),
 
                 ]),
         Scenario("mam_with_timestamps",
@@ -1957,7 +1961,8 @@ if __name__ == '__main__':
                              ),
 
                      partial(expect_stanza,
-                             "/iq[@type='result'][@id='id8'][@from='#foo%{irc_server_one}'][@to='{jid_one}/{resource_one}']"),
+                             ("/iq[@type='result'][@id='id8'][@from='#foo%{irc_server_one}'][@to='{jid_one}/{resource_one}']",
+                              "/iq/mam:fin[@complete='true']/rsm:set")),
                  ]),
 
 
@@ -2151,8 +2156,11 @@ if __name__ == '__main__':
                             ("/message/mam:result[@queryid='qid1']/forward:forwarded/delay:delay",
                             "/message/mam:result[@queryid='qid1']/forward:forwarded/client:message[@from='#foo%{irc_server_one}/{nick_one}'][@type='groupchat']/client:body[text()='149']")
                             ),
+                     # And it should not be marked as complete
                     partial(expect_stanza,
-                            "/iq[@type='result'][@id='id1'][@from='#foo%{irc_server_one}'][@to='{jid_one}/{resource_one}']"),
+                            ("/iq[@type='result'][@id='id1'][@from='#foo%{irc_server_one}'][@to='{jid_one}/{resource_one}']",
+                             "!/iq//mam:fin[@complete='true']",
+                             "/iq//mam:fin")),
 
                   ]),
         Scenario("channel_history_on_fixed_server",
