@@ -728,16 +728,12 @@ bool BiboumiComponent::handle_mam_request(const Stanza& stanza)
         if ((limit == -1 && start.empty() && end.empty())
             || limit > 100)
           limit = 101;
-        log_debug("limit: ", limit);
         auto lines = Database::get_muc_logs(from.bare(), iid.get_local(), iid.get_server(), limit, start, end);
         bool complete = true;
         if (lines.size() > 100)
           {
-            log_debug("incomplete");
             complete = false;
-            log_debug("size of lines before erase: ", lines.size());
             lines.erase(lines.begin(), std::prev(lines.end(), 100));
-            log_debug("size of lines after erase: ", lines.size());
           }
         for (const Database::MucLogLine& line: lines)
         {
