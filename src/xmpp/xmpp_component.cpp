@@ -4,7 +4,6 @@
 #include <logger/logger.hpp>
 
 #include <xmpp/xmpp_component.hpp>
-#include <database/database.hpp>
 #include <config/config.hpp>
 #include <utils/system.hpp>
 #include <utils/time.hpp>
@@ -399,6 +398,7 @@ void XmppComponent::send_muc_message(const std::string& muc_name, const std::str
   this->send_stanza(message);
 }
 
+#ifdef USE_DATABASE
 void XmppComponent::send_history_message(const std::string& muc_name, const std::string& nick, const std::string& body_txt, const std::string& jid_to, Database::time_point::rep timestamp)
 {
   Stanza message("message");
@@ -422,6 +422,7 @@ void XmppComponent::send_history_message(const std::string& muc_name, const std:
 
   this->send_stanza(message);
 }
+#endif
 
 void XmppComponent::send_muc_leave(const std::string& muc_name, const std::string& nick, Xmpp::body&& message,
                                    const std::string& jid_to, const bool self, const bool user_requested)
