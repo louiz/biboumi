@@ -140,7 +140,7 @@ public:
    * Send a message, with a <delay/> element, part of a MUC history
    */
   void send_history_message(const std::string& muc_name, const std::string& nick, const std::string& body,
-                            const std::string& jid_to, const std::time_t timestamp);
+                            const std::string& jid_to, Database::time_point::rep timestamp);
 #endif
   /**
    * Send an unavailable presence for this nick
