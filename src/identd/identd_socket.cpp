@@ -50,14 +50,14 @@ std::string IdentdSocket::generate_answer(const BiboumiComponent& biboumi, uint1
           if (pair.second->match_port_pairt(local, remote))
             {
               std::ostringstream os;
-              os << local << " , " << remote << " : USERID : OTHER : " << hash_jid(bridge->get_bare_jid());
+              os << local << " , " << remote << " : USERID : OTHER : " << hash_jid(bridge->get_bare_jid()) << "\r\n";
               log_debug("Identd, sending: ", os.str());
               return os.str();
             }
         }
     }
   std::ostringstream os;
-  os << local << " , " << remote << " ERROR : NO-USER";
+  os << local << " , " << remote << " ERROR : NO-USER" << "\r\n";
   log_debug("Identd, sending: ", os.str());
   return os.str();
 }

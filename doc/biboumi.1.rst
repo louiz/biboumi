@@ -29,7 +29,7 @@ Available command line options:
 config_filename
 ---------------
 
-Specify the file to read for configuration. See *CONFIG* section for more
+Specify the file to read for configuration. See the `Configuration`_ section for more
 details on its content.
 
 Configuration
@@ -77,6 +77,20 @@ port
 The TCP port to use to connect to the local XMPP component. The default
 value is 5347.
 
+db_name
+-------
+
+The name of the database to use. This option can only be used if biboumi
+has been compiled with a database support (Sqlite3 and/or PostgreSQL). If
+the value begins with the postgresql scheme, “postgresql://” or
+“postgres://”, then biboumi will try to connect to the PostgreSQL database
+specified by the URI. See
+https://www.postgresql.org/docs/current/static/libpq-connect.html#idm46428693970032
+for all possible values. For example the value could be
+“postgresql://user:secret@localhost”. If the value does not start with the
+postgresql scheme, then it specifies a filename that will be opened with
+Sqlite3. For example the value could be “/var/lib/biboumi/biboumi.sqlite”.
+
 admin
 -----
 
@@ -99,6 +113,21 @@ in the JID but will not be interpreted as a separator (thus the JID
 be used by an administrator that just wants to let their users join their own
 IRC server using an XMPP client, while forbidding access to any other IRC
 server.
+
+persistent_by_default
+---------------------
+
+If this option is set to `true`, all rooms will be persistent by default:
+the value of the “persistent” option in the global configuration of each
+user will be “true”, but the value of each individual room will still
+default to false. This means that a user just needs to change the global
+“persistent” configuration option to false in order to override this.
+
+If it is set to false (the default value), all rooms are not persistent by
+default.
+
+Each room can be configured individually by each user, to override this
+default value. See `Ad-hoc commands`_.
 
 realname_customization
 ----------------------
@@ -268,7 +297,7 @@ ISUPPORT extension) then it’s a channel name, otherwise this is a nickname.
 
 As a special case, the channel name can also be empty (for example
 ``%irc.example.com``), in that case this represents the virtual channel
-provided by biboumi.  See *Connect to an IRC server* for more details.
+provided by biboumi.  See `Connect to an IRC server`_ for more details.
 
 There is two ways to address an IRC user, using a local part like this:
 ``nickname`` % ``irc_server`` or by using the in-room address of the
@@ -362,7 +391,7 @@ IRC server JID
 --------------
 
 These presence will appear online in the user’s roster whenever they are
-connected to that IRC server (see *Connect to an IRC server* for more
+connected to that IRC server (see `Connect to an IRC server`_ for more
 details). This is useful to keep track of which server an user is connected
 to: this is sometimes hard to remember, when they have many clients, or if
 they are using persistent channels.
@@ -381,15 +410,24 @@ History
 -------
 
 Public channel messages are saved into archives, inside the database, unless
-the `record_history` option is set to false by that user (see `Ad-hoc commands`).
+the `record_history` option is set to false by that user (see `Ad-hoc commands`_).
 Private messages (messages that are sent directly to a nickname, not a
-channel) are never stored in the database. When a channel is joined, biboumi
-sends the `max_history_length` messages found in the database as the MUC
-history.
+channel) are never stored in the database.
 
 A channel history can be retrieved by using `Message archive management (MAM)
 <https://xmpp.org/extensions/xep-0313.htm>`_ on the channel JID.  The results
 can be filtered by start and end dates.
+
+When a channel is joined, if the client doesn’t specify any limit, biboumi
+sends the `max_history_length` last messages found in the database as the
+MUC history.  If a client wants to only use MAM for the archives (because
+it’s more convenient and powerful), it should request to receive no
+history by using an attribute maxchars='0' or maxstanzas='0' as defined in
+XEP 0045, and do a proper MAM request instead.
+
+Note: the maxchars attribute is ignored unless its value is exactly 0.
+Supporting it properly would be very hard and would introduce a lot of
+complexity for almost no benefit.
 
 For a given channel, each user has her or his own archive.  The content of
 the archives are never shared, and thus a user can not use someone else’s
@@ -586,10 +624,13 @@ On the gateway itself (e.g on the JID biboumi.example.com):
       the database.
     * Max history length: The maximum number of lines in the history
       that the server is allowed to send when joining a channel.
-    * Persistent: Overrides the value specified in each individual channel,
-      all channels are persistent, whether or not their specific value is
-      true or false. See below for more details on what a persistent
-      channel is.
+
+    * Persistent: Overrides the value specified in each individual channel.
+      If this option is set to true, all channels are persistent, whether
+      or not their specific value is true or false. This option is true by
+      default for everyone if the `persistent_by_default` configuration
+      option is true, otherwise it’s false. See below for more details on
+      what a persistent channel is. This value is
 
 On a server JID (e.g on the JID chat.freenode.org@biboumi.example.com)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -675,7 +716,7 @@ Raw IRC messages
 Biboumi tries to support as many IRC features as possible, but doesn’t
 handle everything yet (or ever).  In order to let the user send any
 arbitrary IRC message, biboumi forwards any XMPP message received on an IRC
-Server JID (see *ADDRESSING*) as a raw command to that IRC server.
+Server JID (see `Addressing`_) as a raw command to that IRC server.
 
 For example, to WHOIS the user Foo on the server irc.example.com, a user can
 send the message “WHOIS Foo” to ``irc.example.com@biboumi.example.com``.

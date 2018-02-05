@@ -1,7 +1,8 @@
 #pragma once
 
+#include <database/engine.hpp>
+
 #include <database/select_query.hpp>
-#include <database/type_to_sql.hpp>
 #include <database/row.hpp>
 
 #include <algorithm>
@@ -10,22 +11,26 @@
 
 using namespace std::string_literals;
 
-std::set<std::string> get_all_columns_from_table(sqlite3* db, const std::string& table_name);
-
-template <typename ColumnType>
-void add_column_to_table(sqlite3* db, const std::string& table_name)
+template <typename T>
+std::string ToSQLType(DatabaseEngine& db)
 {
-  const std::string name = ColumnType::name;
-  std::string query{"ALTER TABLE " + table_name + " ADD " + ColumnType::name + " " + TypeToSQLType<typename ColumnType::real_type>::type};
-  char* error;
-  const auto result = sqlite3_exec(db, query.data(), nullptr, nullptr, &error);
-  if (result != SQLITE_OK)
-    {
-      log_error("Error adding column ", name, " to table ", table_name, ": ",  error);
-      sqlite3_free(error);
-    }
+  if (std::is_same<T, Id>::value)
+    return db.id_column_type();
+  else if (std::is_same<typename T::real_type, std::string>::value)
+    return "TEXT";
+  else
+    return "INTEGER";
 }
 
+template <typename ColumnType>
+void add_column_to_table(DatabaseEngine& db, const std::string& table_name)
+{
+  const std::string name = ColumnType::name;
+  std::string query{"ALTER TABLE " + table_name + " ADD " + ColumnType::name + " " + ToSQLType<ColumnType>(db)};
+  auto res = db.raw_exec(query);
+  if (std::get<0>(res) == false)
+    log_error("Error adding column ", name, " to table ", table_name, ": ",  std::get<1>(res));
+}
 
 template <typename ColumnType, decltype(ColumnType::options) = nullptr>
 void append_option(std::string& s)
@@ -50,27 +55,23 @@ class Table
       name(std::move(name))
   {}
 
-  void upgrade(sqlite3* db)
+  void upgrade(DatabaseEngine& db)
   {
-    const auto existing_columns = get_all_columns_from_table(db, this->name);
+    const auto existing_columns = db.get_all_columns_from_table(this->name);
     add_column_if_not_exists(db, existing_columns);
   }
 
-  void create(sqlite3* db)
+  void create(DatabaseEngine& db)
   {
-    std::string res{"CREATE TABLE IF NOT EXISTS "};
-    res += this->name;
-    res += " (\n";
-    this->add_column_create(res);
-    res += ")";
+    std::string query{"CREATE TABLE IF NOT EXISTS "};
+    query += this->name;
+    query += " (";
+    this->add_column_create(db, query);
+    query += ")";
 
-    char* error;
-    const auto result = sqlite3_exec(db, res.data(), nullptr, nullptr, &error);
-    if (result != SQLITE_OK)
-      {
-        log_error("Error executing query: ", error);
-        sqlite3_free(error);
-      }
+    auto result = db.raw_exec(query);
+    if (std::get<0>(result) == false)
+      log_error("Error executing query: ", std::get<1>(result));
   }
 
   RowType row()
@@ -78,7 +79,7 @@ class Table
     return {this->name};
   }
 
-  SelectQuery<T...> select()
+  auto select()
   {
     SelectQuery<T...> select(this->name);
     return select;
@@ -93,39 +94,34 @@ class Table
 
   template <std::size_t N=0>
   typename std::enable_if<N < sizeof...(T), void>::type
-  add_column_if_not_exists(sqlite3* db, const std::set<std::string>& existing_columns)
+  add_column_if_not_exists(DatabaseEngine& db, const std::set<std::string>& existing_columns)
   {
     using ColumnType = typename std::remove_reference<decltype(std::get<N>(std::declval<ColumnTypes>()))>::type;
-    if (existing_columns.count(ColumnType::name) != 1)
-      {
-        add_column_to_table<ColumnType>(db, this->name);
-      }
+    if (existing_columns.count(ColumnType::name) == 0)
+      add_column_to_table<ColumnType>(db, this->name);
     add_column_if_not_exists<N+1>(db, existing_columns);
   }
   template <std::size_t N=0>
   typename std::enable_if<N == sizeof...(T), void>::type
-  add_column_if_not_exists(sqlite3*, const std::set<std::string>&)
+  add_column_if_not_exists(DatabaseEngine&, const std::set<std::string>&)
   {}
 
   template <std::size_t N=0>
   typename std::enable_if<N < sizeof...(T), void>::type
-  add_column_create(std::string& str)
+  add_column_create(DatabaseEngine& db, std::string& str)
   {
     using ColumnType = typename std::remove_reference<decltype(std::get<N>(std::declval<ColumnTypes>()))>::type;
-    using RealType = typename ColumnType::real_type;
     str += ColumnType::name;
     str += " ";
-    str += TypeToSQLType<RealType>::type;
-    append_option<ColumnType>(str);
+    str += ToSQLType<ColumnType>(db);
     if (N != sizeof...(T) - 1)
       str += ",";
-    str += "\n";
 
-    add_column_create<N+1>(str);
+    add_column_create<N+1>(db, str);
   }
   template <std::size_t N=0>
   typename std::enable_if<N == sizeof...(T), void>::type
-  add_column_create(std::string&)
+  add_column_create(DatabaseEngine&, std::string&)
   { }
 
   const std::string name;

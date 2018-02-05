@@ -39,13 +39,14 @@ RUN apt install -y g++\
     openssl\
     zlib1g-dev\
     libssl-dev\
-    curl
+    curl\
+    libpq-dev
 
 # Install botan
 RUN git clone https://github.com/randombit/botan.git && cd botan && ./configure.py --prefix=/usr && make -j8 && make install && rm -rf /botan
 
 # Install slixmpp, for e2e tests
-RUN git clone https://github.com/saghul/aiodns.git && cd aiodns && git checkout 7ee13f9bea25784322~ && python3 setup.py build && python3 setup.py install && git clone git://git.louiz.org/slixmpp && pip3 install pyasn1 && cd slixmpp && python3 setup.py build && python3 setup.py install
+RUN git clone https://github.com/saghul/aiodns.git && cd aiodns && git checkout 7ee13f9bea25784322~ && python3 setup.py build && python3 setup.py install && git clone git://git.louiz.org/slixmpp && pip3 install pyasn1==0.4.2 && cd slixmpp && python3 setup.py build && python3 setup.py install
 
 RUN useradd tester -m
 

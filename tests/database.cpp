@@ -1,19 +1,43 @@
 #include "catch.hpp"
 
+#include <biboumi.h>
+
+#ifdef USE_DATABASE
+
+#include <cstdlib>
+
 #include <database/database.hpp>
 
 #include <config/config.hpp>
 
 TEST_CASE("Database")
 {
-#ifdef USE_DATABASE
-  Database::open(":memory:");
+#ifdef PQ_FOUND
+  std::string postgresql_uri{"postgresql://"};
+  const char* env_value = ::getenv("TEST_POSTGRES_URI");
+  if (env_value != nullptr)
+    Database::open("postgresql://"s + env_value);
+  else
+#endif
+    Database::open(":memory:");
+
+  Database::raw_exec("DELETE FROM " + Database::irc_server_options.get_name());
+  Database::raw_exec("DELETE FROM " + Database::irc_channel_options.get_name());
 
   SECTION("Basic retrieve and update")
     {
       auto o = Database::get_irc_server_options("zouzou@example.com", "irc.example.com");
+      CHECK(Database::count(Database::irc_server_options) == 0);
       o.save(Database::db);
+      CHECK(Database::count(Database::irc_server_options) == 1);
+      o.col<Database::Realname>() = "Different realname";
+      CHECK(o.col<Database::Realname>() == "Different realname");
+      o.save(Database::db);
+      CHECK(o.col<Database::Realname>() == "Different realname");
+      CHECK(Database::count(Database::irc_server_options) == 1);
+
       auto a = Database::get_irc_server_options("zouzou@example.com", "irc.example.com");
+      CHECK(a.col<Database::Realname>() == "Different realname");
       auto b = Database::get_irc_server_options("moumou@example.com", "irc.example.com");
 
       // b does not yet exist in the db, the object is created but not yet
@@ -28,7 +52,6 @@ TEST_CASE("Database")
 
   SECTION("channel options")
     {
-      Config::set("db_name", ":memory:");
       auto o = Database::get_irc_channel_options("zouzou@example.com", "irc.example.com", "#foo");
 
       CHECK(o.col<Database::EncodingIn>() == "");
@@ -95,5 +118,5 @@ TEST_CASE("Database")
     }
 
   Database::close();
-#endif
 }
+#endif

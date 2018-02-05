@@ -2,9 +2,19 @@ cmake_minimum_required(VERSION 3.0)
 
 project(biboumi)
 
-set(${PROJECT_NAME}_VERSION_MAJOR 6)
+set(${PROJECT_NAME}_VERSION_MAJOR 8)
 set(${PROJECT_NAME}_VERSION_MINOR 0)
 set(${PROJECT_NAME}_VERSION_SUFFIX "~dev")
+
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 5.0)
+        message(FATAL_ERROR "GCC version must be at least 5.0.")
+    endif()
+elseif (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 3.4)
+        message(FATAL_ERROR "Clang version must be at least 3.4.")
+    endif()
+endif()
 
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE "Debug" CACHE STRING
@@ -14,13 +24,13 @@ endif()
 #
 ## Find optional instrumentation libraries that will be used in debug only
 #
-find_library(LIBASAN NAMES asan libasan.so.3 libasan.so.2 libasan.so.1)
+find_library(LIBASAN NAMES asan libasan.so.4 libasan.so.3 libasan.so.2 libasan.so.1)
 find_library(LIBUBSAN NAMES ubsan libubsan.so.0)
 
 #
 ## Set various debug flags (instrumentation libs, coverage, …)
 #
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++1y -pedantic -Wall -Wextra -Wconversion")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++1y -pedantic -Wall -Wextra -Wconversion -fvisibility=hidden -fvisibility-inlines-hidden")
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
   set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fprofile-arcs -ftest-coverage --coverage")
 endif()
@@ -130,6 +140,12 @@ elseif(NOT WITHOUT_SQLITE3)
   find_package(SQLITE3)
 endif()
 
+if(WITH_POSTGRESQL)
+  find_package(PQ REQUIRED)
+elseif(NOT WITHOUT_POSTGRESQL)
+  find_package(PQ)
+endif()
+
 #
 ## Set all the include directories, depending on what libraries are used
 #
@@ -187,12 +203,20 @@ file(GLOB source_network
         src/network/*.[hc]pp)
 add_library(network OBJECT ${source_network})
 
-if(SQLITE3_FOUND)
+option(DEBUG_SQL_QUERIES
+       "If set to true, every SQL statement executed will be logged and timed"
+       OFF)
+if(SQLITE3_FOUND OR PQ_FOUND)
   file(GLOB source_database
           src/database/*.[hc]pp)
   add_library(database OBJECT ${source_database})
 
-  include_directories(database ${SQLITE3_INCLUDE_DIRS})
+  if(SQLITE3_FOUND)
+    include_directories(database ${SQLITE3_INCLUDE_DIRS})
+  endif()
+  if(PQ_FOUND)
+    include_directories(database ${PQ_INCLUDE_DIRS})
+  endif()
   set(USE_DATABASE TRUE)
 else()
   add_library(database OBJECT "")
@@ -260,8 +284,14 @@ if(LIBIDN_FOUND)
   target_link_libraries(test_suite ${LIBIDN_LIBRARIES})
 endif()
 if(USE_DATABASE)
-  target_link_libraries(${PROJECT_NAME} ${SQLITE3_LIBRARIES})
-  target_link_libraries(test_suite ${SQLITE3_LIBRARIES})
+  if(SQLITE3_FOUND)
+    target_link_libraries(${PROJECT_NAME} ${SQLITE3_LIBRARIES})
+    target_link_libraries(test_suite ${SQLITE3_LIBRARIES})
+  endif()
+  if(PQ_FOUND)
+    target_link_libraries(${PROJECT_NAME} ${PQ_LIBRARIES})
+    target_link_libraries(test_suite ${PQ_LIBRARIES})
+endif()
 endif()
 
 # Define a __FILENAME__ macro with the relative path (from the base project directory)

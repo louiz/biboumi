@@ -1,5 +1,7 @@
 #pragma once
 
+#include <biboumi.h>
+
 #include <utils/optional_bool.hpp>
 #include <database/statement.hpp>
 #include <database/column.hpp>
@@ -9,54 +11,53 @@
 #include <vector>
 #include <string>
 
-#include <sqlite3.h>
+void actual_bind(Statement& statement, const std::string& value, int index);
+void actual_bind(Statement& statement, const std::int64_t value, int index);
+void actual_bind(Statement& statement, const OptionalBool& value, int index);
+
+#ifdef DEBUG_SQL_QUERIES
+#include <utils/scopetimer.hpp>
+
+inline auto make_sql_timer()
+{
+  return make_scope_timer([](const std::chrono::steady_clock::duration& elapsed)
+                          {
+                            const auto seconds = std::chrono::duration_cast<std::chrono::seconds>(elapsed);
+                            const auto rest = elapsed - seconds;
+                            log_debug("Query executed in ", seconds.count(), ".", rest.count(), "s.");
+                          });
+}
+#endif
 
 struct Query
 {
     std::string body;
     std::vector<std::string> params;
+    int current_param{1};
 
     Query(std::string str):
         body(std::move(str))
     {}
 
-    Statement prepare(sqlite3* db)
+#ifdef DEBUG_SQL_QUERIES
+    auto log_and_time()
     {
-      sqlite3_stmt* stmt;
-      auto res = sqlite3_prepare(db, this->body.data(), static_cast<int>(this->body.size()) + 1,
-                                 &stmt, nullptr);
-      if (res != SQLITE_OK)
-        {
-          log_error("Error preparing statement: ", sqlite3_errmsg(db));
-          return nullptr;
-        }
-      Statement statement(stmt);
-      int i = 1;
-      for (const std::string& param: this->params)
-        {
-          if (sqlite3_bind_text(statement.get(), i, param.data(), static_cast<int>(param.size()), SQLITE_TRANSIENT) != SQLITE_OK)
-            log_error("Failed to bind ", param, " to param ", i);
-          i++;
-        }
-
-      return statement;
+       std::ostringstream os;
+       os << this->body << "; ";
+       for (const auto& param: this->params)
+         os << "'" << param << "' ";
+       log_debug("SQL QUERY: ", os.str());
+       return make_sql_timer();
     }
-
-    void execute(sqlite3* db)
-    {
-      auto statement = this->prepare(db);
-      while (sqlite3_step(statement.get()) != SQLITE_DONE)
-        ;
-    }
+#endif
 };
 
 template <typename ColumnType>
 void add_param(Query& query, const ColumnType& column)
 {
+  std::cout << "add_param<ColumnType>" << std::endl;
   actual_add_param(query, column.value);
 }
-template <>
-void add_param<Id>(Query& query, const Id& column);
 
 template <typename T>
 void actual_add_param(Query& query, const T& val)
@@ -81,7 +82,8 @@ template <typename Integer>
 typename std::enable_if<std::is_integral<Integer>::value, Query&>::type
 operator<<(Query& query, const Integer& i)
 {
-  query.body += "?";
+  query.body += "$" + std::to_string(query.current_param++);
   actual_add_param(query, i);
   return query;
 }
+

@@ -39,6 +39,7 @@ RUN dnf --refresh install -y\
     openssl-devel\
     which\
     java-1.8.0-openjdk\
+    postgresql-devel\
     && dnf clean all
 
 # Install botan

@@ -10,13 +10,8 @@ using namespace std::string_literals;
 
 TEST_CASE("Basic logging")
 {
-#ifdef SYSTEMD_FOUND
-  const std::string debug_header = "<7>";
-  const std::string error_header = "<3>";
-#else
   const std::string debug_header = "[DEBUG]: ";
   const std::string error_header = "[ERROR]: ";
-#endif
   Logger::instance().reset();
   GIVEN("A logger with log_level 0")
     {

@@ -21,7 +21,6 @@
 #ifdef BOTAN_FOUND
 
 # include <botan/types.h>
-# include <botan/botan.h>
 # include <botan/tls_session_manager.h>
 # include <network/tls_policy.hpp>
 

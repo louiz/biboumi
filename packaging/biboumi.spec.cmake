@@ -12,6 +12,7 @@ BuildRequires: expat-devel
 BuildRequires: libuuid-devel
 BuildRequires: systemd-devel
 BuildRequires: sqlite-devel
+BuildRequires: postgresql-devel
 BuildRequires: cmake
 BuildRequires: systemd
 BuildRequires: pandoc
@@ -39,7 +40,8 @@ cmake . -DCMAKE_CXX_FLAGS="%{optflags}" \
       -DWITHOUT_BOTAN=1 \
       -DWITH_SYSTEMD=1 \
       -DWITH_LIBIDN=1 \
-      -DWITH_SQLITE3=1
+      -DWITH_SQLITE3=1 \
+      -DWITH_POSTGRESQL=1
 
 make %{?_smp_mflags}
 
@@ -64,8 +66,20 @@ make check %{?_smp_mflags}
 * ${RPM_DATE} Le Coz Florent <louiz@louiz.org> - ${RPM_VERSION}-1
 - Build latest git revision
 
-* Wed Jun 14 2017 Le Coz Florent <louiz@louiz.org> - 6.0-1
-  Enable database support by building with sqlite3
+* Wed Jan 24 2018 Le Coz Florent <louiz@louiz.org> - 7.2-1
+  Update to version 7.2
+
+* Wed Jan 22 2018 Le Coz Florent <louiz@louiz.org> - 7.1-1
+  Update to version 7.1
+
+* Wed Jan 17 2018 Le Coz Florent <louiz@louiz.org> - 7.0-1
+  Update to version 7.0
+
+* Wed Oct 4 2017 Le Coz Florent <louiz@louiz.org> - 6.1-1
+  Update to version 6.1
+
+* Tue Sep 19 2017 Le Coz Florent <louiz@louiz.org> - 6.0-1
+  Update to version 6.0
 
 * Wed May 24 2017 Le Coz Florent <louiz@louiz.org> - 5.0-1
 - Update to version 5.0

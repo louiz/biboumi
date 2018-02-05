@@ -269,7 +269,8 @@ void* XmppComponent::get_receive_buffer(const size_t size) const
 }
 
 void XmppComponent::send_message(const std::string& from, Xmpp::body&& body, const std::string& to,
-                                 const std::string& type, const bool fulljid, const bool nocopy)
+                                 const std::string& type, const bool fulljid, const bool nocopy,
+                                 const bool muc_private)
 {
   Stanza message("message");
   {
@@ -277,7 +278,12 @@ void XmppComponent::send_message(const std::string& from, Xmpp::body&& body, con
     if (fulljid)
       message["from"] = from;
     else
-      message["from"] = from + "@" + this->served_hostname;
+      {
+        if (!from.empty())
+          message["from"] = from + "@" + this->served_hostname;
+        else
+          message["from"] = this->served_hostname;
+      }
     if (!type.empty())
       message["type"] = type;
     XmlSubNode body_node(message, "body");
@@ -295,6 +301,11 @@ void XmppComponent::send_message(const std::string& from, Xmpp::body&& body, con
         private_node["xmlns"] = "urn:xmpp:carbons:2";
         XmlSubNode nocopy(message, "no-copy");
         nocopy["xmlns"] = "urn:xmpp:hints";
+      }
+    if (muc_private)
+      {
+        XmlSubNode x(message, "x");
+        x["xmlns"] = MUC_USER_NS;
       }
   }
   this->send_stanza(message);
@@ -387,7 +398,8 @@ void XmppComponent::send_muc_message(const std::string& muc_name, const std::str
   this->send_stanza(message);
 }
 
-void XmppComponent::send_history_message(const std::string& muc_name, const std::string& nick, const std::string& body_txt, const std::string& jid_to, std::time_t timestamp)
+#ifdef USE_DATABASE
+void XmppComponent::send_history_message(const std::string& muc_name, const std::string& nick, const std::string& body_txt, const std::string& jid_to, Database::time_point::rep timestamp)
 {
   Stanza message("message");
   message["to"] = jid_to;
@@ -410,6 +422,7 @@ void XmppComponent::send_history_message(const std::string& muc_name, const std:
 
   this->send_stanza(message);
 }
+#endif
 
 void XmppComponent::send_muc_leave(const std::string& muc_name, const std::string& nick, Xmpp::body&& message,
                                    const std::string& jid_to, const bool self, const bool user_requested)
@@ -629,13 +642,15 @@ void XmppComponent::send_iq_version_request(const std::string& from,
   this->send_stanza(iq);
 }
 
-void XmppComponent::send_iq_result_full_jid(const std::string& id, const std::string& to_jid, const std::string& from_full_jid)
+void XmppComponent::send_iq_result_full_jid(const std::string& id, const std::string& to_jid, const std::string& from_full_jid, std::unique_ptr<XmlNode> inner)
 {
   Stanza iq("iq");
   iq["from"] = from_full_jid;
   iq["to"] = to_jid;
   iq["id"] = id;
   iq["type"] = "result";
+  if (inner)
+    iq.add_child(std::move(inner));
   this->send_stanza(iq);
 }
 

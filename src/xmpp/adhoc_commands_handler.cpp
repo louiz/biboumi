@@ -83,7 +83,7 @@ XmlNode AdhocCommandsHandler::handle_request(const std::string& executor_jid, co
               XmlSubNode next(actions, "next");
             }
         }
-      else if (action == "cancel")
+      else if (session_it != this->sessions.end() && action == "cancel")
         {
           this->sessions.erase(session_it);
           command_node["status"] = "canceled";

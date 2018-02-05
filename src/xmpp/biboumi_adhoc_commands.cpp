@@ -159,7 +159,7 @@ void ConfigureGlobalStep1(XmppComponent&, AdhocSession& session, XmlNode& comman
     {
       XmlSubNode value(persistent, "value");
       value.set_name("value");
-      if (options.col<Database::Persistent>())
+      if (options.col<Database::GlobalPersistent>())
         value.set_inner("true");
       else
         value.set_inner("false");
@@ -193,7 +193,7 @@ void ConfigureGlobalStep2(XmppComponent& xmpp_component, AdhocSession& session, 
             }
           else if (field->get_tag("var") == "persistent" &&
                    value)
-            options.col<Database::Persistent>() = to_bool(value->get_inner());
+            options.col<Database::GlobalPersistent>() = to_bool(value->get_inner());
         }
 
       options.save(Database::db);
@@ -409,7 +409,7 @@ void ConfigureIrcServerStep2(XmppComponent&, AdhocSession& session, XmlNode& com
           else if (field->get_tag("var") == "pass" && value)
             options.col<Database::Pass>() = value->get_inner();
 
-          else if (field->get_tag("var") == "after_connect_command")
+          else if (field->get_tag("var") == "after_connect_command" && value)
             options.col<Database::AfterConnectionCommand>() = value->get_inner();
 
           else if (field->get_tag("var") == "username" && value)
@@ -430,7 +430,7 @@ void ConfigureIrcServerStep2(XmppComponent&, AdhocSession& session, XmlNode& com
             options.col<Database::EncodingIn>() = value->get_inner();
 
         }
-
+      Database::invalidate_encoding_in_cache();
       options.save(Database::db);
 
       command_node.delete_all_children();
@@ -599,7 +599,7 @@ bool handle_irc_channel_configuration_form(XmppComponent& xmpp_component, const 
                 }
 
             }
-
+          Database::invalidate_encoding_in_cache(requester.bare(), iid.get_server(), iid.get_local());
           options.save(Database::db);
         }
       return true;

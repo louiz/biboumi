@@ -1,8 +1,10 @@
 #pragma once
 
+#include "biboumi.h"
 
 #include <xmpp/adhoc_commands_handler.hpp>
 #include <network/tcp_client_socket_handler.hpp>
+#include <database/database.hpp>
 #include <xmpp/xmpp_parser.hpp>
 #include <xmpp/body.hpp>
 
@@ -112,7 +114,8 @@ public:
    * server-part of the JID and must be added.
    */
   void send_message(const std::string& from, Xmpp::body&& body, const std::string& to,
-                    const std::string& type, const bool fulljid, const bool nocopy=false);
+                    const std::string& type, const bool fulljid, const bool nocopy=false,
+                    const bool muc_private=false);
   /**
    * Send a join from a new participant
    */
@@ -132,11 +135,13 @@ public:
    */
   void send_muc_message(const std::string& muc_name, const std::string& nick, Xmpp::body&& body, const std::string& jid_to,
                         std::string uuid);
+#ifdef USE_DATABASE
   /**
    * Send a message, with a <delay/> element, part of a MUC history
    */
   void send_history_message(const std::string& muc_name, const std::string& nick, const std::string& body,
-                            const std::string& jid_to, const std::time_t timestamp);
+                            const std::string& jid_to, Database::time_point::rep timestamp);
+#endif
   /**
    * Send an unavailable presence for this nick
    */
@@ -202,7 +207,7 @@ public:
    */
   void send_iq_result(const std::string& id, const std::string& to_jid, const std::string& from);
   void send_iq_result_full_jid(const std::string& id, const std::string& to_jid,
-                               const std::string& from_full_jid);
+                               const std::string& from_full_jid, std::unique_ptr<XmlNode> inner=nullptr);
 
   void handle_handshake(const Stanza& stanza);
   void handle_error(const Stanza& stanza);

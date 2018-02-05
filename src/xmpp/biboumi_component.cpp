@@ -7,6 +7,7 @@
 #include <xmpp/adhoc_command.hpp>
 #include <xmpp/biboumi_adhoc_commands.hpp>
 #include <bridge/list_element.hpp>
+#include <utils/encoding.hpp>
 #include <config/config.hpp>
 #include <utils/time.hpp>
 #include <xmpp/jid.hpp>
@@ -24,6 +25,7 @@
 
 #include <database/database.hpp>
 #include <bridge/result_set_management.hpp>
+#include <bridge/history_limit.hpp>
 
 using namespace std::string_literals;
 
@@ -155,8 +157,32 @@ void BiboumiComponent::handle_presence(const Stanza& stanza)
             bridge->send_irc_nick_change(iid, to.resource, from.resource);
           const XmlNode* x = stanza.get_child("x", MUC_NS);
           const XmlNode* password = x ? x->get_child("password", MUC_NS): nullptr;
+          const XmlNode* history = x ? x->get_child("history", MUC_NS): nullptr;
+          HistoryLimit history_limit;
+          if (history)
+            {
+              const auto seconds = history->get_tag("seconds");
+              if (!seconds.empty())
+                {
+                  const auto now = std::chrono::system_clock::now();
+                  std::time_t timestamp = std::chrono::system_clock::to_time_t(now);
+                  int int_seconds = std::atoi(seconds.data());
+                  timestamp -= int_seconds;
+                  history_limit.since = utils::to_string(timestamp);
+                }
+              const auto since = history->get_tag("since");
+              if (!since.empty())
+                history_limit.since = since;
+              const auto maxstanzas = history->get_tag("maxstanzas");
+              if (!maxstanzas.empty())
+                history_limit.stanzas = std::atoi(maxstanzas.data());
+              // Ignore any other value, because this is too complex to implement,
+              // so I won’t do it.
+              if (history->get_tag("maxchars") == "0")
+                history_limit.stanzas = 0;
+            }
           bridge->join_irc_channel(iid, to.resource, password ? password->get_inner(): "",
-                                   from.resource);
+                                   from.resource, history_limit);
         }
       else if (type == "unavailable")
         {
@@ -281,6 +307,7 @@ void BiboumiComponent::handle_message(const Stanza& stanza)
     {
       if (body && !body->get_inner().empty())
         {
+          const auto fixed_irc_server = Config::get("fixed_irc_server", "");
           // a message for nick!server
           if (iid.type == Iid::Type::User && !iid.get_local().empty())
             {
@@ -296,9 +323,11 @@ void BiboumiComponent::handle_message(const Stanza& stanza)
               bridge->set_preferred_from_jid(user_iid.get_local(), to_str);
             }
           else if (iid.type == Iid::Type::Server)
+            bridge->send_raw_message(iid.get_server(), body->get_inner());
+          else if (iid.type == Iid::Type::None && !fixed_irc_server.empty())
             { // Message sent to the server JID
               // Convert the message body into a raw IRC message
-              bridge->send_raw_message(iid.get_server(), body->get_inner());
+              bridge->send_raw_message(fixed_irc_server, body->get_inner());
             }
         }
     }
@@ -408,7 +437,7 @@ void BiboumiComponent::handle_iq(const Stanza& stanza)
 
           // Depending on the 'to' jid in the request, we use one adhoc
           // command handler or an other
-          Iid iid(to.local, {});
+          Iid iid(to.local, {'#', '&'});
           AdhocCommandsHandler* adhoc_handler;
           if (to.local.empty())
             adhoc_handler = &this->adhoc_commands_handler;
@@ -416,8 +445,13 @@ void BiboumiComponent::handle_iq(const Stanza& stanza)
           {
             if (iid.type == Iid::Type::Server)
               adhoc_handler = &this->irc_server_adhoc_commands_handler;
-            else
+            else if (iid.type == Iid::Type::Channel && to.resource.empty())
               adhoc_handler = &this->irc_channel_adhoc_commands_handler;
+            else
+              {
+                error_name = "feature-not-implemented";
+                return;
+              }
           }
           // Execute the command, if any, and get a result XmlNode that we
           // insert in our response
@@ -467,7 +501,7 @@ void BiboumiComponent::handle_iq(const Stanza& stanza)
                     stanza_error.disable();
                 }
             }
-          else if (iid.type == Iid::Type::Channel)
+          else if (iid.type == Iid::Type::Channel && to.resource.empty())
             {
               if (node.empty())
                 {
@@ -526,7 +560,7 @@ void BiboumiComponent::handle_iq(const Stanza& stanza)
                                                  this->irc_server_adhoc_commands_handler);
                   stanza_error.disable();
                 }
-              else if (iid.type == Iid::Type::Channel)
+              else if (iid.type == Iid::Type::Channel && to.resource.empty())
                 {               // Get the channel's adhoc commands
                   this->send_adhoc_commands_list(id, from, to_str,
                                                  (Config::get("admin", "") ==
@@ -534,6 +568,8 @@ void BiboumiComponent::handle_iq(const Stanza& stanza)
                                                  this->irc_channel_adhoc_commands_handler);
                   stanza_error.disable();
                 }
+              else // “to” is a MUC user, not the room itself
+                error_name = "feature-not-implemented";
             }
           else if (node.empty() && iid.type == Iid::Type::Server)
             { // Disco on an IRC server: get the list of channels
@@ -685,19 +721,46 @@ bool BiboumiComponent::handle_mam_request(const Stanza& stanza)
             if (max)
               limit = std::atoi(max->get_inner().data());
           }
-        // If the archive is really big, and the client didn’t specify any
-        // limit, we avoid flooding it: we set an arbitrary max limit.
-        if (limit == -1 && start.empty() && end.empty())
+        // Do send more than 100 messages, even if the client asked for more,
+        // or if it didn’t specify any limit.
+        // 101 is just a trick to know if there are more available messages.
+        // If our query returns 101 message, we know it’s incomplete, but we
+        // still send only 100
+        if ((limit == -1 && start.empty() && end.empty())
+            || limit > 100)
+          limit = 101;
+        auto lines = Database::get_muc_logs(from.bare(), iid.get_local(), iid.get_server(), limit, start, end);
+        bool complete = true;
+        if (lines.size() > 100)
           {
-            limit = 100;
+            complete = false;
+            lines.erase(lines.begin(), std::prev(lines.end(), 100));
           }
-        const auto lines = Database::get_muc_logs(from.bare(), iid.get_local(), iid.get_server(), limit, start, end);
         for (const Database::MucLogLine& line: lines)
         {
           if (!line.col<Database::Nick>().empty())
             this->send_archived_message(line, to.full(), from.full(), query_id);
         }
-        this->send_iq_result_full_jid(id, from.full(), to.full());
+        {
+          auto fin_ptr = std::make_unique<XmlNode>("fin");
+          {
+            XmlNode& fin = *(fin_ptr.get());
+            fin["xmlns"] = MAM_NS;
+            if (complete)
+              fin["complete"] = "true";
+            XmlSubNode set(fin, "set");
+            set["xmlns"] = RSM_NS;
+            if (!lines.empty())
+              {
+                XmlSubNode first(set, "first");
+                first["index"] = "0";
+                first.set_inner(lines[0].col<Database::Uuid>());
+                XmlSubNode last(set, "last");
+                last.set_inner(lines[lines.size() - 1].col<Database::Uuid>());
+              }
+          }
+          this->send_iq_result_full_jid(id, from.full(), to.full(), std::move(fin_ptr));
+        }
         return true;
       }
   return false;
@@ -739,7 +802,7 @@ bool BiboumiComponent::handle_room_configuration_form_request(const std::string&
 {
   Iid iid(to.local, {'#', '&'});
 
-  if (iid.type != Iid::Type::Channel)
+  if (iid.type != Iid::Type::Channel || !to.resource.empty())
     return false;
 
   Stanza iq("iq");
@@ -761,7 +824,7 @@ bool BiboumiComponent::handle_room_configuration_form(const XmlNode& query, cons
 {
   Iid iid(to.local, {'#', '&'});
 
-  if (iid.type != Iid::Type::Channel)
+  if (iid.type != Iid::Type::Channel || !to.resource.empty())
     return false;
 
   Jid requester(from);
@@ -958,7 +1021,9 @@ void BiboumiComponent::send_iq_room_list_result(const std::string& id, const std
     for (auto it = begin; it != end; ++it)
       {
         XmlSubNode item(query, "item");
-        item["jid"] = it->channel + "@" + this->served_hostname;
+        std::string channel_name = it->channel;
+        xep0106::encode(channel_name);
+        item["jid"] = channel_name + "@" + this->served_hostname;
       }
 
     if ((rs_info.max >= 0 || !rs_info.after.empty() || !rs_info.before.empty()))
@@ -1052,6 +1117,9 @@ void BiboumiComponent::on_irc_client_connected(const std::string& irc_hostname, 
   const auto local_jid = irc_hostname + "@" + this->served_hostname;
   if (Database::has_roster_item(local_jid, jid))
     this->send_presence_to_contact(local_jid, jid, "");
+#else
+  (void)irc_hostname;
+  (void)jid;
 #endif
 }
 
@@ -1061,6 +1129,9 @@ void BiboumiComponent::on_irc_client_disconnected(const std::string& irc_hostnam
   const auto local_jid = irc_hostname + "@" + this->served_hostname;
   if (Database::has_roster_item(local_jid, jid))
     this->send_presence_to_contact(irc_hostname + "@" + this->served_hostname, jid, "unavailable");
+#else
+  (void)irc_hostname;
+  (void)jid;
 #endif
 }
 

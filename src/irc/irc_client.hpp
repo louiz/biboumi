@@ -5,6 +5,8 @@
 #include <irc/irc_channel.hpp>
 #include <irc/iid.hpp>
 
+#include <bridge/history_limit.hpp>
+
 #include <network/tcp_client_socket_handler.hpp>
 #include <network/resolver.hpp>
 
@@ -296,6 +298,11 @@ public:
   const std::vector<char>& get_sorted_user_modes() const { return this->sorted_user_modes; }
 
   std::set<char> get_chantypes() const { return this->chantypes; }
+
+  /**
+   * Store the history limit that the client asked when joining this room.
+   */
+  HistoryLimit history_limit;
 private:
   /**
    * The hostname of the server we are connected to.

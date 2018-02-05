@@ -23,6 +23,14 @@ std::string Config::get(const std::string& option, const std::string& def)
   return it->second;
 }
 
+bool Config::get_bool(const std::string& option, const bool def)
+{
+  auto res = Config::get(option, "");
+  if (res.empty())
+    return def;
+  return res == "true";
+}
+
 int Config::get_int(const std::string& option, const int& def)
 {
   std::string res = Config::get(option, "");

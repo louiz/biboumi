@@ -483,12 +483,16 @@ bool IrcClient::send_channel_message(const std::string& chan_name, const std::st
     }
   // The max size is 512, taking into account the whole message, not just
   // the text we send.
-  // This includes our own nick, username and host (because this will be
-  // added by the server into our message), in addition to the basic
-  // components of the message we send (command name, chan name, \r\n et)
+  // This includes our own nick, constants for username and host (because these
+  // are notoriously hard to know what the server will use), in addition to the basic
+  // components of the message we send (command name, chan name, \r\n etc.)
   //  : + NICK + ! + USER + @ + HOST + <space> + PRIVMSG + <space> + CHAN + <space> + : + \r\n
+  // 63 is the maximum hostname length defined by the protocol.  10 seems to be
+  // the username limit.
+  constexpr auto max_username_size = 10;
+  constexpr auto max_hostname_size = 63;
   const auto line_size = 512 -
-                         this->current_nick.size() - this->username.size() - this->own_host.size() -
+                         this->current_nick.size() - max_username_size - max_hostname_size -
                          ::strlen(":!@ PRIVMSG ") - chan_name.length() - ::strlen(" :\r\n");
   const auto lines = cut(body, line_size);
   for (const auto& line: lines)
@@ -784,7 +788,7 @@ void IrcClient::on_channel_completely_joined(const IrcMessage& message)
   channel->joined = true;
   this->bridge.send_user_join(this->hostname, chan_name, channel->get_self(),
                               channel->get_self()->get_most_significant_mode(this->sorted_user_modes), true);
-  this->bridge.send_room_history(this->hostname, chan_name);
+  this->bridge.send_room_history(this->hostname, chan_name, this->history_limit);
   this->bridge.send_topic(this->hostname, chan_name, channel->topic, channel->topic_author);
 }
 
@@ -1017,19 +1021,17 @@ void IrcClient::on_quit(const IrcMessage& message)
       const std::string& chan_name = pair.first;
       IrcChannel* channel = pair.second.get();
       const IrcUser* user = channel->find_user(message.prefix);
+      if (!user)
+        continue;
       bool self = false;
       if (user == channel->get_self())
         self = true;
-      if (user)
-        {
-          std::string nick = user->nick;
-          channel->remove_user(user);
-          Iid iid;
-          iid.set_local(chan_name);
-          iid.set_server(this->hostname);
-          iid.type = Iid::Type::Channel;
-          this->bridge.send_muc_leave(iid, std::move(nick), txt, self, false);
-        }
+      Iid iid;
+      iid.set_local(chan_name);
+      iid.set_server(this->hostname);
+      iid.type = Iid::Type::Channel;
+      this->bridge.send_muc_leave(iid, user->nick, txt, self, false);
+      channel->remove_user(user);
     }
 }
 
@@ -1073,12 +1075,18 @@ void IrcClient::on_nick(const IrcMessage& message)
 void IrcClient::on_kick(const IrcMessage& message)
 {
   const std::string chan_name = utils::tolower(message.arguments[0]);
-  const std::string target = message.arguments[1];
+  const std::string target_nick = message.arguments[1];
   const std::string reason = message.arguments[2];
   IrcChannel* channel = this->get_channel(chan_name);
   if (!channel->joined)
     return ;
-  const bool self = channel->get_self()->nick == target;
+  const IrcUser* target = channel->find_user(target_nick);
+  if (!target)
+    {
+      log_warning("Received a KICK command from a nick absent from the channel.");
+      return;
+    }
+  const bool self = channel->get_self() == target;
   if (self)
     channel->joined = false;
   IrcUser author(message.prefix);
@@ -1086,7 +1094,8 @@ void IrcClient::on_kick(const IrcMessage& message)
   iid.set_local(chan_name);
   iid.set_server(this->hostname);
   iid.type = Iid::Type::Channel;
-  this->bridge.kick_muc_user(std::move(iid), target, reason, author.nick, self);
+  this->bridge.kick_muc_user(std::move(iid), target_nick, reason, author.nick, self);
+  channel->remove_user(target);
 }
 
 void IrcClient::on_invite(const IrcMessage& message)

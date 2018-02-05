@@ -16,7 +16,7 @@ Build and runtime dependencies:
 Tools:
 ~~~~~~
 
-- A C++14 compiler (clang >= 3.4 or gcc >= 4.9 for example)
+- A C++14 compiler (clang >= 3.4 or gcc >= 5.0 for example)
 - CMake
 - pandoc (optional) to build the man page
 
@@ -32,11 +32,11 @@ libiconv_
 libuuid_
  Generate unique IDs
 
-sqlite3_ (option, but highly recommended)
- Provides a way to store various options in a (sqlite3) database. Each user
- of the gateway can store their own values (for example their prefered port,
- or their IRC password). Without this dependency, many interesting features
- are missing.
+sqlite3_ or libpq_ (optional, but recommented)
+ Provides a way to store various options and messages archives in a
+ database. Each user of the gateway can store their own values (for
+ example their prefered port, or their IRC password). Without this
+ dependency, many interesting features are missing.
 
 libidn_ (optional, but recommended)
  Provides the stringprep functionality. Without it, JIDs for IRC users are
@@ -47,12 +47,13 @@ udns_ (optional, but recommended)
  performances when connecting to a big number of IRC servers at the same
  time.
 
-libbotan_ 2.x (optional)
+libbotan_ 2.x (optional, but recommended)
  Provides TLS support. Without it, IRC connections are all made in
  plain-text mode.
 
 gcrypt_ (mandatory only if botan is absent)
- Provides the SHA-1 hash function, for the case where Botan is absent.
+ Provides the SHA-1 hash function, for the case where Botan is absent. It
+ does NOT provide any TLS or encryption feature.
 
 systemd_ (optional)
  Provides the support for a systemd service of Type=notify. This is useful only
@@ -95,6 +96,9 @@ The list of available options:
   - EPOLL: use the Linux-specific epoll(7). This is the default on Linux.
   - POLL: use the standard poll(2). This is the default value on all non-Linux
     platforms.
+
+- DEBUG_SQL_QUERIES: If set to ON, additional debug logging and timing will be
+  done for every SQL query that is executed. The default is OFF.
 
 - WITH_BOTAN and WITHOUT_BOTAN: The first force the usage of the Botan library,
   if it is not found, the configuration process will fail. The second will
@@ -165,3 +169,4 @@ to use biboumi.
 .. _systemd: https://www.freedesktop.org/wiki/Software/systemd/
 .. _biboumi.1.rst: doc/biboumi.1.rst
 .. _gcrypt: https://www.gnu.org/software/libgcrypt/
+.. _libpq: https://www.postgresql.org/docs/current/static/libpq.html
