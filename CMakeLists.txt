@@ -6,6 +6,16 @@ set(${PROJECT_NAME}_VERSION_MAJOR 8)
 set(${PROJECT_NAME}_VERSION_MINOR 0)
 set(${PROJECT_NAME}_VERSION_SUFFIX "~dev")
 
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 5.0)
+        message(FATAL_ERROR "GCC version must be at least 5.0.")
+    endif()
+elseif (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 3.4)
+        message(FATAL_ERROR "Clang version must be at least 3.4.")
+    endif()
+endif()
+
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE "Debug" CACHE STRING
       "Build type (Release/Debug/RelWithDebInfo/MinSizeRel)" FORCE)
