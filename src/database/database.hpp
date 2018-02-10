@@ -120,15 +120,22 @@ class Database
                                                                                   const std::string& channel);
   /**
    * Get all the lines between (optional) start and end dates, with a (optional) limit.
+   * If after_id is set, only the records after it will be returned.
    */
   static std::vector<MucLogLine> get_muc_logs(const std::string& owner, const std::string& chan_name, const std::string& server,
-                                              int limit=-1, const std::string& start="", const std::string& end="");
+                                              int limit=-1, const std::string& start="", const std::string& end="",
+                                              const Id::real_type after_id=Id::unset_value);
 
   /**
    * Get the most recent messages from the archive, with optional limit and start date
    */
   static std::vector<MucLogLine> get_muc_most_recent_logs(const std::string& owner, const std::string& chan_name, const std::string& server,
                                               int limit=-1, const std::string& start="");
+  /**
+   * Get just one single record matching the given uuid, between (optional) end and start.
+   * If it does not exist (or is not between end and start), throw a RecordNotFound exception.
+   */
+  static MucLogLine get_muc_log(const std::string& owner, const std::string& chan_name, const std::string& server, const std::string& uuid, const std::string& start="", const std::string& end="");
   static std::string store_muc_message(const std::string& owner, const std::string& chan_name, const std::string& server_name,
                                        time_point date, const std::string& body, const std::string& nick);
 

@@ -165,7 +165,7 @@ std::string Database::store_muc_message(const std::string& owner, const std::str
 }
 
 std::vector<Database::MucLogLine> Database::get_muc_logs(const std::string& owner, const std::string& chan_name, const std::string& server,
-                                                   int limit, const std::string& start, const std::string& end)
+                                                   int limit, const std::string& start, const std::string& end, const Id::real_type after_id)
 {
   auto request = Database::muc_log_lines.select();
   request.where() << Database::Owner{} << "=" << owner << \
@@ -183,6 +183,10 @@ std::vector<Database::MucLogLine> Database::get_muc_logs(const std::string& owne
       const auto end_time = utils::parse_datetime(end);
       if (end_time != -1)
         request << " and " << Database::Date{} << "<=" << end_time;
+    }
+  if (after_id != Id::unset_value)
+    {
+      request << " and " << Id{} << ">" << after_id;
     }
 
   if (limit >= 0)
@@ -216,6 +220,35 @@ std::vector<Database::MucLogLine> Database::get_muc_most_recent_logs(const std::
   auto result = request.execute(*Database::db);
   
   return {result.crbegin(), result.crend()};
+}
+
+Database::MucLogLine Database::get_muc_log(const std::string& owner, const std::string& chan_name, const std::string& server,
+                                           const std::string& uuid, const std::string& start, const std::string& end)
+{
+  auto request = Database::muc_log_lines.select();
+  request.where() << Database::Owner{} << "=" << owner << \
+          " and " << Database::IrcChanName{} << "=" << chan_name << \
+          " and " << Database::IrcServerName{} << "=" << server << \
+          " and " << Database::Uuid{} << "=" << uuid;
+
+  if (!start.empty())
+    {
+      const auto start_time = utils::parse_datetime(start);
+      if (start_time != -1)
+        request << " and " << Database::Date{} << ">=" << start_time;
+    }
+  if (!end.empty())
+    {
+      const auto end_time = utils::parse_datetime(end);
+      if (end_time != -1)
+        request << " and " << Database::Date{} << "<=" << end_time;
+    }
+
+  auto result = request.execute(*Database::db);
+
+  if (result.empty())
+    throw Database::RecordNotFound{};
+  return result.front();
 }
 
 void Database::add_roster_item(const std::string& local, const std::string& remote)

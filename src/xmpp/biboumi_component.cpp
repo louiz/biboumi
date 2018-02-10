@@ -715,11 +715,19 @@ bool BiboumiComponent::handle_mam_request(const Stanza& stanza)
           }
         const XmlNode* set = query->get_child("set", RSM_NS);
         int limit = -1;
+        Id::real_type after_id{Id::unset_value};
         if (set)
           {
             const XmlNode* max = set->get_child("max", RSM_NS);
             if (max)
               limit = std::atoi(max->get_inner().data());
+            const XmlNode* after = set->get_child("after", RSM_NS);
+            if (after)
+              {
+                auto after_record = Database::get_muc_log(from.bare(), iid.get_local(), iid.get_server(),
+                                                          after->get_inner(), start, end);
+                after_id = after_record.col<Id>();
+              }
           }
         // Do not send more than 100 messages, even if the client asked for more,
         // or if it didn’t specify any limit.
@@ -729,7 +737,7 @@ bool BiboumiComponent::handle_mam_request(const Stanza& stanza)
         if ((limit == -1 && start.empty() && end.empty())
             || limit > 100)
           limit = 101;
-        auto lines = Database::get_muc_logs(from.bare(), iid.get_local(), iid.get_server(), limit, start, end);
+        auto lines = Database::get_muc_logs(from.bare(), iid.get_local(), iid.get_server(), limit, start, end, after_id);
         bool complete = true;
         if (lines.size() > 100)
           {
