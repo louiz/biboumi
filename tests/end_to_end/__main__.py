@@ -270,11 +270,13 @@ def send_stanza(stanza, xmpp, biboumi):
 
 
 def expect_stanza(xpaths, xmpp, biboumi, optional=False, after=None):
+    replacements = common_replacements
+    replacements.update(xmpp.saved_values)
     check_func = check_xpath if not optional else check_xpath_optional
     if isinstance(xpaths, str):
-        xmpp.stanza_checker = partial(check_func, [xpaths.format_map(common_replacements)], xmpp, after)
+        xmpp.stanza_checker = partial(check_func, [xpaths.format_map(replacements)], xmpp, after)
     elif isinstance(xpaths, tuple):
-        xmpp.stanza_checker = partial(check_func, [xpath.format_map(common_replacements) for xpath in xpaths], xmpp, after)
+        xmpp.stanza_checker = partial(check_func, [xpath.format_map(replacements) for xpath in xpaths], xmpp, after)
     else:
         print("Warning, from argument type passed to expect_stanza: %s" % (type(xpaths)))
 
@@ -2080,8 +2082,6 @@ if __name__ == '__main__':
                      partial(expect_stanza, "/presence[@type='unavailable']"),
 
                  ]),
-
-
         Scenario("mam_on_fixed_server",
                  [
                      handshake_sequence(),
@@ -2154,11 +2154,13 @@ if __name__ == '__main__':
                      # and finally the message "99"
                     partial(expect_stanza,
                             ("/message/mam:result[@queryid='qid1']/forward:forwarded/delay:delay",
-                            "/message/mam:result[@queryid='qid1']/forward:forwarded/client:message[@from='#foo%{irc_server_one}/{nick_one}'][@type='groupchat']/client:body[text()='100']")
+                            "/message/mam:result[@queryid='qid1']/forward:forwarded/client:message[@from='#foo%{irc_server_one}/{nick_one}'][@type='groupchat']/client:body[text()='100']"),
+                            after = partial(save_value, "last_uuid", partial(extract_attribute, "/message/mam:result", "id"))
                             ),
                      # And it should not be marked as complete
                     partial(expect_stanza,
                             ("/iq[@type='result'][@id='id1'][@from='#foo%{irc_server_one}'][@to='{jid_one}/{resource_one}']",
+                             "/iq/mam:fin/rsm:set/rsm:last[text()='{last_uuid}']",
                              "!/iq//mam:fin[@complete='true']",
                              "/iq//mam:fin")),
 
