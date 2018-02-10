@@ -1020,7 +1020,7 @@ void Bridge::send_room_history(const std::string& hostname, std::string chan_nam
   auto limit = coptions.col<Database::MaxHistoryLength>();
   if (history_limit.stanzas >= 0 && history_limit.stanzas < limit)
     limit = history_limit.stanzas;
-  const auto lines = Database::get_muc_logs(this->user_jid, chan_name, hostname, limit, history_limit.since);
+  const auto lines = Database::get_muc_most_recent_logs(this->user_jid, chan_name, hostname, limit, history_limit.since);
   chan_name.append(utils::empty_if_fixed_server("%" + hostname));
   for (const auto& line: lines)
     {

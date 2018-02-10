@@ -1896,7 +1896,7 @@ if __name__ == '__main__':
 
                     partial(expect_stanza,
                             ("/message/mam:result[@queryid='qid4']/forward:forwarded/delay:delay",
-                             "/message/mam:result[@queryid='qid4']/forward:forwarded/client:message[@from='#foo%{irc_server_one}/{nick_one}'][@type='groupchat']/client:body[text()='coucou 2']")
+                             "/message/mam:result[@queryid='qid4']/forward:forwarded/client:message[@from='#foo%{irc_server_one}/{nick_one}'][@type='groupchat']/client:body[text()='coucou']")
                             ),
 
                     partial(expect_stanza,
@@ -2139,10 +2139,10 @@ if __name__ == '__main__':
                     # Retrieve the archive, without any restriction
                     partial(send_stanza, "<iq to='#foo%{irc_server_one}' from='{jid_one}/{resource_one}' type='set' id='id1'><query xmlns='urn:xmpp:mam:2' queryid='qid1' /></iq>"),
                     # Since we should only receive the last 100 messages from the archive,
-                    # it should start with message "50"
+                    # it should start with message "1"
                     partial(expect_stanza,
                             ("/message/mam:result[@queryid='qid1']/forward:forwarded/delay:delay",
-                            "/message/mam:result[@queryid='qid1']/forward:forwarded/client:message[@from='#foo%{irc_server_one}/{nick_one}'][@type='groupchat']/client:body[text()='50']")
+                            "/message/mam:result[@queryid='qid1']/forward:forwarded/client:message[@from='#foo%{irc_server_one}/{nick_one}'][@type='groupchat']/client:body[text()='1']")
                             ),
                  ] + [
                      # followed by 98 more messages
@@ -2151,10 +2151,10 @@ if __name__ == '__main__':
                             "/message/mam:result[@queryid='qid1']/forward:forwarded/client:message[@from='#foo%{irc_server_one}/{nick_one}'][@type='groupchat']/client:body")
                             ),
                   ] * 98 + [
-                     # and finally the message "149"
+                     # and finally the message "99"
                     partial(expect_stanza,
                             ("/message/mam:result[@queryid='qid1']/forward:forwarded/delay:delay",
-                            "/message/mam:result[@queryid='qid1']/forward:forwarded/client:message[@from='#foo%{irc_server_one}/{nick_one}'][@type='groupchat']/client:body[text()='149']")
+                            "/message/mam:result[@queryid='qid1']/forward:forwarded/client:message[@from='#foo%{irc_server_one}/{nick_one}'][@type='groupchat']/client:body[text()='100']")
                             ),
                      # And it should not be marked as complete
                     partial(expect_stanza,
@@ -2220,9 +2220,6 @@ if __name__ == '__main__':
                  # Second user joins
                  partial(send_stanza,
                          "<presence from='{jid_one}/{resource_two}' to='#foo%{irc_server_one}/{nick_one}' />"),
-                 # connection_sequence("irc.localhost", '{jid_one}/{resource_two}'),
-                 # partial(expect_stanza,
-                 #         "/message/body[text()='Mode #foo [+nt] by {irc_host_one}']"),
                  partial(expect_stanza,
                          ("/presence[@to='{jid_one}/{resource_two}'][@from='#foo%{irc_server_one}/{nick_one}']/muc_user:x/muc_user:item[@affiliation='admin'][@jid='~nick@localhost'][@role='moderator']",
                           "/presence/muc_user:x/muc_user:status[@code='110']")

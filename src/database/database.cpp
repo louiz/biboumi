@@ -185,13 +185,36 @@ std::vector<Database::MucLogLine> Database::get_muc_logs(const std::string& owne
         request << " and " << Database::Date{} << "<=" << end_time;
     }
 
+  if (limit >= 0)
+    request.limit() << limit;
+
+  auto result = request.execute(*Database::db);
+
+  return {result.cbegin(), result.cend()};
+}
+
+std::vector<Database::MucLogLine> Database::get_muc_most_recent_logs(const std::string& owner, const std::string& chan_name, const std::string& server,
+                                                                     int limit, const std::string& start)
+{
+  auto request = Database::muc_log_lines.select();
+  request.where() << Database::Owner{} << "=" << owner << \
+          " and " << Database::IrcChanName{} << "=" << chan_name << \
+          " and " << Database::IrcServerName{} << "=" << server;
+
+  if (!start.empty())
+    {
+      const auto start_time = utils::parse_datetime(start);
+      if (start_time != -1)
+        request << " and " << Database::Date{} << ">=" << start_time;
+    }
+
   request.order_by() << Id{} << " DESC ";
 
   if (limit >= 0)
     request.limit() << limit;
 
   auto result = request.execute(*Database::db);
-
+  
   return {result.crbegin(), result.crend()};
 }
 

@@ -721,7 +721,7 @@ bool BiboumiComponent::handle_mam_request(const Stanza& stanza)
             if (max)
               limit = std::atoi(max->get_inner().data());
           }
-        // Do send more than 100 messages, even if the client asked for more,
+        // Do not send more than 100 messages, even if the client asked for more,
         // or if it didn’t specify any limit.
         // 101 is just a trick to know if there are more available messages.
         // If our query returns 101 message, we know it’s incomplete, but we

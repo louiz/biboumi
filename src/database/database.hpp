@@ -118,8 +118,17 @@ class Database
   static IrcChannelOptions get_irc_channel_options_with_server_and_global_default(const std::string& owner,
                                                                                   const std::string& server,
                                                                                   const std::string& channel);
+  /**
+   * Get all the lines between (optional) start and end dates, with a (optional) limit.
+   */
   static std::vector<MucLogLine> get_muc_logs(const std::string& owner, const std::string& chan_name, const std::string& server,
                                               int limit=-1, const std::string& start="", const std::string& end="");
+
+  /**
+   * Get the most recent messages from the archive, with optional limit and start date
+   */
+  static std::vector<MucLogLine> get_muc_most_recent_logs(const std::string& owner, const std::string& chan_name, const std::string& server,
+                                              int limit=-1, const std::string& start="");
   static std::string store_muc_message(const std::string& owner, const std::string& chan_name, const std::string& server_name,
                                        time_point date, const std::string& body, const std::string& nick);
 
