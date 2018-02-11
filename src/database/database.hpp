@@ -22,6 +22,7 @@ class Database
 {
  public:
   using time_point = std::chrono::system_clock::time_point;
+  struct RecordNotFound: public std::exception {};
 
   struct Uuid: Column<std::string> { static constexpr auto name = "uuid_"; };
 

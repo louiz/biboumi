@@ -467,8 +467,12 @@ void BiboumiComponent::handle_iq(const Stanza& stanza)
 #ifdef USE_DATABASE
       else if ((query = stanza.get_child("query", MAM_NS)))
         {
-          if (this->handle_mam_request(stanza))
-            stanza_error.disable();
+          try {
+              if (this->handle_mam_request(stanza))
+                stanza_error.disable();
+            } catch (const Database::RecordNotFound& exc) {
+              error_name = "item-not-found";
+            }
         }
       else if ((query = stanza.get_child("query", MUC_OWNER_NS)))
         {

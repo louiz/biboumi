@@ -2182,12 +2182,15 @@ if __name__ == '__main__':
                             "/message/mam:result[@queryid='qid2']/forward:forwarded/client:message[@from='#foo%{irc_server_one}/{nick_one}'][@type='groupchat']/client:body[text()='149']"),
                             after = partial(save_value, "last_uuid", partial(extract_attribute, "/message/mam:result", "id"))
                             ),
-                     # And it should not be marked as complete
                     partial(expect_stanza,
                             ("/iq[@type='result'][@id='id2'][@from='#foo%{irc_server_one}'][@to='{jid_one}/{resource_one}']",
                              "/iq/mam:fin/rsm:set/rsm:last[text()='{last_uuid}']",
                              "/iq//mam:fin[@complete='true']",
                              "/iq//mam:fin")),
+
+                    # Send a request with a non-existing ID set as the “after” value.
+                    partial(send_stanza, "<iq to='#foo%{irc_server_one}' from='{jid_one}/{resource_one}' type='set' id='id3'><query xmlns='urn:xmpp:mam:2' queryid='qid3' ><set xmlns='http://jabber.org/protocol/rsm'><after>DUMMY_ID</after></set></query></iq>"),
+                    partial(expect_stanza, "/iq[@id='id3'][@type='error']/error[@type='cancel']/stanza:feature-not-implemented")
                   ]),
         Scenario("channel_history_on_fixed_server",
                  [
