@@ -21,6 +21,15 @@ void actual_bind(Statement& statement, const OptionalBool& value, int index)
     statement.bind_int64(index, -1);
 }
 
+void actual_bind(Statement& statement, const std::size_t value, int index)
+{
+  actual_bind(statement, static_cast<std::int64_t>(value), index);
+}
+
+void actual_bind(Statement& statement, const int value, int index)
+{
+  actual_bind(statement, static_cast<std::int64_t>(value), index);
+}
 
 void actual_add_param(Query& query, const std::string& val)
 {

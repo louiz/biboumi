@@ -18,5 +18,5 @@ struct Id: Column<std::size_t> {
     static constexpr auto name = "id_";
     static constexpr auto options = "PRIMARY KEY";
 
-    Id(): Column<std::size_t>(-1) {}
+    Id(): Column<std::size_t>(unset_value) {}
 };

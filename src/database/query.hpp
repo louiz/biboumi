@@ -13,6 +13,8 @@
 
 void actual_bind(Statement& statement, const std::string& value, int index);
 void actual_bind(Statement& statement, const std::int64_t value, int index);
+void actual_bind(Statement& statement, const std::size_t value, int index);
+void actual_bind(Statement& statement, const int value, int index);
 void actual_bind(Statement& statement, const OptionalBool& value, int index);
 
 #ifdef DEBUG_SQL_QUERIES
