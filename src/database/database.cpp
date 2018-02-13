@@ -165,8 +165,11 @@ std::string Database::store_muc_message(const std::string& owner, const std::str
 }
 
 std::vector<Database::MucLogLine> Database::get_muc_logs(const std::string& owner, const std::string& chan_name, const std::string& server,
-                                                   int limit, const std::string& start, const std::string& end, const Id::real_type after_id)
+                                                   int limit, const std::string& start, const std::string& end, const Id::real_type after_id, Database::Paging paging)
 {
+  if (limit == 0)
+    return {};
+
   auto request = Database::muc_log_lines.select();
   request.where() << Database::Owner{} << "=" << owner << \
           " and " << Database::IrcChanName{} << "=" << chan_name << \
@@ -189,37 +192,20 @@ std::vector<Database::MucLogLine> Database::get_muc_logs(const std::string& owne
       request << " and " << Id{} << ">" << after_id;
     }
 
-  if (limit >= 0)
-    request.limit() << limit;
-
-  auto result = request.execute(*Database::db);
-
-  return {result.cbegin(), result.cend()};
-}
-
-std::vector<Database::MucLogLine> Database::get_muc_most_recent_logs(const std::string& owner, const std::string& chan_name, const std::string& server,
-                                                                     int limit, const std::string& start)
-{
-  auto request = Database::muc_log_lines.select();
-  request.where() << Database::Owner{} << "=" << owner << \
-          " and " << Database::IrcChanName{} << "=" << chan_name << \
-          " and " << Database::IrcServerName{} << "=" << server;
-
-  if (!start.empty())
-    {
-      const auto start_time = utils::parse_datetime(start);
-      if (start_time != -1)
-        request << " and " << Database::Date{} << ">=" << start_time;
-    }
-
-  request.order_by() << Id{} << " DESC ";
+  if (paging == Database::Paging::first)
+    request.order_by() << Id{} << " ASC ";
+  else
+    request.order_by() << Id{} << " DESC ";
 
   if (limit >= 0)
     request.limit() << limit;
 
   auto result = request.execute(*Database::db);
-  
-  return {result.crbegin(), result.crend()};
+
+  if (paging == Database::Paging::first)
+    return result;
+  else
+    return {result.crbegin(), result.crend()};
 }
 
 Database::MucLogLine Database::get_muc_log(const std::string& owner, const std::string& chan_name, const std::string& server,

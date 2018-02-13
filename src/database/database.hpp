@@ -23,6 +23,7 @@ class Database
  public:
   using time_point = std::chrono::system_clock::time_point;
   struct RecordNotFound: public std::exception {};
+  enum class Paging { first, last };
 
   struct Uuid: Column<std::string> { static constexpr auto name = "uuid_"; };
 
@@ -125,13 +126,8 @@ class Database
    */
   static std::vector<MucLogLine> get_muc_logs(const std::string& owner, const std::string& chan_name, const std::string& server,
                                               int limit=-1, const std::string& start="", const std::string& end="",
-                                              const Id::real_type after_id=Id::unset_value);
+                                              const Id::real_type after_id=Id::unset_value, Paging=Paging::first);
 
-  /**
-   * Get the most recent messages from the archive, with optional limit and start date
-   */
-  static std::vector<MucLogLine> get_muc_most_recent_logs(const std::string& owner, const std::string& chan_name, const std::string& server,
-                                              int limit=-1, const std::string& start="");
   /**
    * Get just one single record matching the given uuid, between (optional) end and start.
    * If it does not exist (or is not between end and start), throw a RecordNotFound exception.
