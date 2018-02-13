@@ -165,7 +165,7 @@ std::string Database::store_muc_message(const std::string& owner, const std::str
 }
 
 std::vector<Database::MucLogLine> Database::get_muc_logs(const std::string& owner, const std::string& chan_name, const std::string& server,
-                                                   int limit, const std::string& start, const std::string& end, const Id::real_type after_id, Database::Paging paging)
+                                                   int limit, const std::string& start, const std::string& end, const Id::real_type reference_record_id, Database::Paging paging)
 {
   if (limit == 0)
     return {};
@@ -187,15 +187,21 @@ std::vector<Database::MucLogLine> Database::get_muc_logs(const std::string& owne
       if (end_time != -1)
         request << " and " << Database::Date{} << "<=" << end_time;
     }
-  if (after_id != Id::unset_value)
+  if (reference_record_id != Id::unset_value)
     {
-      request << " and " << Id{} << ">" << after_id;
+      request << " and " << Id{};
+      if (paging == Database::Paging::first)
+        request << ">";
+      else
+        request << "<";
+      request << reference_record_id;
     }
 
+  request.order_by() << Id{};
   if (paging == Database::Paging::first)
-    request.order_by() << Id{} << " ASC ";
+    request << " ASC ";
   else
-    request.order_by() << Id{} << " DESC ";
+    request << " DESC ";
 
   if (limit >= 0)
     request.limit() << limit;

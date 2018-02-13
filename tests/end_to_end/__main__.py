@@ -2190,7 +2190,48 @@ if __name__ == '__main__':
 
                     # Send a request with a non-existing ID set as the “after” value.
                     partial(send_stanza, "<iq to='#foo%{irc_server_one}' from='{jid_one}/{resource_one}' type='set' id='id3'><query xmlns='urn:xmpp:mam:2' queryid='qid3' ><set xmlns='http://jabber.org/protocol/rsm'><after>DUMMY_ID</after></set></query></iq>"),
-                    partial(expect_stanza, "/iq[@id='id3'][@type='error']/error[@type='cancel']/stanza:feature-not-implemented")
+                    partial(expect_stanza, "/iq[@id='id3'][@type='error']/error[@type='cancel']/stanza:item-not-found"),
+
+                     # Request the last page just BEFORE the last message in the archive
+                     partial(send_stanza, "<iq to='#foo%{irc_server_one}' from='{jid_one}/{resource_one}' type='set' id='id3'><query xmlns='urn:xmpp:mam:2' queryid='qid3' ><set xmlns='http://jabber.org/protocol/rsm'><before></before></set></query></iq>"),
+
+                    partial(expect_stanza,
+                            ("/message/mam:result[@queryid='qid3']/forward:forwarded/delay:delay",
+                            "/message/mam:result[@queryid='qid3']/forward:forwarded/client:message[@from='#foo%{irc_server_one}/{nick_one}'][@type='groupchat']/client:body[text()='50']")
+                            ),
+                  ] + 98 * [
+                    partial(expect_stanza,
+                            ("/message/mam:result[@queryid='qid3']/forward:forwarded/delay:delay",
+                            "/message/mam:result[@queryid='qid3']/forward:forwarded/client:message[@from='#foo%{irc_server_one}/{nick_one}'][@type='groupchat']/client:body")
+                            ),
+                  ] + [
+                    partial(expect_stanza,
+                            ("/message/mam:result[@queryid='qid3']/forward:forwarded/delay:delay",
+                            "/message/mam:result[@queryid='qid3']/forward:forwarded/client:message[@from='#foo%{irc_server_one}/{nick_one}'][@type='groupchat']/client:body[text()='149']"),
+                            after = partial(save_value, "last_uuid", partial(extract_attribute, "/message/mam:result", "id"))
+                            ),
+                    partial(expect_stanza,
+                            ("/iq[@type='result'][@id='id3'][@from='#foo%{irc_server_one}'][@to='{jid_one}/{resource_one}']",
+                             "/iq/mam:fin/rsm:set/rsm:last[text()='{last_uuid}']",
+                             "!/iq//mam:fin[@complete='true']",
+                             "/iq//mam:fin")),
+
+                     # Do the same thing, but with a limit value.
+                     partial(send_stanza, "<iq to='#foo%{irc_server_one}' from='{jid_one}/{resource_one}' type='set' id='id4'><query xmlns='urn:xmpp:mam:2' queryid='qid4' ><set xmlns='http://jabber.org/protocol/rsm'><before>{last_uuid}</before><max>2</max></set></query></iq>"),
+                    partial(expect_stanza,
+                            ("/message/mam:result[@queryid='qid4']/forward:forwarded/delay:delay",
+                            "/message/mam:result[@queryid='qid4']/forward:forwarded/client:message[@from='#foo%{irc_server_one}/{nick_one}'][@type='groupchat']/client:body[text()='147']")
+                            ),
+                    partial(expect_stanza,
+                            ("/message/mam:result[@queryid='qid4']/forward:forwarded/delay:delay",
+                            "/message/mam:result[@queryid='qid4']/forward:forwarded/client:message[@from='#foo%{irc_server_one}/{nick_one}'][@type='groupchat']/client:body[text()='148']"),
+                            after = partial(save_value, "last_uuid", partial(extract_attribute, "/message/mam:result", "id"))
+                            ),
+                    partial(expect_stanza,
+                            ("/iq[@type='result'][@id='id4'][@from='#foo%{irc_server_one}'][@to='{jid_one}/{resource_one}']",
+                             "/iq/mam:fin/rsm:set/rsm:last[text()='{last_uuid}']",
+                             "/iq/mam:fin[@complete='true']",
+                             "/iq/mam:fin")),
                   ]),
         Scenario("channel_history_on_fixed_server",
                  [

@@ -720,7 +720,8 @@ bool BiboumiComponent::handle_mam_request(const Stanza& stanza)
           }
         const XmlNode* set = query->get_child("set", RSM_NS);
         int limit = -1;
-        Id::real_type after_id{Id::unset_value};
+        Id::real_type reference_record_id{Id::unset_value};
+        Database::Paging paging_order{Database::Paging::first};
         if (set)
           {
             const XmlNode* max = set->get_child("max", RSM_NS);
@@ -731,7 +732,17 @@ bool BiboumiComponent::handle_mam_request(const Stanza& stanza)
               {
                 auto after_record = Database::get_muc_log(from.bare(), iid.get_local(), iid.get_server(),
                                                           after->get_inner(), start, end);
-                after_id = after_record.col<Id>();
+                reference_record_id = after_record.col<Id>();
+              }
+            const XmlNode* before = set->get_child("before", RSM_NS);
+            if (before)
+              {
+                paging_order = Database::Paging::last;
+                if (!before->get_inner().empty())
+                  {
+                    auto before_record = Database::get_muc_log(from.bare(), iid.get_local(), iid.get_server(), before->get_inner(), start, end);
+                    reference_record_id = before_record.col<Id>();
+                  }
               }
           }
         // Do not send more than 100 messages, even if the client asked for more,
@@ -742,7 +753,7 @@ bool BiboumiComponent::handle_mam_request(const Stanza& stanza)
         if ((limit == -1 && start.empty() && end.empty())
             || limit > 100)
           limit = 101;
-        auto lines = Database::get_muc_logs(from.bare(), iid.get_local(), iid.get_server(), limit, start, end, after_id);
+        auto lines = Database::get_muc_logs(from.bare(), iid.get_local(), iid.get_server(), limit, start, end, reference_record_id, paging_order);
         bool complete = true;
         if (lines.size() > 100)
           {

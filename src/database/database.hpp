@@ -126,7 +126,7 @@ class Database
    */
   static std::vector<MucLogLine> get_muc_logs(const std::string& owner, const std::string& chan_name, const std::string& server,
                                               int limit=-1, const std::string& start="", const std::string& end="",
-                                              const Id::real_type after_id=Id::unset_value, Paging=Paging::first);
+                                              const Id::real_type reference_record_id=Id::unset_value, Paging=Paging::first);
 
   /**
    * Get just one single record matching the given uuid, between (optional) end and start.
