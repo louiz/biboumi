@@ -472,6 +472,7 @@ void BiboumiComponent::handle_iq(const Stanza& stanza)
                 stanza_error.disable();
             } catch (const Database::RecordNotFound& exc) {
               error_name = "item-not-found";
+              return;
             }
         }
       else if ((query = stanza.get_child("query", MUC_OWNER_NS)))
