@@ -34,6 +34,7 @@ std::unique_ptr<DatabaseEngine> PostgresqlEngine::open(const std::string& connin
     {
       const char* errmsg = PQerrorMessage(con);
       log_error("Postgresql connection failed: ", errmsg);
+      PQfinish(con);
       throw std::runtime_error("failed to open connection.");
     }
   return std::make_unique<PostgresqlEngine>(con);
