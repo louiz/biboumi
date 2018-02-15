@@ -197,11 +197,10 @@ std::vector<Database::MucLogLine> Database::get_muc_logs(const std::string& owne
       request << reference_record_id;
     }
 
-  request.order_by() << Id{};
   if (paging == Database::Paging::first)
-    request << " ASC ";
+    request.order_by() << Database::Date{} << " ASC, " << Id{} << " ASC ";
   else
-    request << " DESC ";
+    request.order_by() << Database::Date{} << " DESC, " << Id{} << " DESC ";
 
   if (limit >= 0)
     request.limit() << limit;
