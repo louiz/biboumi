@@ -6,6 +6,8 @@
 
 #include <libpq-fe.h>
 
+#include <cstring>
+
 class PostgresqlStatement: public Statement
 {
  public:
@@ -108,7 +110,9 @@ private:
     const auto status = PQresultStatus(this->result);
     if (status != PGRES_TUPLES_OK && status != PGRES_COMMAND_OK)
       {
-        log_error("Failed to execute command: ", PQresultErrorMessage(this->result));
+        const char* original = PQerrorMessage(this->conn);
+        if (original && std::strlen(original) > 0)
+          log_error("Failed to execute command: ", std::string{original, std::strlen(original) - 1});
         return false;
       }
     return true;
