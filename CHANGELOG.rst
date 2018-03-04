@@ -2,6 +2,8 @@ Version 8.0
 ===========
 
 - Add a complete='true' in MAM’s iq result when appropriate
+- The “virtual” channel with an empty name (for example
+  %irc.freenode.net@biboumi) has been entirely removed.
 
 Version 7.2 - 2018-01-24
 ========================

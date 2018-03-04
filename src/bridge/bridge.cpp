@@ -63,7 +63,6 @@ void Bridge::shutdown(const std::string& exit_message)
   for (auto& pair: this->irc_clients)
   {
     pair.second->send_quit_command(exit_message);
-    pair.second->leave_dummy_channel(exit_message, {});
   }
 }
 
@@ -176,35 +175,6 @@ bool Bridge::join_irc_channel(const Iid& iid, const std::string& nickname, const
   auto res_in_chan = this->is_resource_in_chan(ChannelKey{iid.get_local(), hostname}, resource);
   if (!res_in_chan)
     this->add_resource_to_chan(ChannelKey{iid.get_local(), hostname}, resource);
-  if (iid.get_local().empty())
-    { // Join the dummy channel
-      if (irc->is_welcomed())
-        {
-          if (res_in_chan)
-            return false;
-          // Immediately simulate a message coming from the IRC server saying that we
-          // joined the channel
-          if (irc->get_dummy_channel().joined)
-            {
-              this->generate_channel_join_for_resource(iid, resource);
-            }
-          else
-            {
-              const IrcMessage join_message(irc->get_nick(), "JOIN", {""});
-              irc->on_channel_join(join_message);
-              const IrcMessage end_join_message(std::string(iid.get_server()), "366",
-                                                {irc->get_nick(),
-                                                 "", "End of NAMES list"});
-              irc->on_channel_completely_joined(end_join_message);
-            }
-        }
-      else
-        {
-          irc->get_dummy_channel().joining = true;
-          irc->start();
-        }
-      return true;
-    }
   if (irc->is_channel_joined(iid.get_local()) == false)
     {
       irc->send_join_command(iid.get_local(), password);
@@ -445,11 +415,7 @@ void Bridge::leave_irc_channel(Iid&& iid, const std::string& status_message, con
 #endif
       if (channel->joined && !channel->parting && !persistent)
         {
-          const auto& chan_name = iid.get_local();
-          if (chan_name.empty())
-            irc->leave_dummy_channel(status_message, resource);
-          else
-            irc->send_part_command(iid.get_local(), status_message);
+          irc->send_part_command(iid.get_local(), status_message);
         }
       else if (channel->joined)
         {
@@ -1254,9 +1220,6 @@ std::size_t Bridge::number_of_channels_the_resource_is_in(const std::string& irc
         res++;
     }
 
-  IrcClient* irc = this->find_irc_client(irc_hostname);
-  if (irc && (irc->get_dummy_channel().joined || irc->get_dummy_channel().joining))
-    res++;
   return res;
 }
 

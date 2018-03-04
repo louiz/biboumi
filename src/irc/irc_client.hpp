@@ -279,15 +279,6 @@ public:
    * Return the number of joined channels
    */
   size_t number_of_joined_channels() const;
-  /**
-   * Get a reference to the unique dummy channel
-   */
-  DummyIrcChannel& get_dummy_channel();
-  /**
-   * Leave the dummy channel: forward a message to the user to indicate that
-   * he left it, and mark it as not joined.
-   */
-  void leave_dummy_channel(const std::string& exit_message, const std::string& resource);
 
   const std::string& get_hostname() const { return this->hostname; }
   std::string get_nick() const { return this->current_nick; }
@@ -339,11 +330,6 @@ private:
    * The list of joined channels, indexed by name
    */
   std::unordered_map<std::string, std::unique_ptr<IrcChannel>> channels;
-  /**
-   * A single channel with a iid of the form "hostname" (normal channel have
-   * an iid of the form "chan%hostname".
-   */
-  DummyIrcChannel dummy_channel;
   /**
    * A list of chan we want to join (tuples with the channel name and the
    * password, if any), but we need a response 001 from the server before

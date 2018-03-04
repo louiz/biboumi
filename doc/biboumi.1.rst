@@ -103,16 +103,15 @@ fixed_irc_server
 
 If this option contains the hostname of an IRC server (for example
 irc.example.org), then biboumi will enforce the connexion to that IRC
-server only.  This means that a JID like ``#chan@biboumi.example.com`` must
-be used instead of ``#chan%irc.example.org@biboumi.example.com``.  In that
-mode, the virtual channel (see `Connect to an IRC server`_) is not
-available. The `%` character loses any meaning in the JIDs.  It can appear
-in the JID but will not be interpreted as a separator (thus the JID
+server only.  This means that a JID like ``#chan@biboumi.example.com``
+must be used instead of ``#chan%irc.example.org@biboumi.example.com``. The
+`%` character loses any meaning in the JIDs.  It can appear in the JID but
+will not be interpreted as a separator (thus the JID
 ``#channel%hello@biboumi.example.com`` points to the channel named
-``#channel%hello`` on the configured IRC server) This option can for example
-be used by an administrator that just wants to let their users join their own
-IRC server using an XMPP client, while forbidding access to any other IRC
-server.
+``#channel%hello`` on the configured IRC server) This option can for
+example be used by an administrator that just wants to let their users
+join their own IRC server using an XMPP client, while forbidding access to
+any other IRC server.
 
 persistent_by_default
 ---------------------
@@ -295,10 +294,6 @@ the two is based on the first character: by default, if the name starts with
 ``'#'`` or ``'&'`` (but this can be overridden by the server, using the
 ISUPPORT extension) then it’s a channel name, otherwise this is a nickname.
 
-As a special case, the channel name can also be empty (for example
-``%irc.example.com``), in that case this represents the virtual channel
-provided by biboumi.  See `Connect to an IRC server`_ for more details.
-
 There is two ways to address an IRC user, using a local part like this:
 ``nickname`` % ``irc_server`` or by using the in-room address of the
 participant, like this:
@@ -336,9 +331,6 @@ Examples:
 
 * ``irc.example.com@biboumi.example.com`` is the IRC server irc.example.com.
 
-* ``%irc.example.com@biboumi.example.com`` is the virtual channel provided by
-  biboumi, for the IRC server irc.example.com.
-
 Note: Some JIDs are valid but make no sense in the context of
 biboumi:
 
@@ -362,16 +354,7 @@ Connect to an IRC server
 
 The connection to the IRC server is automatically made when the user tries
 to join any channel on that IRC server.  The connection is closed whenever
-the last channel on that server is left by the user.  To be able to stay
-connected to an IRC server without having to be in a real IRC channel,
-biboumi provides a virtual channel on the jid
-``%irc.example.com@biboumi.example.com``.  For example if you want to join the
-channel ``#foo`` on the server ``irc.example.com``, but you need to authenticate
-to a bot of the server before you’re allowed to join it, you can first join
-the room ``%irc.example.com@biboumi.example.com`` (this will effectively
-connect you to the IRC server without joining any channel), then send your
-authentication message to the user ``bot%irc.example.com@biboumi.example.com``
-and finally join the room ``#foo%irc.example.com@biboumi.example.com``.
+the last channel on that server is left by the user.
 
 Roster
 ------

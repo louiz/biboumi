@@ -663,23 +663,6 @@ if __name__ == '__main__':
                              ),
                      partial(expect_stanza, "/message[@from='#baz%{irc_server_one}'][@type='groupchat']/subject[not(text())]"),
                  ]),
-        Scenario("virtual_channel",
-                 [
-                     handshake_sequence(),
-                     partial(send_stanza,
-                             "<presence from='{jid_one}/{resource_one}' to='%{irc_server_one}/{nick_one}' />"),
-                     connection_begin_sequence("irc.localhost", '{jid_one}/{resource_one}'),
-                     connection_middle_sequence("irc.localhost", '{jid_one}/{resource_one}'),
-
-                     partial(expect_stanza,
-                             ("/presence[@to='{jid_one}/{resource_one}'][@from='%{irc_server_one}/{nick_one}']/muc_user:x/muc_user:item[@affiliation='none'][@role='participant']",
-                              "/presence/muc_user:x/muc_user:status[@code='110']")
-                             ),
-                     partial(expect_stanza, "/message[@from='%{irc_server_one}'][@type='groupchat']/subject[re:test(text(), '^This is a virtual channel.*$')]"),
-                     connection_end_sequence("irc.localhost", '{jid_one}/{resource_one}'),
-                     partial(send_stanza, "<presence type='unavailable' from='{jid_one}/{resource_one}' to='%{irc_server_one}/{nick_one}' />"),
-                     partial(expect_stanza, "/presence[@type='unavailable'][@from='%{irc_server_one}/{nick_one}']"),
-                 ]),
         Scenario("not_connected_error",
                  [
                      handshake_sequence(),
@@ -695,34 +678,6 @@ if __name__ == '__main__':
                               "/presence/muc_user:x/muc_user:status[@code='110']")
                              ),
                      partial(expect_stanza, "/message[@from='#foo%{irc_server_one}'][@type='groupchat']/subject[not(text())]"),
-                 ]),
-        Scenario("irc_server_disconnection",
-                 [
-                     handshake_sequence(),
-                     partial(send_stanza,
-                             "<presence from='{jid_one}/{resource_one}' to='%{irc_server_one}/{nick_one}' />"),
-                     connection_begin_sequence("irc.localhost", '{jid_one}/{resource_one}'),
-                     connection_middle_sequence("irc.localhost", '{jid_one}/{resource_one}'),
-
-                     partial(expect_stanza,
-                             ("/presence[@to='{jid_one}/{resource_one}'][@from='%{irc_server_one}/{nick_one}']/muc_user:x/muc_user:item[@affiliation='none'][@role='participant']",
-                              "/presence/muc_user:x/muc_user:status[@code='110']")
-                             ),
-                     partial(expect_stanza, "/message[@from='%{irc_server_one}'][@type='groupchat']/subject[re:test(text(), '^This is a virtual channel.*$')]"),
-                     connection_end_sequence("irc.localhost", '{jid_one}/{resource_one}'),
-
-                     partial(send_stanza, "<presence from='{jid_one}/{resource_one}' to='%{irc_server_one}/{nick_two}' />"),
-
-                     partial(expect_unordered, [
-                         ("/presence[@from='%{irc_server_one}/{nick_one}'][@to='{jid_one}/{resource_one}'][@type='unavailable']/muc_user:x/muc_user:item[@nick='{nick_two}']",
-                          "/presence/muc_user:x/muc_user:status[@code='110']",
-                          "/presence/muc_user:x/muc_user:status[@code='303']"),
-                         ("/presence[@from='%{irc_server_one}/{nick_two}'][@to='{jid_one}/{resource_one}']",
-                          "/presence/muc_user:x/muc_user:status[@code='110']"),
-                         ]),
-
-                     partial(send_stanza, "<presence type='unavailable' from='{jid_one}/{resource_one}' to='%{irc_server_one}/{nick_two}' />"),
-                     partial(expect_stanza, "/presence[@type='unavailable'][@from='%{irc_server_one}/{nick_two}']"),
                  ]),
         Scenario("channel_join_with_two_users",
                  [
@@ -1296,27 +1251,27 @@ if __name__ == '__main__':
                      ## Do the exact same thing, from a different chan,
                      # to check if the response comes from the right JID
 
-                     # Join the virtual channel
                      partial(send_stanza,
-                     "<presence from='{jid_one}/{resource_one}' to='%{irc_server_one}/{nick_one}' />"),
+                     "<presence from='{jid_one}/{resource_one}' to='#dummy%{irc_server_one}/{nick_one}' />"),
+                     partial(expect_stanza, "/message"),
                      partial(expect_stanza,
                      "/presence/muc_user:x/muc_user:status[@code='110']"),
-                     partial(expect_stanza, "/message[@from='%{irc_server_one}'][@type='groupchat']/subject"),
+                     partial(expect_stanza, "/message[@from='#dummy%{irc_server_one}'][@type='groupchat']/subject"),
 
 
                      # Send a private message, to a in-room JID
-                     partial(send_stanza, "<message from='{jid_one}/{resource_one}' to='%{irc_server_one}/{nick_two}' type='chat'><body>re in private</body></message>"),
+                     partial(send_stanza, "<message from='{jid_one}/{resource_one}' to='#dummy%{irc_server_one}/{nick_two}' type='chat'><body>re in private</body></message>"),
                      # Message is received with a server-wide JID
                      partial(expect_stanza, "/message[@from='{lower_nick_one}%{irc_server_one}'][@to='{jid_two}/{resource_one}'][@type='chat']/body[text()='re in private']"),
 
                      # Respond to the message, to the server-wide JID
                      partial(send_stanza, "<message from='{jid_two}/{resource_one}' to='{lower_nick_one}%{irc_server_one}' type='chat'><body>re</body></message>"),
                      # The response is received from the in-room JID
-                     partial(expect_stanza, "/message[@from='%{irc_server_one}/{nick_two}'][@to='{jid_one}/{resource_one}'][@type='chat']/body[text()='re']"),
+                     partial(expect_stanza, "/message[@from='#dummy%{irc_server_one}/{nick_two}'][@to='{jid_one}/{resource_one}'][@type='chat']/body[text()='re']"),
 
                      # Now we leave the room, to check if the subsequent private messages are still received properly
                      partial(send_stanza,
-                     "<presence from='{jid_one}/{resource_one}' to='%{irc_server_one}/{nick_one}' type='unavailable' />"),
+                     "<presence from='{jid_one}/{resource_one}' to='#dummy%{irc_server_one}/{nick_one}' type='unavailable' />"),
                      partial(expect_stanza,
                      "/presence[@type='unavailable']/muc_user:x/muc_user:status[@code='110']"),
 
@@ -1966,8 +1921,6 @@ if __name__ == '__main__':
                              ("/iq[@type='result'][@id='id8'][@from='#foo%{irc_server_one}'][@to='{jid_one}/{resource_one}']",
                               "/iq/mam:fin[@complete='true']/rsm:set")),
                  ]),
-
-
         Scenario("join_history_limits",
                  [
                      handshake_sequence(),
@@ -2002,9 +1955,10 @@ if __name__ == '__main__':
                      partial(expect_stanza, "/message[@type='groupchat']/body[text()='coucou 4']",
                              after = partial(save_current_timestamp_plus_delta, "second_timestamp", datetime.timedelta(seconds=1))),
 
-                     # join the virtual channel, to stay connected to the server even after leaving #foo
+                     # join some other channel, to stay connected to the server even after leaving #foo
                      partial(send_stanza,
-                             "<presence from='{jid_one}/{resource_one}' to='%{irc_server_one}/{nick_one}' />"),
+                             "<presence from='{jid_one}/{resource_one}' to='#DUMMY%{irc_server_one}/{nick_one}' />"),
+                     partial(expect_stanza, "/message"),
                      partial(expect_stanza, "/presence/muc_user:x/muc_user:status[@code='110']"),
                      partial(expect_stanza, "/message/subject"),
 
@@ -2688,56 +2642,6 @@ if __name__ == '__main__':
                      partial(send_stanza, "<message from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}'><x xmlns='http://jabber.org/protocol/muc#user'><invite to='bertrand@example.com'/></x></message>"),
                      partial(expect_stanza, "/message[@to='bertrand@example.com'][@from='#foo%{irc_server_one}']/muc_user:x/muc_user:invite[@from='{jid_one}/{resource_one}']"),
                 ]),
-                Scenario("virtual_channel_multisession",
-                 [
-                     handshake_sequence(),
-                     partial(send_stanza,
-                             "<presence from='{jid_one}/{resource_one}' to='%{irc_server_one}/{nick_one}' />"),
-                     connection_begin_sequence("irc.localhost", '{jid_one}/{resource_one}'),
-                     connection_middle_sequence("irc.localhost", '{jid_one}/{resource_one}'),
-
-                     partial(expect_stanza,
-                             ("/presence[@to='{jid_one}/{resource_one}'][@from='%{irc_server_one}/{nick_one}']/muc_user:x/muc_user:item[@affiliation='none'][@role='participant']",
-                              "/presence/muc_user:x/muc_user:status[@code='110']")
-                             ),
-                     partial(expect_stanza, "/message[@from='%{irc_server_one}'][@type='groupchat']/subject[re:test(text(), '^This is a virtual channel.*$')]"),
-                     connection_end_sequence("irc.localhost", '{jid_one}/{resource_one}'),
-
-                     partial(send_stanza,
-                             "<presence from='{jid_one}/{resource_two}' to='%{irc_server_one}/{nick_one}' />"),
-
-                     partial(expect_stanza,
-                             ("/presence[@to='{jid_one}/{resource_two}'][@from='%{irc_server_one}/{nick_one}']/muc_user:x/muc_user:item[@affiliation='none'][@role='participant']",
-                              "/presence/muc_user:x/muc_user:status[@code='110']")
-                         ),
-                     partial(expect_stanza, "/message[@to='{jid_one}/{resource_two}'][@from='%{irc_server_one}'][@type='groupchat']/subject[re:test(text(), '^This is a virtual channel.*$')]"),
-
-
-                     partial(send_stanza, "<presence from='{jid_one}/{resource_one}' to='%{irc_server_one}/{nick_two}' />"),
-
-                     partial(expect_unordered, [
-                         ("/presence[@from='%{irc_server_one}/{nick_one}'][@to='{jid_one}/{resource_two}'][@type='unavailable']/muc_user:x/muc_user:item[@nick='Bobby']",
-                          "/presence/muc_user:x/muc_user:status[@code='303']",
-                          "/presence/muc_user:x/muc_user:status[@code='110']"),
-                         ("/presence[@from='%{irc_server_one}/{nick_two}'][@to='{jid_one}/{resource_two}']",
-                          "/presence/muc_user:x/muc_user:status[@code='110']"),
-
-                         ("/presence[@from='%{irc_server_one}/{nick_one}'][@to='{jid_one}/{resource_one}'][@type='unavailable']/muc_user:x/muc_user:item[@nick='Bobby']",
-                          "/presence/muc_user:x/muc_user:status[@code='303']",
-                          "/presence/muc_user:x/muc_user:status[@code='110']"),
-                         ("/presence[@from='%{irc_server_one}/{nick_two}'][@to='{jid_one}/{resource_one}']",
-                          "/presence/muc_user:x/muc_user:status[@code='110']"),
-                     ]),
-
-
-                     partial(send_stanza, "<presence type='unavailable' from='{jid_one}/{resource_one}' to='%{irc_server_one}/{nick_two}' />"),
-                     partial(expect_stanza, ("/presence[@type='unavailable'][@from='%{irc_server_one}/{nick_two}'][@to='{jid_one}/{resource_one}']/muc_user:x/muc_user:status[@code='110']",
-                                             "/presence/status[text()='Biboumi note: 1 resources are still in this channel.']",)
-                             ),
-
-                     partial(send_stanza, "<presence type='unavailable' from='{jid_one}/{resource_two}' to='%{irc_server_one}/{nick_two}' />"),
-                     partial(expect_stanza, "/presence[@type='unavailable'][@from='%{irc_server_one}/{nick_two}']"),
-                 ]),
                 Scenario("global_configure",
                 [
                     handshake_sequence(),

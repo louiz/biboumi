@@ -148,8 +148,7 @@ void BiboumiComponent::handle_presence(const Stanza& stanza)
 
   try {
   if (iid.type == Iid::Type::Channel && !iid.get_server().empty())
-    { // presence toward a MUC that corresponds to an irc channel, or a
-      // dummy channel if iid.chan is empty
+    { // presence toward a MUC that corresponds to an irc channel
       if (type.empty())
         {
           const std::string own_nick = bridge->get_own_nick(iid);

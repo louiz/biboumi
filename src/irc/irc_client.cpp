@@ -145,14 +145,6 @@ IrcClient::IrcClient(std::shared_ptr<Poller>& poller, std::string hostname,
   chanmodes({"", "", "", ""}),
   chantypes({'#', '&'})
 {
-  this->dummy_channel.topic = "This is a virtual channel provided for "
-                              "convenience by biboumi, it is not connected "
-                              "to any actual IRC channel of the server '" + this->hostname +
-                              "', and sending messages in it has no effect. "
-                              "Its main goal is to keep the connection to the IRC server "
-                              "alive without having to join a real channel of that server. "
-                              "To disconnect from the IRC server, leave this room and all "
-                              "other IRC channels of that server.";
 #ifdef USE_DATABASE
   auto options = Database::get_irc_server_options(this->bridge.get_bare_jid(),
                                                   this->get_hostname());
@@ -315,8 +307,6 @@ void IrcClient::on_connection_close(const std::string& error_msg)
 
 IrcChannel* IrcClient::get_channel(const std::string& n)
 {
-  if (n.empty())
-    return &this->dummy_channel;
   const std::string name = utils::tolower(n);
   try
     {
@@ -670,10 +660,7 @@ void IrcClient::on_channel_join(const IrcMessage& message)
 {
   const std::string chan_name = utils::tolower(message.arguments[0]);
   IrcChannel* channel;
-  if (chan_name.empty())
-    channel = &this->dummy_channel;
-  else
-    channel = this->get_channel(chan_name);
+  channel = this->get_channel(chan_name);
   const std::string nick = message.prefix;
   IrcUser* user = channel->add_user(nick, this->prefix_to_mode);
   if (channel->joined == false)
@@ -948,18 +935,6 @@ void IrcClient::on_welcome_message(const IrcMessage& message)
   if (!channels_with_key.empty())
     this->send_join_command(channels_with_key, keys);
   this->channels_to_join.clear();
-  // Indicate that the dummy channel is joined as well, if needed
-  if (this->dummy_channel.joining)
-    {
-      // Simulate a message coming from the IRC server saying that we joined
-      // the channel
-      const IrcMessage join_message(this->get_nick(), "JOIN", {""});
-      this->on_channel_join(join_message);
-      const IrcMessage end_join_message(std::string(this->hostname), "366",
-                                        {this->get_nick(),
-                                            "", "End of NAMES list"});
-      this->on_channel_completely_joined(end_join_message);
-    }
 }
 
 void IrcClient::on_part(const IrcMessage& message)
@@ -1062,10 +1037,6 @@ void IrcClient::on_nick(const IrcMessage& message)
       }
   };
 
-  if (this->get_dummy_channel().joined)
-    {
-      change_nick_func("", &this->get_dummy_channel());
-    }
   for (const auto& pair: this->channels)
     {
       change_nick_func(pair.first, pair.second.get());
@@ -1248,25 +1219,7 @@ void IrcClient::on_unknown_message(const IrcMessage& message)
 
 size_t IrcClient::number_of_joined_channels() const
 {
-  if (this->dummy_channel.joined)
-    return this->channels.size() + 1;
-  else
-    return this->channels.size();
-}
-
-DummyIrcChannel& IrcClient::get_dummy_channel()
-{
-  return this->dummy_channel;
-}
-
-void IrcClient::leave_dummy_channel(const std::string& exit_message, const std::string& resource)
-{
-  if (!this->dummy_channel.joined)
-    return;
-  this->dummy_channel.joined = false;
-  this->dummy_channel.joining = false;
-  this->dummy_channel.remove_all_users();
-  this->bridge.send_muc_leave(Iid("%" + this->hostname, this->chantypes), std::string(this->current_nick), exit_message, true, true, resource);
+  return this->channels.size();
 }
 
 #ifdef BOTAN_FOUND

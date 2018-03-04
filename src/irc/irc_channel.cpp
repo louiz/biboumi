@@ -58,9 +58,3 @@ void IrcChannel::remove_all_users()
   this->users.clear();
   this->self = nullptr;
 }
-
-DummyIrcChannel::DummyIrcChannel():
-  IrcChannel(),
-  joining(false)
-{
-}
