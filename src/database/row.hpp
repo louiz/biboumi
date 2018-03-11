@@ -50,11 +50,19 @@ struct Row
   }
 
  private:
-  void insert(DatabaseEngine& db)
+  template <bool Coucou=true>
+  void insert(DatabaseEngine& db, typename std::enable_if<is_one_of<Id, T...> && Coucou>::type* = nullptr)
   {
     InsertQuery query(this->table_name, this->columns);
     // Ugly workaround for non portable stuff
     query.body += db.get_returning_id_sql_string(Id::name);
+    query.execute(db, this->columns);
+  }
+
+  template <bool Coucou=true>
+  void insert(DatabaseEngine& db, typename std::enable_if<!is_one_of<Id, T...> && Coucou>::type* = nullptr)
+  {
+    InsertQuery query(this->table_name, this->columns);
     query.execute(db, this->columns);
   }
 
