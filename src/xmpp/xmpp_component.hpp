@@ -150,7 +150,8 @@ public:
                       Xmpp::body&& message,
                       const std::string& jid_to,
                       const bool self,
-                      const bool user_requested);
+                      const bool user_requested,
+                      const std::string& affiliation, const std::string& role);
   /**
    * Indicate that a participant changed his nick
    */

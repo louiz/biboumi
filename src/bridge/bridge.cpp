@@ -419,7 +419,7 @@ void Bridge::leave_irc_channel(Iid&& iid, const std::string& status_message, con
         }
       else if (channel->joined)
         {
-          this->send_muc_leave(iid, channel->get_self()->nick, "", true, true, resource);
+          this->send_muc_leave(iid, *channel->get_self(), "", true, true, resource);
         }
       if (persistent)
         this->remove_resource_from_chan(key, resource);
@@ -430,7 +430,7 @@ void Bridge::leave_irc_channel(Iid&& iid, const std::string& status_message, con
   else
     {
       if (channel && channel->joined)
-        this->send_muc_leave(iid, channel->get_self()->nick,
+        this->send_muc_leave(iid, *channel->get_self(),
                              "Biboumi note: " + std::to_string(resources - 1) + " resources are still in this channel.",
                              true, true, resource);
       this->remove_resource_from_chan(key, resource);
@@ -847,19 +847,29 @@ void Bridge::send_presence_error(const Iid& iid, const std::string& nick,
   this->xmpp.send_presence_error(std::to_string(iid), nick, this->user_jid, type, condition, error_code, text);
 }
 
-void Bridge::send_muc_leave(const Iid& iid, const std::string& nick,
+void Bridge::send_muc_leave(const Iid& iid, const IrcUser& user,
                             const std::string& message, const bool self,
                             const bool user_requested,
                             const std::string& resource)
 {
+  const IrcClient* client = this->find_irc_client(iid.get_server());
+  if (!client)
+    {
+      log_error("Tried to send an unavailable presence for non existant client: ", std::to_string(iid));
+      return;
+    }
+  std::string affiliation;
+  std::string role;
+  std::tie(role, affiliation) = get_role_affiliation_from_irc_mode(user.get_most_significant_mode(client->get_sorted_user_modes()));
+
   if (!resource.empty())
-    this->xmpp.send_muc_leave(std::to_string(iid), nick, this->make_xmpp_body(message),
-                              this->user_jid + "/" + resource, self, user_requested);
+    this->xmpp.send_muc_leave(std::to_string(iid), user.nick, this->make_xmpp_body(message),
+                              this->user_jid + "/" + resource, self, user_requested, affiliation, role);
   else
     {
       for (const auto &res: this->resources_in_chan[iid.to_tuple()])
-        this->xmpp.send_muc_leave(std::to_string(iid), nick, this->make_xmpp_body(message),
-                                  this->user_jid + "/" + res, self, user_requested);
+        this->xmpp.send_muc_leave(std::to_string(iid), user.nick, this->make_xmpp_body(message),
+                                  this->user_jid + "/" + res, self, user_requested, affiliation, role);
       if (self)
         {
           // Copy the resources currently in that channel

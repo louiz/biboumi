@@ -170,7 +170,7 @@ public:
   /**
    * Send an unavailable presence from this participant
    */
-  void send_muc_leave(const Iid& iid, const std::string& nick,
+  void send_muc_leave(const Iid& iid, const IrcUser& nick,
                       const std::string& message, const bool self,
                       const bool user_requested,
                       const std::string& resource="");

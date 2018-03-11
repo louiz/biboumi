@@ -1149,7 +1149,8 @@ if __name__ == '__main__':
                      "<presence from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}/{nick_one}' type='unavailable' />"),
                      # Only user 1 receives the unavailable presence
                      partial(expect_stanza,
-                             "/presence[@from='#foo%{irc_server_one}/{nick_one}'][@to='{jid_one}/{resource_one}'][@type='unavailable']/muc_user:x/muc_user:status[@code='110']"),
+                             ("/presence[@from='#foo%{irc_server_one}/{nick_one}'][@to='{jid_one}/{resource_one}'][@type='unavailable']/muc_user:x/muc_user:status[@code='110']",
+                              "/presence/muc_user:x/muc_user:item[@affiliation='admin'][@role='moderator']")),
 
                      # Second user sends a channel message
                      partial(send_stanza, "<message type='groupchat' from='{jid_two}/{resource_one}' to='#foo%{irc_server_one}'><body>coucou</body></message>"),

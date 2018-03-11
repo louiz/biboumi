@@ -951,18 +951,18 @@ void IrcClient::on_part(const IrcMessage& message)
     {
       std::string nick = user->nick;
       bool self = channel->get_self() && channel->get_self()->nick == nick;
-      channel->remove_user(user);
-      Iid iid;
-      iid.set_local(chan_name);
-      iid.set_server(this->hostname);
-      iid.type = Iid::Type::Channel;
+      auto user_ptr = channel->remove_user(user);
       if (self)
       {
         this->channels.erase(utils::tolower(chan_name));
         // channel pointer is now invalid
         channel = nullptr;
       }
-      this->bridge.send_muc_leave(iid, std::move(nick), txt, self, true);
+      Iid iid;
+      iid.set_local(chan_name);
+      iid.set_server(this->hostname);
+      iid.type = Iid::Type::Channel;
+      this->bridge.send_muc_leave(iid, *user_ptr, txt, self, true);
     }
 }
 
@@ -979,8 +979,7 @@ void IrcClient::on_error(const IrcMessage& message)
     IrcChannel* channel = pair.second.get();
     if (!channel->joined)
       continue;
-    std::string own_nick = channel->get_self()->nick;
-      this->bridge.send_muc_leave(iid, std::move(own_nick), leave_message, true, false);
+    this->bridge.send_muc_leave(iid, *channel->get_self(), leave_message, true, false);
   }
   this->channels.clear();
   this->send_gateway_message("ERROR: " + leave_message);
@@ -1005,7 +1004,7 @@ void IrcClient::on_quit(const IrcMessage& message)
       iid.set_local(chan_name);
       iid.set_server(this->hostname);
       iid.type = Iid::Type::Channel;
-      this->bridge.send_muc_leave(iid, user->nick, txt, self, false);
+      this->bridge.send_muc_leave(iid, *user, txt, self, false);
       channel->remove_user(user);
     }
 }
