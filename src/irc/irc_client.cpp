@@ -186,20 +186,22 @@ void IrcClient::start()
   bool tls;
   std::tie(port, tls) = this->ports_to_try.top();
   this->ports_to_try.pop();
-  this->bridge.send_xmpp_message(this->hostname, "", "Connecting to " +
-                                  this->hostname + ":" + port + " (" +
-                                  (tls ? "encrypted" : "not encrypted") + ")");
-
   this->bind_addr = Config::get("outgoing_bind", "");
+  std::string address = this->hostname;
 
-#ifdef BOTAN_FOUND
-# ifdef USE_DATABASE
+#ifdef USE_DATABASE
   auto options = Database::get_irc_server_options(this->bridge.get_bare_jid(),
                                                   this->get_hostname());
+# ifdef BOTAN_FOUND
   this->credential_manager.set_trusted_fingerprint(options.col<Database::TrustedFingerprint>());
 # endif
+  if (!options.col<Database::Address>().empty())
+    address = options.col<Database::Address>();
 #endif
-  this->connect(this->hostname, port, tls);
+  this->bridge.send_xmpp_message(this->hostname, "", "Connecting to " +
+                                  address + ":" + port + " (" +
+                                  (tls ? "encrypted" : "not encrypted") + ")");
+  this->connect(address, port, tls);
 }
 
 void IrcClient::on_connection_failed(const std::string& reason)

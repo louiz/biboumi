@@ -4,6 +4,9 @@ Version 8.0
 - Add a complete='true' in MAM’s iq result when appropriate
 - The “virtual” channel with an empty name (for example
   %irc.freenode.net@biboumi) has been entirely removed.
+- Add an “Address” field in the servers’ configure form. This lets
+  the user customize the address to use when connecting to a server.
+  See https://lab.louiz.org/louiz/biboumi/issues/3273 for more details.
 
 Version 7.2 - 2018-01-24
 ========================
