@@ -152,7 +152,7 @@ def check_xpath(xpaths, xmpp, after, stanza):
             xpath = xpath[1:]
         matched = match(stanza, xpath)
         if (expected and not matched) or (not expected and matched):
-            raise StanzaError("Received stanza “%s” did not match expected xpath “%s”" % (stanza, real_xpath))
+            raise StanzaError("Received stanza\n%s\ndid not match expected xpath\n%s" % (stanza, real_xpath))
     if after:
         if isinstance(after, collections.Iterable):
             for af in after:
