@@ -628,7 +628,7 @@ On a server JID (e.g on the JID chat.freenode.org@biboumi.example.com)
       if one endpoint for that server is dead, but continue using the same
       JID. For example, a user could configure the server
       “freenode@biboumi.example.com”, set “chat.freenode.net” in its
-      “Address” field, and then they would be able to user “freenode” as
+      “Address” field, and then they would be able to use “freenode” as
       the network name forever: if “chat.freenode.net” breaks for some
       reason, it can be changed to “irc.freenode.org” instead, and the user
       would not need to change all their bookmarks and settings.
