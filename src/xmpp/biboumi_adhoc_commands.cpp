@@ -229,7 +229,7 @@ void ConfigureIrcServerStep1(XmppComponent&, AdhocSession& session, XmlNode& com
 
   {
     XmlSubNode field(x, "field");
-    field["var"] = "hostname";
+    field["var"] = "address";
     field["type"] = "text-single";
     field["label"] = "Address";
     field["desc"] = "The address (hostname or IP) to connect to.";
