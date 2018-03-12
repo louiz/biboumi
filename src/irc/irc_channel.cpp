@@ -53,11 +53,5 @@ std::unique_ptr<IrcUser> IrcChannel::remove_user(const IrcUser* user)
           this->joined = false;
         }
     }
-}
-
-void IrcChannel::remove_all_users()
-{
-  this->users.clear();
-  this->self = nullptr;
   return result;
 }

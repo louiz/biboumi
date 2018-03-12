@@ -32,7 +32,6 @@ public:
   IrcUser* add_user(const std::string& name,
                     const std::map<char, char>& prefix_to_mode);
   IrcUser* find_user(const std::string& name) const;
-  void remove_all_users();
   std::unique_ptr<IrcUser> remove_user(const IrcUser* user);
   const std::vector<std::unique_ptr<IrcUser>>& get_users() const
   { return this->users; }
