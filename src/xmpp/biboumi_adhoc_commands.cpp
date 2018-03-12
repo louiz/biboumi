@@ -228,12 +228,12 @@ void ConfigureIrcServerStep1(XmppComponent&, AdhocSession& session, XmlNode& com
   instructions.set_inner("Edit the form, to configure the settings of the IRC server " + server_domain);
 
   {
-    XmlSubNode hostname(x, "field");
-    hostname["var"] = "hostname";
-    hostname["type"] = "text-single";
-    hostname["label"] = "Address";
-    hostname["desc"] = "The hostname (or IP) to connect to.";
-    XmlSubNode value(hostname, "value");
+    XmlSubNode field(x, "field");
+    field["var"] = "hostname";
+    field["type"] = "text-single";
+    field["label"] = "Address";
+    field["desc"] = "The address (hostname or IP) to connect to.";
+    XmlSubNode value(field, "value");
     if (options.col<Database::Address>().empty())
       value.set_inner(server_domain);
     else
@@ -389,7 +389,7 @@ void ConfigureIrcServerStep2(XmppComponent&, AdhocSession& session, XmlNode& com
           const XmlNode* value = field->get_child("value", "jabber:x:data");
           const std::vector<const XmlNode*> values = field->get_children("value", "jabber:x:data");
 
-          if (field->get_tag("var") == "hostname")
+          if (field->get_tag("var") == "address")
             {
               options.col<Database::Address>() = value->get_inner();
             }

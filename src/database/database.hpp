@@ -84,7 +84,7 @@ class Database
 
   struct RemoteJid: Column<std::string> { static constexpr auto name = "remote"; };
 
-  struct Address: Column<std::string> { static constexpr auto name = "hostname_"; };
+  struct Address: Column<std::string> { static constexpr auto name = "address_"; };
 
   using MucLogLineTable = Table<Id, Uuid, Owner, IrcChanName, IrcServerName, Date, Body, Nick>;
   using MucLogLine = MucLogLineTable::RowType;
