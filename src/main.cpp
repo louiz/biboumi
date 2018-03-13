@@ -135,7 +135,9 @@ int main(int ac, char** av)
     std::make_shared<BiboumiComponent>(p, hostname, password);
   xmpp_component->start();
 
-  IdentdServer identd(*xmpp_component, p, static_cast<uint16_t>(Config::get_int("identd_port", 113)));
+  std::unique_ptr<IdentdServer> identd;
+  if (Config::get_int("identd_port", 113) != 0)
+    identd = std::make_unique<IdentdServer>(*xmpp_component, p, static_cast<uint16_t>(Config::get_int("identd_port", 113)));
 
   auto timeout = TimedEventsManager::instance().get_timeout();
   while (p->poll(timeout) != -1)
@@ -144,7 +146,7 @@ int main(int ac, char** av)
     // Check for empty irc_clients (not connected, or with no joined
     // channel) and remove them
     xmpp_component->clean();
-    identd.clean();
+    if (identd) identd->clean();
     if (stop)
     {
       log_info("Signal received, exiting...");
@@ -157,7 +159,7 @@ int main(int ac, char** av)
 #ifdef UDNS_FOUND
       dns_handler.destroy();
 #endif
-      identd.shutdown();
+      if (identd) identd->shutdown();
       // Cancel the timer for a potential reconnection
       TimedEventsManager::instance().cancel("XMPP reconnection");
     }
@@ -199,7 +201,7 @@ int main(int ac, char** av)
 #ifdef UDNS_FOUND
           dns_handler.destroy();
 #endif
-          identd.shutdown();
+          if (identd) identd->shutdown();
         }
     }
     // If the only existing connection is the one to the XMPP component:
