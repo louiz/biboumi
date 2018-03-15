@@ -1,37 +1,21 @@
 #pragma once
 
+#include <optional>
+
 #include <string>
 
-struct OptionalBool
+namespace std
 {
-  OptionalBool() = default;
+inline
+std::string to_string(const std::optional<bool> b)
+{
+  if (!b)
+    return "unset";
+  else if (*b)
+    return "true";
+  else
+    return "false";
+}
+}
 
-  OptionalBool(bool value):
-  is_set(true), value(value) {}
-
-  void set_value(bool value)
-  {
-    this->is_set = true;
-    this->value = value;
-  }
-
-  void unset()
-  {
-    this->is_set = false;
-  }
-
-  std::string to_string() const
-  {
-    if (this->is_set == false)
-      return "unset";
-    else if (this->value)
-      return "true";
-    else
-      return "false";
-  }
-
-  bool is_set{false};
-  bool value{false};
-};
-
-std::ostream& operator<<(std::ostream& os, const OptionalBool& o);
+std::ostream& operator<<(std::ostream& os, const std::optional<bool>& o);

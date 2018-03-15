@@ -11,11 +11,11 @@ void actual_bind(Statement& statement, const std::int64_t& value, int index)
   statement.bind_int64(index, value);
 }
 
-void actual_bind(Statement& statement, const OptionalBool& value, int index)
+void actual_bind(Statement& statement, const std::optional<bool>& value, int index)
 {
-  if (!value.is_set)
+  if (!value)
     statement.bind_int64(index, 0);
-  else if (value.value)
+  else if (*value)
     statement.bind_int64(index, 1);
   else
     statement.bind_int64(index, -1);
@@ -26,11 +26,11 @@ void actual_add_param(Query& query, const std::string& val)
   query.params.push_back(val);
 }
 
-void actual_add_param(Query& query, const OptionalBool& val)
+void actual_add_param(Query& query, const std::optional<bool>& val)
 {
-  if (!val.is_set)
+  if (!val)
     query.params.push_back("0");
-  else if (val.value)
+  else if (*val)
     query.params.push_back("1");
   else
     query.params.push_back("-1");
