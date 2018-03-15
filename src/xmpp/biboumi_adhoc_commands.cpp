@@ -534,17 +534,22 @@ void insert_irc_channel_configuration_form(XmlNode& node, const Jid& requester, 
   {
     XmlSubNode persistent(x, "field");
     persistent["var"] = "persistent";
-    persistent["type"] = "boolean";
+    persistent["type"] = "list-single";
     persistent["desc"] = "If set to true, when all XMPP clients have left this channel, biboumi will stay idle in it, without sending a PART command.";
     persistent["label"] = "Persistent";
     {
+      // Value selected by default
       XmlSubNode value(persistent, "value");
-      value.set_name("value");
-      if (options.col<Database::Persistent>())
-        value.set_inner("true");
-      else
-        value.set_inner("false");
+      value.set_inner(options.col<Database::PersistentOptional>().to_string());
     }
+    // All three possible values
+    for (const auto& val: {"unset", "true", "false"})
+      {
+        XmlSubNode option(persistent, "option");
+        option["label"] = val;
+        XmlSubNode value(option, "value");
+        value.set_inner(val);
+      }
   }
 }
 
@@ -589,8 +594,17 @@ bool handle_irc_channel_configuration_form(XmppComponent& xmpp_component, const 
               else if (field->get_tag("var") == "encoding_in" && value)
                 options.col<Database::EncodingIn>() = value->get_inner();
 
-              else if (field->get_tag("var") == "persistent" && value)
-                options.col<Database::Persistent>() = to_bool(value->get_inner());
+              else if (field->get_tag("var") == "persistent" && value &&
+		       !value->get_inner().empty())
+		{
+                  OptionalBool& database_value = options.col<Database::PersistentOptional>();
+                  if (value->get_inner() == "true")
+                    database_value.set_value(true);
+                  else if (value->get_inner() == "false")
+                    database_value.set_value(false);
+                  else
+                    database_value.unset();
+		}
               else if (field->get_tag("var") == "record_history" &&
                        value && !value->get_inner().empty())
                 {

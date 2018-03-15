@@ -74,8 +74,7 @@ class Database
   struct VerifyCert: Column<bool> { static constexpr auto name = "verifycert_";
     VerifyCert(): Column<bool>(true) {} };
 
-  struct Persistent: Column<bool> { static constexpr auto name = "persistent_";
-    Persistent(): Column<bool>(false) {} };
+  struct PersistentOptional: Column<OptionalBool> { static constexpr auto name = "persistent_"; };
 
   struct GlobalPersistent: Column<bool> { static constexpr auto name = "persistent_";
     GlobalPersistent(); };
@@ -95,7 +94,7 @@ class Database
   using IrcServerOptionsTable = Table<Id, Owner, Server, Pass, AfterConnectionCommand, TlsPorts, Ports, Username, Realname, VerifyCert, TrustedFingerprint, EncodingOut, EncodingIn, MaxHistoryLength, Address>;
   using IrcServerOptions = IrcServerOptionsTable::RowType;
 
-  using IrcChannelOptionsTable = Table<Id, Owner, Server, Channel, EncodingOut, EncodingIn, MaxHistoryLength, Persistent, RecordHistoryOptional>;
+  using IrcChannelOptionsTable = Table<Id, Owner, Server, Channel, EncodingOut, EncodingIn, MaxHistoryLength, PersistentOptional, RecordHistoryOptional>;
   using IrcChannelOptions = IrcChannelOptionsTable::RowType;
 
   using RosterTable = Table<LocalJid, RemoteJid>;
