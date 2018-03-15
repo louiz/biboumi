@@ -205,6 +205,8 @@ this identd server, moderation is a lot harder, because all the different
 users of a single biboumi instance all share the same IP, and they can’t be
 distinguished by the IRC servers.
 
+To disable the built-in identd, you may set identd_port to 0.
+
 policy_directory
 ----------------
 
