@@ -93,36 +93,32 @@ class Table
  private:
 
   template <std::size_t N=0>
-  typename std::enable_if<N < sizeof...(T), void>::type
-  add_column_if_not_exists(DatabaseEngine& db, const std::set<std::string>& existing_columns)
+  void add_column_if_not_exists(DatabaseEngine& db, const std::set<std::string>& existing_columns)
   {
-    using ColumnType = typename std::remove_reference<decltype(std::get<N>(std::declval<ColumnTypes>()))>::type;
-    if (existing_columns.count(ColumnType::name) == 0)
-      add_column_to_table<ColumnType>(db, this->name);
-    add_column_if_not_exists<N+1>(db, existing_columns);
+    if constexpr(N < sizeof...(T))
+      {
+        using ColumnType = typename std::remove_reference<decltype(std::get<N>(std::declval<ColumnTypes>()))>::type;
+        if (existing_columns.count(ColumnType::name) == 0)
+          add_column_to_table<ColumnType>(db, this->name);
+        add_column_if_not_exists<N + 1>(db, existing_columns);
+      }
   }
-  template <std::size_t N=0>
-  typename std::enable_if<N == sizeof...(T), void>::type
-  add_column_if_not_exists(DatabaseEngine&, const std::set<std::string>&)
-  {}
 
   template <std::size_t N=0>
-  typename std::enable_if<N < sizeof...(T), void>::type
-  add_column_create(DatabaseEngine& db, std::string& str)
+  void add_column_create(DatabaseEngine& db, std::string& str)
   {
-    using ColumnType = typename std::remove_reference<decltype(std::get<N>(std::declval<ColumnTypes>()))>::type;
-    str += ColumnType::name;
-    str += " ";
-    str += ToSQLType<ColumnType>(db);
-    if (N != sizeof...(T) - 1)
-      str += ",";
+    if constexpr(N < sizeof...(T))
+      {
+        using ColumnType = typename std::remove_reference<decltype(std::get<N>(std::declval<ColumnTypes>()))>::type;
+        str += ColumnType::name;
+        str += " ";
+        str += ToSQLType<ColumnType>(db);
+        if (N != sizeof...(T) - 1)
+          str += ",";
 
-    add_column_create<N+1>(db, str);
+        add_column_create<N + 1>(db, str);
+      }
   }
-  template <std::size_t N=0>
-  typename std::enable_if<N == sizeof...(T), void>::type
-  add_column_create(DatabaseEngine&, std::string&)
-  { }
 
   const std::string name;
 };

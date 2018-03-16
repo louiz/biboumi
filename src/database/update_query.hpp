@@ -39,27 +39,25 @@ struct UpdateQuery: public Query
   }
 
   template <int N=0, typename... T>
-  typename std::enable_if<N < sizeof...(T), void>::type
-  insert_col_name_and_value(const std::tuple<T...>& columns)
+  void insert_col_name_and_value(const std::tuple<T...>& columns)
   {
-    using ColumnType = std::decay_t<decltype(std::get<N>(columns))>;
-
-    if (!std::is_same<ColumnType, Id>::value)
+    if constexpr(N < sizeof...(T))
       {
-        this->body += ColumnType::name + "=$"s + std::to_string(this->current_param);
-        this->current_param++;
+        using ColumnType = std::decay_t<decltype(std::get<N>(columns))>;
 
-        if (N < (sizeof...(T) - 1))
-          this->body += ", ";
+        if (!std::is_same<ColumnType, Id>::value)
+          {
+            this->body += ColumnType::name + "=$"s
+                          + std::to_string(this->current_param);
+            this->current_param++;
+
+            if (N < (sizeof...(T) - 1))
+              this->body += ", ";
+          }
+
+        this->insert_col_name_and_value<N + 1>(columns);
       }
-
-    this->insert_col_name_and_value<N+1>(columns);
   }
-  template <int N=0, typename... T>
-  typename std::enable_if<N == sizeof...(T), void>::type
-  insert_col_name_and_value(const std::tuple<T...>&)
-  {}
-
 
   template <typename... T>
   void execute(DatabaseEngine& db, const std::tuple<T...>& columns)
@@ -76,22 +74,19 @@ struct UpdateQuery: public Query
   }
 
   template <int N=0, typename... T>
-  typename std::enable_if<N < sizeof...(T), void>::type
-  bind_param(const std::tuple<T...>& columns, Statement& statement, int index=1)
+  void bind_param(const std::tuple<T...>& columns, Statement& statement, int index=1)
   {
-    auto&& column = std::get<N>(columns);
-    using ColumnType = std::decay_t<decltype(column)>;
+    if constexpr(N < sizeof...(T))
+      {
+        auto&& column = std::get<N>(columns);
+        using ColumnType = std::decay_t<decltype(column)>;
 
-    if (!std::is_same<ColumnType, Id>::value)
-      actual_bind(statement, column.value, index++);
+        if (!std::is_same<ColumnType, Id>::value)
+          actual_bind(statement, column.value, index++);
 
-    this->bind_param<N+1>(columns, statement, index);
+        this->bind_param<N + 1>(columns, statement, index);
+      }
   }
-
-  template <int N=0, typename... T>
-  typename std::enable_if<N == sizeof...(T), void>::type
-  bind_param(const std::tuple<T...>&, Statement&, int)
-  {}
 
   template <typename... T>
   void bind_id(const std::tuple<T...>& columns, Statement& statement)
