@@ -8,16 +8,19 @@
 namespace
 {
 template <std::size_t N=0, typename... T>
-void add_column_name(std::string& out)
+typename std::enable_if<N == sizeof...(T), void>::type
+add_column_name(std::string&)
+{ }
+
+template <std::size_t N=0, typename... T>
+typename std::enable_if<N < sizeof...(T), void>::type
+add_column_name(std::string& out)
 {
-  if constexpr(N < sizeof...(T))
-    {
-      using ColumnType = typename std::remove_reference<decltype(std::get<N>(std::declval<std::tuple<T...>>()))>::type;
-      out += ColumnType::name;
-      if (N != sizeof...(T) - 1)
-        out += ",";
-      add_column_name<N + 1, T...>(out);
-    }
+  using ColumnType = typename std::remove_reference<decltype(std::get<N>(std::declval<std::tuple<T...>>()))>::type;
+  out += ColumnType::name;
+  if (N != sizeof...(T) - 1)
+    out += ",";
+  add_column_name<N+1, T...>(out);
 }
 }
 

@@ -15,36 +15,47 @@
 using namespace std::string_literals;
 
 template <typename T>
-auto extract_row_value(Statement& statement, const int i)
+typename std::enable_if<std::is_integral<T>::value, std::int64_t>::type
+extract_row_value(Statement& statement, const int i)
 {
-  if constexpr(std::is_integral<T>::value)
-    return statement.get_column_int64(i);
-  else if constexpr (std::is_same<std::string, T>::value)
-    return statement.get_column_text(i);
-  else if (std::is_same<std::optional<bool>, T>::value)
-    {
-      const auto integer = statement.get_column_int(i);
-      if (integer > 0)
-        return std::optional<bool>{true};
-      else if (integer < 0)
-        return std::optional<bool>{false};
-      return std::optional<bool>{};
-    }
+  return statement.get_column_int64(i);
+}
+
+template <typename T>
+typename std::enable_if<std::is_same<std::string, T>::value, T>::type
+extract_row_value(Statement& statement, const int i)
+{
+  return statement.get_column_text(i);
+}
+
+template <typename T>
+typename std::enable_if<std::is_same<std::optional<bool>, T>::value, T>::type
+extract_row_value(Statement& statement, const int i)
+{
+  const auto integer = statement.get_column_int(i);
+  if (integer > 0)
+    return true;
+  else if (integer < 0)
+    return false;
+  return std::nullopt;
 }
 
 template <std::size_t N=0, typename... T>
-void extract_row_values(Row<T...>& row, Statement& statement)
+typename std::enable_if<N < sizeof...(T), void>::type
+extract_row_values(Row<T...>& row, Statement& statement)
 {
-  if constexpr(N < sizeof...(T))
-    {
-      using ColumnType = typename std::remove_reference<decltype(std::get<N>(row.columns))>::type;
+  using ColumnType = typename std::remove_reference<decltype(std::get<N>(row.columns))>::type;
 
-      auto&& column = std::get<N>(row.columns);
-      column.value = static_cast<decltype(column.value)>(extract_row_value<typename ColumnType::real_type>(statement, N));
+  auto&& column = std::get<N>(row.columns);
+  column.value = static_cast<decltype(column.value)>(extract_row_value<typename ColumnType::real_type>(statement, N));
 
-      extract_row_values<N + 1>(row, statement);
-    }
+  extract_row_values<N+1>(row, statement);
 }
+
+template <std::size_t N=0, typename... T>
+typename std::enable_if<N == sizeof...(T), void>::type
+extract_row_values(Row<T...>&, Statement&)
+{}
 
 template <typename... T>
 struct SelectQuery: public Query
@@ -58,21 +69,23 @@ struct SelectQuery: public Query
     }
 
     template <std::size_t N=0>
-    void insert_col_name()
+    typename std::enable_if<N < sizeof...(T), void>::type
+    insert_col_name()
     {
-      if constexpr(N < sizeof...(T))
-        {
-          using ColumnsType = std::tuple<T...>;
-          using ColumnType = typename std::remove_reference<decltype(std::get<N>(std::declval<ColumnsType>()))>::type;
+      using ColumnsType = std::tuple<T...>;
+      using ColumnType = typename std::remove_reference<decltype(std::get<N>(std::declval<ColumnsType>()))>::type;
 
-          this->body += " " + std::string{ColumnType::name};
+      this->body += " " + std::string{ColumnType::name};
 
-          if (N < (sizeof...(T) - 1))
-            this->body += ", ";
+      if (N < (sizeof...(T) - 1))
+        this->body += ", ";
 
-          this->insert_col_name<N + 1>();
-        }
+      this->insert_col_name<N+1>();
     }
+    template <std::size_t N=0>
+    typename std::enable_if<N == sizeof...(T), void>::type
+    insert_col_name()
+    {}
 
   SelectQuery& where()
     {

@@ -11,16 +11,19 @@
 #include <tuple>
 
 template <std::size_t N=0, typename... T>
-void update_autoincrement_id(std::tuple<T...>& columns, Statement& statement)
+typename std::enable_if<N < sizeof...(T), void>::type
+update_autoincrement_id(std::tuple<T...>& columns, Statement& statement)
 {
-  if constexpr(N < sizeof...(T))
-    {
-      using ColumnType = typename std::decay<decltype(std::get<N>(columns))>::type;
-      if (std::is_same<ColumnType, Id>::value)
-        auto&& column = std::get<Id>(columns);
-      update_autoincrement_id<N + 1>(columns, statement);
-    }
+  using ColumnType = typename std::decay<decltype(std::get<N>(columns))>::type;
+  if (std::is_same<ColumnType, Id>::value)
+    auto&& column = std::get<Id>(columns);
+  update_autoincrement_id<N+1>(columns, statement);
 }
+
+template <std::size_t N=0, typename... T>
+typename std::enable_if<N == sizeof...(T), void>::type
+update_autoincrement_id(std::tuple<T...>&, Statement&)
+{}
 
 struct InsertQuery: public Query
 {
@@ -50,19 +53,22 @@ struct InsertQuery: public Query
   }
 
   template <int N=0, typename... T>
-  void bind_param(const std::tuple<T...>& columns, Statement& statement, int index=1)
+  typename std::enable_if<N < sizeof...(T), void>::type
+  bind_param(const std::tuple<T...>& columns, Statement& statement, int index=1)
   {
-    if constexpr(N < sizeof...(T))
-      {
-        auto&& column = std::get<N>(columns);
-        using ColumnType = std::decay_t<decltype(column)>;
+    auto&& column = std::get<N>(columns);
+    using ColumnType = std::decay_t<decltype(column)>;
 
-        if constexpr(!std::is_same<ColumnType, Id>::value)
-          actual_bind(statement, column.value, index++);
+    if (!std::is_same<ColumnType, Id>::value)
+      actual_bind(statement, column.value, index++);
 
-        this->bind_param<N + 1>(columns, statement, index);
-      }
+    this->bind_param<N+1>(columns, statement, index);
   }
+
+  template <int N=0, typename... T>
+  typename std::enable_if<N == sizeof...(T), void>::type
+  bind_param(const std::tuple<T...>&, Statement&, int)
+  {}
 
   template <typename... T>
   void insert_values(const std::tuple<T...>& columns)
@@ -73,21 +79,23 @@ struct InsertQuery: public Query
   }
 
   template <int N=0, typename... T>
-  void insert_value(const std::tuple<T...>& columns, int index=1)
+  typename std::enable_if<N < sizeof...(T), void>::type
+  insert_value(const std::tuple<T...>& columns, int index=1)
   {
-    if constexpr(N < sizeof...(T))
-      {
-        using ColumnType = std::decay_t<decltype(std::get<N>(columns))>;
+    using ColumnType = std::decay_t<decltype(std::get<N>(columns))>;
 
-        if (!std::is_same<ColumnType, Id>::value)
-          {
-            this->body += "$" + std::to_string(index++);
-            if (N != sizeof...(T) - 1)
-              this->body += ", ";
-          }
-        this->insert_value<N + 1>(columns, index);
+    if (!std::is_same<ColumnType, Id>::value)
+      {
+        this->body += "$" + std::to_string(index++);
+        if (N != sizeof...(T) - 1)
+          this->body += ", ";
       }
+    this->insert_value<N+1>(columns, index);
   }
+  template <int N=0, typename... T>
+  typename std::enable_if<N == sizeof...(T), void>::type
+  insert_value(const std::tuple<T...>&, const int)
+  { }
 
   template <typename... T>
   void insert_col_names(const std::tuple<T...>& columns)
@@ -98,21 +106,24 @@ struct InsertQuery: public Query
   }
 
   template <int N=0, typename... T>
-  void insert_col_name(const std::tuple<T...>& columns)
+  typename std::enable_if<N < sizeof...(T), void>::type
+  insert_col_name(const std::tuple<T...>& columns)
   {
-    if constexpr(N < sizeof...(T))
+    using ColumnType = std::decay_t<decltype(std::get<N>(columns))>;
+
+    if (!std::is_same<ColumnType, Id>::value)
       {
-        using ColumnType = std::decay_t<decltype(std::get<N>(columns))>;
+        this->body += ColumnType::name;
 
-        if (!std::is_same<ColumnType, Id>::value)
-          {
-            this->body += ColumnType::name;
-
-            if (N < (sizeof...(T) - 1))
-              this->body += ", ";
-          }
-
-        this->insert_col_name<N + 1>(columns);
+        if (N < (sizeof...(T) - 1))
+          this->body += ", ";
       }
+
+    this->insert_col_name<N+1>(columns);
   }
+
+  template <int N=0, typename... T>
+  typename std::enable_if<N == sizeof...(T), void>::type
+  insert_col_name(const std::tuple<T...>&)
+  {}
 };

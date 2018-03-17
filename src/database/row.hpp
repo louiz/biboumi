@@ -29,39 +29,41 @@ struct Row
     return col.value;
   }
 
-  void save(std::unique_ptr<DatabaseEngine>& db)
+  template <bool Coucou=true>
+  void save(std::unique_ptr<DatabaseEngine>& db, typename std::enable_if<!is_one_of<Id, T...> && Coucou>::type* = nullptr)
   {
-    if constexpr(is_one_of<Id, T...>)
+    this->insert(*db);
+  }
+
+  template <bool Coucou=true>
+  void save(std::unique_ptr<DatabaseEngine>& db, typename std::enable_if<is_one_of<Id, T...> && Coucou>::type* = nullptr)
+  {
+    const Id& id = std::get<Id>(this->columns);
+    if (id.value == Id::unset_value)
       {
-        const Id& id = std::get<Id>(this->columns);
-        if (id.value == Id::unset_value)
-          {
-            this->insert(*db);
-            if (db->last_inserted_rowid >= 0)
-              std::get<Id>(this->columns).value = static_cast<Id::real_type>(db->last_inserted_rowid);
-          }
-        else
-          this->update(*db);
+        this->insert(*db);
+        if (db->last_inserted_rowid >= 0)
+          std::get<Id>(this->columns).value = static_cast<Id::real_type>(db->last_inserted_rowid);
       }
     else
-      this->insert(*db);
+      this->update(*db);
   }
 
  private:
-  void insert(DatabaseEngine& db)
+  template <bool Coucou=true>
+  void insert(DatabaseEngine& db, typename std::enable_if<is_one_of<Id, T...> && Coucou>::type* = nullptr)
   {
-    if constexpr(is_one_of<Id, T...>)
-      {
-        InsertQuery query(this->table_name, this->columns);
-        // Ugly workaround for non portable stuff
-        query.body += db.get_returning_id_sql_string(Id::name);
-        query.execute(db, this->columns);
-      }
-    else
-      {
-        InsertQuery query(this->table_name, this->columns);
-        query.execute(db, this->columns);
-      }
+    InsertQuery query(this->table_name, this->columns);
+    // Ugly workaround for non portable stuff
+    query.body += db.get_returning_id_sql_string(Id::name);
+    query.execute(db, this->columns);
+  }
+
+  template <bool Coucou=true>
+  void insert(DatabaseEngine& db, typename std::enable_if<!is_one_of<Id, T...> && Coucou>::type* = nullptr)
+  {
+    InsertQuery query(this->table_name, this->columns);
+    query.execute(db, this->columns);
   }
 
   void update(DatabaseEngine& db)
