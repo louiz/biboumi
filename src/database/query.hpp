@@ -18,7 +18,7 @@ void actual_bind(Statement& statement, const T& value, int index)
 {
   actual_bind(statement, static_cast<std::int64_t>(value), index);
 }
-void actual_bind(Statement& statement, const OptionalBool& value, int index);
+void actual_bind(Statement& statement, const std::optional<bool>& value, int index);
 
 #ifdef DEBUG_SQL_QUERIES
 #include <utils/scopetimer.hpp>
@@ -71,7 +71,6 @@ void actual_add_param(Query& query, const T& val)
 }
 
 void actual_add_param(Query& query, const std::string& val);
-void actual_add_param(Query& query, const OptionalBool& val);
 
 template <typename T>
 typename std::enable_if<!std::is_integral<T>::value, Query&>::type
@@ -80,6 +79,7 @@ operator<<(Query& query, const T&)
   query.body += T::name;
   return query;
 }
+void actual_add_param(Query& query, const std::optional<bool>& val);
 
 Query& operator<<(Query& query, const char* str);
 Query& operator<<(Query& query, const std::string& str);

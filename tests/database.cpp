@@ -56,13 +56,13 @@ TEST_CASE("Database")
 
       CHECK(o.col<Database::EncodingIn>() == "");
       o.col<Database::EncodingIn>() = "ISO-8859-1";
-      CHECK(o.col<Database::RecordHistoryOptional>().is_set == false);
-      o.col<Database::RecordHistoryOptional>().set_value(false);
+      CHECK(!o.col<Database::RecordHistoryOptional>());
+      o.col<Database::RecordHistoryOptional>() = false;
       o.save(Database::db);
       auto b = Database::get_irc_channel_options("zouzou@example.com", "irc.example.com", "#foo");
       CHECK(o.col<Database::EncodingIn>() == "ISO-8859-1");
-      CHECK(o.col<Database::RecordHistoryOptional>().is_set == true);
-      CHECK(o.col<Database::RecordHistoryOptional>().value == false);
+      CHECK(o.col<Database::RecordHistoryOptional>());
+      CHECK(*o.col<Database::RecordHistoryOptional>() == false);
     }
 
   SECTION("Channel options with server default")
