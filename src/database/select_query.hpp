@@ -29,15 +29,16 @@ extract_row_value(Statement& statement, const int i)
 }
 
 template <typename T>
-typename std::enable_if<std::is_same<std::optional<bool>, T>::value, T>::type
+typename std::enable_if<std::is_same<OptionalBool, T>::value, T>::type
 extract_row_value(Statement& statement, const int i)
 {
   const auto integer = statement.get_column_int(i);
+  OptionalBool result;
   if (integer > 0)
-    return true;
+    result.set_value(true);
   else if (integer < 0)
-    return false;
-  return std::nullopt;
+    result.set_value(false);
+  return result;
 }
 
 template <std::size_t N=0, typename... T>

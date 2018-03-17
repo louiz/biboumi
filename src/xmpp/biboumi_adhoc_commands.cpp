@@ -493,7 +493,7 @@ void insert_irc_channel_configuration_form(XmlNode& node, const Jid& requester, 
     {
       // Value selected by default
       XmlSubNode value(record_history, "value");
-      value.set_inner(std::to_string(options.col<Database::RecordHistoryOptional>()));
+      value.set_inner(options.col<Database::RecordHistoryOptional>().to_string());
     }
     // All three possible values
     for (const auto& val: {"unset", "true", "false"})
@@ -594,19 +594,19 @@ bool handle_irc_channel_configuration_form(XmppComponent& xmpp_component, const 
               else if (field->get_tag("var") == "record_history" &&
                        value && !value->get_inner().empty())
                 {
-                  std::optional<bool>& database_value = options.col<Database::RecordHistoryOptional>();
+                  OptionalBool& database_value = options.col<Database::RecordHistoryOptional>();
                   if (value->get_inner() == "true")
-                    database_value = true;
+                    database_value.set_value(true);
                   else if (value->get_inner() == "false")
-                    database_value = false;
+                    database_value.set_value(false);
                   else
-                    database_value.reset();
+                    database_value.unset();
                   auto& biboumi_component = dynamic_cast<BiboumiComponent&>(xmpp_component);
                   Bridge* bridge = biboumi_component.find_user_bridge(requester.bare());
                   if (bridge)
                     {
-                      if (database_value)
-                        bridge->set_record_history(*database_value);
+                      if (database_value.is_set)
+                        bridge->set_record_history(database_value.value);
                       else
                         { // It is unset, we need to fetch the Global option, to
                           // know if it’s enabled or not

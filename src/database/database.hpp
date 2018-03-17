@@ -69,7 +69,7 @@ class Database
   struct RecordHistory: Column<bool> { static constexpr auto name = "recordhistory_";
     RecordHistory(): Column<bool>(true) {}};
 
-  struct RecordHistoryOptional: Column<std::optional<bool>> { static constexpr auto name = "recordhistory_"; };
+  struct RecordHistoryOptional: Column<OptionalBool> { static constexpr auto name = "recordhistory_"; };
 
   struct VerifyCert: Column<bool> { static constexpr auto name = "verifycert_";
     VerifyCert(): Column<bool>(true) {} };

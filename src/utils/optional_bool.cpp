@@ -1,8 +1,8 @@
 #include <utils/optional_bool.hpp>
 
 
-std::ostream& operator<<(std::ostream& os, const std::optional<bool>& o)
+std::ostream& operator<<(std::ostream& os, const OptionalBool& o)
 {
-  os << std::to_string(o);
+  os << o.to_string();
   return os;
 }
