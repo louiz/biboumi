@@ -14,7 +14,7 @@ Biboumi is an XMPP gateway that connects to IRC servers and translates
 between the two protocols. It can be used to access IRC channels using any
 XMPP client as if these channels were XMPP MUCs.
 
-It is written in modern C++17 and makes great efforts to have as little
+It is written in modern C++14 and makes great efforts to have as little
 dependencies and to be as simple as possible.
 
 The goal is to provide a way to access most of IRC features using any XMPP
