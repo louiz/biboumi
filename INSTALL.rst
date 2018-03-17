@@ -16,7 +16,7 @@ Build and runtime dependencies:
 Tools:
 ~~~~~~
 
-- A C++14 compiler (clang >= 3.4 or gcc >= 5.0 for example)
+- A C++17 compiler (clang >= 4.0 or gcc >= 7.0 for example)
 - CMake
 - pandoc (optional) to build the man page
 
