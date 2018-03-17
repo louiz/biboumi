@@ -13,12 +13,12 @@
 
 void actual_bind(Statement& statement, const std::string& value, int index);
 void actual_bind(Statement& statement, const std::int64_t& value, int index);
-template <typename T, typename std::enable_if_t<std::is_integral<T>::value>* = 0>
+void actual_bind(Statement& statement, const std::optional<bool>& value, int index);
+template <typename T>
 void actual_bind(Statement& statement, const T& value, int index)
 {
   actual_bind(statement, static_cast<std::int64_t>(value), index);
 }
-void actual_bind(Statement& statement, const std::optional<bool>& value, int index);
 
 #ifdef DEBUG_SQL_QUERIES
 #include <utils/scopetimer.hpp>
@@ -57,38 +57,27 @@ struct Query
 #endif
 };
 
-template <typename ColumnType>
-void add_param(Query& query, const ColumnType& column)
-{
-  std::cout << "add_param<ColumnType>" << std::endl;
-  actual_add_param(query, column.value);
-}
-
+void actual_add_param(Query& query, const std::string& val);
+void actual_add_param(Query& query, const std::optional<bool>& val);
 template <typename T>
 void actual_add_param(Query& query, const T& val)
 {
   query.params.push_back(std::to_string(val));
 }
 
-void actual_add_param(Query& query, const std::string& val);
-
-template <typename T>
-typename std::enable_if<!std::is_integral<T>::value, Query&>::type
-operator<<(Query& query, const T&)
-{
-  query.body += T::name;
-  return query;
-}
-void actual_add_param(Query& query, const std::optional<bool>& val);
-
 Query& operator<<(Query& query, const char* str);
 Query& operator<<(Query& query, const std::string& str);
-template <typename Integer>
-typename std::enable_if<std::is_integral<Integer>::value, Query&>::type
-operator<<(Query& query, const Integer& i)
+template <typename T>
+Query& operator<<(Query& query, const T& i)
 {
-  query.body += "$" + std::to_string(query.current_param++);
-  actual_add_param(query, i);
+  if constexpr(std::is_integral<T>::value)
+    {
+      query.body += "$" + std::to_string(query.current_param++);
+      actual_add_param(query, i);
+    }
+  else
+    {
+      query.body += T::name;
+    }
   return query;
 }
-
