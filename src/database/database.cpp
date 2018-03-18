@@ -106,6 +106,8 @@ void Database::set_after_connection_commands(const Database::IrcServerOptions& s
   const auto id = server_options.col<Id>();
   if (id == Id::unset_value)
     return ;
+
+  Transaction transaction;
   auto query = Database::after_connection_commands.del();
   query.where() << ForeignKey{} << "=" << id;
   query.execute(*Database::db);
@@ -330,4 +332,23 @@ std::string Database::gen_uuid()
   return uuid_str;
 }
 
+Transaction::Transaction()
+{
+  const auto result = Database::raw_exec("BEGIN");
+  if (std::get<bool>(result) == false)
+    log_error("Failed to create SQL transaction: ", std::get<std::string>(result));
+  else
+    this->success = true;
+
+}
+
+Transaction::~Transaction()
+{
+  if (this->success)
+    {
+      const auto result = Database::raw_exec("END");
+      if (std::get<bool>(result) == false)
+        log_error("Failed to end SQL transaction: ", std::get<std::string>(result));
+    }
+}
 #endif

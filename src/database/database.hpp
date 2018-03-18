@@ -203,11 +203,20 @@ class Database
 
   static auto raw_exec(const std::string& query)
   {
-    Database::db->raw_exec(query);
+    return Database::db->raw_exec(query);
   }
 
  private:
   static std::string gen_uuid();
   static std::map<CacheKey, EncodingIn::real_type> encoding_in_cache;
 };
+
+class Transaction
+{
+public:
+  Transaction();
+  ~Transaction();
+  bool success{false};
+};
+
 #endif /* USE_DATABASE */
