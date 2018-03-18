@@ -2701,7 +2701,7 @@ if __name__ == '__main__':
                                              "/iq/commands:command/dataform:x[@type='form']/dataform:field[@type='boolean'][@var='verify_cert']/dataform:value[text()='true']",
                                              "/iq/commands:command/dataform:x[@type='form']/dataform:field[@type='text-single'][@var='fingerprint']",
                                              "/iq/commands:command/dataform:x[@type='form']/dataform:field[@type='text-private'][@var='pass']",
-                                             "/iq/commands:command/dataform:x[@type='form']/dataform:field[@type='text-single'][@var='after_connect_command']",
+                                             "/iq/commands:command/dataform:x[@type='form']/dataform:field[@type='text-multi'][@var='after_connect_commands']",
                                              "/iq/commands:command/dataform:x[@type='form']/dataform:field[@type='text-single'][@var='username']",
                                              "/iq/commands:command/dataform:x[@type='form']/dataform:field[@type='text-single'][@var='realname']",
                                              "/iq/commands:command/dataform:x[@type='form']/dataform:field[@type='text-single'][@var='encoding_in']",
@@ -2718,7 +2718,7 @@ if __name__ == '__main__':
                                           "<field var='verify_cert'><value>1</value></field>"
                                           "<field var='fingerprint'><value>12:12:12</value></field>"
                                           "<field var='pass'><value>coucou</value></field>"
-                                          "<field var='after_connect_command'><value>INVALID command</value></field>"
+                                          "<field var='after_connect_commands'><value>first command</value><value>second command</value></field>"
                                           "<field var='username'><value>username</value></field>"
                                           "<field var='realname'><value>realname</value></field>"
                                           "<field var='encoding_out'><value>UTF-8</value></field>"
@@ -2736,7 +2736,8 @@ if __name__ == '__main__':
                                              "/iq/commands:command/dataform:x[@type='form']/dataform:field[@type='boolean'][@var='verify_cert']/dataform:value[text()='true']",
                                              "/iq/commands:command/dataform:x[@type='form']/dataform:field[@type='text-single'][@var='fingerprint']/dataform:value[text()='12:12:12']",
                                              "/iq/commands:command/dataform:x[@type='form']/dataform:field[@type='text-private'][@var='pass']/dataform:value[text()='coucou']",
-                                             "/iq/commands:command/dataform:x[@type='form']/dataform:field[@type='text-single'][@var='after_connect_command']/dataform:value[text()='INVALID command']",
+                                             "/iq/commands:command/dataform:x[@type='form']/dataform:field[@type='text-multi'][@var='after_connect_commands']/dataform:value[text()='first command']",
+                                             "/iq/commands:command/dataform:x[@type='form']/dataform:field[@type='text-multi'][@var='after_connect_commands']/dataform:value[text()='second command']",
                                              "/iq/commands:command/dataform:x[@type='form']/dataform:field[@type='text-single'][@var='username']/dataform:value[text()='username']",
                                              "/iq/commands:command/dataform:x[@type='form']/dataform:field[@type='text-single'][@var='realname']/dataform:value[text()='realname']",
                                              "/iq/commands:command/dataform:x[@type='form']/dataform:field[@type='text-single'][@var='encoding_in']/dataform:value[text()='latin-1']",
@@ -2757,7 +2758,7 @@ if __name__ == '__main__':
                                           "<command xmlns='http://jabber.org/protocol/commands' node='configure' sessionid='{sessionid}' action='next'>"
                                           "<x xmlns='jabber:x:data' type='submit'>"
                                           "<field var='pass'><value></value></field>"
-                                          "<field var='after_connect_command'><value></value></field>"
+                                          "<field var='after_connect_commands'></field>"
                                           "<field var='username'><value></value></field>"
                                           "<field var='realname'><value></value></field>"
                                           "<field var='encoding_out'><value></value></field>"
@@ -2770,7 +2771,7 @@ if __name__ == '__main__':
                                              "/iq/commands:command/dataform:x[@type='form']/dataform:title[text()='Configure the IRC server irc.localhost']",
                                              "/iq/commands:command/dataform:x[@type='form']/dataform:instructions[text()='Edit the form, to configure the settings of the IRC server irc.localhost']",
                                              "!/iq/commands:command/dataform:x[@type='form']/dataform:field[@var='pass']/dataform:value",
-                                             "!/iq/commands:command/dataform:x[@type='form']/dataform:field[@var='after_connect_command']/dataform:value",
+                                             "!/iq/commands:command/dataform:x[@type='form']/dataform:field[@var='after_connect_commands']/dataform:value",
                                              "!/iq/commands:command/dataform:x[@type='form']/dataform:field[@var='username']/dataform:value",
                                              "!/iq/commands:command/dataform:x[@type='form']/dataform:field[@var='realname']/dataform:value",
                                              "!/iq/commands:command/dataform:x[@type='form']/dataform:field[@var='encoding_in']/dataform:value",

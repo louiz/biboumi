@@ -645,10 +645,11 @@ On a server JID (e.g on the JID chat.freenode.org@biboumi.example.com)
       In encoding into UTF-8. If the conversion fails at some point, some
       characters will be replaced by the placeholders.
     * Out encoding: Currently ignored.
-    * After-connection IRC command: A raw IRC command that will be sent to
-      the server immediately after the connection has been successful. It
-      can for example be used to identify yourself using NickServ, with a
-      command like this: `PRIVMSG NickServ :identify PASSWORD`.
+    * After-connection IRC commands: Raw IRC commands that will be sent
+      one by one to the server immediately after the connection has been
+      successful. It can for example be used to identify yourself using
+      NickServ, with a command like this: `PRIVMSG NickServ :identify
+      PASSWORD`.
     * Ports: The list of TCP ports to use when connecting to this IRC server.
       This list will be tried in sequence, until the connection succeeds for
       one of them. The connection made on these ports will not use TLS, the

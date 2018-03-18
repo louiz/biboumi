@@ -92,7 +92,7 @@ class Database
   using GlobalOptionsTable = Table<Id, Owner, MaxHistoryLength, RecordHistory, GlobalPersistent>;
   using GlobalOptions = GlobalOptionsTable::RowType;
 
-  using IrcServerOptionsTable = Table<Id, Owner, Server, Pass, AfterConnectionCommand, TlsPorts, Ports, Username, Realname, VerifyCert, TrustedFingerprint, EncodingOut, EncodingIn, MaxHistoryLength, Address>;
+  using IrcServerOptionsTable = Table<Id, Owner, Server, Pass, TlsPorts, Ports, Username, Realname, VerifyCert, TrustedFingerprint, EncodingOut, EncodingIn, MaxHistoryLength, Address>;
   using IrcServerOptions = IrcServerOptionsTable::RowType;
 
   using IrcChannelOptionsTable = Table<Id, Owner, Server, Channel, EncodingOut, EncodingIn, MaxHistoryLength, Persistent, RecordHistoryOptional>;
@@ -100,6 +100,9 @@ class Database
 
   using RosterTable = Table<LocalJid, RemoteJid>;
   using RosterItem = RosterTable::RowType;
+
+  using AfterConnectionCommandsTable = Table<Id, ForeignKey, AfterConnectionCommand>;
+  using AfterConnectionCommands = std::vector<AfterConnectionCommandsTable::RowType>;
 
   Database() = default;
   ~Database() = default;
@@ -121,6 +124,9 @@ class Database
   static IrcChannelOptions get_irc_channel_options_with_server_and_global_default(const std::string& owner,
                                                                                   const std::string& server,
                                                                                   const std::string& channel);
+  static AfterConnectionCommands get_after_connection_commands(const IrcServerOptions& server_options);
+  static void set_after_connection_commands(const IrcServerOptions& server_options, AfterConnectionCommands& commands);
+
   /**
    * Get all the lines between (optional) start and end dates, with a (optional) limit.
    * If after_id is set, only the records after it will be returned.
@@ -158,6 +164,8 @@ class Database
   static IrcServerOptionsTable irc_server_options;
   static IrcChannelOptionsTable irc_channel_options;
   static RosterTable roster;
+  static AfterConnectionCommandsTable after_connection_commands;
+
   static std::unique_ptr<DatabaseEngine> db;
 
   /**

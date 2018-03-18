@@ -117,6 +117,49 @@ TEST_CASE("Database")
         }
     }
 
+  SECTION("Server options")
+    {
+      const std::string owner{"toto@example.com"};
+      const std::string owner2{"toto2@example.com"};
+      const std::string server{"irc.example.com"};
+
+      auto soptions = Database::get_irc_server_options(owner, server);
+      auto soptions2 = Database::get_irc_server_options(owner2, server);
+
+      auto after_connection_commands =  Database::get_after_connection_commands(soptions);
+      CHECK(after_connection_commands.empty());
+
+      soptions.save(Database::db);
+      soptions2.save(Database::db);
+      auto com = Database::after_connection_commands.row();
+      com.col<Database::AfterConnectionCommand>() = "first";
+      after_connection_commands.push_back(com);
+      com.col<Database::AfterConnectionCommand>() = "second";
+      after_connection_commands.push_back(com);
+      Database::set_after_connection_commands(soptions, after_connection_commands);
+
+      after_connection_commands.clear();
+      com.col<Database::AfterConnectionCommand>() = "first";
+      after_connection_commands.push_back(com);
+      com.col<Database::AfterConnectionCommand>() = "second";
+      after_connection_commands.push_back(com);
+      Database::set_after_connection_commands(soptions2, after_connection_commands);
+
+      after_connection_commands =  Database::get_after_connection_commands(soptions);
+      CHECK(after_connection_commands.size() == 2);
+      after_connection_commands =  Database::get_after_connection_commands(soptions2);
+      CHECK(after_connection_commands.size() == 2);
+
+      after_connection_commands.clear();
+      after_connection_commands.push_back(com);
+      Database::set_after_connection_commands(soptions, after_connection_commands);
+
+      after_connection_commands =  Database::get_after_connection_commands(soptions);
+      CHECK(after_connection_commands.size() == 1);
+      after_connection_commands =  Database::get_after_connection_commands(soptions2);
+      CHECK(after_connection_commands.size() == 2);
+    }
+
   Database::close();
 }
 #endif

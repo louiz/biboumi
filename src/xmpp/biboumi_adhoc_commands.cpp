@@ -219,6 +219,7 @@ void ConfigureIrcServerStep1(XmppComponent&, AdhocSession& session, XmlNode& com
     server_domain = target.local;
   auto options = Database::get_irc_server_options(owner.local + "@" + owner.domain,
                                                   server_domain);
+  auto commands = Database::get_after_connection_commands(options);
 
   XmlSubNode x(command_node, "jabber:x:data:x");
   x["type"] = "form";
@@ -307,14 +308,14 @@ void ConfigureIrcServerStep1(XmppComponent&, AdhocSession& session, XmlNode& com
 
   {
     XmlSubNode after_cnt_cmd(x, "field");
-    after_cnt_cmd["var"] = "after_connect_command";
-    after_cnt_cmd["type"] = "text-single";
-    after_cnt_cmd["desc"] = "Custom IRC command sent after the connection is established with the server.";
-    after_cnt_cmd["label"] = "After-connection IRC command";
-    if (!options.col<Database::AfterConnectionCommand>().empty())
+    after_cnt_cmd["var"] = "after_connect_commands";
+    after_cnt_cmd["type"] = "text-multi";
+    after_cnt_cmd["desc"] = "Custom IRC commands sent after the connection is established with the server.";
+    after_cnt_cmd["label"] = "After-connection IRC commands";
+    for (const auto& command: commands)
       {
         XmlSubNode after_cnt_cmd_value(after_cnt_cmd, "value");
-        after_cnt_cmd_value.set_inner(options.col<Database::AfterConnectionCommand>());
+        after_cnt_cmd_value.set_inner(command.col<Database::AfterConnectionCommand>());
       }
   }
 
@@ -384,6 +385,8 @@ void ConfigureIrcServerStep2(XmppComponent&, AdhocSession& session, XmlNode& com
         server_domain = target.local;
       auto options = Database::get_irc_server_options(owner.local + "@" + owner.domain,
                                                       server_domain);
+      auto commands = Database::get_after_connection_commands(options);
+
       for (const XmlNode* field: x->get_children("field", "jabber:x:data"))
         {
           const XmlNode* value = field->get_child("value", "jabber:x:data");
@@ -427,8 +430,16 @@ void ConfigureIrcServerStep2(XmppComponent&, AdhocSession& session, XmlNode& com
           else if (field->get_tag("var") == "pass" && value)
             options.col<Database::Pass>() = value->get_inner();
 
-          else if (field->get_tag("var") == "after_connect_command" && value)
-            options.col<Database::AfterConnectionCommand>() = value->get_inner();
+          else if (field->get_tag("var") == "after_connect_commands")
+            {
+              commands.clear();
+              for (const auto& val: values)
+                {
+                  auto command = Database::after_connection_commands.row();
+                  command.col<Database::AfterConnectionCommand>() = val->get_inner();
+                  commands.push_back(std::move(command));
+                }
+            }
 
           else if (field->get_tag("var") == "username" && value)
             {
@@ -450,6 +461,7 @@ void ConfigureIrcServerStep2(XmppComponent&, AdhocSession& session, XmlNode& com
         }
       Database::invalidate_encoding_in_cache();
       options.save(Database::db);
+      Database::set_after_connection_commands(options, commands);
 
       command_node.delete_all_children();
       XmlSubNode note(command_node, "note");

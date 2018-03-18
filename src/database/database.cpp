@@ -21,6 +21,7 @@ Database::GlobalOptionsTable Database::global_options("globaloptions_");
 Database::IrcServerOptionsTable Database::irc_server_options("ircserveroptions_");
 Database::IrcChannelOptionsTable Database::irc_channel_options("ircchanneloptions_");
 Database::RosterTable Database::roster("roster");
+Database::AfterConnectionCommandsTable Database::after_connection_commands("after_connection_commands_");
 std::map<Database::CacheKey, Database::EncodingIn::real_type> Database::encoding_in_cache{};
 
 Database::GlobalPersistent::GlobalPersistent():
@@ -53,6 +54,8 @@ void Database::open(const std::string& filename)
   Database::irc_channel_options.upgrade(*Database::db);
   Database::roster.create(*Database::db);
   Database::roster.upgrade(*Database::db);
+  Database::after_connection_commands.create(*Database::db);
+  Database::after_connection_commands.upgrade(*Database::db);
   create_index<Database::Owner, Database::IrcChanName, Database::IrcServerName>(*Database::db, "archive_index", Database::muc_log_lines.get_name());
 }
 
@@ -86,6 +89,32 @@ Database::IrcServerOptions Database::get_irc_server_options(const std::string& o
       options.col<Server>() = server;
     }
   return options;
+}
+
+Database::AfterConnectionCommands Database::get_after_connection_commands(const IrcServerOptions& server_options)
+{
+  const auto id = server_options.col<Id>();
+  if (id == Id::unset_value)
+    return {};
+  auto request = Database::after_connection_commands.select();
+  request.where() << ForeignKey{} << "=" << id;
+  return request.execute(*Database::db);
+}
+
+void Database::set_after_connection_commands(const Database::IrcServerOptions& server_options, Database::AfterConnectionCommands& commands)
+{
+  const auto id = server_options.col<Id>();
+  if (id == Id::unset_value)
+    return ;
+  auto query = Database::after_connection_commands.del();
+  query.where() << ForeignKey{} << "=" << id;
+  query.execute(*Database::db);
+
+  for (auto& command: commands)
+    {
+      command.col<ForeignKey>() = server_options.col<Id>();
+      command.save(Database::db);
+    }
 }
 
 Database::IrcChannelOptions Database::get_irc_channel_options(const std::string& owner, const std::string& server, const std::string& channel)

@@ -13,6 +13,10 @@ struct Column
     T value{};
 };
 
+struct ForeignKey: Column<std::size_t> {
+    static constexpr auto name = "fk_";
+};
+
 struct Id: Column<std::size_t> {
     static constexpr std::size_t unset_value = static_cast<std::size_t>(-1);
     static constexpr auto name = "id_";

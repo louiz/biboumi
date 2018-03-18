@@ -3,6 +3,7 @@
 #include <database/engine.hpp>
 
 #include <database/select_query.hpp>
+#include <database/delete_query.hpp>
 #include <database/row.hpp>
 
 #include <algorithm>
@@ -83,6 +84,12 @@ class Table
   {
     SelectQuery<T...> select(this->name);
     return select;
+  }
+
+  auto del()
+  {
+    DeleteQuery query(this->name);
+    return query;
   }
 
   const std::string& get_name() const

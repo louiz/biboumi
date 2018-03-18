@@ -889,8 +889,9 @@ void IrcClient::on_welcome_message(const IrcMessage& message)
 #ifdef USE_DATABASE
   auto options = Database::get_irc_server_options(this->bridge.get_bare_jid(),
                                                   this->get_hostname());
-  if (!options.col<Database::AfterConnectionCommand>().empty())
-    this->send_raw(options.col<Database::AfterConnectionCommand>());
+  const auto commands = Database::get_after_connection_commands(options);
+  for (const auto& command: commands)
+    this->send_raw(command.col<Database::AfterConnectionCommand>());
 #endif
   // Install a repeated events to regularly send a PING
   TimedEventsManager::instance().add_event(TimedEvent(240s, std::bind(&IrcClient::send_ping_command, this),
