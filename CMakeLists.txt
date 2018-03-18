@@ -318,7 +318,7 @@ set_target_properties(catch PROPERTIES EXCLUDE_FROM_ALL TRUE)
 ExternalProject_Get_Property(catch SOURCE_DIR)
 if(NOT EXISTS ${CMAKE_SOURCE_DIR}/tests/catch.hpp)
   target_include_directories(test_suite
-    PUBLIC "${SOURCE_DIR}/include/"
+    PUBLIC "${SOURCE_DIR}/single_include/"
     )
   add_dependencies(test_suite catch)
 endif()
