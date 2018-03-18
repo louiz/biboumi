@@ -1202,6 +1202,57 @@ if __name__ == '__main__':
                      partial(send_stanza, "<message from='{jid_one}/{resource_one}' to='{irc_server_one}' type='chat'><body>NOTICE {nick_one} :[#foo] Hello in a notice.</body></message>"),
                      partial(expect_stanza, "/message[@from='#foo%{irc_server_one}/{nick_one}'][@type='groupchat']/body[text()='[notice] [#foo] Hello in a notice.']"),
                  ]),
+        Scenario("multiline_message",
+                 [
+                     handshake_sequence(),
+                     # First user joins
+                     partial(send_stanza,
+                     "<presence from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}/{nick_one}' />"),
+                     connection_sequence("irc.localhost", '{jid_one}/{resource_one}'),
+                     partial(expect_stanza,
+                     "/message/body[text()='Mode #foo [+nt] by {irc_host_one}']"),
+                     partial(expect_stanza,
+                     ("/presence[@to='{jid_one}/{resource_one}'][@from='#foo%{irc_server_one}/{nick_one}']/muc_user:x/muc_user:item[@affiliation='admin'][@role='moderator']",
+                     "/presence/muc_user:x/muc_user:status[@code='110']")
+                     ),
+                     partial(expect_stanza, "/message[@from='#foo%{irc_server_one}'][@type='groupchat']/subject[not(text())]"),
+
+                     # Send a multi-line channel message
+                     partial(send_stanza, "<message from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}' type='groupchat'><body>un\ndeux\ntrois</body></message>"),
+                     # Receive multiple messages, in order
+                     partial(expect_stanza,
+                         "/message[@from='#foo%{irc_server_one}/{nick_one}'][@to='{jid_one}/{resource_one}'][@type='groupchat']/body[text()='un']"),
+                     partial(expect_stanza,
+                         "/message[@from='#foo%{irc_server_one}/{nick_one}'][@to='{jid_one}/{resource_one}'][@type='groupchat']/body[text()='deux']"),
+                     partial(expect_stanza,
+                         "/message[@from='#foo%{irc_server_one}/{nick_one}'][@to='{jid_one}/{resource_one}'][@type='groupchat']/body[text()='trois']"),
+
+                     # Second user joins
+                     partial(send_stanza,
+                     "<presence from='{jid_two}/{resource_one}' to='#foo%{irc_server_one}/{nick_two}' />"),
+                     connection_sequence("irc.localhost", '{jid_two}/{resource_one}'),
+                     # Our presence, sent to the other user
+                     partial(expect_unordered, [
+                         ("/presence[@to='{jid_one}/{resource_one}'][@from='#foo%{irc_server_one}/{nick_two}']/muc_user:x/muc_user:item[@affiliation='none'][@jid='~bobby@localhost'][@role='participant']",),
+                         ("/presence[@to='{jid_two}/{resource_one}'][@from='#foo%{irc_server_one}/{nick_one}']/muc_user:x/muc_user:item[@affiliation='admin'][@role='moderator']",),
+                         ("/presence[@to='{jid_two}/{resource_one}'][@from='#foo%{irc_server_one}/{nick_two}']/muc_user:x/muc_user:item[@affiliation='none'][@jid='~bobby@localhost'][@role='participant']",
+                          "/presence/muc_user:x/muc_user:status[@code='110']"),
+                         ("/message[@from='#foo%{irc_server_one}'][@type='groupchat']/subject[not(text())]",)
+                     ]),
+
+                     # Send a multi-line channel message
+                     partial(send_stanza, "<message from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}' type='groupchat'><body>un\ndeux\ntrois</body></message>"),
+                     # Receive multiple messages, for each user
+                     partial(expect_unordered, [
+                         ("/message[@from='#foo%{irc_server_one}/{nick_one}'][@to='{jid_one}/{resource_one}'][@type='groupchat']/body[text()='un']",),
+                         ("/message[@from='#foo%{irc_server_one}/{nick_one}'][@to='{jid_one}/{resource_one}'][@type='groupchat']/body[text()='deux']",),
+                         ("/message[@from='#foo%{irc_server_one}/{nick_one}'][@to='{jid_one}/{resource_one}'][@type='groupchat']/body[text()='trois']",),
+
+                         ("/message[@from='#foo%{irc_server_one}/{nick_one}'][@to='{jid_two}/{resource_one}'][@type='groupchat']/body[text()='un']",),
+                         ("/message[@from='#foo%{irc_server_one}/{nick_one}'][@to='{jid_two}/{resource_one}'][@type='groupchat']/body[text()='deux']",),
+                         ("/message[@from='#foo%{irc_server_one}/{nick_one}'][@to='{jid_two}/{resource_one}'][@type='groupchat']/body[text()='trois']",),
+                     ])
+                 ]),
         Scenario("channel_messages",
                  [
                      handshake_sequence(),
