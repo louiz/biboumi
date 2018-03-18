@@ -7,6 +7,7 @@ Version 8.0
 - Add an “Address” field in the servers’ configure form. This lets
   the user customize the address to use when connecting to a server.
   See https://lab.louiz.org/louiz/biboumi/issues/3273 for more details.
+- Messages id are properly reflected to the sender
 
 Version 7.2 - 2018-01-24
 ========================
