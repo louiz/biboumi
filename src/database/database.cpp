@@ -2,9 +2,9 @@
 #ifdef USE_DATABASE
 
 #include <database/database.hpp>
-#include <uuid/uuid.h>
 #include <utils/get_first_non_empty.hpp>
 #include <utils/time.hpp>
+#include <utils/uuid.hpp>
 
 #include <config/config.hpp>
 #include <database/sqlite3_engine.hpp>
@@ -325,11 +325,7 @@ void Database::close()
 
 std::string Database::gen_uuid()
 {
-  char uuid_str[37];
-  uuid_t uuid;
-  uuid_generate(uuid);
-  uuid_unparse(uuid, uuid_str);
-  return uuid_str;
+  return utils::gen_uuid();
 }
 
 Transaction::Transaction()

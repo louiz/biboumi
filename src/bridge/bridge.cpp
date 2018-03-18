@@ -5,6 +5,7 @@
 #include <utils/empty_if_fixed_server.hpp>
 #include <utils/encoding.hpp>
 #include <utils/tolower.hpp>
+#include <utils/uuid.hpp>
 #include <logger/logger.hpp>
 #include <utils/revstr.hpp>
 #include <utils/split.hpp>
@@ -185,7 +186,7 @@ bool Bridge::join_irc_channel(const Iid& iid, const std::string& nickname, const
   return false;
 }
 
-void Bridge::send_channel_message(const Iid& iid, const std::string& body)
+void Bridge::send_channel_message(const Iid& iid, const std::string& body, std::string id)
 {
   if (iid.get_server().empty())
     {
@@ -210,6 +211,7 @@ void Bridge::send_channel_message(const Iid& iid, const std::string& body)
   std::vector<std::string> lines = utils::split(body, '\n', true);
   if (lines.empty())
     return ;
+  bool first = true;
   for (const std::string& line: lines)
     {
       if (line.substr(0, 5) == "/mode")
@@ -231,9 +233,12 @@ void Bridge::send_channel_message(const Iid& iid, const std::string& body)
         uuid = Database::store_muc_message(this->get_bare_jid(), iid.get_local(), iid.get_server(), std::chrono::system_clock::now(),
                                     std::get<0>(xmpp_body), irc->get_own_nick());
 #endif
+      if (!first)
+        id = utils::gen_uuid();
       for (const auto& resource: this->resources_in_chan[iid.to_tuple()])
         this->xmpp.send_muc_message(std::to_string(iid), irc->get_own_nick(), this->make_xmpp_body(line),
-                                    this->user_jid + "/" + resource, uuid);
+                                    this->user_jid + "/" + resource, uuid, id);
+      first = false;
     }
 }
 
@@ -816,7 +821,7 @@ void Bridge::send_message(const Iid& iid, const std::string& nick, const std::st
       for (const auto& resource: this->resources_in_chan[iid.to_tuple()])
         {
           this->xmpp.send_muc_message(std::to_string(iid), nick, this->make_xmpp_body(body, encoding),
-                                      this->user_jid + "/" + resource, {});
+                                      this->user_jid + "/" + resource, {}, utils::gen_uuid());
 
         }
     }

@@ -77,7 +77,7 @@ public:
    */
   bool join_irc_channel(const Iid& iid, const std::string& nickname, const std::string& password, const std::string& resource, HistoryLimit history_limit);
 
-  void send_channel_message(const Iid& iid, const std::string& body);
+  void send_channel_message(const Iid& iid, const std::string& body, std::string id);
   void send_private_message(const Iid& iid, const std::string& body, const std::string& type="PRIVMSG");
   void send_raw_message(const std::string& hostname, const std::string& body);
   void leave_irc_channel(Iid&& iid, const std::string& status_message, const std::string& resource);

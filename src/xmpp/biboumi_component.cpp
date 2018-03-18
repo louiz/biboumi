@@ -279,7 +279,7 @@ void BiboumiComponent::handle_message(const Stanza& stanza)
     {
       if (body && !body->get_inner().empty())
         {
-          bridge->send_channel_message(iid, body->get_inner());
+          bridge->send_channel_message(iid, body->get_inner(), id);
         }
       const XmlNode* subject = stanza.get_child("subject", COMPONENT_NS);
       if (subject)
