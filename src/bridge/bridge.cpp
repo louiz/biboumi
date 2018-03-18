@@ -233,7 +233,7 @@ void Bridge::send_channel_message(const Iid& iid, const std::string& body, std::
         uuid = Database::store_muc_message(this->get_bare_jid(), iid.get_local(), iid.get_server(), std::chrono::system_clock::now(),
                                     std::get<0>(xmpp_body), irc->get_own_nick());
 #endif
-      if (!first)
+      if (!first || id.empty())
         id = utils::gen_uuid();
       for (const auto& resource: this->resources_in_chan[iid.to_tuple()])
         this->xmpp.send_muc_message(std::to_string(iid), irc->get_own_nick(), this->make_xmpp_body(line),

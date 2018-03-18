@@ -1227,6 +1227,13 @@ if __name__ == '__main__':
                      partial(expect_stanza,
                          "/message[@from='#foo%{irc_server_one}/{nick_one}'][@id][@to='{jid_one}/{resource_one}'][@type='groupchat']/body[text()='trois']"),
 
+                     # Send a simple message, with no id
+                     partial(send_stanza, "<message from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}' type='groupchat'><body>hello</body></message>"),
+
+                     # Expect a non-empty id as a result (should be a uuid)
+                     partial(expect_stanza,
+                         "!/message[@id='']/body[text()='hello']"),
+
                      # Second user joins
                      partial(send_stanza,
                      "<presence from='{jid_two}/{resource_one}' to='#foo%{irc_server_one}/{nick_two}' />"),
