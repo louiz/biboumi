@@ -915,7 +915,7 @@ void BiboumiComponent::send_self_disco_info(const std::string& id, const std::st
     identity["category"] = "conference";
     identity["type"] = "irc";
     identity["name"] = "Biboumi XMPP-IRC gateway";
-    for (const char *ns: {DISCO_INFO_NS, MUC_NS, ADHOC_NS, PING_NS, MAM_NS, VERSION_NS})
+    for (const char *ns: {DISCO_INFO_NS, MUC_NS, ADHOC_NS, PING_NS, MAM_NS, VERSION_NS, STABLE_MUC_ID_NS})
       {
         XmlSubNode feature(query, "feature");
         feature["var"] = ns;
@@ -939,7 +939,7 @@ void BiboumiComponent::send_irc_server_disco_info(const std::string& id, const s
     identity["category"] = "conference";
     identity["type"] = "irc";
     identity["name"] = "IRC server " + from.local + " over Biboumi";
-    for (const char *ns: {DISCO_INFO_NS, MUC_NS, ADHOC_NS, PING_NS, MAM_NS, VERSION_NS})
+    for (const char *ns: {DISCO_INFO_NS, MUC_NS, ADHOC_NS, PING_NS, MAM_NS, VERSION_NS, STABLE_MUC_ID_NS})
       {
         XmlSubNode feature(query, "feature");
         feature["var"] = ns;
@@ -982,7 +982,7 @@ void BiboumiComponent::send_irc_channel_disco_info(const std::string& id, const 
     identity["category"] = "conference";
     identity["type"] = "irc";
     identity["name"] = "IRC channel " + iid.get_local() + " from server " + iid.get_server() + " over biboumi";
-    for (const char *ns: {DISCO_INFO_NS, MUC_NS, ADHOC_NS, PING_NS, MAM_NS, VERSION_NS})
+    for (const char *ns: {DISCO_INFO_NS, MUC_NS, ADHOC_NS, PING_NS, MAM_NS, VERSION_NS, STABLE_MUC_ID_NS})
       {
         XmlSubNode feature(query, "feature");
         feature["var"] = ns;

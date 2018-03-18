@@ -37,6 +37,7 @@
 #define RSM_NS           "http://jabber.org/protocol/rsm"
 #define MUC_TRAFFIC_NS   "http://jabber.org/protocol/muc#traffic"
 #define STABLE_ID_NS     "urn:xmpp:sid:0"
+#define STABLE_MUC_ID_NS "http://jabber.org/protocol/muc#stable_id"
 
 /**
  * An XMPP component, communicating with an XMPP server using the protocole
