@@ -8,6 +8,9 @@ Version 8.0
   the user customize the address to use when connecting to a server.
   See https://lab.louiz.org/louiz/biboumi/issues/3273 for more details.
 - Messages id are properly reflected to the sender
+- We now properly deal with a PostgreSQL server restart: whenever the
+  connection is lost with the server, we try to reconnect and re-execute the
+  query once.
 
 Version 7.2 - 2018-01-24
 ========================

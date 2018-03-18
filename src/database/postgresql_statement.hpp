@@ -92,7 +92,7 @@ class PostgresqlStatement: public Statement
  private:
 
 private:
-  bool execute()
+  bool execute(const bool second_attempt=false)
   {
     std::vector<const char*> params;
     params.reserve(this->params.size());
@@ -113,7 +113,17 @@ private:
         const char* original = PQerrorMessage(this->conn);
         if (original && std::strlen(original) > 0)
           log_error("Failed to execute command: ", std::string{original, std::strlen(original) - 1});
-        return false;
+        if (PQstatus(this->conn) != CONNECTION_OK && !second_attempt)
+          {
+            log_info("Trying to reconnect to PostgreSQL server and execute the query again.");
+            PQreset(this->conn);
+            return this->execute(true);
+          }
+        else
+          {
+            log_error("Givin up.");
+            return false;
+          }
       }
     return true;
   }
