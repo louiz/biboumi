@@ -406,10 +406,9 @@ void ConfigureIrcServerStep2(XmppComponent&, AdhocSession& session, XmlNode& com
           const XmlNode* value = field->get_child("value", "jabber:x:data");
           const std::vector<const XmlNode*> values = field->get_children("value", "jabber:x:data");
 
-          if (field->get_tag("var") == "address")
-            {
-              options.col<Database::Address>() = value->get_inner();
-            }
+          if (field->get_tag("var") == "address" && value)
+            options.col<Database::Address>() = value->get_inner();
+
           if (field->get_tag("var") == "ports")
             {
               std::string ports;
@@ -443,6 +442,7 @@ void ConfigureIrcServerStep2(XmppComponent&, AdhocSession& session, XmlNode& com
 
           else if (field->get_tag("var") == "nick" && value)
             options.col<Database::Nick>() = value->get_inner();
+
           else if (field->get_tag("var") == "pass" && value)
             options.col<Database::Pass>() = value->get_inner();
 
