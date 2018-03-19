@@ -668,6 +668,12 @@ On a server JID (e.g on the JID chat.freenode.org@biboumi.example.com)
     * SHA-1 fingerprint of the TLS certificate to trust: if you know the hash
       of the certificate that the server is supposed to use, and you only want
       to accept this one, set its SHA-1 hash in this field.
+    * Nickname: A nickname that will be used instead of the nickname provided
+      in the initial presence sent to join a channel. This can be used if the
+      user always wants to have the same nickname on a given server, and not
+      have to bother with setting that nick in all the bookmarks on that
+      server. The nickname can still manually be changed with a standard nick
+      change presence.
     * Server password: A password that will be sent just after the connection,
       in a PASS command. This is usually used in private servers, where you’re
       only allowed to connect if you have the password. Note that, although

@@ -166,10 +166,15 @@ IrcClient* Bridge::find_irc_client(const std::string& hostname) const
     }
 }
 
-bool Bridge::join_irc_channel(const Iid& iid, const std::string& nickname, const std::string& password,
+bool Bridge::join_irc_channel(const Iid& iid, std::string nickname, const std::string& password,
                               const std::string& resource, HistoryLimit history_limit)
 {
   const auto& hostname = iid.get_server();
+#ifdef USE_DATABASE
+  auto soptions = Database::get_irc_server_options(this->get_bare_jid(), hostname);
+  if (!soptions.col<Database::Nick>().empty())
+    nickname = soptions.col<Database::Nick>();
+#endif
   IrcClient* irc = this->make_irc_client(hostname, nickname);
   irc->history_limit = history_limit;
   this->add_resource_to_server(hostname, resource);

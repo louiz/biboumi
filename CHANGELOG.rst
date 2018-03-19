@@ -11,6 +11,8 @@ Version 8.0
 - We now properly deal with a PostgreSQL server restart: whenever the
   connection is lost with the server, we try to reconnect and re-execute the
   query once.
+- A Nick field has been added in the IRC server configuration form, to let
+  the user force a nickname whenever a channel on the server is joined.
 
 Version 7.2 - 2018-01-24
 ========================

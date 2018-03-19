@@ -293,6 +293,20 @@ void ConfigureIrcServerStep1(XmppComponent&, AdhocSession& session, XmlNode& com
       }
   }
 #endif
+
+  {
+    XmlSubNode field(x, "field");
+    field["var"] = "nick";
+    field["type"] = "text-single";
+    field["label"] = "Nickname";
+    field["desc"] = "If set, will override the nickname provided in the initial presence sent to join the first server channel";
+    if (!options.col<Database::Nick>().empty())
+      {
+        XmlSubNode value(field, "value");
+        value.set_inner(options.col<Database::Nick>());
+      }
+  }
+
   {
     XmlSubNode pass(x, "field");
     pass["var"] = "pass";
@@ -427,6 +441,8 @@ void ConfigureIrcServerStep2(XmppComponent&, AdhocSession& session, XmlNode& com
 
 #endif // BOTAN_FOUND
 
+          else if (field->get_tag("var") == "nick" && value)
+            options.col<Database::Nick>() = value->get_inner();
           else if (field->get_tag("var") == "pass" && value)
             options.col<Database::Pass>() = value->get_inner();
 

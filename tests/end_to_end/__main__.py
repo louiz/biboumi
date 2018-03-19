@@ -2760,6 +2760,7 @@ if __name__ == '__main__':
                                              "/iq/commands:command/dataform:x[@type='form']/dataform:field[@type='text-single'][@var='fingerprint']",
                                              "/iq/commands:command/dataform:x[@type='form']/dataform:field[@type='text-private'][@var='pass']",
                                              "/iq/commands:command/dataform:x[@type='form']/dataform:field[@type='text-multi'][@var='after_connect_commands']",
+                                             "/iq/commands:command/dataform:x[@type='form']/dataform:field[@type='text-single'][@var='nick']",
                                              "/iq/commands:command/dataform:x[@type='form']/dataform:field[@type='text-single'][@var='username']",
                                              "/iq/commands:command/dataform:x[@type='form']/dataform:field[@type='text-single'][@var='realname']",
                                              "/iq/commands:command/dataform:x[@type='form']/dataform:field[@type='text-single'][@var='encoding_in']",
@@ -2777,6 +2778,7 @@ if __name__ == '__main__':
                                           "<field var='fingerprint'><value>12:12:12</value></field>"
                                           "<field var='pass'><value>coucou</value></field>"
                                           "<field var='after_connect_commands'><value>first command</value><value>second command</value></field>"
+                                          "<field var='nick'><value>my_nickname</value></field>"
                                           "<field var='username'><value>username</value></field>"
                                           "<field var='realname'><value>realname</value></field>"
                                           "<field var='encoding_out'><value>UTF-8</value></field>"
@@ -2794,6 +2796,7 @@ if __name__ == '__main__':
                                              "/iq/commands:command/dataform:x[@type='form']/dataform:field[@type='boolean'][@var='verify_cert']/dataform:value[text()='true']",
                                              "/iq/commands:command/dataform:x[@type='form']/dataform:field[@type='text-single'][@var='fingerprint']/dataform:value[text()='12:12:12']",
                                              "/iq/commands:command/dataform:x[@type='form']/dataform:field[@type='text-private'][@var='pass']/dataform:value[text()='coucou']",
+                                             "/iq/commands:command/dataform:x[@type='form']/dataform:field[@type='text-single'][@var='nick']/dataform:value[text()='my_nickname']",
                                              "/iq/commands:command/dataform:x[@type='form']/dataform:field[@type='text-multi'][@var='after_connect_commands']/dataform:value[text()='first command']",
                                              "/iq/commands:command/dataform:x[@type='form']/dataform:field[@type='text-multi'][@var='after_connect_commands']/dataform:value[text()='second command']",
                                              "/iq/commands:command/dataform:x[@type='form']/dataform:field[@type='text-single'][@var='username']/dataform:value[text()='username']",
@@ -2941,6 +2944,7 @@ if __name__ == '__main__':
                                            "<field var='ports' />"
                                            "<field var='tls_ports'><value>7778</value></field>"
                                            "<field var='verify_cert'><value>0</value></field>"
+                                           "<field var='nick'><value>my_special_nickname</value></field>"
                                            "</x></command></iq>"),
                       partial(expect_stanza, "/iq[@type='result']/commands:command[@node='configure'][@status='completed']/commands:note[@type='info'][text()='Configuration successfully applied.']"),
 
@@ -2950,7 +2954,7 @@ if __name__ == '__main__':
                       partial(expect_stanza,
                               "/message/body[text()='Mode #foo [+nt] by {irc_host_one}']"),
                       partial(expect_stanza,
-                              ("/presence[@to='{jid_one}/{resource_one}'][@from='#foo%{irc_server_one}/{nick_one}']/muc_user:x/muc_user:item[@affiliation='admin'][@role='moderator']",
+                              ("/presence[@to='{jid_one}/{resource_one}'][@from='#foo%{irc_server_one}/my_special_nickname']/muc_user:x/muc_user:item[@affiliation='admin'][@role='moderator']",
                                "/presence/muc_user:x/muc_user:status[@code='110']")
                               ),
                       partial(expect_stanza, "/message[@from='#foo%{irc_server_one}'][@type='groupchat']/subject[not(text())]"),
