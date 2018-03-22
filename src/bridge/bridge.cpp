@@ -429,7 +429,7 @@ void Bridge::leave_irc_channel(Iid&& iid, const std::string& status_message, con
         }
       else if (channel->joined)
         {
-          this->send_muc_leave(iid, *channel->get_self(), "", true, true, resource);
+          this->send_muc_leave(iid, *channel->get_self(), "", true, true, resource, irc);
         }
       if (persistent)
         this->remove_resource_from_chan(key, resource);
@@ -442,7 +442,7 @@ void Bridge::leave_irc_channel(Iid&& iid, const std::string& status_message, con
       if (channel && channel->joined)
         this->send_muc_leave(iid, *channel->get_self(),
                              "Biboumi note: " + std::to_string(resources - 1) + " resources are still in this channel.",
-                             true, true, resource);
+                             true, true, resource, irc);
       this->remove_resource_from_chan(key, resource);
     }
       if (this->number_of_channels_the_resource_is_in(iid.get_server(), resource) == 0)
@@ -860,14 +860,9 @@ void Bridge::send_presence_error(const Iid& iid, const std::string& nick,
 void Bridge::send_muc_leave(const Iid& iid, const IrcUser& user,
                             const std::string& message, const bool self,
                             const bool user_requested,
-                            const std::string& resource)
+                            const std::string& resource,
+                            const IrcClient* client)
 {
-  const IrcClient* client = this->find_irc_client(iid.get_server());
-  if (!client)
-    {
-      log_error("Tried to send an unavailable presence for non existant client: ", std::to_string(iid));
-      return;
-    }
   std::string affiliation;
   std::string role;
   std::tie(role, affiliation) = get_role_affiliation_from_irc_mode(user.get_most_significant_mode(client->get_sorted_user_modes()));

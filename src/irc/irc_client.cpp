@@ -965,7 +965,7 @@ void IrcClient::on_part(const IrcMessage& message)
       iid.set_local(chan_name);
       iid.set_server(this->hostname);
       iid.type = Iid::Type::Channel;
-      this->bridge.send_muc_leave(iid, *user_ptr, txt, self, true);
+      this->bridge.send_muc_leave(iid, *user_ptr, txt, self, true, {}, this);
     }
 }
 
@@ -982,7 +982,7 @@ void IrcClient::on_error(const IrcMessage& message)
     IrcChannel* channel = pair.second.get();
     if (!channel->joined)
       continue;
-    this->bridge.send_muc_leave(iid, *channel->get_self(), leave_message, true, false);
+    this->bridge.send_muc_leave(iid, *channel->get_self(), leave_message, true, false, {}, this);
   }
   this->channels.clear();
   this->send_gateway_message("ERROR: " + leave_message);
@@ -1007,7 +1007,7 @@ void IrcClient::on_quit(const IrcMessage& message)
       iid.set_local(chan_name);
       iid.set_server(this->hostname);
       iid.type = Iid::Type::Channel;
-      this->bridge.send_muc_leave(iid, *user, txt, self, false);
+      this->bridge.send_muc_leave(iid, *user, txt, self, false, {}, this);
       channel->remove_user(user);
     }
 }

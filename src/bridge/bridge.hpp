@@ -173,7 +173,8 @@ public:
   void send_muc_leave(const Iid& iid, const IrcUser& nick,
                       const std::string& message, const bool self,
                       const bool user_requested,
-                      const std::string& resource="");
+                      const std::string& resource,
+                      const IrcClient* client);
   /**
    * Send presences to indicate that an user old_nick (ourself if self ==
    * true) changed his nick to new_nick.  The user_mode is needed because
