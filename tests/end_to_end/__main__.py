@@ -706,6 +706,47 @@ if __name__ == '__main__':
                          ("/message[@from='#foo%{irc_server_one}'][@type='groupchat']/subject[not(text())]",),
                          ]),
                  ]),
+        Scenario("channel_force_join",
+                 [
+                     handshake_sequence(),
+                     # First user joins
+                     partial(send_stanza,
+                             "<presence from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}/{nick_one}'><x xmlns='http://jabber.org/protocol/muc'/></presence>"),
+                     connection_sequence("irc.localhost", '{jid_one}/{resource_one}'),
+                     partial(expect_stanza,
+                             "/message/body[text()='Mode #foo [+nt] by {irc_host_one}']"),
+                     partial(expect_stanza,
+                             ("/presence[@to='{jid_one}/{resource_one}'][@from='#foo%{irc_server_one}/{nick_one}']/muc_user:x/muc_user:item[@affiliation='admin'][@jid='~nick@localhost'][@role='moderator']",
+                             "/presence/muc_user:x/muc_user:status[@code='110']")
+                             ),
+                     partial(expect_stanza, "/message[@from='#foo%{irc_server_one}'][@type='groupchat']/subject[not(text())]"),
+
+                     # Second user joins
+                     partial(send_stanza,
+                             "<presence from='{jid_two}/{resource_one}' to='#foo%{irc_server_one}/{nick_two}'><x xmlns='http://jabber.org/protocol/muc'/></presence>"),
+                     connection_sequence("irc.localhost", '{jid_two}/{resource_one}'),
+                     partial(expect_unordered, [
+                         ("/presence[@to='{jid_one}/{resource_one}'][@from='#foo%{irc_server_one}/{nick_two}']/muc_user:x/muc_user:item[@affiliation='none'][@role='participant'][@jid='~bobby@localhost']",),
+                         ("/presence[@to='{jid_two}/{resource_one}'][@from='#foo%{irc_server_one}/{nick_one}']/muc_user:x/muc_user:item[@affiliation='admin'][@role='moderator']",),
+                         ("/presence[@to='{jid_two}/{resource_one}'][@from='#foo%{irc_server_one}/{nick_two}']/muc_user:x/muc_user:item[@affiliation='none'][@jid='~bobby@localhost'][@role='participant']",
+                         "/presence/muc_user:x/muc_user:status[@code='110']",),
+                         ("/message[@from='#foo%{irc_server_one}'][@type='groupchat']/subject[not(text())]",),
+                         ]),
+
+                     # Here we simulate a desynchronization of a client: The client thinks it’s
+                     # disconnected from the room, but biboumi still thinks it’s in the room. The
+                     # client thus sends a join presence, and biboumi should send everything
+                     # (user list, history, etc) in response
+                     partial(send_stanza,
+                             "<presence from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}/{nick_one}'><x xmlns='http://jabber.org/protocol/muc'/></presence>"),
+
+                     partial(expect_unordered, [
+                         ("/presence[@to='{jid_one}/{resource_one}'][@from='#foo%{irc_server_one}/{nick_two}']/muc_user:x/muc_user:item[@affiliation='none'][@role='participant'][@jid='~bobby@localhost']",),
+                         ("/presence[@to='{jid_one}/{resource_one}'][@from='#foo%{irc_server_one}/{nick_one}']/muc_user:x/muc_user:item[@affiliation='admin'][@role='moderator']",
+                          "/presence/muc_user:x/muc_user:status[@code='110']",),
+                         ("/message[@from='#foo%{irc_server_one}'][@type='groupchat']/subject[not(text())]",),
+                         ]),
+                 ]),
         Scenario("channel_join_with_password",
                  [
                      handshake_sequence(),

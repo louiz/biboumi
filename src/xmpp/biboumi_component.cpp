@@ -181,7 +181,7 @@ void BiboumiComponent::handle_presence(const Stanza& stanza)
                 history_limit.stanzas = 0;
             }
           bridge->join_irc_channel(iid, to.resource, password ? password->get_inner(): "",
-                                   from.resource, history_limit);
+                                   from.resource, history_limit, x != nullptr);
         }
       else if (type == "unavailable")
         {
