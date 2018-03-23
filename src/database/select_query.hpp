@@ -115,6 +115,8 @@ struct SelectQuery: public Query
 #endif
 
       auto statement = db.prepare(this->body);
+      if (!statement)
+        return rows;
       statement->bind(std::move(this->params));
 
       while (statement->step() == StepResult::Row)
