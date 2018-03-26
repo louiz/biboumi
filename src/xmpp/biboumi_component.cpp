@@ -981,7 +981,7 @@ void BiboumiComponent::send_irc_channel_disco_info(const std::string& id, const 
     XmlSubNode identity(query, "identity");
     identity["category"] = "conference";
     identity["type"] = "irc";
-    identity["name"] = "IRC channel " + iid.get_local() + " from server " + iid.get_server() + " over biboumi";
+    identity["name"] = ""s + iid.get_local() + " on " + iid.get_server();
     for (const char *ns: {DISCO_INFO_NS, MUC_NS, ADHOC_NS, PING_NS, MAM_NS, VERSION_NS, STABLE_MUC_ID_NS})
       {
         XmlSubNode feature(query, "feature");
