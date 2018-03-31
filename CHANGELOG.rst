@@ -15,6 +15,7 @@ Version 8.0
   query once.
 - A Nick field has been added in the IRC server configuration form, to let
   the user force a nickname whenever a channel on the server is joined.
+- Multiple admins can now be listed in the admin field, separated with a colon.
 
 Version 7.2 - 2018-01-24
 ========================
