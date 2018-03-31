@@ -657,7 +657,7 @@ bool handle_irc_channel_configuration_form(XmppComponent& xmpp_component, const 
 void DisconnectUserFromServerStep1(XmppComponent& xmpp_component, AdhocSession& session, XmlNode& command_node)
 {
   const Jid owner(session.get_owner_jid());
-  if (owner.bare() != Config::get("admin", ""))
+  if (!Config::is_in_list("admin", owner.bare()))
     { // A non-admin is not allowed to disconnect other users, only
       // him/herself, so we just skip this step
       auto next_step = session.get_next_step();

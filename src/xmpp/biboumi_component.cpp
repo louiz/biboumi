@@ -551,24 +551,21 @@ void BiboumiComponent::handle_iq(const Stanza& stanza)
               if (to.local.empty())
                 {               // Get biboumi's adhoc commands
                   this->send_adhoc_commands_list(id, from, this->served_hostname,
-                                                 (Config::get("admin", "") ==
-                                                  from_jid.bare()),
+                                                 Config::is_in_list("admin", from_jid.bare()),
                                                  this->adhoc_commands_handler);
                   stanza_error.disable();
                 }
               else if (iid.type == Iid::Type::Server)
                 {               // Get the server's adhoc commands
                   this->send_adhoc_commands_list(id, from, to_str,
-                                                 (Config::get("admin", "") ==
-                                                  from_jid.bare()),
+                                                 Config::is_in_list("admin", from_jid.bare()),
                                                  this->irc_server_adhoc_commands_handler);
                   stanza_error.disable();
                 }
               else if (iid.type == Iid::Type::Channel && to.resource.empty())
                 {               // Get the channel's adhoc commands
                   this->send_adhoc_commands_list(id, from, to_str,
-                                                 (Config::get("admin", "") ==
-                                                  from_jid.bare()),
+                                                 Config::is_in_list("admin", from_jid.bare()),
                                                  this->irc_channel_adhoc_commands_handler);
                   stanza_error.disable();
                 }
