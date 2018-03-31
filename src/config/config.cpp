@@ -40,6 +40,27 @@ int Config::get_int(const std::string& option, const int& def)
     return def;
 }
 
+bool Config::is_in_list(const std::string& option, const std::string& value)
+{
+  std::string res = Config::get(option, "");
+  if (res.empty())
+    return false;
+  std::string::size_type n = 0;
+  std::string::size_type length = value.size();
+  while (true)
+    {
+      n = res.find(value, n);
+      if (n == std::string::npos)
+        break;
+      if (n != 0 && res[n - 1] != ':')
+        continue;
+      if (res[n + length + 1] != '\0' && res[n + length + 1] != ':')
+        continue;
+      return true;
+    }
+  return false;
+}
+
 void Config::set(const std::string& option, const std::string& value, bool save)
 {
   Config::values[option] = value;
