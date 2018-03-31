@@ -41,7 +41,7 @@ XmlNode AdhocCommandsHandler::handle_request(const std::string& executor_jid, co
       XmlSubNode condition(error, STANZA_NS":item-not-found");
     }
   else if (command_it->second.is_admin_only() &&
-           Config::get("admin", "") != jid.bare())
+           !Config::is_in_list("admin", jid.bare()))
     {
       XmlSubNode error(command_node, ADHOC_NS":error");
       error["type"] = "cancel";
