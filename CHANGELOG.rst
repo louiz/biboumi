@@ -1,7 +1,8 @@
-Version 8.0
+Version 7.3
 ===========
 
 - Add a complete='true' in MAM’s iq result when appropriate
+- Properly set the <stanza-id/> in all MUC messages
 
 Version 7.2 - 2018-01-24
 ========================
