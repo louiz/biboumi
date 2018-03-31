@@ -98,6 +98,8 @@ The bare JID of the gateway administrator. This JID will have more
 privileges than other standard users, for example some administration
 ad-hoc commands will only be available to that JID.
 
+If you need more than one administrator, separate them with a colon (:).
+
 fixed_irc_server
 ----------------
 
