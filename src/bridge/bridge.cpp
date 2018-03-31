@@ -839,19 +839,19 @@ void Bridge::send_irc_version_request(const std::string& irc_hostname, const std
 void Bridge::send_message(const Iid& iid, const std::string& nick, const std::string& body, const bool muc)
 {
   const auto encoding = in_encoding_for(*this, iid);
+  std::string uuid{};
   if (muc)
     {
 #ifdef USE_DATABASE
       const auto xmpp_body = this->make_xmpp_body(body, encoding);
       if (!nick.empty() && this->record_history)
-        Database::store_muc_message(this->get_bare_jid(), iid.get_local(), iid.get_server(), std::chrono::system_clock::now(),
-                                    std::get<0>(xmpp_body), nick);
+        uuid = Database::store_muc_message(this->get_bare_jid(), iid.get_local(), iid.get_server(), std::chrono::system_clock::now(),
+                                           std::get<0>(xmpp_body), nick);
 #endif
       for (const auto& resource: this->resources_in_chan[iid.to_tuple()])
         {
           this->xmpp.send_muc_message(std::to_string(iid), nick, this->make_xmpp_body(body, encoding),
-                                      this->user_jid + "/" + resource, {});
-
+                                      this->user_jid + "/" + resource, uuid);
         }
     }
   else
