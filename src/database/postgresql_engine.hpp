@@ -45,12 +45,15 @@ private:
 
 #else
 
+using namespace std::string_literals;
+
 class PostgresqlEngine
 {
 public:
   static std::unique_ptr<DatabaseEngine> open(const std::string& string)
   {
     throw std::runtime_error("Cannot open postgresql database "s + string + ": biboumi is not compiled with libpq.");
+    return {};
   }
 };
 
