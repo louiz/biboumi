@@ -25,6 +25,18 @@ typename std::enable_if<N == sizeof...(T), void>::type
 update_autoincrement_id(std::tuple<T...>&, Statement&)
 {}
 
+template <typename T>
+std::string before_value()
+{
+  return {};
+}
+
+template <typename T>
+std::string after_value()
+{
+  return {};
+}
+
 struct InsertQuery: public Query
 {
   template <typename... T>
@@ -73,7 +85,7 @@ struct InsertQuery: public Query
   template <typename... T>
   void insert_values(const std::tuple<T...>& columns)
   {
-    this->body += "VALUES (";
+    this->body += " VALUES (";
     this->insert_value(columns);
     this->body += ")";
   }
@@ -86,7 +98,9 @@ struct InsertQuery: public Query
 
     if (!std::is_same<ColumnType, Id>::value)
       {
+        this->body += before_value<ColumnType>();
         this->body += "$" + std::to_string(index++);
+        this->body += after_value<ColumnType>();
         if (N != sizeof...(T) - 1)
           this->body += ", ";
       }

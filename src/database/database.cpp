@@ -46,6 +46,7 @@ void Database::open(const std::string& filename)
   Database::db = std::move(new_db);
   Database::muc_log_lines.create(*Database::db);
   Database::muc_log_lines.upgrade(*Database::db);
+  convert_date_format(*Database::db, Database::muc_log_lines);
   Database::global_options.create(*Database::db);
   Database::global_options.upgrade(*Database::db);
   Database::irc_server_options.create(*Database::db);
@@ -57,8 +58,8 @@ void Database::open(const std::string& filename)
   Database::after_connection_commands.create(*Database::db);
   Database::after_connection_commands.upgrade(*Database::db);
   create_index<Database::Owner, Database::IrcChanName, Database::IrcServerName>(*Database::db, "archive_index", Database::muc_log_lines.get_name());
+  Database::db->init_session();
 }
-
 
 Database::GlobalOptions Database::get_global_options(const std::string& owner)
 {
@@ -175,7 +176,7 @@ Database::IrcChannelOptions Database::get_irc_channel_options_with_server_and_gl
 }
 
 std::string Database::store_muc_message(const std::string& owner, const std::string& chan_name,
-                                        const std::string& server_name, Database::time_point date,
+                                        const std::string& server_name, DateTime::time_point date,
                                         const std::string& body, const std::string& nick)
 {
   auto line = Database::muc_log_lines.row();
@@ -186,7 +187,7 @@ std::string Database::store_muc_message(const std::string& owner, const std::str
   line.col<Owner>() = owner;
   line.col<IrcChanName>() = chan_name;
   line.col<IrcServerName>() = server_name;
-  line.col<Date>() = std::chrono::duration_cast<std::chrono::seconds>(date.time_since_epoch()).count();
+  line.col<Date>() = date;
   line.col<Body>() = body;
   line.col<Nick>() = nick;
 
@@ -210,13 +211,21 @@ std::vector<Database::MucLogLine> Database::get_muc_logs(const std::string& owne
     {
       const auto start_time = utils::parse_datetime(start);
       if (start_time != -1)
-        request << " and " << Database::Date{} << ">=" << start_time;
+        {
+          DateTime datetime(start_time);
+          DatetimeWriter writer(datetime, *Database::db);
+          request << " and " << Database::Date{} << ">=" << writer;
+        }
     }
   if (!end.empty())
     {
       const auto end_time = utils::parse_datetime(end);
       if (end_time != -1)
-        request << " and " << Database::Date{} << "<=" << end_time;
+        {
+          DateTime datetime(end_time);
+          DatetimeWriter writer(datetime, *Database::db);
+          request << " and " << Database::Date{} << "<=" << writer;
+        }
     }
   if (reference_record_id != Id::unset_value)
     {
@@ -229,9 +238,9 @@ std::vector<Database::MucLogLine> Database::get_muc_logs(const std::string& owne
     }
 
   if (paging == Database::Paging::first)
-    request.order_by() << Database::Date{} << " ASC, " << Id{} << " ASC ";
+    request.order_by() << Database::Date{} << " ASC";
   else
-    request.order_by() << Database::Date{} << " DESC, " << Id{} << " DESC ";
+    request.order_by() << Database::Date{} << " DESC";
 
   if (limit >= 0)
     request.limit() << limit;
@@ -257,13 +266,21 @@ Database::MucLogLine Database::get_muc_log(const std::string& owner, const std::
     {
       const auto start_time = utils::parse_datetime(start);
       if (start_time != -1)
-        request << " and " << Database::Date{} << ">=" << start_time;
+        {
+          DateTime datetime(start_time);
+          DatetimeWriter writer(datetime, *Database::db);
+          request << " and " << Database::Date{} << ">=" << writer;
+        }
     }
   if (!end.empty())
     {
       const auto end_time = utils::parse_datetime(end);
       if (end_time != -1)
-        request << " and " << Database::Date{} << "<=" << end_time;
+        {
+          DateTime datetime(end_time);
+          DatetimeWriter writer(datetime, *Database::db);
+          request << " and " << Database::Date{} << "<=" << writer;
+        }
     }
 
   auto result = request.execute(*Database::db);
@@ -346,5 +363,13 @@ Transaction::~Transaction()
       if (std::get<bool>(result) == false)
         log_error("Failed to end SQL transaction: ", std::get<std::string>(result));
     }
+}
+
+void Transaction::rollback()
+{
+  this->success = false;
+  const auto result = Database::raw_exec("ROLLBACK");
+  if (std::get<bool>(result) == false)
+    log_error("Failed to rollback SQL transaction: ", std::get<std::string>(result));
 }
 #endif

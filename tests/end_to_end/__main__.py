@@ -1953,7 +1953,7 @@ if __name__ == '__main__':
                     <query xmlns='urn:xmpp:mam:2' queryid='qid3'>
                     <x xmlns='jabber:x:data' type='submit'>
                     <field var='FORM_TYPE' type='hidden'> <value>urn:xmpp:mam:2</value></field>
-                    <field var='start'><value>3016-06-07T00:00:00Z</value></field>
+                    <field var='start'><value>2222-06-07T00:00:00Z</value></field>
                     </x>
                     </query></iq>"""),
 

@@ -21,6 +21,13 @@ void actual_bind(Statement& statement, const OptionalBool& value, int index)
     statement.bind_int64(index, -1);
 }
 
+void actual_bind(Statement& statement, const DateTime& value, int index)
+{
+  const auto epoch = value.epoch().count();
+  const auto result = std::to_string(static_cast<long double>(epoch) / std::chrono::system_clock::period::den);
+  statement.bind_text(index, result);
+}
+
 void actual_add_param(Query& query, const std::string& val)
 {
   query.params.push_back(val);
@@ -49,3 +56,12 @@ Query& operator<<(Query& query, const std::string& str)
   actual_add_param(query, str);
   return query;
 }
+
+Query& operator<<(Query& query, const DatetimeWriter& datetime_writer)
+{
+  query.body += datetime_writer.escape_param_number(query.current_param++);
+  actual_add_param(query, datetime_writer.get_value());
+  return query;
+}
+
+

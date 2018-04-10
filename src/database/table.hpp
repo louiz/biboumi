@@ -19,6 +19,8 @@ std::string ToSQLType(DatabaseEngine& db)
     return db.id_column_type();
   else if (std::is_same<typename T::real_type, std::string>::value)
     return "TEXT";
+  else if (std::is_same<typename T::real_type, DateTime>::value)
+    return db.datetime_column_type();
   else
     return "INTEGER";
 }
@@ -101,16 +103,16 @@ class Table
 
   template <std::size_t N=0>
   typename std::enable_if<N < sizeof...(T), void>::type
-  add_column_if_not_exists(DatabaseEngine& db, const std::set<std::string>& existing_columns)
+  add_column_if_not_exists(DatabaseEngine& db, const std::map<std::string, std::string>& existing_columns)
   {
     using ColumnType = typename std::remove_reference<decltype(std::get<N>(std::declval<ColumnTypes>()))>::type;
-    if (existing_columns.count(ColumnType::name) == 0)
+    if (existing_columns.find(ColumnType::name) == existing_columns.end())
       add_column_to_table<ColumnType>(db, this->name);
     add_column_if_not_exists<N+1>(db, existing_columns);
   }
   template <std::size_t N=0>
   typename std::enable_if<N == sizeof...(T), void>::type
-  add_column_if_not_exists(DatabaseEngine&, const std::set<std::string>&)
+  add_column_if_not_exists(DatabaseEngine&, const std::map<std::string, std::string>&)
   {}
 
   template <std::size_t N=0>
