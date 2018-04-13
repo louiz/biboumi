@@ -760,10 +760,10 @@ bool BiboumiComponent::handle_mam_request(const Stanza& stanza)
             lines.erase(lines.begin(), std::prev(lines.end(), 100));
           }
         for (const Database::MucLogLine& line: lines)
-        {
-          if (!line.col<Database::Nick>().empty())
-            this->send_archived_message(line, to.full(), from.full(), query_id);
-        }
+          {
+            if (!line.col<Database::Nick>().empty())
+              this->send_archived_message(line, to.full(), from.full(), query_id);
+          }
         {
           auto fin_ptr = std::make_unique<XmlNode>("fin");
           {

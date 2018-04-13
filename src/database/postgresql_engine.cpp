@@ -128,7 +128,7 @@ void PostgresqlEngine::init_session()
 {
   const auto res = this->raw_exec("SET SESSION TIME ZONE 'UTC'");
   if (!std::get<bool>(res))
-    log_debug("Failed to set UTC timezone: ", std::get<std::string>(res));
+    log_error("Failed to set UTC timezone: ", std::get<std::string>(res));
 }
 long double PostgresqlEngine::epoch_to_floating_value(long double seconds) const
 {
