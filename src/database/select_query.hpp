@@ -2,6 +2,8 @@
 
 #include <database/engine.hpp>
 
+#include <database/table.hpp>
+#include <database/database.hpp>
 #include <database/statement.hpp>
 #include <utils/datetime.hpp>
 #include <database/query.hpp>
@@ -78,6 +80,12 @@ std::string after_column()
   return {};
 }
 
+template <>
+std::string before_column<Database::Date>();
+
+template <>
+std::string after_column<Database::Date>();
+
 template <typename... T>
 struct SelectQuery: public Query
 {
@@ -153,3 +161,9 @@ struct SelectQuery: public Query
     const std::string table_name;
 };
 
+template <typename... T>
+auto select(const Table<T...> table)
+{
+  SelectQuery<T...> query(table.name);
+  return query;
+}

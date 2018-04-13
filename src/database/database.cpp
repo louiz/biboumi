@@ -1,6 +1,8 @@
 #include "biboumi.h"
 #ifdef USE_DATABASE
 
+#include <database/select_query.hpp>
+#include <database/save.hpp>
 #include <database/database.hpp>
 #include <utils/get_first_non_empty.hpp>
 #include <utils/time.hpp>
@@ -63,32 +65,28 @@ void Database::open(const std::string& filename)
 
 Database::GlobalOptions Database::get_global_options(const std::string& owner)
 {
-  auto request = Database::global_options.select();
+  auto request = select(Database::global_options);
   request.where() << Owner{} << "=" << owner;
 
-  Database::GlobalOptions options{Database::global_options.get_name()};
   auto result = request.execute(*Database::db);
   if (result.size() == 1)
-    options = result.front();
-  else
-    options.col<Owner>() = owner;
+    return result.front();
+  Database::GlobalOptions options{Database::global_options.get_name()};
+  options.col<Owner>() = owner;
   return options;
 }
 
 Database::IrcServerOptions Database::get_irc_server_options(const std::string& owner, const std::string& server)
 {
-  auto request = Database::irc_server_options.select();
+  auto request = select(Database::irc_server_options);
   request.where() << Owner{} << "=" << owner << " and " << Server{} << "=" << server;
 
-  Database::IrcServerOptions options{Database::irc_server_options.get_name()};
   auto result = request.execute(*Database::db);
   if (result.size() == 1)
-    options = result.front();
-  else
-    {
-      options.col<Owner>() = owner;
-      options.col<Server>() = server;
-    }
+    return result.front();
+  Database::IrcServerOptions options{Database::irc_server_options.get_name()};
+  options.col<Owner>() = owner;
+  options.col<Server>() = server;
   return options;
 }
 
@@ -97,7 +95,7 @@ Database::AfterConnectionCommands Database::get_after_connection_commands(const 
   const auto id = server_options.col<Id>();
   if (id == Id::unset_value)
     return {};
-  auto request = Database::after_connection_commands.select();
+  auto request = select(Database::after_connection_commands);
   request.where() << ForeignKey{} << "=" << id;
   return request.execute(*Database::db);
 }
@@ -116,26 +114,23 @@ void Database::set_after_connection_commands(const Database::IrcServerOptions& s
   for (auto& command: commands)
     {
       command.col<ForeignKey>() = server_options.col<Id>();
-      command.save(Database::db);
+      save(command, *Database::db);
     }
 }
 
 Database::IrcChannelOptions Database::get_irc_channel_options(const std::string& owner, const std::string& server, const std::string& channel)
 {
-  auto request = Database::irc_channel_options.select();
+  auto request = select(Database::irc_channel_options);
   request.where() << Owner{} << "=" << owner <<\
           " and " << Server{} << "=" << server <<\
           " and " << Channel{} << "=" << channel;
-  Database::IrcChannelOptions options{Database::irc_channel_options.get_name()};
   auto result = request.execute(*Database::db);
   if (result.size() == 1)
-    options = result.front();
-  else
-    {
-      options.col<Owner>() = owner;
-      options.col<Server>() = server;
-      options.col<Channel>() = channel;
-    }
+    return result.front();
+  Database::IrcChannelOptions options{Database::irc_channel_options.get_name()};
+  options.col<Owner>() = owner;
+  options.col<Server>() = server;
+  options.col<Channel>() = channel;
   return options;
 }
 
@@ -191,7 +186,7 @@ std::string Database::store_muc_message(const std::string& owner, const std::str
   line.col<Body>() = body;
   line.col<Nick>() = nick;
 
-  line.save(Database::db);
+  save(line, *Database::db);
 
   return uuid;
 }
@@ -202,7 +197,7 @@ std::vector<Database::MucLogLine> Database::get_muc_logs(const std::string& owne
   if (limit == 0)
     return {};
 
-  auto request = Database::muc_log_lines.select();
+  auto request = select(Database::muc_log_lines);
   request.where() << Database::Owner{} << "=" << owner << \
           " and " << Database::IrcChanName{} << "=" << chan_name << \
           " and " << Database::IrcServerName{} << "=" << server;
@@ -256,7 +251,7 @@ std::vector<Database::MucLogLine> Database::get_muc_logs(const std::string& owne
 Database::MucLogLine Database::get_muc_log(const std::string& owner, const std::string& chan_name, const std::string& server,
                                            const std::string& uuid, const std::string& start, const std::string& end)
 {
-  auto request = Database::muc_log_lines.select();
+  auto request = select(Database::muc_log_lines);
   request.where() << Database::Owner{} << "=" << owner << \
           " and " << Database::IrcChanName{} << "=" << chan_name << \
           " and " << Database::IrcServerName{} << "=" << server << \
@@ -297,7 +292,7 @@ void Database::add_roster_item(const std::string& local, const std::string& remo
   roster_item.col<Database::LocalJid>() = local;
   roster_item.col<Database::RemoteJid>() = remote;
 
-  roster_item.save(Database::db);
+  save(roster_item, *Database::db);
 }
 
 void Database::delete_roster_item(const std::string& local, const std::string& remote)
@@ -311,7 +306,7 @@ void Database::delete_roster_item(const std::string& local, const std::string& r
 
 bool Database::has_roster_item(const std::string& local, const std::string& remote)
 {
-  auto query = Database::roster.select();
+  auto query = select(Database::roster);
   query.where() << Database::LocalJid{} << "=" << local << \
         " and " << Database::RemoteJid{} << "=" << remote;
 
@@ -322,7 +317,7 @@ bool Database::has_roster_item(const std::string& local, const std::string& remo
 
 std::vector<Database::RosterItem> Database::get_contact_list(const std::string& local)
 {
-  auto query = Database::roster.select();
+  auto query = select(Database::roster);
   query.where() << Database::LocalJid{} << "=" << local;
 
   return query.execute(*Database::db);
@@ -330,7 +325,7 @@ std::vector<Database::RosterItem> Database::get_contact_list(const std::string& 
 
 std::vector<Database::RosterItem> Database::get_full_roster()
 {
-  auto query = Database::roster.select();
+  auto query = select(Database::roster);
 
   return query.execute(*Database::db);
 }

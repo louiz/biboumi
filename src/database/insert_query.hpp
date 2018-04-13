@@ -1,9 +1,14 @@
 #pragma once
 
 #include <database/statement.hpp>
+#include <database/database.hpp>
 #include <database/column.hpp>
 #include <database/query.hpp>
+#include <database/row.hpp>
+
 #include <logger/logger.hpp>
+
+#include <utils/is_one_of.hpp>
 
 #include <type_traits>
 #include <vector>
@@ -36,6 +41,12 @@ std::string after_value()
 {
   return {};
 }
+
+template <>
+std::string before_value<Database::Date>();
+
+template <>
+std::string after_value<Database::Date>();
 
 struct InsertQuery: public Query
 {
@@ -141,3 +152,13 @@ struct InsertQuery: public Query
   insert_col_name(const std::tuple<T...>&)
   {}
 };
+
+template <typename... T>
+void insert(Row<T...>& row, DatabaseEngine& db)
+{
+  InsertQuery query(row.table_name, row.columns);
+  // Ugly workaround for non portable stuff
+  if (is_one_of<Id, T...>)
+    query.body += db.get_returning_id_sql_string(Id::name);
+  query.execute(db, row.columns);
+}

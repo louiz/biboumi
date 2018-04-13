@@ -14,6 +14,7 @@
 
 #ifdef USE_DATABASE
 #include <database/database.hpp>
+#include <database/save.hpp>
 #endif
 
 #ifndef HAS_PUT_TIME
@@ -196,7 +197,7 @@ void ConfigureGlobalStep2(XmppComponent& xmpp_component, AdhocSession& session, 
             options.col<Database::GlobalPersistent>() = to_bool(value->get_inner());
         }
 
-      options.save(Database::db);
+      save(options, *Database::db);
 
       command_node.delete_all_children();
       XmlSubNode note(command_node, "note");
@@ -476,7 +477,7 @@ void ConfigureIrcServerStep2(XmppComponent&, AdhocSession& session, XmlNode& com
 
         }
       Database::invalidate_encoding_in_cache();
-      options.save(Database::db);
+      save(options, *Database::db);
       Database::set_after_connection_commands(options, commands);
 
       command_node.delete_all_children();
@@ -646,7 +647,7 @@ bool handle_irc_channel_configuration_form(XmppComponent& xmpp_component, const 
 
             }
           Database::invalidate_encoding_in_cache(requester.bare(), iid.get_server(), iid.get_local());
-          options.save(Database::db);
+          save(options, *Database::db);
         }
       return true;
     }

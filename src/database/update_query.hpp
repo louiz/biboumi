@@ -1,7 +1,8 @@
 #pragma once
 
-#include <database/query.hpp>
 #include <database/engine.hpp>
+#include <database/query.hpp>
+#include <database/row.hpp>
 
 using namespace std::string_literals;
 
@@ -102,3 +103,11 @@ struct UpdateQuery: public Query
     actual_bind(statement, value.value, sizeof...(T));
   }
 };
+
+template <typename... T>
+void update(Row<T...>& row, DatabaseEngine& db)
+{
+  UpdateQuery query(row.table_name, row.columns);
+
+  query.execute(db, row.columns);
+}

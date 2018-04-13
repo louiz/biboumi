@@ -2,7 +2,6 @@
 
 #include <database/engine.hpp>
 
-#include <database/select_query.hpp>
 #include <database/delete_query.hpp>
 #include <database/row.hpp>
 
@@ -82,12 +81,6 @@ class Table
     return {this->name};
   }
 
-  auto select()
-  {
-    SelectQuery<T...> select(this->name);
-    return select;
-  }
-
   auto del()
   {
     DeleteQuery query(this->name);
@@ -98,6 +91,8 @@ class Table
   {
     return this->name;
   }
+
+  const std::string name;
 
  private:
 
@@ -133,5 +128,4 @@ class Table
   add_column_create(DatabaseEngine&, std::string&)
   { }
 
-  const std::string name;
 };

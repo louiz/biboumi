@@ -3,6 +3,7 @@
 #ifdef SQLITE3_FOUND
 
 #include <database/database.hpp>
+#include <database/select_query.hpp>
 #include <database/sqlite3_engine.hpp>
 
 #include <database/sqlite3_statement.hpp>
