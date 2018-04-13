@@ -50,19 +50,7 @@ public:
     return this->t.time_since_epoch();
   }
 
-  long double julianday() const
-  {
-    log_debug("ici?");
-    auto res = ((static_cast<long double>(this->epoch().count()) / std::chrono::system_clock::period::den) / 86400) + 2440587.5;
-    return res;
-  }
-
 private:
   std::string s;
   time_point t;
 };
-
-inline long double to_julianday(std::time_t t)
-{
-  return static_cast<long double>(t) / 86400.0 + 2440587.5;
-}
