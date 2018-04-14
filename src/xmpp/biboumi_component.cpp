@@ -719,7 +719,7 @@ bool BiboumiComponent::handle_mam_request(const Stanza& stanza)
           }
         const XmlNode* set = query->get_child("set", RSM_NS);
         int limit = -1;
-        Id::real_type reference_record_id{Id::unset_value};
+        std::string reference_uuid{};
         Database::Paging paging_order{Database::Paging::first};
         if (set)
           {
@@ -729,9 +729,10 @@ bool BiboumiComponent::handle_mam_request(const Stanza& stanza)
             const XmlNode* after = set->get_child("after", RSM_NS);
             if (after)
               {
-                auto after_record = Database::get_muc_log(from.bare(), iid.get_local(), iid.get_server(),
+                // Will throw if the uuid does not exist, that’s all.
+                Database::get_muc_log(from.bare(), iid.get_local(), iid.get_server(),
                                                           after->get_inner(), start, end);
-                reference_record_id = after_record.col<Id>();
+                reference_uuid = after->get_inner();
               }
             const XmlNode* before = set->get_child("before", RSM_NS);
             if (before)
@@ -739,8 +740,9 @@ bool BiboumiComponent::handle_mam_request(const Stanza& stanza)
                 paging_order = Database::Paging::last;
                 if (!before->get_inner().empty())
                   {
-                    auto before_record = Database::get_muc_log(from.bare(), iid.get_local(), iid.get_server(), before->get_inner(), start, end);
-                    reference_record_id = before_record.col<Id>();
+                    // Will throw if the uuid does not exist
+                    Database::get_muc_log(from.bare(), iid.get_local(), iid.get_server(), before->get_inner(), start, end);
+                    reference_uuid = before->get_inner();
                   }
               }
           }
@@ -752,7 +754,7 @@ bool BiboumiComponent::handle_mam_request(const Stanza& stanza)
         if ((limit == -1 && start.empty() && end.empty())
             || limit > 100)
           limit = 101;
-        auto lines = Database::get_muc_logs(from.bare(), iid.get_local(), iid.get_server(), limit, start, end, reference_record_id, paging_order);
+        auto lines = Database::get_muc_logs(from.bare(), iid.get_local(), iid.get_server(), limit, start, end, reference_uuid, paging_order);
         bool complete = true;
         if (lines.size() > 100)
           {
