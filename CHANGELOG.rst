@@ -1,8 +1,6 @@
 Version 8.0
 ===========
 
-- Changed the data type used to store the dates in the database. This
-  requires an automatic migration on the first start.
 - Add a complete='true' in MAM’s iq result when appropriate
 - The “virtual” channel with an empty name (for example
   %irc.freenode.net@biboumi) has been entirely removed.

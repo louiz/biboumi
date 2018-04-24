@@ -805,7 +805,7 @@ void BiboumiComponent::send_archived_message(const Database::MucLogLine& log_lin
 
     XmlSubNode delay(forwarded, "delay");
     delay["xmlns"] = DELAY_NS;
-    delay["stamp"] = log_line.col<Database::Date>().to_string();
+    delay["stamp"] = utils::to_string(log_line.col<Database::Date>());
 
     XmlSubNode submessage(forwarded, "message");
     submessage["xmlns"] = CLIENT_NS;

@@ -3,7 +3,6 @@
 #include <biboumi.h>
 
 #include <utils/optional_bool.hpp>
-#include <utils/datetime.hpp>
 #include <database/statement.hpp>
 #include <database/column.hpp>
 
@@ -11,7 +10,6 @@
 
 #include <vector>
 #include <string>
-#include <database/datetime_writer.hpp>
 
 void actual_bind(Statement& statement, const std::string& value, int index);
 void actual_bind(Statement& statement, const std::int64_t& value, int index);
@@ -21,7 +19,6 @@ void actual_bind(Statement& statement, const T& value, int index)
   actual_bind(statement, static_cast<std::int64_t>(value), index);
 }
 void actual_bind(Statement& statement, const OptionalBool& value, int index);
-void actual_bind(Statement& statement, const DateTime& value, int index);
 
 #ifdef DEBUG_SQL_QUERIES
 #include <utils/scopetimer.hpp>
@@ -77,13 +74,15 @@ void actual_add_param(Query& query, const std::string& val);
 void actual_add_param(Query& query, const OptionalBool& val);
 
 template <typename T>
-typename std::enable_if<!std::is_arithmetic<T>::value, Query&>::type
+typename std::enable_if<!std::is_integral<T>::value, Query&>::type
 operator<<(Query& query, const T&)
 {
   query.body += T::name;
   return query;
 }
 
+Query& operator<<(Query& query, const char* str);
+Query& operator<<(Query& query, const std::string& str);
 template <typename Integer>
 typename std::enable_if<std::is_integral<Integer>::value, Query&>::type
 operator<<(Query& query, const Integer& i)
@@ -93,6 +92,3 @@ operator<<(Query& query, const Integer& i)
   return query;
 }
 
-Query& operator<<(Query& query, const char* str);
-Query& operator<<(Query& query, const std::string& str);
-Query& operator<<(Query& query, const DatetimeWriter& datetime);

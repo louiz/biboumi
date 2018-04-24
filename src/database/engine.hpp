@@ -13,7 +13,6 @@
 #include <string>
 #include <vector>
 #include <tuple>
-#include <map>
 #include <set>
 
 class DatabaseEngine
@@ -28,10 +27,7 @@ class DatabaseEngine
   DatabaseEngine(DatabaseEngine&&) = delete;
   DatabaseEngine& operator=(DatabaseEngine&&) = delete;
 
-  enum class EngineType { None, Postgresql, Sqlite3, };
-  virtual EngineType engine_type() const = 0;
-
-  virtual std::map<std::string, std::string> get_all_columns_from_table(const std::string& table_name) = 0;
+  virtual std::set<std::string> get_all_columns_from_table(const std::string& table_name) = 0;
   virtual std::tuple<bool, std::string> raw_exec(const std::string& query) = 0;
   virtual std::unique_ptr<Statement> prepare(const std::string& query) = 0;
   virtual void extract_last_insert_rowid(Statement& statement) = 0;
@@ -39,17 +35,7 @@ class DatabaseEngine
   {
     return {};
   }
-  virtual void convert_date_format(DatabaseEngine&) = 0;
-  virtual std::string id_column_type() const = 0;
-  virtual std::string datetime_column_type() const = 0;
-  virtual long double epoch_to_floating_value(long double seconds) const = 0;
-  virtual std::string escape_param_number(int nb) const
-  {
-    return "$" + std::to_string(nb);
-  }
-  virtual void init_session()
-  {
-  }
+  virtual std::string id_column_type() = 0;
 
   int64_t last_inserted_rowid{-1};
 };

@@ -5,8 +5,8 @@
 #include <database/table.hpp>
 #include <database/database.hpp>
 #include <database/statement.hpp>
-#include <utils/datetime.hpp>
 #include <database/query.hpp>
+#include <logger/logger.hpp>
 #include <database/row.hpp>
 
 #include <utils/optional_bool.hpp>
@@ -43,14 +43,6 @@ extract_row_value(Statement& statement, const int i)
   return result;
 }
 
-template <typename T>
-typename std::enable_if<std::is_same<DateTime, T>::value, T>::type
-extract_row_value(Statement& statement, const int i)
-{
-  const std::string timestamp = statement.get_column_text(i);
-  return {timestamp};
-}
-
 template <std::size_t N=0, typename... T>
 typename std::enable_if<N < sizeof...(T), void>::type
 extract_row_values(Row<T...>& row, Statement& statement)
@@ -67,24 +59,6 @@ template <std::size_t N=0, typename... T>
 typename std::enable_if<N == sizeof...(T), void>::type
 extract_row_values(Row<T...>&, Statement&)
 {}
-
-template <typename ColumnType>
-std::string before_column()
-{
-  return {};
-}
-
-template <typename ColumnType>
-std::string after_column()
-{
-  return {};
-}
-
-template <>
-std::string before_column<Database::Date>();
-
-template <>
-std::string after_column<Database::Date>();
 
 template <typename... T>
 struct SelectQuery: public Query
@@ -104,8 +78,7 @@ struct SelectQuery: public Query
       using ColumnsType = std::tuple<T...>;
       using ColumnType = typename std::remove_reference<decltype(std::get<N>(std::declval<ColumnsType>()))>::type;
 
-      this->body += " ";
-      this->body += before_column<ColumnType>() + ColumnType::name + after_column<ColumnType>();
+      this->body += " " + std::string{ColumnType::name};
 
       if (N < (sizeof...(T) - 1))
         this->body += ", ";

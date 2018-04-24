@@ -10,7 +10,6 @@
 #include <database/engine.hpp>
 
 #include <utils/optional_bool.hpp>
-#include <utils/datetime.hpp>
 
 #include <chrono>
 #include <string>
@@ -18,9 +17,11 @@
 #include <memory>
 #include <map>
 
+
 class Database
 {
  public:
+  using time_point = std::chrono::system_clock::time_point;
   struct RecordNotFound: public std::exception {};
   enum class Paging { first, last };
 
@@ -36,8 +37,7 @@ class Database
 
   struct Server: Column<std::string> { static constexpr auto name = "server_"; };
 
-  struct OldDate: Column<std::chrono::system_clock::time_point::rep> { static constexpr auto name = "date_"; };
-  struct Date: Column<DateTime> { static constexpr auto name = "date_"; };
+  struct Date: Column<time_point::rep> { static constexpr auto name = "date_"; };
 
   struct Body: Column<std::string> { static constexpr auto name = "body_"; };
 
@@ -88,8 +88,6 @@ class Database
 
   using MucLogLineTable = Table<Id, Uuid, Owner, IrcChanName, IrcServerName, Date, Body, Nick>;
   using MucLogLine = MucLogLineTable::RowType;
-  using OldMucLogLineTable = Table<Id, Uuid, Owner, IrcChanName, IrcServerName, OldDate, Body, Nick>;
-  using OldMucLogLine = OldMucLogLineTable::RowType;
 
   using GlobalOptionsTable = Table<Id, Owner, MaxHistoryLength, RecordHistory, GlobalPersistent>;
   using GlobalOptions = GlobalOptionsTable::RowType;
@@ -143,7 +141,7 @@ class Database
    */
   static MucLogLine get_muc_log(const std::string& owner, const std::string& chan_name, const std::string& server, const std::string& uuid, const std::string& start="", const std::string& end="");
   static std::string store_muc_message(const std::string& owner, const std::string& chan_name, const std::string& server_name,
-                                       DateTime::time_point date, const std::string& body, const std::string& nick);
+                                       time_point date, const std::string& body, const std::string& nick);
 
   static void add_roster_item(const std::string& local, const std::string& remote);
   static bool has_roster_item(const std::string& local, const std::string& remote);
@@ -169,13 +167,6 @@ class Database
   static AfterConnectionCommandsTable after_connection_commands;
 
   static std::unique_ptr<DatabaseEngine> db;
-
-  static DatabaseEngine::EngineType engine_type()
-  {
-    if (Database::db)
-      return Database::db->engine_type();
-    return DatabaseEngine::EngineType::None;
-  }
 
   /**
    * Some caches, to avoid doing very frequent query requests for a few options.
@@ -225,20 +216,7 @@ class Transaction
 public:
   Transaction();
   ~Transaction();
-  void rollback();
   bool success{false};
 };
-
-template <typename... T>
-void convert_date_format(DatabaseEngine& db, Table<T...> table)
-{
-  const auto existing_columns = db.get_all_columns_from_table(table.get_name());
-  const auto date_pair = existing_columns.find(Database::Date::name);
-  if (date_pair != existing_columns.end() && date_pair->second == "integer")
-    {
-      log_info("Converting Date_ format to the new one.");
-      db.convert_date_format(db);
-    }
-}
 
 #endif /* USE_DATABASE */

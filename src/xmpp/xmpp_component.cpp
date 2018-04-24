@@ -399,7 +399,7 @@ void XmppComponent::send_muc_message(const std::string& muc_name, const std::str
 }
 
 #ifdef USE_DATABASE
-void XmppComponent::send_history_message(const std::string& muc_name, const std::string& nick, const std::string& body_txt, const std::string& jid_to, const DateTime& timestamp)
+void XmppComponent::send_history_message(const std::string& muc_name, const std::string& nick, const std::string& body_txt, const std::string& jid_to, Database::time_point::rep timestamp)
 {
   Stanza message("message");
   message["to"] = jid_to;
@@ -417,7 +417,7 @@ void XmppComponent::send_history_message(const std::string& muc_name, const std:
     XmlSubNode delay(message, "delay");
     delay["xmlns"] = DELAY_NS;
     delay["from"] = muc_name + "@" + this->served_hostname;
-    delay["stamp"] = timestamp.to_string();
+    delay["stamp"] = utils::to_string(timestamp);
   }
 
   this->send_stanza(message);

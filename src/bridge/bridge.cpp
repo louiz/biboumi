@@ -1009,9 +1009,9 @@ void Bridge::send_room_history(const std::string& hostname, std::string chan_nam
   chan_name.append(utils::empty_if_fixed_server("%" + hostname));
   for (const auto& line: lines)
     {
-      const DateTime& datetime = line.col<Database::Date>();
+      const auto seconds = line.col<Database::Date>();
       this->xmpp.send_history_message(chan_name, line.col<Database::Nick>(), line.col<Database::Body>(),
-                                      this->user_jid + "/" + resource, datetime);
+                                      this->user_jid + "/" + resource, seconds);
     }
 #else
   (void)hostname;
