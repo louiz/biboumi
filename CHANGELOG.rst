@@ -2,6 +2,11 @@ Version 8.0
 ===========
 
 - Add a complete='true' in MAM’s iq result when appropriate
+- The archive ordering now only relies on the value of the ID, not the
+  date. This means that if you manually import archives in your database (or
+  mess with it somehow), biboumi will not work properly anymore, if you
+  don’t make sure the ID of everything in the muclogline table is
+  consistent.
 - The “virtual” channel with an empty name (for example
   %irc.freenode.net@biboumi) has been entirely removed.
 - Add an “Address” field in the servers’ configure form. This lets
