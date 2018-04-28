@@ -1,3 +1,9 @@
+Version 7.3
+===========
+
+- Fix an uncaught exception with botan, when policy does not allow any
+  available ciphersuite.
+
 Version 7.2 - 2018-01-24
 ========================
 
