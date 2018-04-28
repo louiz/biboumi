@@ -27,15 +27,15 @@ class Database
 
   struct Uuid: Column<std::string> { static constexpr auto name = "uuid_"; };
 
-  struct Owner: Column<std::string> { static constexpr auto name = "owner_"; };
+  struct Owner: UnclearableColumn<std::string> { static constexpr auto name = "owner_"; };
 
-  struct IrcChanName: Column<std::string> { static constexpr auto name = "ircchanname_"; };
+  struct IrcChanName: UnclearableColumn<std::string> { static constexpr auto name = "ircchanname_"; };
 
-  struct Channel: Column<std::string> { static constexpr auto name = "channel_"; };
+  struct Channel: UnclearableColumn<std::string> { static constexpr auto name = "channel_"; };
 
-  struct IrcServerName: Column<std::string> { static constexpr auto name = "ircservername_"; };
+  struct IrcServerName: UnclearableColumn<std::string> { static constexpr auto name = "ircservername_"; };
 
-  struct Server: Column<std::string> { static constexpr auto name = "server_"; };
+  struct Server: UnclearableColumn<std::string> { static constexpr auto name = "server_"; };
 
   struct Date: Column<time_point::rep> { static constexpr auto name = "date_"; };
 

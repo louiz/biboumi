@@ -177,6 +177,7 @@ void ConfigureGlobalStep2(XmppComponent& xmpp_component, AdhocSession& session, 
     {
       const Jid owner(session.get_owner_jid());
       auto options = Database::get_global_options(owner.bare());
+      options.clear();
       for (const XmlNode* field: x->get_children("field", "jabber:x:data"))
         {
           const XmlNode* value = field->get_child("value", "jabber:x:data");
@@ -400,7 +401,8 @@ void ConfigureIrcServerStep2(XmppComponent&, AdhocSession& session, XmlNode& com
         server_domain = target.local;
       auto options = Database::get_irc_server_options(owner.local + "@" + owner.domain,
                                                       server_domain);
-      auto commands = Database::get_after_connection_commands(options);
+      options.clear();
+      Database::AfterConnectionCommands commands{};
 
       for (const XmlNode* field: x->get_children("field", "jabber:x:data"))
         {
@@ -608,6 +610,7 @@ bool handle_irc_channel_configuration_form(XmppComponent& xmpp_component, const 
           const Iid iid(target.local, {});
           auto options = Database::get_irc_channel_options(requester.bare(),
                                                            iid.get_server(), iid.get_local());
+          options.clear();
           for (const XmlNode *field: x->get_children("field", "jabber:x:data"))
             {
               const XmlNode *value = field->get_child("value", "jabber:x:data");

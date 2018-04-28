@@ -2885,6 +2885,7 @@ if __name__ == '__main__':
                      partial(expect_stanza, ("/iq[@type='result']/commands:command[@node='configure'][@sessionid][@status='executing']",
                                              "/iq/commands:command/dataform:x[@type='form']/dataform:title[text()='Configure the IRC server irc.localhost']",
                                              "/iq/commands:command/dataform:x[@type='form']/dataform:instructions[text()='Edit the form, to configure the settings of the IRC server irc.localhost']",
+                                             "!/iq/commands:command/dataform:x/dataform:field[@var='tls_ports']/dataform:value",
                                              "!/iq/commands:command/dataform:x[@type='form']/dataform:field[@var='pass']/dataform:value",
                                              "!/iq/commands:command/dataform:x[@type='form']/dataform:field[@var='after_connect_commands']/dataform:value",
                                              "!/iq/commands:command/dataform:x[@type='form']/dataform:field[@var='username']/dataform:value",

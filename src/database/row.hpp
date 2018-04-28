@@ -1,7 +1,5 @@
 #pragma once
 
-#include <utils/is_one_of.hpp>
-
 #include <type_traits>
 
 template <typename... T>
@@ -25,7 +23,24 @@ struct Row
     return col.value;
   }
 
-public:
+  void clear()
+  {
+    this->clear_col<0>();
+  }
+
   std::tuple<T...> columns;
   std::string table_name;
+
+private:
+  template <std::size_t N>
+  typename std::enable_if<N < sizeof...(T), void>::type
+  clear_col()
+  {
+    std::get<N>(this->columns).clear();
+    this->clear_col<N+1>();
+  }
+  template <std::size_t N>
+  typename std::enable_if<N == sizeof...(T), void>::type
+  clear_col()
+  { }
 };

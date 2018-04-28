@@ -19,6 +19,9 @@ Version 8.0
 - A Nick field has been added in the IRC server configuration form, to let
   the user force a nickname whenever a channel on the server is joined.
 - Multiple admins can now be listed in the admin field, separated with a colon.
+- Missing fields in a data-form response are now properly interpreted as
+  an empty value, and not the default value. Gajim users were not able to
+  empty a field of type text-multi because of this issue.
 
 Version 7.3
 ===========

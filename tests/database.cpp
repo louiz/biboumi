@@ -64,6 +64,10 @@ TEST_CASE("Database")
       CHECK(o.col<Database::EncodingIn>() == "ISO-8859-1");
       CHECK(o.col<Database::RecordHistoryOptional>().is_set == true);
       CHECK(o.col<Database::RecordHistoryOptional>().value == false);
+
+      o.clear();
+      CHECK(o.col<Database::EncodingIn>() == "");
+      CHECK(o.col<Database::Owner>() == "zouzou@example.com");
     }
 
   SECTION("Channel options with server default")
