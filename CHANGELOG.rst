@@ -22,10 +22,6 @@ Version 8.0
 - Missing fields in a data-form response are now properly interpreted as
   an empty value, and not the default value. Gajim users were not able to
   empty a field of type text-multi because of this issue.
-
-Version 7.3
-===========
-
 - Fix an uncaught exception with botan, when policy does not allow any
   available ciphersuite.
 
