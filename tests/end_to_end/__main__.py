@@ -2296,6 +2296,13 @@ if __name__ == '__main__':
                             ("/iq[@type='result'][@id='id4'][@from='#foo%{irc_server_one}'][@to='{jid_one}/{resource_one}']",
                              "/iq/mam:fin/rsm:set/rsm:last[text()='{last_uuid}']",
                              "!/iq/mam:fin[@complete='true']",)),
+
+                     # Test if everything is fine even with weird max value: 0
+                     partial(send_stanza, "<iq to='#foo%{irc_server_one}' from='{jid_one}/{resource_one}' type='set' id='id5'><query xmlns='urn:xmpp:mam:2' queryid='qid5' ><set xmlns='http://jabber.org/protocol/rsm'><before></before><max>0</max></set></query></iq>"),
+
+                     partial(expect_stanza,
+                            ("/iq[@type='result'][@id='id5'][@from='#foo%{irc_server_one}'][@to='{jid_one}/{resource_one}']",
+                             "!/iq/mam:fin[@complete='true']",)),
                   ]),
         Scenario("channel_history_on_fixed_server",
                  [
