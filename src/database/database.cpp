@@ -190,12 +190,9 @@ std::string Database::store_muc_message(const std::string& owner, const std::str
   return uuid;
 }
 
-std::vector<Database::MucLogLine> Database::get_muc_logs(const std::string& owner, const std::string& chan_name, const std::string& server,
-                                                   int limit, const std::string& start, const std::string& end, const Id::real_type reference_record_id, Database::Paging paging)
+std::tuple<bool, std::vector<Database::MucLogLine>> Database::get_muc_logs(const std::string& owner, const std::string& chan_name, const std::string& server,
+                                                   std::size_t limit, const std::string& start, const std::string& end, const Id::real_type reference_record_id, Database::Paging paging)
 {
-  if (limit == 0)
-    return {};
-
   auto request = select(Database::muc_log_lines);
   request.where() << Database::Owner{} << "=" << owner << \
           " and " << Database::IrcChanName{} << "=" << chan_name << \
@@ -228,15 +225,26 @@ std::vector<Database::MucLogLine> Database::get_muc_logs(const std::string& owne
   else
     request.order_by() << Id{} << " DESC ";
 
-  if (limit >= 0)
-    request.limit() << limit;
+  // Just a simple trick: to know whether we got the totality of the
+  // possible results matching this query (except for the limit), we just
+  // ask one more element. If we get that additional element, this means
+  // we don’t have everything. And then we just discard it. If we don’t
+  // have more, this means we have everything.
+  request.limit() << limit + 1;
 
   auto result = request.execute(*Database::db);
+  bool complete = true;
+
+  if (result.size() == limit + 1)
+    {
+      complete = false;
+      result.erase(std::prev(result.end()));
+    }
 
   if (paging == Database::Paging::first)
-    return result;
+    return {complete, result};
   else
-    return {result.crbegin(), result.crend()};
+    return {complete, {result.crbegin(), result.crend()}};
 }
 
 Database::MucLogLine Database::get_muc_log(const std::string& owner, const std::string& chan_name, const std::string& server,

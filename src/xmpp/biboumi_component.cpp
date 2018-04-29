@@ -743,19 +743,15 @@ bool BiboumiComponent::handle_mam_request(const Stanza& stanza)
           }
         // Do not send more than 100 messages, even if the client asked for more,
         // or if it didn’t specify any limit.
-        // 101 is just a trick to know if there are more available messages.
-        // If our query returns 101 message, we know it’s incomplete, but we
-        // still send only 100
-        if ((limit == -1 && start.empty() && end.empty())
-            || limit > 100)
-          limit = 101;
-        auto lines = Database::get_muc_logs(from.bare(), iid.get_local(), iid.get_server(), limit, start, end, reference_record_id, paging_order);
-        bool complete = true;
-        if (lines.size() > 100)
-          {
-            complete = false;
-            lines.erase(lines.begin(), std::prev(lines.end(), 100));
-          }
+        if (limit < 0 || limit > 100)
+          limit = 100;
+        auto result = Database::get_muc_logs(from.bare(), iid.get_local(), iid.get_server(),
+                                            limit,
+                                            start, end,
+                                            reference_record_id, paging_order);
+        bool complete = std::get<bool>(result);
+        auto& lines = std::get<1>(result);
+
         for (const Database::MucLogLine& line: lines)
           {
             if (!line.col<Database::Nick>().empty())

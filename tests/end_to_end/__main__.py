@@ -1961,7 +1961,7 @@ if __name__ == '__main__':
                             ("/iq[@type='result'][@id='id3'][@from='#foo%{irc_server_one}'][@to='{jid_one}/{resource_one}']",
                              "/iq/mam:fin[@complete='true']/rsm:set")),
 
-                    # Retrieve a limited archive
+                    # Retrieve the whole archive, but limit the response to one elemet
                     partial(send_stanza, "<iq to='#foo%{irc_server_one}' from='{jid_one}/{resource_one}' type='set' id='id4'><query xmlns='urn:xmpp:mam:2' queryid='qid4'><set xmlns='http://jabber.org/protocol/rsm'><max>1</max></set></query></iq>"),
 
                     partial(expect_stanza,
@@ -1971,7 +1971,7 @@ if __name__ == '__main__':
 
                     partial(expect_stanza,
                             ("/iq[@type='result'][@id='id4'][@from='#foo%{irc_server_one}'][@to='{jid_one}/{resource_one}']",
-                             "/iq/mam:fin[@complete='true']/rsm:set")),
+                             "!/iq/mam:fin[@complete='true']/rsm:set")),
 
                 ]),
         Scenario("mam_with_timestamps",
@@ -2205,11 +2205,9 @@ if __name__ == '__main__':
                  ] * 150 + [
                     # Retrieve the archive, without any restriction
                     partial(send_stanza, "<iq to='#foo%{irc_server_one}' from='{jid_one}/{resource_one}' type='set' id='id1'><query xmlns='urn:xmpp:mam:2' queryid='qid1' /></iq>"),
-                    # Since we should only receive the last 100 messages from the archive,
-                    # it should start with message "1"
                     partial(expect_stanza,
                             ("/message/mam:result[@queryid='qid1']/forward:forwarded/delay:delay",
-                            "/message/mam:result[@queryid='qid1']/forward:forwarded/client:message[@from='#foo%{irc_server_one}/{nick_one}'][@type='groupchat']/client:body[text()='1']")
+                            "/message/mam:result[@queryid='qid1']/forward:forwarded/client:message[@from='#foo%{irc_server_one}/{nick_one}'][@type='groupchat']/client:body[text()='0']")
                             ),
                  ] + [
                      # followed by 98 more messages
@@ -2221,7 +2219,7 @@ if __name__ == '__main__':
                      # and finally the message "99"
                     partial(expect_stanza,
                             ("/message/mam:result[@queryid='qid1']/forward:forwarded/delay:delay",
-                            "/message/mam:result[@queryid='qid1']/forward:forwarded/client:message[@from='#foo%{irc_server_one}/{nick_one}'][@type='groupchat']/client:body[text()='100']"),
+                            "/message/mam:result[@queryid='qid1']/forward:forwarded/client:message[@from='#foo%{irc_server_one}/{nick_one}'][@type='groupchat']/client:body[text()='99']"),
                             after = partial(save_value, "last_uuid", partial(extract_attribute, "/message/mam:result", "id"))
                             ),
                      # And it should not be marked as complete
@@ -2236,9 +2234,9 @@ if __name__ == '__main__':
 
                     partial(expect_stanza,
                             ("/message/mam:result[@queryid='qid2']/forward:forwarded/delay:delay",
-                            "/message/mam:result[@queryid='qid2']/forward:forwarded/client:message[@from='#foo%{irc_server_one}/{nick_one}'][@type='groupchat']/client:body[text()='101']")
+                            "/message/mam:result[@queryid='qid2']/forward:forwarded/client:message[@from='#foo%{irc_server_one}/{nick_one}'][@type='groupchat']/client:body[text()='100']")
                             ),
-                  ] + 47 * [
+                  ] + 48 * [
                     partial(expect_stanza,
                             ("/message/mam:result[@queryid='qid2']/forward:forwarded/delay:delay",
                             "/message/mam:result[@queryid='qid2']/forward:forwarded/client:message[@from='#foo%{irc_server_one}/{nick_one}'][@type='groupchat']/client:body")
@@ -2297,8 +2295,7 @@ if __name__ == '__main__':
                     partial(expect_stanza,
                             ("/iq[@type='result'][@id='id4'][@from='#foo%{irc_server_one}'][@to='{jid_one}/{resource_one}']",
                              "/iq/mam:fin/rsm:set/rsm:last[text()='{last_uuid}']",
-                             "/iq/mam:fin[@complete='true']",
-                             "/iq/mam:fin")),
+                             "!/iq/mam:fin[@complete='true']",)),
                   ]),
         Scenario("channel_history_on_fixed_server",
                  [

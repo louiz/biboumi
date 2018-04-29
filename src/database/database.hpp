@@ -131,8 +131,8 @@ class Database
    * Get all the lines between (optional) start and end dates, with a (optional) limit.
    * If after_id is set, only the records after it will be returned.
    */
-  static std::vector<MucLogLine> get_muc_logs(const std::string& owner, const std::string& chan_name, const std::string& server,
-                                              int limit=-1, const std::string& start="", const std::string& end="",
+  static std::tuple<bool, std::vector<MucLogLine>> get_muc_logs(const std::string& owner, const std::string& chan_name, const std::string& server,
+                                              std::size_t limit, const std::string& start="", const std::string& end="",
                                               const Id::real_type reference_record_id=Id::unset_value, Paging=Paging::first);
 
   /**
