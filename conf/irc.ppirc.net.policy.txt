@@ -1,1 +1,2 @@
 key_exchange_methods = RSA
+signature_methods = IMPLICIT
