@@ -1,5 +1,5 @@
-Version 8.0
-===========
+Version 8.0 - 2018-05-02
+========================
 
 - GCC 4.9 or lower are not supported anymore. The minimal version is 5.0
 - Add a complete='true' in MAM’s iq result when appropriate
