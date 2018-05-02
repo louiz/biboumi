@@ -1,6 +1,7 @@
 Version 8.0
 ===========
 
+- GCC 4.9 or lower are not supported anymore. The minimal version is 5.0
 - Add a complete='true' in MAM’s iq result when appropriate
 - The archive ordering now only relies on the value of the ID, not the
   date. This means that if you manually import archives in your database (or
