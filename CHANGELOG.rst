@@ -24,6 +24,9 @@ Version 8.0
   empty a field of type text-multi because of this issue.
 - Fix an uncaught exception with botan, when policy does not allow any
   available ciphersuite.
+- When the connection gets desynchronized and tries to re-join while
+  biboumi thinks it has never left, biboumi now sends the whole standard
+  join sequence (history, user-list, etc).
 
 Version 7.2 - 2018-01-24
 ========================
