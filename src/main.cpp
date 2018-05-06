@@ -103,6 +103,7 @@ int main(int ac, char** av)
   sigaddset(&mask, SIGTERM);
   sigaddset(&mask, SIGUSR1);
   sigaddset(&mask, SIGUSR2);
+  sigaddset(&mask, SIGHUP);
   sigprocmask(SIG_BLOCK, &mask, nullptr);
 
   // Install the signals used to exit the process cleanly, or reload the
@@ -124,6 +125,7 @@ int main(int ac, char** av)
   on_sigusr.sa_flags = 0;
   sigaction(SIGUSR1, &on_sigusr, nullptr);
   sigaction(SIGUSR2, &on_sigusr, nullptr);
+  sigaction(SIGHUP, &on_sigusr, nullptr);
 
   auto p = std::make_shared<Poller>();
 

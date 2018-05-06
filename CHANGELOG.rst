@@ -1,6 +1,8 @@
 Version 9.0
 ===========
 
+- SIGHUP is now caught and reloads the configuration like SIGUSR1 and 2.
+
 Version 8.0 - 2018-05-02
 ========================
 

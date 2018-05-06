@@ -42,10 +42,10 @@ variables, with the name all in upper case and prefixed with "BIBOUMI_".
 For example, if the environment contains “BIBOUMI_PASSWORD=blah", this will
 override the value of the “password” option in the configuration file.
 
-Sending SIGUSR1 or SIGUSR2 (see kill(1)) to the process will force it to
-re-read the configuration and make it close and re-open the log files. You
-can use this to change any configuration option at runtime, or do a log
-rotation.
+Sending SIGUSR1, SIGUSR2 or SIGHUP (see kill(1)) to the process will force
+it to re-read the configuration and make it close and re-open the log
+files. You can use this to change any configuration option at runtime, or
+do a log rotation.
 
 Here is a description of every possible option:
 
