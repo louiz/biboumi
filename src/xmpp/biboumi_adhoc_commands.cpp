@@ -116,6 +116,7 @@ void ConfigureGlobalStep1(XmppComponent&, AdhocSession& session, XmlNode& comman
 
   auto options = Database::get_global_options(owner.bare());
 
+  command_node.delete_all_children();
   XmlSubNode x(command_node, "jabber:x:data:x");
   x["type"] = "form";
   XmlSubNode title(x, "title");
@@ -223,6 +224,7 @@ void ConfigureIrcServerStep1(XmppComponent&, AdhocSession& session, XmlNode& com
                                                   server_domain);
   auto commands = Database::get_after_connection_commands(options);
 
+  command_node.delete_all_children();
   XmlSubNode x(command_node, "jabber:x:data:x");
   x["type"] = "form";
   XmlSubNode title(x, "title");
@@ -508,6 +510,7 @@ void insert_irc_channel_configuration_form(XmlNode& node, const Jid& requester, 
 
   auto options = Database::get_irc_channel_options_with_server_default(requester.local + "@" + requester.domain,
                                                                        iid.get_server(), iid.get_local());
+  node.delete_all_children();
   XmlSubNode x(node, "jabber:x:data:x");
   x["type"] = "form";
   XmlSubNode title(x, "title");

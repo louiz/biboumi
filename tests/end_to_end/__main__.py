@@ -2907,11 +2907,12 @@ if __name__ == '__main__':
         Scenario("irc_channel_configure",
                  [
                      handshake_sequence(),
-                     partial(send_stanza, "<iq type='set' id='id1' from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}'><command xmlns='http://jabber.org/protocol/commands' node='configure' action='execute' /></iq>"),
+                     partial(send_stanza, "<iq type='set' id='id1' from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}'><command xmlns='http://jabber.org/protocol/commands' node='configure' action='execute'><dummy/></command></iq>"),
                      partial(expect_stanza, ("/iq[@type='result']/commands:command[@node='configure'][@sessionid][@status='executing']",
                                              "/iq/commands:command/dataform:x[@type='form']/dataform:field[@type='text-single'][@var='encoding_in']",
                                              "/iq/commands:command/dataform:x[@type='form']/dataform:field[@type='text-single'][@var='encoding_out']",
                                              "/iq/commands:command/dataform:x[@type='form']/dataform:field[@type='list-single'][@var='record_history']/dataform:value[text()='unset']",
+                                             "!/iq/commands:command/commands:dummy",
                                              ),
                                              after = partial(save_value, "sessionid", partial(extract_attribute, "/iq[@type='result']/commands:command[@node='configure']", "sessionid"))
                              ),
