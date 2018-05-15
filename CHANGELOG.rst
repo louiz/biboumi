@@ -1,3 +1,8 @@
+Version 8.1 - 2018-05-14
+========================
+
+- Fix a crash on a raw NAMES command
+
 Version 8.0 - 2018-05-02
 ========================
 
