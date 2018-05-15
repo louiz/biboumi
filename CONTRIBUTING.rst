@@ -20,8 +20,11 @@ If the bug you’re reporting is about a bad behaviour of biboumi when some XMPP
 or IRC events occur, please try to reproduce the issue with a biboumi running
 in log_level=0, and include the relevant logs in your bug report.
 
-If the issue you’re reporting may have security implications, please select
-the “confidential” flag in your bug report.
+If the issue you’re reporting may have security implications, please
+select the “confidential” flag in your bug report. This includes, but is not limited to:
+- disclosure of private data that was supposed to be encrypted using TLS
+- denial of service (crash, infinite loop, etc) that can be caused by any
+  user
 
 
 Code
