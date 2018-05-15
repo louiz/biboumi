@@ -536,7 +536,9 @@ void IrcClient::send_ping_command()
 void IrcClient::forward_server_message(const IrcMessage& message)
 {
   const std::string from = message.prefix;
-  const std::string body = message.arguments[1];
+  std::string body;
+  for (auto it = std::next(message.arguments.begin()); it != message.arguments.end(); ++it)
+    body += *it + ' ';
 
   this->bridge.send_xmpp_message(this->hostname, from, body);
 }
