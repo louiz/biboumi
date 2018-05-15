@@ -608,6 +608,23 @@ if __name__ == '__main__':
                              ),
                      partial(expect_stanza, "/message[@from='#foo%{irc_server_one}'][@type='groupchat']/subject[not(text())]"),
                  ]),
+        Scenario("raw_names_command",
+                 [
+                     handshake_sequence(),
+                     partial(send_stanza,
+                             "<presence from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}/{nick_one}' />"),
+                     connection_sequence("irc.localhost", '{jid_one}/{resource_one}'),
+                     partial(expect_stanza,
+                             "/message/body"),
+                     partial(expect_stanza,
+                             "/presence/muc_user:x/muc_user:status[@code='110']"
+                             ),
+                     partial(expect_stanza, "/message/subject[not(text())]"),
+                     partial(send_stanza,
+                             "<message type='chat' from='{jid_one}/{resource_one}' to='{irc_server_one}'><body>NAMES</body></message>"),
+                     partial(expect_stanza, "/message/body[text()='irc.localhost: = #foo @{nick_one} ']"),
+                     partial(expect_stanza, "/message/body[text()='irc.localhost: * End of /NAMES list. ']"),
+                 ]),
         Scenario("quit",
                  [
                      handshake_sequence(),
