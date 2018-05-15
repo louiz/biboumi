@@ -536,7 +536,9 @@ void IrcClient::send_ping_command()
 void IrcClient::forward_server_message(const IrcMessage& message)
 {
   const std::string from = message.prefix;
-  const std::string body = message.arguments[1];
+  std::string body;
+  for (auto it = std::next(message.arguments.begin()); it != message.arguments.end(); ++it)
+    body += *it + ' ';
 
   this->bridge.send_xmpp_message(this->hostname, from, body);
 }
@@ -639,6 +641,11 @@ void IrcClient::set_and_forward_user_list(const IrcMessage& message)
 {
   const std::string chan_name = utils::tolower(message.arguments[2]);
   IrcChannel* channel = this->get_channel(chan_name);
+  if (channel->joined)
+    {
+      this->forward_server_message(message);
+      return;
+    }
   std::vector<std::string> nicks = utils::split(message.arguments[3], ' ');
   for (const std::string& nick: nicks)
     {
@@ -774,6 +781,16 @@ void IrcClient::on_channel_completely_joined(const IrcMessage& message)
 {
   const std::string chan_name = utils::tolower(message.arguments[1]);
   IrcChannel* channel = this->get_channel(chan_name);
+  if (chan_name == "*" || channel->joined)
+    {
+      this->forward_server_message(message);
+      return;
+    }
+  if (!channel->get_self())
+    {
+      log_error("End of NAMES list but we never received our own nick.");
+      return;
+    }
   channel->joined = true;
   this->bridge.send_user_join(this->hostname, chan_name, channel->get_self(),
                               channel->get_self()->get_most_significant_mode(this->sorted_user_modes), true);
