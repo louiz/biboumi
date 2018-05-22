@@ -1,3 +1,9 @@
+Version 8.2 - 2018-05-23
+========================
+
+- The users are not able to bypass the fixed mode by just configuring a
+  different Address for the IRC server anymore.
+
 Version 8.1 - 2018-05-14
 ========================
 
