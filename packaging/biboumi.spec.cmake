@@ -66,9 +66,10 @@ make check %{?_smp_mflags}
 %changelog
 * ${RPM_DATE} Le Coz Florent <louiz@louiz.org> - ${RPM_VERSION}-1
 - Build latest git revision
-
-* ${RPM_DATE} Le Coz Florent <louiz@louiz.org> - ${RPM_VERSION}-1
 - Build against botan2
+
+* Wed May 25 2018 Le Coz Florent <louiz@louiz.org> - 8.2-1
+  Update to version 8.1
 
 * Wed May 14 2018 Le Coz Florent <louiz@louiz.org> - 8.1-1
   Update to version 8.1
