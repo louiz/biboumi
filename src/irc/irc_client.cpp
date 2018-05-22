@@ -195,7 +195,8 @@ void IrcClient::start()
 # ifdef BOTAN_FOUND
   this->credential_manager.set_trusted_fingerprint(options.col<Database::TrustedFingerprint>());
 # endif
-  if (!options.col<Database::Address>().empty())
+  if (Config::get("fixed_irc_server", "").empty() &&
+      !options.col<Database::Address>().empty())
     address = options.col<Database::Address>();
 #endif
   this->bridge.send_xmpp_message(this->hostname, "", "Connecting to " +

@@ -230,6 +230,7 @@ void ConfigureIrcServerStep1(XmppComponent&, AdhocSession& session, XmlNode& com
   XmlSubNode instructions(x, "instructions");
   instructions.set_inner("Edit the form, to configure the settings of the IRC server " + server_domain);
 
+  if (Config::get("fixed_irc_server", "").empty())
   {
     XmlSubNode field(x, "field");
     field["var"] = "address";
@@ -409,7 +410,7 @@ void ConfigureIrcServerStep2(XmppComponent&, AdhocSession& session, XmlNode& com
           const XmlNode* value = field->get_child("value", "jabber:x:data");
           const std::vector<const XmlNode*> values = field->get_children("value", "jabber:x:data");
 
-          if (field->get_tag("var") == "address" && value)
+          if (field->get_tag("var") == "address" && value && Config::get("fixed_irc_server", "").empty())
             options.col<Database::Address>() = value->get_inner();
 
           if (field->get_tag("var") == "ports")
