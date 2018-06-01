@@ -3,6 +3,12 @@ Version 9.0
 
 - SIGHUP is now caught and reloads the configuration like SIGUSR1 and 2.
 
+Version 8.3 - 2018-06-01
+========================
+
+- The global ad-hoc configure command is now available on biboumi’s JID in
+  fixed_irc_server mode.
+
 Version 8.2 - 2018-05-23
 ========================
 
