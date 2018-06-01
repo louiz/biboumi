@@ -1,5 +1,5 @@
-Version 8.3
-===========
+Version 8.3 - 2018-06-01
+========================
 
 - The global ad-hoc configure command is now available on biboumi’s JID in
   fixed_irc_server mode.

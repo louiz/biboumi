@@ -63,8 +63,11 @@ make check %{?_smp_mflags}
 
 
 %changelog
+* Wed Jun 1 2018 Le Coz Florent <louiz@louiz.org> - 8.3-1
+  Update to version 8.3
+
 * Wed May 25 2018 Le Coz Florent <louiz@louiz.org> - 8.2-1
-  Update to version 8.1
+  Update to version 8.2
 
 * Wed May 14 2018 Le Coz Florent <louiz@louiz.org> - 8.1-1
   Update to version 8.1
