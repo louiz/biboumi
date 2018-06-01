@@ -72,11 +72,16 @@ BiboumiComponent::BiboumiComponent(std::shared_ptr<Poller>& poller, const std::s
   AdhocCommand configure_global_command({&ConfigureGlobalStep1, &ConfigureGlobalStep2}, "Configure a few settings", false);
 
   if (!Config::get("fixed_irc_server", "").empty())
-    this->adhoc_commands_handler.add_command("configure", configure_server_command);
+    {
+      this->adhoc_commands_handler.add_command("server-configure", configure_server_command);
+      this->adhoc_commands_handler.add_command("global-configure", configure_global_command);
+    }
   else
-    this->adhoc_commands_handler.add_command("configure", configure_global_command);
+    {
+      this->adhoc_commands_handler.add_command("configure", configure_global_command);
+      this->irc_server_adhoc_commands_handler.add_command("configure", configure_server_command);
+    }
 
-  this->irc_server_adhoc_commands_handler.add_command("configure", configure_server_command);
   this->irc_channel_adhoc_commands_handler.add_command("configure", {{&ConfigureIrcChannelStep1, &ConfigureIrcChannelStep2}, "Configure a few settings for that IRC channel", false});
 #endif
 }
