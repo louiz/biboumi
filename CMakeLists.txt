@@ -249,8 +249,8 @@ add_executable(test_suite ${source_tests}
         $<TARGET_OBJECTS:identd>)
 set_target_properties(test_suite PROPERTIES EXCLUDE_FROM_ALL TRUE)
 if(USE_DATABASE)
-  target_link_libraries(${PROJECT_NAME} $<TARGET_OBJECTS:database>)
-  target_link_libraries(test_suite $<TARGET_OBJECTS:database>)
+  target_sources(${PROJECT_NAME} PRIVATE $<TARGET_OBJECTS:database>)
+  target_sources(test_suite      PRIVATE $<TARGET_OBJECTS:database>)
 endif()
 
 #
