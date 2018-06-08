@@ -219,7 +219,11 @@ if(SQLITE3_FOUND OR PQ_FOUND)
   endif()
   set(USE_DATABASE TRUE)
 else()
-  add_library(database OBJECT "")
+  if(${CMAKE_VERSION} VERSION_LESS "3.11.2")
+    add_library(database OBJECT "")
+  else()
+    add_library(database OBJECT)
+  endif()
 endif()
 
 #
