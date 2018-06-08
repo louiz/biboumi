@@ -7,19 +7,10 @@
 
 FROM docker.io/alpine:latest
 
-RUN apk add --no-cache\
-    g++\
-    cmake\
-    make\
-    udns-dev\
-    sqlite-dev\
-    postgresql-dev\
-    libuuid\
-    util-linux-dev\
-    expat-dev\
-    libidn-dev\
-    git\
-    python2
+RUN apk add --no-cache  libidn libpq libstdc++ libuuid postgresql-libs \
+        sqlite-libs udns udns && \
+    apk add --no-cache --virtual .build cmake expat-dev g++ git libidn-dev \
+        make postgresql-dev python2 sqlite-dev udns-dev util-linux-dev
 
 # Install botan
 RUN git clone https://github.com/randombit/botan.git && cd botan && ./configure.py --prefix=/usr && make -j8 && make install && rm -rf /botan
@@ -42,7 +33,10 @@ RUN chown -R biboumi:biboumi /var/lib/biboumi
 COPY ./biboumi.cfg /etc/biboumi/biboumi.cfg
 RUN chown -R biboumi:biboumi /etc/biboumi
 
+RUN apk del .build
+
 WORKDIR /home/biboumi
 USER biboumi
 
 CMD ["/usr/bin/biboumi", "/etc/biboumi/biboumi.cfg"]
+
