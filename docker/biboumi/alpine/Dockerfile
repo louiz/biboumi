@@ -10,30 +10,34 @@ FROM docker.io/alpine:latest
 RUN apk add --no-cache  libidn libpq libstdc++ libuuid postgresql-libs \
         sqlite-libs udns udns && \
     apk add --no-cache --virtual .build cmake expat-dev g++ git libidn-dev \
-        make postgresql-dev python2 sqlite-dev udns-dev util-linux-dev
-
-# Install botan
-RUN git clone https://github.com/randombit/botan.git && cd botan && ./configure.py --prefix=/usr && make -j8 && make install && rm -rf /botan
-
-# Install biboumi
-RUN git clone git://git.louiz.org/biboumi && mkdir ./biboumi/build && cd ./biboumi/build &&\
-   cmake .. -DCMAKE_INSTALL_PREFIX=/usr\
-            -DCMAKE_BUILD_TYPE=Release\
-            -DWITH_BOTAN=1\
-            -DWITH_SQLITE3=1\
-            -DWITH_LIBIDN=1\
-            -DWITH_POSTGRESQL=1\
-   && make -j8 && make install && rm -rf /biboumi
-
-RUN adduser biboumi -D -h /home/biboumi
-
-RUN mkdir /var/lib/biboumi
-RUN chown -R biboumi:biboumi /var/lib/biboumi
+        make postgresql-dev python2 sqlite-dev udns-dev util-linux-dev && \
+    git clone https://github.com/randombit/botan.git && \
+        cd botan && \
+        ./configure.py --prefix=/usr && \
+        make -j8 && \
+        make install && \
+        cd .. && \
+    rm -rf /botan && \
+    git clone git://git.louiz.org/biboumi && \
+        mkdir ./biboumi/build && \
+        cd ./biboumi/build && \
+        cmake .. -DCMAKE_INSTALL_PREFIX=/usr \
+                  -DCMAKE_BUILD_TYPE=Release \
+                  -DWITH_BOTAN=1 \
+                  -DWITH_SQLITE3=1 \
+                  -DWITH_LIBIDN=1 \
+                  -DWITH_POSTGRESQL=1 && \
+        make -j8 && \
+        make install && \
+        cd ../.. && \
+    rm -rf /biboumi && \
+    apk del .build
 
 COPY ./biboumi.cfg /etc/biboumi/biboumi.cfg
-RUN chown -R biboumi:biboumi /etc/biboumi
-
-RUN apk del .build
+RUN adduser biboumi -D -h /home/biboumi && \
+    mkdir /var/lib/biboumi && \
+    chown -R biboumi:biboumi /var/lib/biboumi && \
+    chown -R biboumi:biboumi /etc/biboumi
 
 WORKDIR /home/biboumi
 USER biboumi
