@@ -218,6 +218,8 @@ if(SQLITE3_FOUND OR PQ_FOUND)
     include_directories(database ${PQ_INCLUDE_DIRS})
   endif()
   set(USE_DATABASE TRUE)
+else()
+  add_library(database OBJECT "")
 endif()
 
 #
@@ -233,7 +235,8 @@ add_executable(${PROJECT_NAME} src/main.cpp
         $<TARGET_OBJECTS:xmpp>
         $<TARGET_OBJECTS:bridge>
         $<TARGET_OBJECTS:irc>
-        $<TARGET_OBJECTS:identd>)
+        $<TARGET_OBJECTS:identd>
+        $<TARGET_OBJECTS:database>)
 
 ## test_suite
 file(GLOB source_tests
@@ -246,12 +249,9 @@ add_executable(test_suite ${source_tests}
         $<TARGET_OBJECTS:xmpp>
         $<TARGET_OBJECTS:bridge>
         $<TARGET_OBJECTS:irc>
-        $<TARGET_OBJECTS:identd>)
+        $<TARGET_OBJECTS:identd>
+        $<TARGET_OBJECTS:database>)
 set_target_properties(test_suite PROPERTIES EXCLUDE_FROM_ALL TRUE)
-if(USE_DATABASE)
-  target_link_libraries(${PROJECT_NAME} $<TARGET_OBJECTS:database>)
-  target_link_libraries(test_suite $<TARGET_OBJECTS:database>)
-endif()
 
 #
 ## Link the executables with their libraries
