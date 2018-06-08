@@ -8,7 +8,7 @@
 FROM docker.io/alpine:latest
 
 RUN apk add --no-cache  libidn libpq libstdc++ libuuid postgresql-libs \
-        sqlite-libs udns udns && \
+        sqlite-libs udns udns expat && \
     apk add --no-cache --virtual .build cmake expat-dev g++ git libidn-dev \
         make postgresql-dev python2 sqlite-dev udns-dev util-linux-dev && \
     git clone https://github.com/randombit/botan.git && \
