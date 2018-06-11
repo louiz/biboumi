@@ -145,19 +145,20 @@ FUNCTION(SETUP_TARGET_FOR_COVERAGE _targetname _testrunner _outputname)
         COMMAND ${LCOV_PATH} --directory . --zerocounters
 
         # Create baseline coverage data file
-        COMMAND ${LCOV_PATH} -c -i -d . -o ${_outputname}.baseline.info -q
+        COMMAND ${LCOV_PATH} -c -i -d . -o ${_outputname}.baseline.info
 
         # Run tests
         COMMAND ${_testrunner} ${ARGV3}
 
         # Capturing lcov counters and generating report
-        COMMAND ${LCOV_PATH} --directory . --capture --output-file ${_outputname}.info -q
+        COMMAND ${LCOV_PATH} --directory . --capture --output-file ${_outputname}.info
         # Combine the baseline and the test data
-        COMMAND ${LCOV_PATH} -a ${_outputname}.info -a ${_outputname}.baseline.info -o ${_outputname}.info -q
+        COMMAND ${LCOV_PATH} -a ${_outputname}.info -a ${_outputname}.baseline.info -o ${_outputname}.info
 
         # Remove information about source files that are not part of
         # the test (system file, external libraries, etc)
-        COMMAND ${LCOV_PATH} --remove ${_outputname}.info 'tests/*' '/usr/*' 'external/*' 'build/*' --output-file ${_outputname}.info -q
+        COMMAND ${LCOV_PATH} --list ${_outputname}.info
+        COMMAND ${LCOV_PATH} --remove ${_outputname}.info 'tests/*' '/usr/*' 'external/*' 'build/*' --output-file ${_outputname}.info
 
         # Generate the report
         COMMAND ${GENHTML_PATH} -o ${_outputname} ${_outputname}.info
