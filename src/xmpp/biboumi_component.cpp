@@ -514,7 +514,11 @@ void BiboumiComponent::handle_iq(const Stanza& stanza)
             {
               if (node.empty())
                 {
-                  this->send_irc_channel_disco_info(id, from, to_str);
+                  const IrcClient* irc_client = bridge->find_irc_client(iid.get_server());
+                  const IrcChannel* irc_channel{};
+                  if (irc_client)
+                    irc_channel = irc_client->find_channel(iid.get_local());
+                  this->send_irc_channel_disco_info(id, from, to_str, irc_channel);
                   stanza_error.disable();
                 }
               else if (node == MUC_TRAFFIC_NS)
@@ -964,7 +968,8 @@ void BiboumiComponent::send_irc_channel_muc_traffic_info(const std::string& id, 
   this->send_stanza(iq);
 }
 
-void BiboumiComponent::send_irc_channel_disco_info(const std::string& id, const std::string& jid_to, const std::string& jid_from)
+void BiboumiComponent::send_irc_channel_disco_info(const std::string& id, const std::string& jid_to,
+                                                   const std::string& jid_from, const IrcChannel* irc_channel)
 {
   Jid from(jid_from);
   Iid iid(from.local, {});
@@ -984,6 +989,26 @@ void BiboumiComponent::send_irc_channel_disco_info(const std::string& id, const 
       {
         XmlSubNode feature(query, "feature");
         feature["var"] = ns;
+      }
+
+    XmlSubNode x(query, "x");
+    x["xmlns"] = DATAFORM_NS;
+    x["type"] = "result";
+    {
+      XmlSubNode field(x, "field");
+      field["var"] = "FORM_TYPE";
+      field["type"] = "hidden";
+      XmlSubNode value(field, "value");
+      value.set_inner("http://jabber.org/protocol/muc#roominfo");
+    }
+
+    if (irc_channel && irc_channel->joined)
+      {
+        XmlSubNode field(x, "field");
+        field["var"] = "muc#roominfo_occupants";
+        field["label"] = "Number of occupants";
+        XmlSubNode value(field, "value");
+        value.set_inner(std::to_string(irc_channel->get_users().size()));
       }
   }
   this->send_stanza(iq);

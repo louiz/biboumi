@@ -317,8 +317,20 @@ IrcChannel* IrcClient::get_channel(const std::string& n)
     }
   catch (const std::out_of_range& exception)
     {
-      this->channels.emplace(name, std::make_unique<IrcChannel>());
+      return this->channels.emplace(name, std::make_unique<IrcChannel>()).first->second.get();
+    }
+}
+
+const IrcChannel* IrcClient::find_channel(const std::string& n) const
+{
+  const std::string name = utils::tolower(n);
+  try
+    {
       return this->channels.at(name).get();
+    }
+  catch (const std::out_of_range& exception)
+    {
+      return nullptr;
     }
 }
 

@@ -68,6 +68,10 @@ public:
    */
   IrcChannel* get_channel(const std::string& name);
   /**
+   * Return the channel with this name. Nullptr if it is not found
+   */
+   const IrcChannel* find_channel(const std::string& name) const;
+  /**
    * Returns true if the channel is joined
    */
   bool is_channel_joined(const std::string& name);
