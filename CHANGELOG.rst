@@ -2,6 +2,9 @@ Version 9.0
 ===========
 
 - SIGHUP is now caught and reloads the configuration like SIGUSR1 and 2.
+- Messages from unjoined resources are now rejected instead of being accepted.
+  This helps clients understand that they are not in the room (because of
+  some connection issue for example).
 
 Version 8.3 - 2018-06-01
 ========================

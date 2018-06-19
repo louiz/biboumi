@@ -273,9 +273,10 @@ void BiboumiComponent::handle_message(const Stanza& stanza)
 
   std::string error_type("cancel");
   std::string error_name("internal-server-error");
-  utils::ScopeGuard stanza_error([this, &from_str, &to_str, &id, &error_type, &error_name](){
+  std::string error_text{};
+  utils::ScopeGuard stanza_error([this, &from_str, &to_str, &id, &error_type, &error_name, &error_text](){
       this->send_stanza_error("message", from_str, to_str, id,
-                              error_type, error_name, "");
+                              error_type, error_name, error_text);
     });
   const XmlNode* body = stanza.get_child("body", COMPONENT_NS);
 
@@ -284,7 +285,15 @@ void BiboumiComponent::handle_message(const Stanza& stanza)
     {
       if (body && !body->get_inner().empty())
         {
-          bridge->send_channel_message(iid, body->get_inner(), id);
+          if (bridge->is_resource_in_chan(iid.to_tuple(), from.resource))
+            bridge->send_channel_message(iid, body->get_inner(), id);
+          else
+            {
+              error_type = "modify";
+              error_name = "not-acceptable";
+              error_text = "You are not a participant in this room.";
+              return;
+            }
         }
       const XmlNode* subject = stanza.get_child("subject", COMPONENT_NS);
       if (subject)

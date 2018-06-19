@@ -1404,6 +1404,32 @@ if __name__ == '__main__':
                      "/message[@from='{lower_nick_two}%{irc_server_one}'][@to='{jid_one}/{resource_one}']"),
                  ]
                  ),
+                Scenario("muc_message_from_unjoined_resource",
+                         [
+                         handshake_sequence(),
+                         partial(send_stanza,
+                                 "<presence from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}/{nick_one}' />"),
+                         connection_sequence("irc.localhost", '{jid_one}/{resource_one}'),
+                         partial(expect_stanza,
+                                 "/message/body[text()='Mode #foo [+nt] by {irc_host_one}']"),
+                         partial(expect_stanza, "/presence"),
+                         partial(expect_stanza, "/message/subject"),
+
+                         # Send a channel message
+                        partial(send_stanza, "<message from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}' type='groupchat'><body>coucou</body></message>"),
+                        # Receive the message
+                        partial(expect_stanza,
+                         ("/message[@from='#foo%{irc_server_one}/{nick_one}'][@to='{jid_one}/{resource_one}'][@type='groupchat']/body[text()='coucou']",
+                          "/message/stable_id:stanza-id[@by='#foo%{irc_server_one}'][@id]"),
+                         ),
+
+                         # Send a message from a resource that is not joined
+                         partial(send_stanza, "<message from='{jid_one}/{resource_two}' to='#foo%{irc_server_one}' type='groupchat'><body>coucou</body></message>"),
+                         partial(expect_stanza, ("/message[@type='error']/error[@type='modify']/stanza:text[text()='You are not a participant in this room.']",
+                                                 "/message/error/stanza:not-acceptable"
+                                                 ))
+
+                         ]),
                 Scenario("encoded_channel_join",
                  [
                      handshake_sequence(),

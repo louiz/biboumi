@@ -316,7 +316,9 @@ private:
    */
   void add_resource_to_chan(const ChannelKey& channel, const std::string& resource);
   void remove_resource_from_chan(const ChannelKey& channel, const std::string& resource);
+public:
   bool is_resource_in_chan(const ChannelKey& channel, const std::string& resource) const;
+private:
   void remove_all_resources_from_chan(const ChannelKey& channel);
   std::size_t number_of_resources_in_chan(const ChannelKey& channel) const;
 
