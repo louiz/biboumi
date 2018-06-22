@@ -1135,8 +1135,6 @@ void IrcClient::on_channel_bad_key(const IrcMessage& message)
 
 void IrcClient::on_channel_mode(const IrcMessage& message)
 {
-  // For now, just transmit the modes so the user can know what happens
-  // TODO, actually interprete the mode.
   Iid iid;
   iid.set_local(message.arguments[0]);
   iid.set_server(this->hostname);
