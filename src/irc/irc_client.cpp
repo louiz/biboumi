@@ -1154,7 +1154,7 @@ void IrcClient::on_channel_mode(const IrcMessage& message)
     }
   this->bridge.send_message(iid, "", "Mode " + iid.get_local() +
                                       " [" + mode_arguments + "] by " + user.nick,
-                             true);
+                             true, this->is_channel_joined(iid.get_local()));
   const IrcChannel* channel = this->get_channel(iid.get_local());
   if (!channel)
     return;

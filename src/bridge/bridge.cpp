@@ -816,7 +816,7 @@ void Bridge::send_irc_version_request(const std::string& irc_hostname, const std
   this->add_waiting_irc(std::move(cb));
 }
 
-void Bridge::send_message(const Iid& iid, const std::string& nick, const std::string& body, const bool muc)
+void Bridge::send_message(const Iid& iid, const std::string& nick, const std::string& body, const bool muc, const bool log)
 {
   const auto encoding = in_encoding_for(*this, iid);
   std::string uuid{};
@@ -824,7 +824,7 @@ void Bridge::send_message(const Iid& iid, const std::string& nick, const std::st
     {
 #ifdef USE_DATABASE
       const auto xmpp_body = this->make_xmpp_body(body, encoding);
-      if (!nick.empty() && this->record_history)
+      if (log && this->record_history)
         uuid = Database::store_muc_message(this->get_bare_jid(), iid.get_local(), iid.get_server(), std::chrono::system_clock::now(),
                                            std::get<0>(xmpp_body), nick);
 #endif

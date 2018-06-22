@@ -166,7 +166,7 @@ public:
   /**
    * Send a MUC message from some participant
    */
-  void send_message(const Iid& iid, const std::string& nick, const std::string& body, const bool muc);
+  void send_message(const Iid& iid, const std::string& nick, const std::string& body, const bool muc, const bool log=true);
   /**
    * Send a presence of type error, from a room.
    */
