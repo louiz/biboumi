@@ -28,7 +28,7 @@ struct Row
     this->clear_col<0>();
   }
 
-  std::tuple<T...> columns;
+  std::tuple<T...> columns{};
   std::string table_name;
 
 private:

@@ -63,7 +63,8 @@ void Bridge::shutdown(const std::string& exit_message)
 {
   for (auto& pair: this->irc_clients)
   {
-    pair.second->send_quit_command(exit_message);
+    std::shared_ptr<IrcClient>& irc = pair.second;
+    irc->send_quit_command(exit_message);
   }
 }
 

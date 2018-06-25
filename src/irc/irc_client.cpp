@@ -480,7 +480,7 @@ void IrcClient::send_quit_command(const std::string& reason)
 
 void IrcClient::send_join_command(const std::string& chan_name, const std::string& password)
 {
-  if (this->welcomed == false)
+  if (!this->welcomed)
     {
       const auto it = std::find_if(begin(this->channels_to_join), end(this->channels_to_join),
                                    [&chan_name](const auto& pair) { return std::get<0>(pair) == chan_name; });
@@ -497,7 +497,7 @@ void IrcClient::send_join_command(const std::string& chan_name, const std::strin
 bool IrcClient::send_channel_message(const std::string& chan_name, const std::string& body)
 {
   IrcChannel* channel = this->get_channel(chan_name);
-  if (channel->joined == false)
+  if (!channel->joined)
     {
       log_warning("Cannot send message to channel ", chan_name, ", it is not joined");
       return false;
