@@ -86,13 +86,16 @@ class Database
 
   struct Address: Column<std::string> { static constexpr auto name = "address_"; };
 
+  struct ThrottleLimit: Column<std::size_t> { static constexpr auto name = "throttlelimit_";
+      ThrottleLimit(): Column<std::size_t>(10) {} };
+
   using MucLogLineTable = Table<Id, Uuid, Owner, IrcChanName, IrcServerName, Date, Body, Nick>;
   using MucLogLine = MucLogLineTable::RowType;
 
   using GlobalOptionsTable = Table<Id, Owner, MaxHistoryLength, RecordHistory, GlobalPersistent>;
   using GlobalOptions = GlobalOptionsTable::RowType;
 
-  using IrcServerOptionsTable = Table<Id, Owner, Server, Pass, TlsPorts, Ports, Username, Realname, VerifyCert, TrustedFingerprint, EncodingOut, EncodingIn, MaxHistoryLength, Address, Nick>;
+  using IrcServerOptionsTable = Table<Id, Owner, Server, Pass, TlsPorts, Ports, Username, Realname, VerifyCert, TrustedFingerprint, EncodingOut, EncodingIn, MaxHistoryLength, Address, Nick, ThrottleLimit>;
   using IrcServerOptions = IrcServerOptionsTable::RowType;
 
   using IrcChannelOptionsTable = Table<Id, Owner, Server, Channel, EncodingOut, EncodingIn, MaxHistoryLength, Persistent, RecordHistoryOptional>;

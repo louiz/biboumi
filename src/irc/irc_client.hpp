@@ -16,8 +16,10 @@
 #include <vector>
 #include <string>
 #include <stack>
+#include <deque>
 #include <map>
 #include <set>
+#include <utils/tokens_bucket.hpp>
 
 class Bridge;
 
@@ -84,8 +86,9 @@ public:
    * (actually, into our out_buf and signal the poller that we want to wach
    * for send events to be ready)
    */
-  void send_message(IrcMessage&& message);
+  void send_message(IrcMessage message, bool throttle=true);
   void send_raw(const std::string& txt);
+  void actual_send(const IrcMessage& message);
   /**
    * Send the PONG irc command
    */
@@ -293,7 +296,7 @@ public:
   const std::vector<char>& get_sorted_user_modes() const { return this->sorted_user_modes; }
 
   std::set<char> get_chantypes() const { return this->chantypes; }
-
+  void set_throttle_limit(std::size_t limit);
   /**
    * Store the history limit that the client asked when joining this room.
    */
@@ -330,6 +333,10 @@ private:
    * To communicate back with the bridge
    */
   Bridge& bridge;
+  /**
+   * Where messaged are stored when they are throttled.
+   */
+  std::deque<IrcMessage> message_queue{};
   /**
    * The list of joined channels, indexed by name
    */
@@ -389,6 +396,7 @@ private:
    * the WebIRC protocole.
    */
   Resolver dns_resolver;
+  TokensBucket tokens_bucket;
 };
 
 

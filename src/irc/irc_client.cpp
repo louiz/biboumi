@@ -135,7 +135,7 @@ IrcClient::IrcClient(std::shared_ptr<Poller>& poller, std::string hostname,
                      std::string realname, std::string user_hostname,
                      Bridge& bridge):
   TCPClientSocketHandler(poller),
-  hostname(std::move(hostname)),
+  hostname(hostname),
   user_hostname(std::move(user_hostname)),
   username(std::move(username)),
   realname(std::move(realname)),
@@ -143,7 +143,14 @@ IrcClient::IrcClient(std::shared_ptr<Poller>& poller, std::string hostname,
   bridge(bridge),
   welcomed(false),
   chanmodes({"", "", "", ""}),
-  chantypes({'#', '&'})
+  chantypes({'#', '&'}),
+  tokens_bucket(Database::get_irc_server_options(bridge.get_bare_jid(), hostname).col<Database::ThrottleLimit>(), 1s, [this]() {
+    if (message_queue.empty())
+      return true;
+    this->actual_send(std::move(this->message_queue.front()));
+    this->message_queue.pop_front();
+    return false;
+  }, "TokensBucket" + this->hostname + this->bridge.get_jid())
 {
 #ifdef USE_DATABASE
   auto options = Database::get_irc_server_options(this->bridge.get_bare_jid(),
@@ -171,6 +178,7 @@ IrcClient::~IrcClient()
   // This event may or may not exist (if we never got connected, it
   // doesn't), but it's ok
   TimedEventsManager::instance().cancel("PING" + this->hostname + this->bridge.get_jid());
+  TimedEventsManager::instance().cancel("TokensBucket" + this->hostname + this->bridge.get_jid());
 }
 
 void IrcClient::start()
@@ -390,25 +398,33 @@ void IrcClient::parse_in_buffer(const size_t)
     }
 }
 
-void IrcClient::send_message(IrcMessage&& message)
+void IrcClient::actual_send(const IrcMessage& message)
 {
-  log_debug("IRC SENDING: (", this->get_hostname(), ") ", message);
-  std::string res;
-  if (!message.prefix.empty())
-    res += ":" + std::move(message.prefix) + " ";
-  res += message.command;
-  for (const std::string& arg: message.arguments)
-    {
-      if (arg.find(' ') != std::string::npos ||
-          (!arg.empty() && arg[0] == ':'))
-        {
-          res += " :" + arg;
-          break;
-        }
-      res += " " + arg;
-    }
-  res += "\r\n";
-  this->send_data(std::move(res));
+   log_debug("IRC SENDING: (", this->get_hostname(), ") ", message);
+    std::string res;
+    if (!message.prefix.empty())
+      res += ":" + message.prefix + " ";
+    res += message.command;
+    for (const std::string& arg: message.arguments)
+      {
+        if (arg.find(' ') != std::string::npos
+            || (!arg.empty() && arg[0] == ':'))
+          {
+            res += " :" + arg;
+            break;
+          }
+        res += " " + arg;
+      }
+    res += "\r\n";
+    this->send_data(std::move(res));
+ }
+
+void IrcClient::send_message(IrcMessage message, bool throttle)
+{
+  if (this->tokens_bucket.use_token() || !throttle)
+    this->actual_send(message);
+  else
+    message_queue.push_back(std::move(message));
 }
 
 void IrcClient::send_raw(const std::string& txt)
@@ -459,7 +475,7 @@ void IrcClient::send_topic_command(const std::string& chan_name, const std::stri
 
 void IrcClient::send_quit_command(const std::string& reason)
 {
-  this->send_message(IrcMessage("QUIT", {reason}));
+  this->send_message(IrcMessage("QUIT", {reason}), false);
 }
 
 void IrcClient::send_join_command(const std::string& chan_name, const std::string& password)
@@ -1223,6 +1239,11 @@ void IrcClient::on_channel_mode(const IrcMessage& message)
       char most_significant_mode = u->get_most_significant_mode(this->sorted_user_modes);
       this->bridge.send_affiliation_role_change(iid, u->nick, most_significant_mode);
     }
+}
+
+void IrcClient::set_throttle_limit(std::size_t limit)
+{
+  this->tokens_bucket.set_limit(limit);
 }
 
 void IrcClient::on_user_mode(const IrcMessage& message)

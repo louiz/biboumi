@@ -366,6 +366,15 @@ void ConfigureIrcServerStep1(XmppComponent&, AdhocSession& session, XmlNode& com
     }
 
   {
+    XmlSubNode throttle_limit(x, "field");
+    throttle_limit["var"] = "throttle_limit";
+    throttle_limit["type"] = "text-single";
+    throttle_limit["label"] = "Throttle limit";
+    XmlSubNode value(throttle_limit, "value");
+    value.set_inner(std::to_string(options.col<Database::ThrottleLimit>()));
+  }
+
+  {
   XmlSubNode encoding_out(x, "field");
   encoding_out["var"] = "encoding_out";
   encoding_out["type"] = "text-single";
@@ -392,8 +401,10 @@ void ConfigureIrcServerStep1(XmppComponent&, AdhocSession& session, XmlNode& com
   }
 }
 
-void ConfigureIrcServerStep2(XmppComponent&, AdhocSession& session, XmlNode& command_node)
+void ConfigureIrcServerStep2(XmppComponent& xmpp_component, AdhocSession& session, XmlNode& command_node)
 {
+  auto& biboumi_component = dynamic_cast<BiboumiComponent&>(xmpp_component);
+
   const XmlNode* x = command_node.get_child("x", "jabber:x:data");
   if (x)
     {
@@ -473,6 +484,19 @@ void ConfigureIrcServerStep2(XmppComponent&, AdhocSession& session, XmlNode& com
 
           else if (field->get_tag("var") == "realname" && value)
             options.col<Database::Realname>() = value->get_inner();
+
+          else if (field->get_tag("var") == "throttle_limit" && value)
+            {
+              options.col<Database::ThrottleLimit>() = std::stoull(value->get_inner());
+              Bridge* bridge = biboumi_component.find_user_bridge(session.get_owner_jid());
+              if (bridge)
+                {
+                  IrcClient* client = bridge->find_irc_client(server_domain);
+                  if (client)
+                    client->set_throttle_limit(options.col<Database::ThrottleLimit>());
+                }
+
+            }
 
           else if (field->get_tag("var") == "encoding_out" && value)
             options.col<Database::EncodingOut>() = value->get_inner();

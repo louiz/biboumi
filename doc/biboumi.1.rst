@@ -682,6 +682,12 @@ On a server JID (e.g on the JID chat.freenode.org@biboumi.example.com)
       this is NOT a password that will be sent to NickServ (or some author
       authentication service), some server (notably Freenode) use it as if it
       was sent to NickServ to identify your nickname.
+    * Throttle limit: specifies a number of messages that can be sent
+      without a limit, before the throttling takes place. When messages
+      are throttled, only one command per second is sent to the server.
+      The default is 10. You can lower this value if you are ever kicked
+      for excess flood. If the value is 0, all messages are throttled. To
+      disable this feature, just set a high value, like 999.
 
 - get-irc-connection-info: Returns some information about the IRC server,
   for the executing user. It lets the user know if they are connected to

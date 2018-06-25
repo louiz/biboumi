@@ -5,6 +5,9 @@ Version 9.0
 - Messages from unjoined resources are now rejected instead of being accepted.
   This helps clients understand that they are not in the room (because of
   some connection issue for example).
+- All commands sent to IRC servers are now throttled to avoid being
+  disconnected for excess flood. The limit value can be customized using the
+  ad-hoc configuration form on a server JID.
 
 Version 8.3 - 2018-06-01
 ========================
