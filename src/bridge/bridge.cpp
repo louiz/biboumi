@@ -828,6 +828,8 @@ void Bridge::send_message(const Iid& iid, const std::string& nick, const std::st
       if (log && this->record_history)
         uuid = Database::store_muc_message(this->get_bare_jid(), iid.get_local(), iid.get_server(), std::chrono::system_clock::now(),
                                            std::get<0>(xmpp_body), nick);
+#else
+      (void)log;
 #endif
       for (const auto& resource: this->resources_in_chan[iid.to_tuple()])
         {
