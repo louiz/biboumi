@@ -7,6 +7,7 @@ stages:
 before_script:
   - uname -a
   - whoami
+  - (gcc --version || clang --version) || true
 
 variables:
   COMPILER: "g++"
@@ -47,6 +48,8 @@ build:fedora:
 
 build:debian:
   <<: *basic_build
+  variables:
+    COMPILER: "g++-7"
   image: docker.louiz.org/louiz/biboumi/test-debian:latest
 
 build:alpine:
@@ -58,24 +61,38 @@ build:alpine:
 build:archlinux:
   <<: *basic_build
   only:
-    - branches@louiz/biboumi
-  when: manual
+    - schedules
   tags:
     - armv7l
   artifacts:
     paths: []
 
-build:1:
+build:freebsd:
+  tags:
+    - freebsd
+#  only:
+#    - branches@louiz/biboumi
+  stage: build
+  script:
+    - mkdir build/
+    - cd build/
+    - cmake .. -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ${BOTAN} ${UDNS} ${SYSTEMD} ${LIBIDN} ${SQLITE3}
+    - make everything
+  variables:
+    SYSTEMD: "-DWITHOUT_SYSTEMD=1"
+
+
+'build:no botan':
   variables:
     BOTAN: "-DWITHOUT_BOTAN=1"
   <<: *fedora_build
 
-build:2:
+'build:no udns':
   variables:
     UDNS: "-DWITHOUT_UDNS=1"
   <<: *fedora_build
 
-build:3:
+'build:postgresql':
   variables:
     SQLITE3: "-DWITHOUT_SQLITE3=1"
     TEST_POSTGRES_URI: "postgres@postgres/postgres"
@@ -83,30 +100,20 @@ build:3:
     - postgres:latest
   <<: *fedora_build
 
-build:4:
+'build:ubuntu:16.04':
+  <<: *basic_build
+  image: docker.louiz.org/louiz/biboumi/test-ubuntu:16.04
+
+'build:ubuntu:18.04':
+  <<: *basic_build
+  image: docker.louiz.org/louiz/biboumi/test-ubuntu:18.04
+
+'build:no anything':
   variables:
     SQLITE3: "-DWITHOUT_SQLITE3=1"
     POSTGRESQL: "-DWITHOUT_POSTGRESQL=1"
     BOTAN: "-DWITHOUT_BOTAN=1"
     LIBIDN: "-DWITHOUT_LIBIDN=1"
-  <<: *fedora_build
-
-build:5:
-  variables:
-    UDNS: "-DWITHOUT_UDNS=1"
-    TEST_POSTGRES_URI: "postgres@postgres/postgres"
-  services:
-    - postgres:latest
-  <<: *fedora_build
-
-build:6:
-  variables:
-    BOTAN: "-DWITHOUT_BOTAN=1"
-    UDNS: "-DWITHOUT_UDNS=1"
-  <<: *fedora_build
-
-build:without_udns:
-  variables:
     UDNS: "-DWITHOUT_UDNS=1"
   <<: *fedora_build
 
@@ -144,11 +151,18 @@ test:fedora:
   dependencies:
     - build:fedora
 
-test:without_udns:
+test:freebsd:
+  tags:
+    - freebsd
+  <<: *basic_test
+  dependencies:
+    - build:freebsd
+
+'test:no udns':
   image: docker.louiz.org/louiz/biboumi/test-fedora:latest
   <<: *basic_test
   dependencies:
-    - build:without_udns
+    - 'build:no udns'
 
 test:alpine:
   image: docker.louiz.org/louiz/biboumi/test-alpine:latest
@@ -160,21 +174,6 @@ test:alpine:
     - make e2e
   dependencies:
     - build:alpine
-
-test:freebsd:
-  only:
-    - branches@louiz/biboumi
-  tags:
-    - freebsd
-  variables:
-    SYSTEMD: "-DWITHOUT_SYSTEMD=1"
-  stage: test
-  script:
-    - mkdir build/
-    - cd build/
-    - cmake .. -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ${BOTAN} ${UDNS} ${SYSTEMD} ${LIBIDN} ${SQLITE3}
-    - make check
-    - make e2e
 
 coverity:
   stage: external
