@@ -144,7 +144,7 @@ IrcClient::IrcClient(std::shared_ptr<Poller>& poller, std::string hostname,
   welcomed(false),
   chanmodes({"", "", "", ""}),
   chantypes({'#', '&'}),
-  tokens_bucket(Database::get_irc_server_options(bridge.get_bare_jid(), hostname).col<Database::ThrottleLimit>(), 1s, [this]() {
+  tokens_bucket(this->get_throttle_limit(), 1s, [this]() {
     if (message_queue.empty())
       return true;
     this->actual_send(std::move(this->message_queue.front()));
@@ -1283,3 +1283,12 @@ bool IrcClient::abort_on_invalid_cert() const
   return true;
 }
 #endif
+
+std::size_t IrcClient::get_throttle_limit() const
+{
+#ifdef USE_DATABASE
+  return Database::get_irc_server_options(this->bridge.get_bare_jid(), this->hostname).col<Database::ThrottleLimit>();
+#else
+  return 10;
+#endif
+}
