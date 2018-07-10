@@ -1,4 +1,5 @@
 srpm:
-	pwd
-	echo $(outdir)
-	echo $(spec)
+	cmake .
+	make srpm
+	mkdir -p $(outdir)
+	mv rpmbuild/SRPMS/*.src.rpm $(outdir)
