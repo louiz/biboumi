@@ -37,6 +37,8 @@ void BiboumiTLSPolicy::load(std::istream& is)
       // Workaround for options that are not overridden in Botan::TLS::Text_Policy
       if (pair.first == "require_cert_revocation_info")
         this->req_cert_revocation_info = !(pair.second == "0" || utils::tolower(pair.second) == "false");
+      else if (pair.first == "verify_certificate")
+        this->verify_certificate = !(pair.second == "0" || utils::tolower(pair.second) == "false");
       else
         this->set(pair.first, pair.second);
     }
@@ -45,6 +47,11 @@ void BiboumiTLSPolicy::load(std::istream& is)
 bool BiboumiTLSPolicy::require_cert_revocation_info() const
 {
   return this->req_cert_revocation_info;
+}
+
+bool BiboumiTLSPolicy::verify_certificate_info() const
+{
+  return this->verify_certificate;
 }
 
 #endif
