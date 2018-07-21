@@ -21,8 +21,10 @@ public:
   BiboumiTLSPolicy &operator=(BiboumiTLSPolicy &&) = delete;
 
   bool require_cert_revocation_info() const override;
+  bool verify_certificate_info() const;
 protected:
   bool req_cert_revocation_info{true};
+  bool verify_certificate{true};
 };
 
 #endif
