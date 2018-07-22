@@ -49,9 +49,4 @@ bool BiboumiTLSPolicy::require_cert_revocation_info() const
   return this->req_cert_revocation_info;
 }
 
-bool BiboumiTLSPolicy::verify_certificate_info() const
-{
-  return this->verify_certificate;
-}
-
 #endif

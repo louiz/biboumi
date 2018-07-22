@@ -332,7 +332,7 @@ void TCPSocketHandler::tls_verify_cert_chain(const std::vector<Botan::X509_Certi
                                              Botan::Usage_Type usage, const std::string& hostname,
                                              const Botan::TLS::Policy& policy)
 {
-  if (!this->policy.verify_certificate_info())
+  if (!this->policy.verify_certificate)
     {
       log_debug("Not verifying certificate due to domain policy ");
       return;
