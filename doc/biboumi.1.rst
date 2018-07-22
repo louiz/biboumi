@@ -240,6 +240,10 @@ connecting to that specific server.
 
 To see the list of possible options to configure, refer to `Botan’s TLS
 documentation <https://botan.randombit.net/manual/tls.html#tls-policies>`_.
+In addition to these Botan options, biboumi implements a few custom options
+listed hereafter:
+- verify_certificate: if this value is set to false, biboumi will not check
+  the certificate validity at all. The default value is true.
 
 By default, biboumi provides a few policy files, to work around some
 issues found with a few well-known IRC servers.

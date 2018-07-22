@@ -8,6 +8,8 @@ Version 9.0
 - All commands sent to IRC servers are now throttled to avoid being
   disconnected for excess flood. The limit value can be customized using the
   ad-hoc configuration form on a server JID.
+- Add a verify_certificate policy option that lets the admin disable
+  certificate validation per-domain.
 
 Version 8.3 - 2018-06-01
 ========================
