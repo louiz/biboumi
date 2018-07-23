@@ -23,6 +23,12 @@
 
 using namespace std::string_literals;
 
+void SetDesc(XmlSubNode &field, const char *text)
+{
+  XmlSubNode desc(field, "desc");
+  desc.set_inner(text);
+}
+
 void DisconnectUserStep1(XmppComponent& xmpp_component, AdhocSession&, XmlNode& command_node)
 {
   auto& biboumi_component = dynamic_cast<BiboumiComponent&>(xmpp_component);
@@ -129,7 +135,7 @@ void ConfigureGlobalStep1(XmppComponent&, AdhocSession& session, XmlNode& comman
     max_histo_length["var"] = "max_history_length";
     max_histo_length["type"] = "text-single";
     max_histo_length["label"] = "Max history length";
-    max_histo_length["desc"] = "The maximum number of lines in the history that the server sends when joining a channel";
+    SetDesc(max_histo_length, "The maximum number of lines in the history that the server sends when joining a channel");
     {
       XmlSubNode value(max_histo_length, "value");
       value.set_inner(std::to_string(options.col<Database::MaxHistoryLength>()));
@@ -141,7 +147,7 @@ void ConfigureGlobalStep1(XmppComponent&, AdhocSession& session, XmlNode& comman
     record_history["var"] = "record_history";
     record_history["type"] = "boolean";
     record_history["label"] = "Record history";
-    record_history["desc"] = "Whether to save the messages into the database, or not";
+    SetDesc(record_history, "Whether to save the messages into the database, or not");
     {
       XmlSubNode value(record_history, "value");
       value.set_name("value");
@@ -157,7 +163,7 @@ void ConfigureGlobalStep1(XmppComponent&, AdhocSession& session, XmlNode& comman
     persistent["var"] = "persistent";
     persistent["type"] = "boolean";
     persistent["label"] = "Make all channels persistent";
-    persistent["desc"] = "If true, all channels will be persistent";
+    SetDesc(persistent, "If true, all channels will be persistent");
     {
       XmlSubNode value(persistent, "value");
       value.set_name("value");
@@ -238,7 +244,7 @@ void ConfigureIrcServerStep1(XmppComponent&, AdhocSession& session, XmlNode& com
     field["var"] = "address";
     field["type"] = "text-single";
     field["label"] = "Address";
-    field["desc"] = "The address (hostname or IP) to connect to.";
+    SetDesc(field, "The address (hostname or IP) to connect to.");
     XmlSubNode value(field, "value");
     if (options.col<Database::Address>().empty())
       value.set_inner(server_domain);
@@ -251,7 +257,7 @@ void ConfigureIrcServerStep1(XmppComponent&, AdhocSession& session, XmlNode& com
     ports["var"] = "ports";
     ports["type"] = "text-multi";
     ports["label"] = "Ports";
-    ports["desc"] = "List of ports to try, without TLS. Defaults: 6667.";
+    SetDesc(ports, "List of ports to try, without TLS. Defaults: 6667.");
     for (const auto& val: utils::split(options.col<Database::Ports>(), ';', false))
       {
         XmlSubNode ports_value(ports, "value");
@@ -265,7 +271,7 @@ void ConfigureIrcServerStep1(XmppComponent&, AdhocSession& session, XmlNode& com
     tls_ports["var"] = "tls_ports";
     tls_ports["type"] = "text-multi";
     tls_ports["label"] = "TLS ports";
-    tls_ports["desc"] = "List of ports to try, with TLS. Defaults: 6697, 6670.";
+    SetDesc(tls_ports, "List of ports to try, with TLS. Defaults: 6697, 6670.");
     for (const auto& val: utils::split(options.col<Database::TlsPorts>(), ';', false))
       {
         XmlSubNode tls_ports_value(tls_ports, "value");
@@ -278,7 +284,7 @@ void ConfigureIrcServerStep1(XmppComponent&, AdhocSession& session, XmlNode& com
     verify_cert["var"] = "verify_cert";
     verify_cert["type"] = "boolean";
     verify_cert["label"] = "Verify certificate";
-    verify_cert["desc"] = "Whether or not to abort the connection if the server’s TLS certificate is invalid";
+    SetDesc(verify_cert, "Whether or not to abort the connection if the server’s TLS certificate is invalid");
     XmlSubNode verify_cert_value(verify_cert, "value");
     if (options.col<Database::VerifyCert>())
       verify_cert_value.set_inner("true");
@@ -304,7 +310,7 @@ void ConfigureIrcServerStep1(XmppComponent&, AdhocSession& session, XmlNode& com
     field["var"] = "nick";
     field["type"] = "text-single";
     field["label"] = "Nickname";
-    field["desc"] = "If set, will override the nickname provided in the initial presence sent to join the first server channel";
+    SetDesc(field, "If set, will override the nickname provided in the initial presence sent to join the first server channel");
     if (!options.col<Database::Nick>().empty())
       {
         XmlSubNode value(field, "value");
@@ -317,7 +323,7 @@ void ConfigureIrcServerStep1(XmppComponent&, AdhocSession& session, XmlNode& com
     pass["var"] = "pass";
     pass["type"] = "text-private";
     pass["label"] = "Server password";
-    pass["desc"] = "Will be used in a PASS command when connecting";
+    SetDesc(pass, "Will be used in a PASS command when connecting");
     if (!options.col<Database::Pass>().empty())
       {
         XmlSubNode pass_value(pass, "value");
@@ -329,7 +335,7 @@ void ConfigureIrcServerStep1(XmppComponent&, AdhocSession& session, XmlNode& com
     XmlSubNode after_cnt_cmd(x, "field");
     after_cnt_cmd["var"] = "after_connect_commands";
     after_cnt_cmd["type"] = "text-multi";
-    after_cnt_cmd["desc"] = "Custom IRC commands sent after the connection is established with the server.";
+    SetDesc(after_cnt_cmd, "Custom IRC commands sent after the connection is established with the server.");
     after_cnt_cmd["label"] = "After-connection IRC commands";
     for (const auto& command: commands)
       {
@@ -378,7 +384,7 @@ void ConfigureIrcServerStep1(XmppComponent&, AdhocSession& session, XmlNode& com
   XmlSubNode encoding_out(x, "field");
   encoding_out["var"] = "encoding_out";
   encoding_out["type"] = "text-single";
-  encoding_out["desc"] = "The encoding used when sending messages to the IRC server.";
+  SetDesc(encoding_out, "The encoding used when sending messages to the IRC server.");
   encoding_out["label"] = "Out encoding";
   if (!options.col<Database::EncodingOut>().empty())
     {
@@ -391,7 +397,7 @@ void ConfigureIrcServerStep1(XmppComponent&, AdhocSession& session, XmlNode& com
     XmlSubNode encoding_in(x, "field");
     encoding_in["var"] = "encoding_in";
     encoding_in["type"] = "text-single";
-    encoding_in["desc"] = "The encoding used to decode message received from the IRC server.";
+    SetDesc(encoding_in, "The encoding used to decode message received from the IRC server.");
     encoding_in["label"] = "In encoding";
     if (!options.col<Database::EncodingIn>().empty())
       {
@@ -548,7 +554,7 @@ void insert_irc_channel_configuration_form(XmlNode& node, const Jid& requester, 
     record_history["var"] = "record_history";
     record_history["type"] = "list-single";
     record_history["label"] = "Record history for this channel";
-    record_history["desc"] = "If unset, the value is the one configured globally";
+    SetDesc(record_history, "If unset, the value is the one configured globally");
     {
       // Value selected by default
       XmlSubNode value(record_history, "value");
@@ -568,7 +574,7 @@ void insert_irc_channel_configuration_form(XmlNode& node, const Jid& requester, 
     XmlSubNode encoding_out(x, "field");
     encoding_out["var"] = "encoding_out";
     encoding_out["type"] = "text-single";
-    encoding_out["desc"] = "The encoding used when sending messages to the IRC server. Defaults to the server's “out encoding” if unset for the channel";
+    SetDesc(encoding_out, "The encoding used when sending messages to the IRC server. Defaults to the server's “out encoding” if unset for the channel");
     encoding_out["label"] = "Out encoding";
     if (!options.col<Database::EncodingOut>().empty())
       {
@@ -581,7 +587,7 @@ void insert_irc_channel_configuration_form(XmlNode& node, const Jid& requester, 
     XmlSubNode encoding_in(x, "field");
     encoding_in["var"] = "encoding_in";
     encoding_in["type"] = "text-single";
-    encoding_in["desc"] = "The encoding used to decode message received from the IRC server. Defaults to the server's “in encoding” if unset for the channel";
+    SetDesc(encoding_in, "The encoding used to decode message received from the IRC server. Defaults to the server's “in encoding” if unset for the channel");
     encoding_in["label"] = "In encoding";
     if (!options.col<Database::EncodingIn>().empty())
       {
@@ -594,7 +600,7 @@ void insert_irc_channel_configuration_form(XmlNode& node, const Jid& requester, 
     XmlSubNode persistent(x, "field");
     persistent["var"] = "persistent";
     persistent["type"] = "boolean";
-    persistent["desc"] = "If set to true, when all XMPP clients have left this channel, biboumi will stay idle in it, without sending a PART command.";
+    SetDesc(persistent, "If set to true, when all XMPP clients have left this channel, biboumi will stay idle in it, without sending a PART command.");
     persistent["label"] = "Persistent";
     {
       XmlSubNode value(persistent, "value");
