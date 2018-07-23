@@ -23,7 +23,7 @@
 
 using namespace std::string_literals;
 
-void SetDesc(XmlSubNode &field, const char *text)
+static void SetDesc(XmlSubNode &field, const char *text)
 {
   XmlSubNode desc(field, "desc");
   desc.set_inner(text);
