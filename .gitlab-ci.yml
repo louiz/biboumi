@@ -175,6 +175,7 @@ test:freebsd:
     - cmake .. -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ${BOTAN} ${UDNS} ${SYSTEMD} ${LIBIDN} ${SQLITE3}
     - make check
     - make e2e
+  dependencies: []
 
 coverity:
   stage: external
