@@ -1294,7 +1294,8 @@ if __name__ == '__main__':
 
                      # Expect a non-empty id as a result (should be a uuid)
                      partial(expect_stanza,
-                         "!/message[@id='']/body[text()='hello']"),
+                             ("!/message[@id='']/body[text()='hello']",
+                              "/message[@id]/body[text()='hello']")),
 
                      # Second user joins
                      partial(send_stanza,
