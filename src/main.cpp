@@ -5,6 +5,7 @@
 #include <logger/logger.hpp>
 #include <utils/xdg.hpp>
 #include <utils/reload.hpp>
+#include <utils/i18n.hpp>
 
 #ifdef UDNS_FOUND
 # include <network/dns_handler.hpp>
@@ -57,6 +58,10 @@ static void sigusr_handler(int, siginfo_t*, void*)
 
 int main(int ac, char** av)
 {
+  setlocale(LC_ALL, "");
+  bindtextdomain("biboumi", "/usr/share/locale");
+  textdomain("biboumi");
+
   if (ac > 1)
     {
       const std::string arg = av[1];
