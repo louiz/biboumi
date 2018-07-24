@@ -99,6 +99,8 @@ mark_as_advanced(PANDOC_EXECUTABLE)
 ## Set this search path for cmake, to find our custom search modules
 #
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake/Modules/")
+find_package(Intl REQUIRED)
+find_package(Gettext REQUIRED)
 find_package(ICONV REQUIRED)
 find_package(LIBUUID REQUIRED)
 find_package(EXPAT REQUIRED)
@@ -365,6 +367,24 @@ install(FILES   ${MAN_PAGE}                                 DESTINATION share/ma
 install(FILES   ${CMAKE_CURRENT_BINARY_DIR}/biboumi.service DESTINATION lib/systemd/system     COMPONENT init)
 file(GLOB policy_files conf/*policy.txt)
 install(FILES   ${policy_files}                             DESTINATION /etc/biboumi           COMPONENT configuration)
+
+#
+## i18n target
+## Compiles the gettext po files into mo files
+#
+file(GLOB po_files ${CMAKE_SOURCE_DIR}/po/*.po)
+set(mo_dir ${CMAKE_CURRENT_BINARY_DIR}/mo)
+foreach(po ${po_files})
+  get_filename_component(lang ${po} NAME_WE)
+  set(mo ${mo_dir}/${lang}.mo)
+  target_sources(biboumi PRIVATE ${mo})
+  add_custom_command(OUTPUT ${mo}
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${mo_dir}
+    COMMAND ${GETTEXT_MSGFMT_EXECUTABLE} -o ${mo} ${po}
+    DEPENDS ${po}
+  )
+  install(FILES ${mo} DESTINATION share/locale/${lang}/LC_MESSAGES RENAME biboumi.mo)
+endforeach()
 
 #
 ## Dist target
