@@ -10,6 +10,8 @@ Version 9.0
   ad-hoc configuration form on a server JID.
 - Add a verify_certificate policy option that lets the admin disable
   certificate validation per-domain.
+- Messages reflections are now properly cut if the body was cut before
+  being to sent to IRC
 
 Version 8.3 - 2018-06-01
 ========================

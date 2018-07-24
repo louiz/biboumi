@@ -21,6 +21,10 @@
 #include <set>
 #include <utils/tokens_bucket.hpp>
 
+class IrcClient;
+
+using MessageCallback = std::function<void(const IrcClient*, const IrcMessage&)>;
+
 class Bridge;
 
 /**
@@ -86,9 +90,9 @@ public:
    * (actually, into our out_buf and signal the poller that we want to wach
    * for send events to be ready)
    */
-  void send_message(IrcMessage message, bool throttle=true);
+  void send_message(IrcMessage message, MessageCallback callback={}, bool throttle=true);
   void send_raw(const std::string& txt);
-  void actual_send(const IrcMessage& message);
+  void actual_send(std::pair<IrcMessage, MessageCallback> message_pair);
   /**
    * Send the PONG irc command
    */
@@ -117,7 +121,8 @@ public:
    * Send a PRIVMSG command for a channel
    * Return true if the message was actually sent
    */
-  bool send_channel_message(const std::string& chan_name, const std::string& body);
+  bool send_channel_message(const std::string& chan_name, const std::string& body,
+                            MessageCallback callback);
   /**
    * Send a PRIVMSG command for an user
    */
@@ -336,7 +341,7 @@ private:
   /**
    * Where messaged are stored when they are throttled.
    */
-  std::deque<IrcMessage> message_queue{};
+  std::deque<std::pair<IrcMessage, MessageCallback>> message_queue{};
   /**
    * The list of joined channels, indexed by name
    */

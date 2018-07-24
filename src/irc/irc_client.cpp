@@ -398,8 +398,10 @@ void IrcClient::parse_in_buffer(const size_t)
     }
 }
 
-void IrcClient::actual_send(const IrcMessage& message)
+void IrcClient::actual_send(std::pair<IrcMessage, MessageCallback> message_pair)
 {
+  const IrcMessage& message = message_pair.first;
+  const MessageCallback& callback = message_pair.second;
    log_debug("IRC SENDING: (", this->get_hostname(), ") ", message);
     std::string res;
     if (!message.prefix.empty())
@@ -417,14 +419,18 @@ void IrcClient::actual_send(const IrcMessage& message)
       }
     res += "\r\n";
     this->send_data(std::move(res));
+
+    if (callback)
+      callback(this, message);
  }
 
-void IrcClient::send_message(IrcMessage message, bool throttle)
+void IrcClient::send_message(IrcMessage message, MessageCallback callback, bool throttle)
 {
+  auto message_pair = std::make_pair(std::move(message), std::move(callback));
   if (this->tokens_bucket.use_token() || !throttle)
-    this->actual_send(message);
+    this->actual_send(std::move(message_pair));
   else
-    message_queue.push_back(std::move(message));
+    message_queue.push_back(std::move(message_pair));
 }
 
 void IrcClient::send_raw(const std::string& txt)
@@ -475,7 +481,7 @@ void IrcClient::send_topic_command(const std::string& chan_name, const std::stri
 
 void IrcClient::send_quit_command(const std::string& reason)
 {
-  this->send_message(IrcMessage("QUIT", {reason}), false);
+  this->send_message(IrcMessage("QUIT", {reason}), {}, false);
 }
 
 void IrcClient::send_join_command(const std::string& chan_name, const std::string& password)
@@ -494,7 +500,8 @@ void IrcClient::send_join_command(const std::string& chan_name, const std::strin
   this->start();
 }
 
-bool IrcClient::send_channel_message(const std::string& chan_name, const std::string& body)
+bool IrcClient::send_channel_message(const std::string& chan_name, const std::string& body,
+                                     MessageCallback callback)
 {
   IrcChannel* channel = this->get_channel(chan_name);
   if (!channel->joined)
@@ -517,7 +524,7 @@ bool IrcClient::send_channel_message(const std::string& chan_name, const std::st
                          ::strlen(":!@ PRIVMSG ") - chan_name.length() - ::strlen(" :\r\n");
   const auto lines = cut(body, line_size);
   for (const auto& line: lines)
-    this->send_message(IrcMessage("PRIVMSG", {chan_name, line}));
+    this->send_message(IrcMessage("PRIVMSG", {chan_name, line}), callback);
   return true;
 }
 

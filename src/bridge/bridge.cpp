@@ -224,18 +224,6 @@ void Bridge::send_channel_message(const Iid& iid, const std::string& body, std::
   bool first = true;
   for (const std::string& line: lines)
     {
-      if (line.substr(0, 5) == "/mode")
-        {
-          std::vector<std::string> args = utils::split(line.substr(5), ' ', false);
-          irc->send_mode_command(iid.get_local(), args);
-          continue;             // We do not want to send that back to the
-                                // XMPP user, that’s not a textual message.
-        }
-      else if (line.substr(0, 4) == "/me ")
-        irc->send_channel_message(iid.get_local(), action_prefix + line.substr(4) + "\01");
-      else
-        irc->send_channel_message(iid.get_local(), line);
-
       std::string uuid;
 #ifdef USE_DATABASE
       const auto xmpp_body = this->make_xmpp_body(line);
@@ -245,9 +233,27 @@ void Bridge::send_channel_message(const Iid& iid, const std::string& body, std::
 #endif
       if (!first || id.empty())
         id = utils::gen_uuid();
-      for (const auto& resource: this->resources_in_chan[iid.to_tuple()])
-        this->xmpp.send_muc_message(std::to_string(iid), irc->get_own_nick(), this->make_xmpp_body(line),
-                                    this->user_jid + "/" + resource, uuid, id);
+
+      MessageCallback mirror_to_all_resources = [this, iid, uuid, id](const IrcClient* irc, const IrcMessage& message) {
+        const std::string& line = message.arguments[1];
+        for (const auto& resource: this->resources_in_chan[iid.to_tuple()])
+          this->xmpp.send_muc_message(std::to_string(iid), irc->get_own_nick(), this->make_xmpp_body(line),
+                                      this->user_jid + "/" + resource, uuid, id);
+      };
+
+      if (line.substr(0, 5) == "/mode")
+        {
+          std::vector<std::string> args = utils::split(line.substr(5), ' ', false);
+          irc->send_mode_command(iid.get_local(), args);
+          continue;             // We do not want to send that back to the
+                                // XMPP user, that’s not a textual message.
+        }
+      else if (line.substr(0, 4) == "/me ")
+        irc->send_channel_message(iid.get_local(), action_prefix + line.substr(4) + "\01",
+                                  std::move(mirror_to_all_resources));
+      else
+        irc->send_channel_message(iid.get_local(), line, std::move(mirror_to_all_resources));
+
       first = false;
     }
 }
