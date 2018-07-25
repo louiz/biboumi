@@ -1297,6 +1297,21 @@ if __name__ == '__main__':
                              ("!/message[@id='']/body[text()='hello']",
                               "/message[@id]/body[text()='hello']")),
 
+                     # even though we reflect the message to XMPP only
+                     # when we send it to IRC, there’s still a race
+                     # condition if the XMPP client receives the
+                     # reflection (and the IRC server didn’t yet receive
+                     # it), then the new user joins the room, and then
+                     # finally the IRC server sends the message to “all
+                     # participants of the channel”, including the new
+                     # one, that was not supposed to be there when the
+                     # message was sent in the first place by the first
+                     # XMPP user. There’s nothing we can do about it until
+                     # all servers support the echo-message IRCv3
+                     # extension… So, we just sleep a little bit before
+                     # joining the room with the new user.
+                     partial(sleep_for, 1),
+
                      # Second user joins
                      partial(send_stanza,
                      "<presence from='{jid_two}/{resource_one}' to='#foo%{irc_server_one}/{nick_two}' />"),
