@@ -333,6 +333,8 @@ class BiboumiTest:
         except FileNotFoundError:
             pass
 
+        start_datetime = datetime.datetime.now()
+
         # Start the XMPP component and biboumi
         biboumi = BiboumiRunner(self.scenario.name)
         xmpp = XMPPComponent(self.scenario, biboumi)
@@ -344,13 +346,16 @@ class BiboumiTest:
         code = asyncio.get_event_loop().run_until_complete(biboumi.wait())
         xmpp.biboumi = None
         self.scenario.steps.clear()
+
+        delta = datetime.datetime.now() - start_datetime
+
         failed = False
         if not xmpp.failed:
             if code != self.expected_code:
                 xmpp.error("Wrong return code from biboumi's process: %d" % (code,))
                 failed = True
             else:
-                print("[32;1mSuccess![0m")
+                print("[32;1mSuccess![0m ({}s)".format(round(delta.total_seconds(), 2)))
         else:
             failed = True
 
