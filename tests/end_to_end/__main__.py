@@ -2257,6 +2257,20 @@ if __name__ == '__main__':
          Scenario("default_mam_limit",
                  [
                      handshake_sequence(),
+
+                     # Disable the throttling, otherwise it’s way too long
+                     partial(send_stanza, "<iq type='set' id='id1' from='{jid_one}/{resource_one}' to='{irc_server_one}'><command xmlns='http://jabber.org/protocol/commands' node='configure' action='execute' /></iq>"),
+                     partial(expect_stanza, "/iq[@type='result']",
+                             after = partial(save_value, "sessionid", partial(extract_attribute, "/iq[@type='result']/commands:command[@node='configure']", "sessionid"))),
+                     partial(send_stanza, "<iq type='set' id='id2' from='{jid_one}/{resource_one}' to='{irc_server_one}'>"
+                                           "<command xmlns='http://jabber.org/protocol/commands' node='configure' sessionid='{sessionid}' action='next'>"
+                                           "<x xmlns='jabber:x:data' type='submit'>"
+                                           "<field var='ports'><value>6667</value></field>"
+                                           "<field var='tls_ports'><value>6697</value><value>6670</value></field>"
+                                           "<field var='throttle_limit'><value>9999</value></field>"
+                                           "</x></command></iq>"),
+                      partial(expect_stanza, "/iq[@type='result']/commands:command[@node='configure'][@status='completed']/commands:note[@type='info'][text()='Configuration successfully applied.']"),
+
                      partial(send_stanza,
                              "<presence from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}/{nick_one}' />"),
                      connection_sequence("irc.localhost", '{jid_one}/{resource_one}'),
@@ -2583,6 +2597,20 @@ if __name__ == '__main__':
                 Scenario("default_channel_list_limit",
                  [
                      handshake_sequence(),
+
+                     # Disable the throttling, otherwise it’s way too long
+                     partial(send_stanza, "<iq type='set' id='id1' from='{jid_one}/{resource_one}' to='{irc_server_one}'><command xmlns='http://jabber.org/protocol/commands' node='configure' action='execute' /></iq>"),
+                     partial(expect_stanza, "/iq[@type='result']",
+                             after = partial(save_value, "sessionid", partial(extract_attribute, "/iq[@type='result']/commands:command[@node='configure']", "sessionid"))),
+                     partial(send_stanza, "<iq type='set' id='id2' from='{jid_one}/{resource_one}' to='{irc_server_one}'>"
+                                           "<command xmlns='http://jabber.org/protocol/commands' node='configure' sessionid='{sessionid}' action='next'>"
+                                           "<x xmlns='jabber:x:data' type='submit'>"
+                                           "<field var='ports'><value>6667</value></field>"
+                                           "<field var='tls_ports'><value>6697</value><value>6670</value></field>"
+                                           "<field var='throttle_limit'><value>9999</value></field>"
+                                           "</x></command></iq>"),
+                      partial(expect_stanza, "/iq[@type='result']/commands:command[@node='configure'][@status='completed']/commands:note[@type='info'][text()='Configuration successfully applied.']"),
+
                      partial(send_stanza,
                              "<presence from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}/{nick_one}' />"),
                      connection_sequence("irc.localhost", '{jid_one}/{resource_one}'),
