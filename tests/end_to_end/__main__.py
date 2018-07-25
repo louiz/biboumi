@@ -2151,6 +2151,8 @@ if __name__ == '__main__':
                      partial(send_stanza, "<presence from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}' type='unavailable' />"),
                      partial(expect_stanza, "/presence[@type='unavailable']"),
 
+                     partial(sleep_for, 0.2),
+
                      # Rejoin #foo, with some history limit
                      partial(send_stanza,
                              "<presence from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}/{nick_one}'><x xmlns='http://jabber.org/protocol/muc'><history maxchars='0'/></x></presence>"),
@@ -2160,6 +2162,8 @@ if __name__ == '__main__':
 
                      partial(send_stanza, "<presence from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}' type='unavailable' />"),
                      partial(expect_stanza, "/presence[@type='unavailable']"),
+
+                     partial(sleep_for, 0.2),
 
                      # Rejoin #foo, with some history limit
                      partial(send_stanza,
