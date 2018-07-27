@@ -58,7 +58,7 @@ static void sigusr_handler(int, siginfo_t*, void*)
 
 int main(int ac, char** av)
 {
-#ifdef Intl_FOUND
+#ifdef INTL_FOUND
   setlocale(LC_ALL, "");
   bindtextdomain("biboumi", "/usr/share/locale");
   textdomain("biboumi");

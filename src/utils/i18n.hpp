@@ -1,4 +1,4 @@
-#ifdef Intl_FOUND
+#ifdef INTL_FOUND
 #include <libintl.h>
 #define _(s) gettext(s)
 #else

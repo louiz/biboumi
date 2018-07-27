@@ -378,7 +378,7 @@ install(FILES   ${policy_files}                             DESTINATION /etc/bib
 ## i18n target
 ## Compiles the gettext po files into mo files
 #
-if(Intl_FOUND AND GETTEXT_FOUND)
+if(INTL_FOUND AND GETTEXT_FOUND)
   file(GLOB po_files ${CMAKE_SOURCE_DIR}/po/*.po)
   set(mo_dir ${CMAKE_CURRENT_BINARY_DIR}/mo)
   foreach(po ${po_files})

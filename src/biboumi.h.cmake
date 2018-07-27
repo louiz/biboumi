@@ -1,6 +1,6 @@
 #cmakedefine USE_DATABASE
 #cmakedefine ICONV_SECOND_ARGUMENT_IS_CONST
-#cmakedefine Intl_FOUND
+#cmakedefine INTL_FOUND
 #cmakedefine LIBIDN_FOUND
 #cmakedefine SYSTEMD_FOUND
 #cmakedefine POLLER ${POLLER}
