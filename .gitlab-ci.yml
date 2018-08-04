@@ -172,7 +172,7 @@ test:freebsd:
   script:
     - mkdir build/
     - cd build/
-    - cmake .. -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ${BOTAN} ${UDNS} ${SYSTEMD} ${LIBIDN} ${SQLITE3}
+    - cmake .. -DCMAKE_CXX_FLAGS="-Werror" -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ${BOTAN} ${UDNS} ${SYSTEMD} ${LIBIDN} ${SQLITE3}
     - make check
     - make e2e
   dependencies: []
