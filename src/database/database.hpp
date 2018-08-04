@@ -86,7 +86,7 @@ class Database
 
   struct Address: Column<std::string> { static constexpr auto name = "address_"; };
 
-  struct ThrottleLimit: Column<std::size_t> { static constexpr auto name = "throttlelimit_";
+  struct ThrottleLimit: Column<unsigned long int> { static constexpr auto name = "throttlelimit_";
       ThrottleLimit(): Column<std::size_t>(10) {} };
 
   using MucLogLineTable = Table<Id, Uuid, Owner, IrcChanName, IrcServerName, Date, Body, Nick>;

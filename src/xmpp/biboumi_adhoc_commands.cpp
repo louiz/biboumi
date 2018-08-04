@@ -494,7 +494,7 @@ void ConfigureIrcServerStep2(XmppComponent& xmpp_component, AdhocSession& sessio
 
           else if (field->get_tag("var") == "throttle_limit" && value)
             {
-              options.col<Database::ThrottleLimit>() = std::stoull(value->get_inner());
+              options.col<Database::ThrottleLimit>() = std::stoul(value->get_inner());
               Bridge* bridge = biboumi_component.find_user_bridge(session.get_owner_jid());
               if (bridge)
                 {
