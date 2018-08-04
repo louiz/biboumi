@@ -20,7 +20,6 @@ public:
   TokensBucket(std::size_t max_size, std::chrono::milliseconds fill_duration, std::function<bool()> callback, std::string name):
       limit(max_size),
       tokens(limit),
-      fill_duration(fill_duration),
       callback(std::move(callback))
   {
     log_debug("creating TokensBucket with max size: ", max_size);
@@ -47,7 +46,6 @@ public:
 private:
   std::size_t limit;
   std::size_t tokens;
-  std::chrono::milliseconds fill_duration;
   std::function<bool()> callback;
 
   void add_token()
