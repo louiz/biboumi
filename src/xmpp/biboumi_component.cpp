@@ -359,7 +359,6 @@ void BiboumiComponent::handle_message(const Stanza& stanza)
                   this->send_invitation_from_fulljid(std::to_string(iid), invite_to, from_str);
               }
           }
-
     }
   } catch (const IRCNotConnected& ex)
     {
@@ -605,7 +604,6 @@ void BiboumiComponent::handle_iq(const Stanza& stanza)
                   const XmlNode* max = set_node->get_child("max", RSM_NS);
                   if (max)
                     rs_info.max = std::atoi(max->get_inner().data());
-
                 }
               if (rs_info.max == -1)
                 rs_info.max = 100;

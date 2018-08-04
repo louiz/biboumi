@@ -502,7 +502,6 @@ void ConfigureIrcServerStep2(XmppComponent& xmpp_component, AdhocSession& sessio
                   if (client)
                     client->set_throttle_limit(options.col<Database::ThrottleLimit>());
                 }
-
             }
 
           else if (field->get_tag("var") == "encoding_out" && value)

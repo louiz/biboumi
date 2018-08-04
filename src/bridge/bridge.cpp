@@ -458,7 +458,6 @@ void Bridge::leave_irc_channel(Iid&& iid, const std::string& status_message, con
     }
       if (this->number_of_channels_the_resource_is_in(iid.get_server(), resource) == 0)
         this->remove_resource_from_server(iid.get_server(), resource);
-
 }
 
 void Bridge::send_irc_nick_change(const Iid& iid, const std::string& new_nick, const std::string& requesting_resource)
@@ -900,9 +899,7 @@ void Bridge::send_muc_leave(const Iid& iid, const IrcUser& user,
           for (const auto& r: resources_in_chan)
           if (this->number_of_channels_the_resource_is_in(iid.get_server(), r) == 0)
             this->remove_resource_from_server(iid.get_server(), r);
-
         }
-
     }
   IrcClient* irc = this->find_irc_client(iid.get_server());
   if (self && irc && irc->number_of_joined_channels() == 0)

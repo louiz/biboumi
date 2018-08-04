@@ -338,7 +338,6 @@ Transaction::Transaction()
     log_error("Failed to create SQL transaction: ", std::get<std::string>(result));
   else
     this->success = true;
-
 }
 
 Transaction::~Transaction()
