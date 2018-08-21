@@ -135,7 +135,7 @@ struct SelectQuery: public Query
 };
 
 template <typename... T>
-auto select(const Table<T...> table)
+auto select(const Table<T...>& table)
 {
   SelectQuery<T...> query(table.name);
   return query;

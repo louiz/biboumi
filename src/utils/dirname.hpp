@@ -2,5 +2,5 @@
 
 namespace utils
 {
-std::string dirname(const std::string filename);
+std::string dirname(const std::string& filename);
 }
