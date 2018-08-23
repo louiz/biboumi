@@ -14,4 +14,4 @@
 #cmakedefine HAS_GET_TIME
 #cmakedefine HAS_PUT_TIME
 #cmakedefine DEBUG_SQL_QUERIES
-
+#cmakedefine CMAKE_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}"

@@ -7,6 +7,8 @@
 #include <utils/reload.hpp>
 #include <utils/i18n.hpp>
 
+#include "biboumi.h"
+
 #ifdef UDNS_FOUND
 # include <network/dns_handler.hpp>
 #endif
@@ -60,7 +62,7 @@ int main(int ac, char** av)
 {
 #ifdef INTL_FOUND
   setlocale(LC_ALL, "");
-  bindtextdomain("biboumi", "/usr/share/locale");
+  bindtextdomain("biboumi", CMAKE_INSTALL_PREFIX"locale");
   textdomain("biboumi");
 #endif
 
