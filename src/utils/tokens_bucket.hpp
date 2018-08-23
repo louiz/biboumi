@@ -19,7 +19,7 @@ class TokensBucket
 public:
   TokensBucket(long int max_size, std::chrono::milliseconds fill_duration, std::function<bool()> callback, std::string name):
       limit(max_size),
-      tokens(limit),
+      tokens(static_cast<std::size_t>(limit)),
       callback(std::move(callback))
   {
     log_debug("creating TokensBucket with max size: ", max_size);

@@ -301,7 +301,7 @@ public:
   const std::vector<char>& get_sorted_user_modes() const { return this->sorted_user_modes; }
 
   std::set<char> get_chantypes() const { return this->chantypes; }
-  void set_throttle_limit(std::size_t limit);
+  void set_throttle_limit(long int limit);
   /**
    * Store the history limit that the client asked when joining this room.
    */

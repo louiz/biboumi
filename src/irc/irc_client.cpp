@@ -1248,7 +1248,7 @@ void IrcClient::on_channel_mode(const IrcMessage& message)
     }
 }
 
-void IrcClient::set_throttle_limit(std::size_t limit)
+void IrcClient::set_throttle_limit(long int limit)
 {
   this->tokens_bucket.set_limit(limit);
 }
