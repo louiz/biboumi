@@ -402,7 +402,7 @@ private:
    */
   Resolver dns_resolver;
   TokensBucket tokens_bucket;
-  std::size_t get_throttle_limit() const;
+  long int get_throttle_limit() const;
 };
 
 

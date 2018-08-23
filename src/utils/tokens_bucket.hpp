@@ -17,7 +17,7 @@
 class TokensBucket
 {
 public:
-  TokensBucket(std::size_t max_size, std::chrono::milliseconds fill_duration, std::function<bool()> callback, std::string name):
+  TokensBucket(long int max_size, std::chrono::milliseconds fill_duration, std::function<bool()> callback, std::string name):
       limit(max_size),
       tokens(limit),
       callback(std::move(callback))
@@ -29,6 +29,8 @@ public:
 
   bool use_token()
   {
+    if (this->limit < 0)
+      return true;
     if (this->tokens > 0)
       {
         this->tokens--;
@@ -38,19 +40,21 @@ public:
       return false;
   }
 
-  void set_limit(std::size_t limit)
+  void set_limit(long int limit)
   {
     this->limit = limit;
   }
 
 private:
-  std::size_t limit;
+  long int limit;
   std::size_t tokens;
   std::function<bool()> callback;
 
   void add_token()
   {
-    if (this->callback() && this->tokens != limit)
+    if (this->limit < 0)
+      return;
+    if (this->callback() && this->tokens != static_cast<decltype(this->tokens)>(this->limit))
       this->tokens++;
   }
 };

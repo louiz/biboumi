@@ -691,7 +691,7 @@ On a server JID (e.g on the JID chat.freenode.org@biboumi.example.com)
       are throttled, only one command per second is sent to the server.
       The default is 10. You can lower this value if you are ever kicked
       for excess flood. If the value is 0, all messages are throttled. To
-      disable this feature, just set a high value, like 999.
+      disable this feature, set it to a negative number, or an empty string.
 
 - get-irc-connection-info: Returns some information about the IRC server,
   for the executing user. It lets the user know if they are connected to
