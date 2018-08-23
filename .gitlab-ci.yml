@@ -65,17 +65,22 @@ build:archlinux:
   artifacts:
     paths: []
 
-build:1:
+build:no_botan:
   variables:
     BOTAN: "-DWITHOUT_BOTAN=1"
   <<: *fedora_build
 
-build:2:
+build:no_udns:
   variables:
     UDNS: "-DWITHOUT_UDNS=1"
   <<: *fedora_build
 
-build:3:
+build:no_libidn:
+  variables:
+    UDNS: "-DWITHOUT_UDNS=1"
+  <<: *fedora_build
+
+build:no_sqlite3:
   variables:
     SQLITE3: "-DWITHOUT_SQLITE3=1"
     TEST_POSTGRES_URI: "postgres@postgres/postgres"
@@ -83,31 +88,17 @@ build:3:
     - postgres:latest
   <<: *fedora_build
 
-build:4:
+build:no_db:
+  variables:
+    SQLITE3: "-DWITHOUT_SQLITE3=1"
+    POSTGRESQL: "-DWITHOUT_POSTGRESQL=1"
+  <<: *fedora_build
+
+build:no_db_botan:
   variables:
     SQLITE3: "-DWITHOUT_SQLITE3=1"
     POSTGRESQL: "-DWITHOUT_POSTGRESQL=1"
     BOTAN: "-DWITHOUT_BOTAN=1"
-    LIBIDN: "-DWITHOUT_LIBIDN=1"
-  <<: *fedora_build
-
-build:5:
-  variables:
-    UDNS: "-DWITHOUT_UDNS=1"
-    TEST_POSTGRES_URI: "postgres@postgres/postgres"
-  services:
-    - postgres:latest
-  <<: *fedora_build
-
-build:6:
-  variables:
-    BOTAN: "-DWITHOUT_BOTAN=1"
-    UDNS: "-DWITHOUT_UDNS=1"
-  <<: *fedora_build
-
-build:without_udns:
-  variables:
-    UDNS: "-DWITHOUT_UDNS=1"
   <<: *fedora_build
 
 #
@@ -144,11 +135,11 @@ test:fedora:
   dependencies:
     - build:fedora
 
-test:without_udns:
+test:no_udns:
   image: docker.louiz.org/louiz/biboumi/test-fedora:latest
   <<: *basic_test
   dependencies:
-    - build:without_udns
+    - build:no_udns
 
 test:alpine:
   image: docker.louiz.org/louiz/biboumi/test-alpine:latest
