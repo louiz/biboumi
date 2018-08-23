@@ -1007,11 +1007,14 @@ void Bridge::send_room_history(const std::string& hostname, const std::string& c
 void Bridge::send_room_history(const std::string& hostname, std::string chan_name, const std::string& resource, const HistoryLimit& history_limit)
 {
 #ifdef USE_DATABASE
-  const auto coptions = Database::get_irc_channel_options_with_server_and_global_default(this->user_jid, hostname, chan_name);
-  auto limit = coptions.col<Database::MaxHistoryLength>();
+  const auto goptions = Database::get_global_options(this->user_jid);
+  log_debug(goptions.col<Database::MaxHistoryLength>());
+  auto limit = goptions.col<Database::MaxHistoryLength>();
+  if (limit < 0)
+    limit = 20;
   if (history_limit.stanzas >= 0 && history_limit.stanzas < limit)
     limit = history_limit.stanzas;
-  const auto result = Database::get_muc_logs(this->user_jid, chan_name, hostname, limit, history_limit.since, {}, Id::unset_value, Database::Paging::last);
+  const auto result = Database::get_muc_logs(this->user_jid, chan_name, hostname, static_cast<std::size_t>(limit), history_limit.since, {}, Id::unset_value, Database::Paging::last);
   const auto& lines = std::get<1>(result);
   chan_name.append(utils::empty_if_fixed_server("%" + hostname));
   for (const auto& line: lines)

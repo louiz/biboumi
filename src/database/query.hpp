@@ -12,13 +12,14 @@
 #include <string>
 
 void actual_bind(Statement& statement, const std::string& value, int index);
-void actual_bind(Statement& statement, const std::int64_t& value, int index);
-template <typename T, typename std::enable_if_t<std::is_integral<T>::value>* = 0>
+void actual_bind(Statement& statement, const OptionalBool& value, int index);
+template <typename T>
 void actual_bind(Statement& statement, const T& value, int index)
 {
-  actual_bind(statement, static_cast<std::int64_t>(value), index);
+  static_assert(std::is_integral<T>::value,
+                "Only a string, an optional-bool or an integer can be used.");
+  statement.bind_int64(index, static_cast<int>(value));
 }
-void actual_bind(Statement& statement, const OptionalBool& value, int index);
 
 #ifdef DEBUG_SQL_QUERIES
 #include <utils/scopetimer.hpp>

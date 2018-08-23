@@ -162,10 +162,6 @@ Database::IrcChannelOptions Database::get_irc_channel_options_with_server_and_gl
   coptions.col<EncodingOut>() = get_first_non_empty(coptions.col<EncodingOut>(),
                                                     soptions.col<EncodingOut>());
 
-  coptions.col<MaxHistoryLength>() = get_first_non_empty(coptions.col<MaxHistoryLength>(),
-                                                         soptions.col<MaxHistoryLength>(),
-                                                         goptions.col<MaxHistoryLength>());
-
   return coptions;
 }
 

@@ -6,7 +6,7 @@ struct OptionalBool
 {
   OptionalBool() = default;
 
-  OptionalBool(bool value):
+  explicit OptionalBool(bool value):
   is_set(true), value(value) {}
 
   void set_value(bool value)
