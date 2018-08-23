@@ -50,7 +50,7 @@ TCPSocketHandler::TCPSocketHandler(std::shared_ptr<Poller>& poller):
   SocketHandler(poller, -1),
   use_tls(false)
 #ifdef BOTAN_FOUND
-  ,credential_manager(this)
+  ,credential_manager()
 #endif
 {}
 
@@ -84,10 +84,11 @@ void TCPSocketHandler::plain_recv()
   if (recv_buf == nullptr)
     recv_buf = buf;
 
-  const ssize_t size = this->do_recv(recv_buf, buf_size);
+  const ssize_t ssize = this->do_recv(recv_buf, buf_size);
 
-  if (size > 0)
+  if (ssize > 0)
     {
+      auto size = static_cast<std::size_t>(ssize);
       if (buf == recv_buf)
         {
           // data needs to be placed in the in_buf string, because no buffer
@@ -149,21 +150,22 @@ void TCPSocketHandler::on_send()
     }
   else
     {
+      auto size = static_cast<std::size_t>(res);
       // remove all the strings that were successfully sent.
       auto it = this->out_buf.begin();
       while (it != this->out_buf.end())
         {
-          if (static_cast<size_t>(res) >= it->size())
+          if (size >= it->size())
             {
-              res -= it->size();
+              size -= it->size();
               ++it;
             }
           else
             {
               // If one string has partially been sent, we use substr to
               // crop it
-              if (res > 0)
-                *it = it->substr(res, std::string::npos);
+              if (size > 0)
+                *it = it->substr(size, std::string::npos);
               break;
             }
         }

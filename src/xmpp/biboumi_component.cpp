@@ -762,7 +762,7 @@ bool BiboumiComponent::handle_mam_request(const Stanza& stanza)
         if (limit < 0 || limit > 100)
           limit = 100;
         auto result = Database::get_muc_logs(from.bare(), iid.get_local(), iid.get_server(),
-                                            limit,
+                                            static_cast<std::size_t>(limit),
                                             start, end,
                                             reference_record_id, paging_order);
         bool complete = std::get<bool>(result);

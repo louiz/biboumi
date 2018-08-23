@@ -48,16 +48,16 @@ namespace utils
         if (codepoint_size == 4)
           {
             if (!str[1] || !str[2] || !str[3]
-                || ((str[1] & 0b11000000) != 0b10000000)
-                || ((str[2] & 0b11000000) != 0b10000000)
-                || ((str[3] & 0b11000000) != 0b10000000))
+                || ((str[1] & 0b11000000u) != 0b10000000u)
+                || ((str[2] & 0b11000000u) != 0b10000000u)
+                || ((str[3] & 0b11000000u) != 0b10000000u))
               return false;
           }
         else if (codepoint_size == 3)
           {
             if (!str[1] || !str[2]
-                || ((str[1] & 0b11000000) != 0b10000000)
-                || ((str[2] & 0b11000000) != 0b10000000))
+                || ((str[1] & 0b11000000u) != 0b10000000u)
+                || ((str[2] & 0b11000000u) != 0b10000000u))
               return false;
           }
         else if (codepoint_size == 2)
@@ -81,7 +81,7 @@ namespace utils
     // pointer where we write valid chars
     char* r = res.data();
 
-    const char* str = original.c_str();
+    const unsigned char* str = reinterpret_cast<const unsigned char*>(original.c_str());
     std::bitset<20> codepoint;
 
     while (*str)
@@ -89,10 +89,10 @@ namespace utils
         // 4 bytes:  11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
         if ((str[0] & 0b11111000) == 0b11110000)
           {
-            codepoint  = ((str[0] & 0b00000111) << 18);
-            codepoint |= ((str[1] & 0b00111111) << 12);
-            codepoint |= ((str[2] & 0b00111111) << 6 );
-            codepoint |= ((str[3] & 0b00111111) << 0 );
+            codepoint  = ((str[0] & 0b00000111u) << 18u);
+            codepoint |= ((str[1] & 0b00111111u) << 12u);
+            codepoint |= ((str[2] & 0b00111111u) << 6u );
+            codepoint |= ((str[3] & 0b00111111u) << 0u );
             if (codepoint.to_ulong() <= 0x10FFFF)
               {
                 ::memcpy(r, str, 4);
@@ -103,9 +103,9 @@ namespace utils
         // 3 bytes:  1110xxx 10xxxxxx 10xxxxxx
         else if ((str[0] & 0b11110000) == 0b11100000)
           {
-            codepoint  = ((str[0] & 0b00001111) << 12);
-            codepoint |= ((str[1] & 0b00111111) << 6);
-            codepoint |= ((str[2] & 0b00111111) << 0 );
+            codepoint  = ((str[0] & 0b00001111u) << 12u);
+            codepoint |= ((str[1] & 0b00111111u) << 6u);
+            codepoint |= ((str[2] & 0b00111111u) << 0u );
             if (codepoint.to_ulong() <= 0xD7FF ||
                 (codepoint.to_ulong() >= 0xE000 && codepoint.to_ulong() <= 0xFFFD))
               {

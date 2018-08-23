@@ -77,7 +77,7 @@ static void setup_signals()
   sigfillset(&on_sigint.sa_mask);
   // we want to catch that signal only once.
   // Sending SIGINT again will "force" an exit
-  on_sigint.sa_flags = SA_RESETHAND;
+  on_sigint.sa_flags = 0 & SA_RESETHAND;
   sigaction(SIGINT, &on_sigint, nullptr);
   sigaction(SIGTERM, &on_sigint, nullptr);
 

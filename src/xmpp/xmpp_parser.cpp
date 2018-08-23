@@ -20,7 +20,7 @@ static void end_element_handler(void* user_data, const XML_Char* name)
 
 static void character_data_handler(void *user_data, const XML_Char *s, int len)
 {
-  static_cast<XmppParser*>(user_data)->char_data(s, len);
+  static_cast<XmppParser*>(user_data)->char_data(s, static_cast<std::size_t>(len));
 }
 
 /**
