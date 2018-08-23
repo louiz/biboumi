@@ -1291,7 +1291,7 @@ bool IrcClient::abort_on_invalid_cert() const
 }
 #endif
 
-std::size_t IrcClient::get_throttle_limit() const
+long int IrcClient::get_throttle_limit() const
 {
 #ifdef USE_DATABASE
   return Database::get_irc_server_options(this->bridge.get_bare_jid(), this->hostname).col<Database::ThrottleLimit>();
