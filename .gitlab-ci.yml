@@ -168,25 +168,6 @@ test:freebsd:
     - make e2e
   dependencies: []
 
-coverity:
-  stage: external
-  only:
-    - branches@louiz/biboumi
-  tags:
-    - docker
-  image: docker.louiz.org/louiz/biboumi/test-fedora:latest
-  allow_failure: true
-  when: manual
-  script:
-    - export PATH=$PATH:~/coverity/bin
-    - mkdir build/
-    - cd build/
-    - cmake .. -DWITHOUT_SYSTEMD=1
-    - cov-build --dir cov-int   make everything -j$(nproc || echo 1)
-    - tar czvf biboumi_coverity.tgz cov-int
-    - curl --form token=$COVERITY_TOKEN   --form email=louiz@louiz.org   --form file=@biboumi_coverity.tgz  --form version="$(git rev-parse --short HEAD)" --form description="Automatic submission by gitlab-ci" https://scan.coverity.com/builds?project=louiz%2Fbiboumi
-  dependencies: []
-
 #
 ## Packaging jobs
 #
