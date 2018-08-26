@@ -149,7 +149,7 @@ test:alpine:
   image: docker.louiz.org/louiz/biboumi/test-alpine:latest
   <<: *basic_test
   dependencies:
-    - build:debian
+    - build:alpine
   image: docker.louiz.org/louiz/biboumi/test-alpine:latest
 
 test:freebsd:
