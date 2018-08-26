@@ -238,11 +238,22 @@ void BiboumiComponent::handle_presence(const Stanza& stanza)
 #endif
             }
         }
+      else if (type == "unavailable")
+        {
+          if (iid.type == Iid::Type::Server)
+            {
+              bridge->unforce_connect_to_server(iid.get_server(), from.resource);
+            }
+        }
       else if (type.empty())
         { // We just receive a presence from someone (as the result of a probe,
           // or a directed presence, or a normal presence change)
           if (iid.type == Iid::Type::None)
             this->send_presence_to_contact(to_str, from.bare(), "");
+          else if (iid.type == Iid::Type::Server)
+            {
+              bridge->force_connect_to_server(iid.get_server(), from.resource);
+            }
         }
     }
   else if (iid.type == Iid::Type::User)

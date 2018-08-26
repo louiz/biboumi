@@ -481,7 +481,10 @@ void IrcClient::send_topic_command(const std::string& chan_name, const std::stri
 
 void IrcClient::send_quit_command(const std::string& reason)
 {
-  this->send_message(IrcMessage("QUIT", {reason}), {}, false);
+  if (!reason.empty())
+    this->send_message(IrcMessage("QUIT", {reason}), {}, false);
+  else
+    this->send_message(IrcMessage("QUIT", {}), {}, false);
 }
 
 void IrcClient::send_join_command(const std::string& chan_name, const std::string& password)

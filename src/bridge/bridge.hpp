@@ -97,6 +97,8 @@ public:
                                 const std::string& from_jid);
   void send_irc_channel_list_request(const Iid& iid, const std::string& iq_id, const std::string& to_jid,
                                      ResultSetInfo rs_info);
+  void force_connect_to_server(const std::string& hostname, const std::string& resource);
+  void unforce_connect_to_server(const std::string& hostname, const std::string& resource);
   /**
    * Check if the channel list contains what is needed to answer the RSM request,
    * if it does, send the iq result. If the list is complete but does not contain
@@ -310,6 +312,7 @@ private:
 public:
   std::map<ChannelKey, std::set<Resource>> resources_in_chan;
   std::map<IrcHostname, std::set<Resource>> resources_in_server;
+  std::map<const IrcClient*, std::set<Resource>> force_connected_resources;
 private:
   /**
    * Manage which resource is in which channel
