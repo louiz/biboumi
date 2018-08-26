@@ -569,6 +569,57 @@ void Bridge::send_irc_channel_list_request(const Iid& iid, const std::string& iq
     }
 }
 
+void Bridge::force_connect_to_server(const std::string& hostname, const std::string& resource)
+{
+  auto soptions = Database::get_irc_server_options(this->get_bare_jid(), hostname);
+  const auto& nickname = soptions.col<Database::Nick>();
+  IrcClient* irc = nullptr;
+  if (nickname.empty())
+    {
+      irc = this->find_irc_client(hostname);
+      if (!irc)
+        return;
+    }
+  else
+    {
+      irc = this->make_irc_client(hostname, nickname);
+      this->add_resource_to_server(hostname, resource);
+      irc->start();
+    }
+  auto result = this->force_connected_resources.insert(std::make_pair(irc, std::set<Resource>{resource}));
+  const bool& inserted = result.second;
+  if (!inserted)
+    {
+      auto& it = result.first;
+      std::set<Resource>& resources = it->second;
+      resources.insert(resource);
+    }
+}
+
+void Bridge::unforce_connect_to_server(const std::string& hostname, const std::string& resource)
+{
+  IrcClient* irc = this->find_irc_client(hostname);
+  if (!irc)
+    return;
+  auto server_it = this->force_connected_resources.find(irc);
+  if (server_it == this->force_connected_resources.end())
+    return;
+  std::set<Resource>& forced_resources = server_it->second;
+  auto resource_it = forced_resources.find(resource);
+  if (resource_it == forced_resources.end())
+    return;
+  forced_resources.erase(resource_it);
+  if (forced_resources.empty())
+    {
+      this->force_connected_resources.erase(server_it);
+      irc->send_quit_command("");
+    }
+  else
+    {
+      this->remove_resource_from_server(hostname, resource);
+    }
+}
+
 bool Bridge::send_matching_channel_list(const ChannelList& channel_list, const ResultSetInfo& rs_info,
                                         const std::string& id, const std::string& to_jid, const std::string& from)
 {
@@ -902,7 +953,9 @@ void Bridge::send_muc_leave(const Iid& iid, const IrcUser& user,
         }
     }
   IrcClient* irc = this->find_irc_client(iid.get_server());
-  if (self && irc && irc->number_of_joined_channels() == 0)
+  auto forced_resources = this->force_connected_resources.find(irc);
+  const bool force_connected = forced_resources != this->force_connected_resources.end() && !forced_resources->second.empty();
+  if (self && irc && irc->number_of_joined_channels() == 0 && !force_connected)
     irc->send_quit_command("");
 }
 
