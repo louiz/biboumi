@@ -3379,6 +3379,7 @@ if __name__ == '__main__':
             print("You can check the files slixmpp_%s_output.txt and biboumi_%s_output.txt to help you debug." %
                   (s.name, s.name))
             failures += 1
+        sys.stdout.flush()
 
     print("Waiting for irc server to exit…")
     irc.stop()
