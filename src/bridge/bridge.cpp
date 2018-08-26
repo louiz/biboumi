@@ -571,6 +571,7 @@ void Bridge::send_irc_channel_list_request(const Iid& iid, const std::string& iq
 
 void Bridge::force_connect_to_server(const std::string& hostname, const std::string& resource)
 {
+#ifdef USE_DATABASE
   auto soptions = Database::get_irc_server_options(this->get_bare_jid(), hostname);
   const auto& nickname = soptions.col<Database::Nick>();
   IrcClient* irc = nullptr;
@@ -594,10 +595,15 @@ void Bridge::force_connect_to_server(const std::string& hostname, const std::str
       std::set<Resource>& resources = it->second;
       resources.insert(resource);
     }
+#else
+  (void)hostname;
+  (void)resource;
+#endif
 }
 
 void Bridge::unforce_connect_to_server(const std::string& hostname, const std::string& resource)
 {
+#ifdef USE_DATABASE
   IrcClient* irc = this->find_irc_client(hostname);
   if (!irc)
     return;
@@ -618,6 +624,10 @@ void Bridge::unforce_connect_to_server(const std::string& hostname, const std::s
     {
       this->remove_resource_from_server(hostname, resource);
     }
+#else
+  (void)hostname;
+  (void)resource;
+#endif
 }
 
 bool Bridge::send_matching_channel_list(const ChannelList& channel_list, const ResultSetInfo& rs_info,
