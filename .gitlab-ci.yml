@@ -32,7 +32,6 @@ variables:
     - cd build/
     - cmake .. -DCMAKE_CXX_FLAGS="-Werror -Wno-psabi" -DCMAKE_CXX_COMPILER=${COMPILER} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ${BOTAN} ${UDNS} ${SYSTEMD} ${LIBIDN} ${SQLITE3} ${POSTGRESQL}
     - make everything -j$(nproc || echo 1)
-    - make coverage_check -j$(nproc || echo 1)
   artifacts:
     expire_in: 2 weeks
     paths:
@@ -111,8 +110,8 @@ build:no_db_botan:
     - docker
   script:
     - cd build/
-    - make coverage_e2e -j$(nproc || echo 1)
-    - make coverage
+    - make check -j$(nproc || echo 1)
+    - make e2e -j$(nproc || echo 1)
   artifacts:
     expire_in: 2 weeks
     paths:
@@ -132,6 +131,11 @@ test:debian:
 test:fedora:
   image: docker.louiz.org/louiz/biboumi/test-fedora:latest
   <<: *basic_test
+  script:
+    - cd build/
+    - make coverage_check -j$(nproc || echo 1)
+    - make coverage_e2e -j$(nproc || echo 1)
+    - make coverage
   dependencies:
     - build:fedora
 
@@ -143,18 +147,12 @@ test:no_udns:
 
 test:alpine:
   image: docker.louiz.org/louiz/biboumi/test-alpine:latest
-  stage: test
-  tags:
-    - docker
-  script:
-    - cd build/
-    - make e2e
+  <<: *basic_test
   dependencies:
-    - build:alpine
+    - build:debian
+  image: docker.louiz.org/louiz/biboumi/test-alpine:latest
 
 test:freebsd:
-  only:
-    - branches@louiz/biboumi
   tags:
     - freebsd
   variables:
