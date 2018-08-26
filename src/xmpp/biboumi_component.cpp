@@ -102,8 +102,8 @@ void BiboumiComponent::shutdown()
 
 void BiboumiComponent::clean()
 {
-  auto it = this->bridges.begin();
-  while (it != this->bridges.end())
+  auto it = std::begin(this->bridges);
+  while (it != std::end(this->bridges))
   {
     it->second->clean();
     if (it->second->active_clients() == 0)

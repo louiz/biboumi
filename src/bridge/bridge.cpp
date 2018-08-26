@@ -456,8 +456,8 @@ void Bridge::leave_irc_channel(Iid&& iid, const std::string& status_message, con
                              true, true, resource, irc);
       this->remove_resource_from_chan(key, resource);
     }
-      if (this->number_of_channels_the_resource_is_in(iid.get_server(), resource) == 0)
-        this->remove_resource_from_server(iid.get_server(), resource);
+  if (this->number_of_channels_the_resource_is_in(iid.get_server(), resource) == 0)
+    this->remove_resource_from_server(iid.get_server(), resource);
 }
 
 void Bridge::send_irc_nick_change(const Iid& iid, const std::string& new_nick, const std::string& requesting_resource)
