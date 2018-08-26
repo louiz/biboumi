@@ -324,7 +324,6 @@ private:
 
   void add_resource_to_server(const IrcHostname& irc_hostname, const std::string& resource);
   void remove_resource_from_server(const IrcHostname& irc_hostname, const std::string& resource);
-  bool is_resource_in_server(const IrcHostname& irc_hostname, const std::string& resource) const;
   size_t number_of_channels_the_resource_is_in(const std::string& irc_hostname, const std::string& resource) const;
 
   /**

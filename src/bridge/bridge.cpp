@@ -1008,7 +1008,6 @@ void Bridge::send_room_history(const std::string& hostname, std::string chan_nam
 {
 #ifdef USE_DATABASE
   const auto goptions = Database::get_global_options(this->user_jid);
-  log_debug(goptions.col<Database::MaxHistoryLength>());
   auto limit = goptions.col<Database::MaxHistoryLength>();
   if (limit < 0)
     limit = 20;
@@ -1221,15 +1220,6 @@ void Bridge::remove_resource_from_server(const Bridge::IrcHostname& irc_hostname
       if (it->second.empty())
         this->resources_in_server.erase(it);
     }
-}
-
-bool Bridge::is_resource_in_server(const Bridge::IrcHostname& irc_hostname, const std::string& resource) const
-{
-  auto it = this->resources_in_server.find(irc_hostname);
-  if (it != this->resources_in_server.end())
-    if (it->second.count(resource) == 1)
-      return true;
-  return false;
 }
 
 std::size_t Bridge::number_of_resources_in_chan(const Bridge::ChannelKey& channel) const
