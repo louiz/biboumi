@@ -241,8 +241,8 @@ public:
    * iq_responder_callback_t and remove the callback from the list.
    */
   void trigger_on_irc_message(const std::string& irc_hostname, const IrcMessage& message);
-  std::unordered_map<std::string, std::shared_ptr<IrcClient>>& get_irc_clients();
-  const std::unordered_map<std::string, std::shared_ptr<IrcClient>>& get_irc_clients() const;
+  std::unordered_map<std::string, std::unique_ptr<IrcClient>>& get_irc_clients();
+  const std::unordered_map<std::string, std::unique_ptr<IrcClient>>& get_irc_clients() const;
   std::set<char> get_chantypes(const std::string& hostname) const;
 #ifdef USE_DATABASE
   void set_record_history(const bool val);
@@ -275,7 +275,7 @@ private:
    * One IrcClient for each IRC server we need to be connected to.
    * The pointer is shared by the bridge and the poller.
    */
-  std::unordered_map<std::string, std::shared_ptr<IrcClient>> irc_clients;
+  std::unordered_map<std::string, std::unique_ptr<IrcClient>> irc_clients;
   /**
    * To communicate back with the XMPP component
    */

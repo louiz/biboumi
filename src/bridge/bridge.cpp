@@ -63,7 +63,7 @@ void Bridge::shutdown(const std::string& exit_message)
 {
   for (auto& pair: this->irc_clients)
   {
-    std::shared_ptr<IrcClient>& irc = pair.second;
+    std::unique_ptr<IrcClient>& irc = pair.second;
     irc->send_quit_command(exit_message);
   }
 }
@@ -134,11 +134,11 @@ IrcClient* Bridge::make_irc_client(const std::string& hostname, const std::strin
           realname = this->get_bare_jid();
         }
       this->irc_clients.emplace(hostname,
-                                std::make_shared<IrcClient>(this->poller, hostname,
+                                std::make_unique<IrcClient>(this->poller, hostname,
                                                             nickname, username,
                                                             realname, jid.domain,
                                                             *this));
-      std::shared_ptr<IrcClient> irc = this->irc_clients.at(hostname);
+      std::unique_ptr<IrcClient>& irc = this->irc_clients.at(hostname);
       return irc.get();
     }
 }
@@ -1151,12 +1151,12 @@ void Bridge::trigger_on_irc_message(const std::string& irc_hostname, const IrcMe
     }
 }
 
-std::unordered_map<std::string, std::shared_ptr<IrcClient>>& Bridge::get_irc_clients()
+std::unordered_map<std::string, std::unique_ptr<IrcClient>>& Bridge::get_irc_clients()
 {
   return this->irc_clients;
 }
 
-const std::unordered_map<std::string, std::shared_ptr<IrcClient>>& Bridge::get_irc_clients() const
+const std::unordered_map<std::string, std::unique_ptr<IrcClient>>& Bridge::get_irc_clients() const
 {
   return this->irc_clients;
 }
