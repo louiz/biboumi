@@ -156,6 +156,7 @@ test:freebsd:
   tags:
     - freebsd
   variables:
+    GIT_STRATEGY: "clone"
     SYSTEMD: "-DWITHOUT_SYSTEMD=1"
   stage: test
   script:
