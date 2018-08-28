@@ -1,24 +1,28 @@
-INSTALL
-=======
+Installation
+============
 
-tl;dr
------
+The very short version:
 
-  cmake . && make && ./biboumi
+.. code-block:: sh
+
+   cmake . && make && ./biboumi
 
 If that didn’t work, read on.
 
 Dependencies
 ------------
 
-Build and runtime dependencies:
+Here’s the list of all the build and runtime dependencies. Because we
+strive to use the smallest number of dependencies possible, many of them
+are optional.  That being said, you will have the best experience using
+biboumi by having all dependencies.
 
 Tools:
 ~~~~~~
 
 - A C++14 compiler (clang >= 3.4 or gcc >= 5.0 for example)
 - CMake
-- pandoc (optional) to build the man page
+- sphinx (optional) to build the documentation
 
 Libraries:
 ~~~~~~~~~~
@@ -59,28 +63,61 @@ systemd_ (optional)
  Provides the support for a systemd service of Type=notify. This is useful only
  if you are packaging biboumi in a distribution with Systemd.
 
-
-Configure
+Customize
 ---------
 
-Configure the build system using cmake, there are many solutions to do that,
-the simplest is to just run
+The basics
+~~~~~~~~~~
 
-  cmake .
+Once you have all the dependencies you need, configure the build system
+using cmake. The cleanest way is to create a build directory, and run
+everything inside it:
 
-in the current directory.
+
+.. code-block:: sh
+
+  mkdir build/ && cd build/ && cmake ..
+
+Choosing the dependencies
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Without any option, cmake will look for all dependencies available on the
+system and use everything it finds.  If a mandatory dependency is missing
+it will obviously stop and yield an error, however if an optional
+dependency is missing, it will just ignore it.
+
+To specify that you want or don’t want to use, you need to
+pass an option like this:
+
+.. code-block:: sh
+
+  cmake .. -DWITH_XXXX=1 -DWITHOUT_XXXX=1
+
+The `WITH_` prefix indicates that cmake should stop if that dependency can
+not be found, and the `WITHOUT_` prefix indicates that this dependency
+should not be used even if it is present on the system.
+
+The `XXXX` part needs to be replaced by one of the following: BOTAN,
+LIBIDN, SYSTEMD, DOC, UDNS, SQLITE3, POSTGRESQL.
+
+Other options
+~~~~~~~~~~~~~
 
 The default build type is "Debug", if you want to build a release version,
 set the CMAKE_BUILD_TYPE variable to "release", by running this command
 instead:
 
-    cmake . -DCMAKE_BUILD_TYPE=release -DCMAKE_INSTALL_PREFIX=/usr
+.. code-block:: sh
+
+    cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr
 
 You can also configure many parameters of the build (like customize CFLAGS,
 the install path, choose the compiler, or enabling some options like the
 POLLER to use), using the ncurses interface of ccmake:
 
-    ccmake .
+.. code-block:: sh
+
+    ccmake ..
 
 In ccmake, first use 'c' to configure the build system, edit the values you
 need and finaly use 'g' to generate the Makefiles to build the system and
@@ -88,7 +125,8 @@ quit ccmake.
 
 You can also configure these options using a -D command line flag.
 
-The list of available options:
+Biboumi also has a few advanced options that are useful only in very
+specific cases.
 
 - POLLER: lets you select the poller used by biboumi, at
   compile-time. Possible values are:
@@ -97,25 +135,16 @@ The list of available options:
   - POLL: use the standard poll(2). This is the default value on all non-Linux
     platforms.
 
-- DEBUG_SQL_QUERIES: If set to ON, additional debug logging and timing will be
-  done for every SQL query that is executed. The default is OFF.
-
-- WITH_BOTAN and WITHOUT_BOTAN: The first force the usage of the Botan library,
-  if it is not found, the configuration process will fail. The second will
-  make the build process ignore the Botan library, it will not be used even
-  if it's available on the system.  If none of these option is specified, the
-  library will be used if available and will be ignored otherwise.
-
-- WITH_LIBIDN and WITHOUT_LIBIDN: Just like the WITH(OUT)_BOTAN options, but
-  for the IDN library
-
-- WITH_SYSTEMD and WITHOUT_SYSTEMD: Just like the other WITH(OUT)_* options,
-  but for the Systemd library
+- DEBUG_SQL_QUERIES: If set to ON, additional debug logging and timing
+  will be done for every SQL query that is executed. The default is OFF.
+  Please set it to ON if you intend to share your debug logs on the bug
+  trackers, if your issue affects the database.
 
 Example:
 
-  cmake . -DCMAKE_BUILD_TYPE=release -DCMAKE_INSTALL_PREFIX=/usr
-  -DWITH_BOTAN=1 -DWITHOUT_SYSTEMD=1
+.. code-block:: sh
+
+  cmake . -DCMAKE_BUILD_TYPE=release -DCMAKE_INSTALL_PREFIX=/usr -DWITH_BOTAN=1 -DWITHOUT_SYSTEMD=1
 
 This command will configure the project to build a release, with TLS enabled
 (using Botan) but without using Systemd (even if available on the system).
@@ -123,41 +152,34 @@ This command will configure the project to build a release, with TLS enabled
 
 Build
 -----
+
 Once you’ve configured everything using cmake, build the software:
 
-To build the biboumi binary:
+To build the biboumi binary, run:
+
+.. code-block:: sh
 
   make
 
 
 Install
 -------
+
 And then, optionaly, Install the software system-wide
+
+.. code-block:: sh
 
   make install
 
-
-Testing
--------
-You can run the test suite with
-
-  make check
-
-This project uses the Catch unit test framework, it will be automatically
-fetched with cmake, by cloning the github repository.
-
-You can also check the overall code coverage of this test suite by running
-
-  make coverage
-
-This requires gcov and lcov to be installed.
+This will install the biboumi binary, but also the man-page (if configured
+with it), the policy files, the systemd unit file, etc.
 
 
 Run
 ---
-Run the software using the `biboumi` binary.  Read the documentation (the
-man page biboumi(1) or the `biboumi.1.rst`_ file) for more information on how
-to use biboumi.
+
+Finally, run the software using the `biboumi` binary.  Read the documentation (the
+man page biboumi(1)) or the usage page.
 
 .. _expat: http://expat.sourceforge.net/
 .. _libiconv: http://www.gnu.org/software/libiconv/
