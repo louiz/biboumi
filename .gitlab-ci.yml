@@ -2,6 +2,7 @@ stages:
   - build     # Build in various conf, keeps the artifacts
   - test      # Use the build artifacts to run the tests
   - packaging # Publish some packages (rpm, deb…)
+  - deploy    # Deploy things like the web doc
   - external  # Interact with some external service (coverity…)
 
 before_script:
@@ -232,4 +233,22 @@ packaging:archlinux:
     - cd biboumi-git
     - makepkg -si --noconfirm
     - test -e /usr/bin/biboumi
+  dependencies: []
+
+#
+# Deploy jobs
+#
+
+doc:
+  stage: deploy
+  only:
+    - branches@louiz/biboumi
+  tags:
+    - www
+  image: docker.louiz.org/louiz/biboumi/doc-builder
+  script:
+    - cd doc/
+    - make html
+    - rm -rf /www/latest
+    - mv _build/html /www/latest
   dependencies: []
