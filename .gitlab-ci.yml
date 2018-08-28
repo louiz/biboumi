@@ -249,4 +249,5 @@ doc:
   script:
     - make doc
     - rm -rf /www/latest
-    - mv
+    - mv html /www/latest
+  dependencies: []
