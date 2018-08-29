@@ -245,6 +245,9 @@ doc:
     - branches@louiz/biboumi
   tags:
     - www
+  environment:
+    name: doc.latest
+    url: https://doc.biboumi.louiz.org
   image: docker.louiz.org/louiz/biboumi/doc-builder
   script:
     - cd doc/
