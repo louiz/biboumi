@@ -51,6 +51,6 @@ Biboumi is Free Software.
 Biboumi is released under the zlib license.
 Please read the COPYING file for details.
 
-.. _INSTALL: INSTALL.rst
-.. _the documentation: doc/biboumi.1.rst
+.. _INSTALL: doc/install.rst
+.. _the documentation: https://doc.biboumi.louiz.org
 .. _contributing: CONTRIBUTING.rst
