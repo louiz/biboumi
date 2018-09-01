@@ -1,5 +1,6 @@
+#######################
 Contributing to biboumi
-=======================
+#######################
 
 Biboumi’s main workplace is at https://lab.louiz.org/louiz/biboumi
 
@@ -61,18 +62,22 @@ There are two test suites for biboumi:
 
   Once all the dependencies are correctly installed, the tests are run with
 
-  `make e2e`
+.. code-block:: sh
 
-  To run one or more specific tests, you can do something like this:
+  make e2e
 
-  `make biboumi && python3 ../tests/end_to_end  self_ping  basic_handshake_success`
+To run one or more specific tests, you can do something like this:
 
-  This will run two tests, self_ping and basic_handshake_success.
+.. code-block:: sh
 
-  To write additional tests, you need to add a Scenario
-  into `the __main__.py file`_. If you have problem running this end-to-end
-  test suite, or if you struggle with this weird code (that would be
-  completely normal…), don’t hesitate to ask for help.
+  make biboumi && python3 ../tests/end_to_end  self_ping  basic_handshake_success
+
+This will run two tests, self_ping and basic_handshake_success.
+
+To write additional tests, you need to add a Scenario
+into `the __main__.py file`_. If you have problem running this end-to-end
+test suite, or if you struggle with this weird code (that would be
+completely normal…), don’t hesitate to ask for help.
 
 
 All these tests automatically run with various configurations, on various

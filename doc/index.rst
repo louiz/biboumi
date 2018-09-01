@@ -20,3 +20,4 @@ XMPP client as if these channels were XMPP MUCs.
    install
    admin
    user
+   contributing
