@@ -17,6 +17,13 @@ all XMPP stanza with a `to` JID on that domain will be forwarded to biboumi
 by the XMPP server, and biboumi will only send messages coming from that
 hostname.
 
+To cleanly shutdown the component, send a SIGINT or SIGTERM signal to it.
+It will send messages to all connected IRC and XMPP servers to indicate a
+reason why the users are being disconnected.  Biboumi exits when the end of
+communication is acknowledged by all IRC servers.  If one or more IRC
+servers do not respond, biboumi will only exit if it receives the same
+signal again or if a 2 seconds delay has passed.
+
 Configuration
 =============
 
@@ -106,8 +113,8 @@ The name of the database to use. This option can only be used if biboumi
 has been compiled with a database support (Sqlite3 and/or PostgreSQL). If
 the value begins with the postgresql scheme, “postgresql://” or
 “postgres://”, then biboumi will try to connect to the PostgreSQL database
-specified by the URI. See
-https://www.postgresql.org/docs/current/static/libpq-connect.html#idm46428693970032
+specified by the URI. See `the PostgreSQL doc
+<https://www.postgresql.org/docs/current/static/libpq-connect.html#idm46428693970032>`_
 for all possible values. For example the value could be
 “postgresql://user:secret@localhost”. If the value does not start with the
 postgresql scheme, then it specifies a filename that will be opened with

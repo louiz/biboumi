@@ -21,13 +21,6 @@ There is no need to have multiple nicknames and multiple connections to be
 able to take part in a conversation (or idle) in a channel from a mobile client
 while the desktop client is still connected, for example.
 
-To cleanly shutdown the component, send a SIGINT or SIGTERM signal to it.
-It will send messages to all connected IRC and XMPP servers to indicate a
-reason why the users are being disconnected.  Biboumi exits when the end of
-communication is acknowledged by all IRC servers.  If one or more IRC
-servers do not respond, biboumi will only exit if it receives the same
-signal again or if a 2 seconds delay has passed.
-
 .. note:: If you use a biboumi that you have no control on: remember that the
  administrator of the gateway you use is able to view all your IRC
  conversations, whether you’re using encryption or not.  This is exactly as
@@ -65,11 +58,17 @@ IRC nicknames are case-insensitive, this means that the nicknames toto,
 Toto, tOtO and TOTO all represent the same IRC user.  This means you can
 talk to the user toto, and this will work.
 
-Also note that some IRC nicknames or channels may contain characters that are
-not allowed in the local part of a JID (for example '@').  If you need to send a
-message to a nick containing such a character, you can use a jid like
-``%irc.example.com@biboumi.example.com/AnnoyingNickn@me``, because the JID
-``AnnoyingNickn@me%irc.example.com@biboumi.example.com`` would not work.
+Also note that some IRC nicknames or channels may contain characters that
+are not allowed in the local part of a JID (for example '@').  If you need
+to send a message to a nick containing such a character, you can use a jid
+like ``%irc.example.com@biboumi.example.com/AnnoyingNickn@me``, because
+the JID ``AnnoyingNickn@me%irc.example.com@biboumi.example.com`` would not
+work. This “weird” JID is just using the fact that you can send a private
+message through any room (even a room with an empty name) because, on IRC,
+a query does not go through any room at all, it’s just server-wide. So,
+sending a message to #doesnotexist%irc@biboumi/User is exactly the same as
+sending one to %irc@biboumi/User.
+
 And if you need to address a channel that contains such invalid characters, you
 have to use `jid-escaping <http://www.xmpp.org/extensions/xep-0106.html#escaping>`_,
 and replace each of these characters with their escaped version, for example to
@@ -358,9 +357,6 @@ disconnect-user
 Only available to the administrator. The user provides a list of JIDs, and
 a quit message. All the selected users are disconnected from all the IRC
 servers to which they were connected, using the provided quit message.
-Sending SIGINT to biboumi is equivalent to using this command by selecting
-all the connected JIDs and using the “Gateway shutdown” quit message,
-except that biboumi does not exit when using this ad-hoc command.
 
 disconnect-from-irc-servers
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -374,7 +370,7 @@ disconnect themselves.
 configure
 ^^^^^^^^^
 
-Lets each user configure some options that applies globally.
+Lets each user configure some options that apply globally.
 The provided configuration form contains these fields:
 
 - **Record History**: whether or not history messages should be saved in
@@ -386,12 +382,12 @@ The provided configuration form contains these fields:
   whether or not their specific value is true or false. This option is true
   by default for everyone if the `persistent_by_default` configuration
   option is true, otherwise it’s false. See below for more details on what a
-  persistent channel is. This value is
+  persistent channel is.
 
 On a server JID
 ~~~~~~~~~~~~~~~
 
-E.g on the JID chat.freenode.org@biboumi.example.com
+.. note:: For example on the JID chat.freenode.org@biboumi.example.com
 
 configure
 ^^^^^^^^^
@@ -416,9 +412,9 @@ server.  The provided configuration form contains these fields:
   available if biboumi is configured with realname_customization to
   false.
 - **In encoding**: The incoming encoding. Any received message that is not
-  proper UTF-8 will be converted will be converted from the configured
-  In encoding into UTF-8. If the conversion fails at some point, some
-  characters will be replaced by the placeholders.
+  proper UTF-8 will be converted from the configured In encoding into UTF-8.
+  If the conversion fails at some point, some characters will be replaced by
+  the placeholders.
 - **Out encoding**: Currently ignored.
 - **After-connection IRC commands**: Raw IRC commands that will be sent
   one by one to the server immediately after the connection has been
@@ -473,7 +469,7 @@ detailed list of which resource is in which channel.
 On a channel JID
 ~~~~~~~~~~~~~~~~
 
-E.g on the JID #test%chat.freenode.org@biboumi.example.com
+.. note:: For example on the JID #test%chat.freenode.org@biboumi.example.com
 
 configure
 ^^^^^^^^^
@@ -486,20 +482,20 @@ encoding is not specified for a channel, the encoding configured in the
 server applies. The provided configuration form contains these fields:
 
 - **In encoding**: see the option with the same name in the server configuration
-form.
+  form.
 - **Out encoding**: Currently ignored.
 - **Persistent**: If set to true, biboumi will stay in this channel even when
-all the XMPP resources have left the room. I.e. it will not send a PART
-command, and will stay idle in the channel until the connection is
-forcibly closed. If a resource comes back in the room again, and if
-the archiving of messages is enabled for this room, the client will
-receive the messages that where sent in this channel. This option can be
-used to make biboumi act as an IRC bouncer.
+  all the XMPP resources have left the room. I.e. it will not send a PART
+  command, and will stay idle in the channel until the connection is
+  forcibly closed. If a resource comes back in the room again, and if
+  the archiving of messages is enabled for this room, the client will
+  receive the messages that where sent in this channel. This option can be
+  used to make biboumi act as an IRC bouncer.
 - **Record History**: whether or not history messages should be saved in
-the database, for this specific channel. If the value is “unset” (the
-default), then the value configured globally is used. This option is there,
-for example, to be able to enable history recording globally while disabling
-it for a few specific “private” channels.
+  the database, for this specific channel. If the value is “unset” (the
+  default), then the value configured globally is used. This option is there,
+  for example, to be able to enable history recording globally while disabling
+  it for a few specific “private” channels.
 
 Raw IRC messages
 ----------------
