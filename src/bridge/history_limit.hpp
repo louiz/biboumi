@@ -1,5 +1,7 @@
 #pragma once
 
+#include <string>
+
 // Default values means no limit
 struct HistoryLimit
 {

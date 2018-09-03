@@ -1,10 +1,12 @@
 #include <config/config.hpp>
 #include <utils/tolower.hpp>
+#include <utils/split.hpp>
 
-#include <iostream>
-#include <cstring>
-
+#include <algorithm>
 #include <cstdlib>
+#include <cstring>
+#include <iostream>
+#include <vector>
 
 using namespace std::string_literals;
 
@@ -38,6 +40,15 @@ int Config::get_int(const std::string& option, const int& def)
     return std::atoi(res.c_str());
   else
     return def;
+}
+
+bool Config::is_in_list(const std::string& option, const std::string& value)
+{
+  std::string res = Config::get(option, "");
+  if (res.empty())
+    return false;
+  std::vector<std::string> list = utils::split(res, ':');
+  return std::find(list.cbegin(), list.cend(), value) != list.cend();
 }
 
 void Config::set(const std::string& option, const std::string& value, bool save)

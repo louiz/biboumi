@@ -88,5 +88,4 @@ class Sqlite3Statement: public Statement
 
  private:
   sqlite3_stmt* stmt;
-  int last_step_result{SQLITE_OK};
 };

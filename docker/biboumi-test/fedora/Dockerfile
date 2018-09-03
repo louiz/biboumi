@@ -40,10 +40,8 @@ RUN dnf --refresh install -y\
     which\
     java-1.8.0-openjdk\
     postgresql-devel\
+    botan2-devel\
     && dnf clean all
-
-# Install botan
-RUN git clone https://github.com/randombit/botan.git && cd botan && ./configure.py --prefix=/usr && make -j8 && make install && ldconfig && rm -rf /botan
 
 # Install slixmpp, for e2e tests
 RUN git clone git://git.louiz.org/slixmpp && pip3 install pyasn1 && cd slixmpp && python3 setup.py build && python3 setup.py install

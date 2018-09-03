@@ -1,5 +1,6 @@
+#######################
 Contributing to biboumi
-=======================
+#######################
 
 Biboumi’s main workplace is at https://lab.louiz.org/louiz/biboumi
 
@@ -20,8 +21,12 @@ If the bug you’re reporting is about a bad behaviour of biboumi when some XMPP
 or IRC events occur, please try to reproduce the issue with a biboumi running
 in log_level=0, and include the relevant logs in your bug report.
 
-If the issue you’re reporting may have security implications, please select
-the “confidential” flag in your bug report.
+If the issue you’re reporting may have security implications, please
+select the “confidential” flag in your bug report. This includes, but is not limited to:
+
+- disclosure of private data that was supposed to be encrypted using TLS
+- denial of service (crash, infinite loop, etc) that can be caused by any
+  user
 
 
 Code
@@ -57,18 +62,22 @@ There are two test suites for biboumi:
 
   Once all the dependencies are correctly installed, the tests are run with
 
-  `make e2e`
+.. code-block:: sh
 
-  To run one or more specific tests, you can do something like this:
+  make e2e
 
-  `make biboumi && python3 ../tests/end_to_end  self_ping  basic_handshake_success`
+To run one or more specific tests, you can do something like this:
 
-  This will run two tests, self_ping and basic_handshake_success.
+.. code-block:: sh
 
-  To write additional tests, you need to add a Scenario
-  into `the __main__.py file`_. If you have problem running this end-to-end
-  test suite, or if you struggle with this weird code (that would be
-  completely normal…), don’t hesitate to ask for help.
+  make biboumi && python3 ../tests/end_to_end  self_ping  basic_handshake_success
+
+This will run two tests, self_ping and basic_handshake_success.
+
+To write additional tests, you need to add a Scenario
+into `the __main__.py file`_. If you have problem running this end-to-end
+test suite, or if you struggle with this weird code (that would be
+completely normal…), don’t hesitate to ask for help.
 
 
 All these tests automatically run with various configurations, on various

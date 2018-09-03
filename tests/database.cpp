@@ -7,6 +7,7 @@
 #include <cstdlib>
 
 #include <database/database.hpp>
+#include <database/save.hpp>
 
 #include <config/config.hpp>
 
@@ -28,11 +29,11 @@ TEST_CASE("Database")
     {
       auto o = Database::get_irc_server_options("zouzou@example.com", "irc.example.com");
       CHECK(Database::count(Database::irc_server_options) == 0);
-      o.save(Database::db);
+      save(o, *Database::db);
       CHECK(Database::count(Database::irc_server_options) == 1);
       o.col<Database::Realname>() = "Different realname";
       CHECK(o.col<Database::Realname>() == "Different realname");
-      o.save(Database::db);
+      save(o, *Database::db);
       CHECK(o.col<Database::Realname>() == "Different realname");
       CHECK(Database::count(Database::irc_server_options) == 1);
 
@@ -44,7 +45,7 @@ TEST_CASE("Database")
       // inserted
       CHECK(1 == Database::count(Database::irc_server_options));
 
-      b.save(Database::db);
+      save(b, *Database::db);
       CHECK(2 == Database::count(Database::irc_server_options));
 
       CHECK(b.col<Database::Pass>() == "");
@@ -58,11 +59,15 @@ TEST_CASE("Database")
       o.col<Database::EncodingIn>() = "ISO-8859-1";
       CHECK(o.col<Database::RecordHistoryOptional>().is_set == false);
       o.col<Database::RecordHistoryOptional>().set_value(false);
-      o.save(Database::db);
+      save(o, *Database::db);
       auto b = Database::get_irc_channel_options("zouzou@example.com", "irc.example.com", "#foo");
       CHECK(o.col<Database::EncodingIn>() == "ISO-8859-1");
       CHECK(o.col<Database::RecordHistoryOptional>().is_set == true);
       CHECK(o.col<Database::RecordHistoryOptional>().value == false);
+
+      o.clear();
+      CHECK(o.col<Database::EncodingIn>() == "");
+      CHECK(o.col<Database::Owner>() == "zouzou@example.com");
     }
 
   SECTION("Channel options with server default")
@@ -77,7 +82,7 @@ TEST_CASE("Database")
       GIVEN("An option defined for the channel but not the server")
       {
         c.col<Database::EncodingIn>() = "channelEncoding";
-        c.save(Database::db);
+        save(c, *Database::db);
         WHEN("we fetch that option")
           {
             auto r = Database::get_irc_channel_options_with_server_default(owner, server, chan1);
@@ -88,7 +93,7 @@ TEST_CASE("Database")
       GIVEN("An option defined for the server but not the channel")
         {
           s.col<Database::EncodingIn>() = "serverEncoding";
-          s.save(Database::db);
+          save(s, *Database::db);
         WHEN("we fetch that option")
           {
             auto r = Database::get_irc_channel_options_with_server_default(owner, server, chan1);
@@ -99,9 +104,9 @@ TEST_CASE("Database")
       GIVEN("An option defined for both the server and the channel")
         {
           s.col<Database::EncodingIn>() = "serverEncoding";
-          s.save(Database::db);
+          save(s, *Database::db);
           c.col<Database::EncodingIn>() = "channelEncoding";
-          c.save(Database::db);
+          save(c, *Database::db);
         WHEN("we fetch that option")
           {
             auto r = Database::get_irc_channel_options_with_server_default(owner, server, chan1);
@@ -115,6 +120,49 @@ TEST_CASE("Database")
               CHECK(r.col<Database::EncodingIn>() == "serverEncoding");
           }
         }
+    }
+
+  SECTION("Server options")
+    {
+      const std::string owner{"toto@example.com"};
+      const std::string owner2{"toto2@example.com"};
+      const std::string server{"irc.example.com"};
+
+      auto soptions = Database::get_irc_server_options(owner, server);
+      auto soptions2 = Database::get_irc_server_options(owner2, server);
+
+      auto after_connection_commands =  Database::get_after_connection_commands(soptions);
+      CHECK(after_connection_commands.empty());
+
+      save(soptions, *Database::db);
+      save(soptions2, *Database::db);
+      auto com = Database::after_connection_commands.row();
+      com.col<Database::AfterConnectionCommand>() = "first";
+      after_connection_commands.push_back(com);
+      com.col<Database::AfterConnectionCommand>() = "second";
+      after_connection_commands.push_back(com);
+      Database::set_after_connection_commands(soptions, after_connection_commands);
+
+      after_connection_commands.clear();
+      com.col<Database::AfterConnectionCommand>() = "first";
+      after_connection_commands.push_back(com);
+      com.col<Database::AfterConnectionCommand>() = "second";
+      after_connection_commands.push_back(com);
+      Database::set_after_connection_commands(soptions2, after_connection_commands);
+
+      after_connection_commands =  Database::get_after_connection_commands(soptions);
+      CHECK(after_connection_commands.size() == 2);
+      after_connection_commands =  Database::get_after_connection_commands(soptions2);
+      CHECK(after_connection_commands.size() == 2);
+
+      after_connection_commands.clear();
+      after_connection_commands.push_back(com);
+      Database::set_after_connection_commands(soptions, after_connection_commands);
+
+      after_connection_commands =  Database::get_after_connection_commands(soptions);
+      CHECK(after_connection_commands.size() == 1);
+      after_connection_commands =  Database::get_after_connection_commands(soptions2);
+      CHECK(after_connection_commands.size() == 2);
     }
 
   Database::close();

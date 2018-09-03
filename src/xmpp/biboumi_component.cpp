@@ -72,11 +72,16 @@ BiboumiComponent::BiboumiComponent(std::shared_ptr<Poller>& poller, const std::s
   AdhocCommand configure_global_command({&ConfigureGlobalStep1, &ConfigureGlobalStep2}, "Configure a few settings", false);
 
   if (!Config::get("fixed_irc_server", "").empty())
-    this->adhoc_commands_handler.add_command("configure", configure_server_command);
+    {
+      this->adhoc_commands_handler.add_command("server-configure", configure_server_command);
+      this->adhoc_commands_handler.add_command("global-configure", configure_global_command);
+    }
   else
-    this->adhoc_commands_handler.add_command("configure", configure_global_command);
+    {
+      this->adhoc_commands_handler.add_command("configure", configure_global_command);
+      this->irc_server_adhoc_commands_handler.add_command("configure", configure_server_command);
+    }
 
-  this->irc_server_adhoc_commands_handler.add_command("configure", configure_server_command);
   this->irc_channel_adhoc_commands_handler.add_command("configure", {{&ConfigureIrcChannelStep1, &ConfigureIrcChannelStep2}, "Configure a few settings for that IRC channel", false});
 #endif
 }
@@ -97,8 +102,8 @@ void BiboumiComponent::shutdown()
 
 void BiboumiComponent::clean()
 {
-  auto it = this->bridges.begin();
-  while (it != this->bridges.end())
+  auto it = std::begin(this->bridges);
+  while (it != std::end(this->bridges))
   {
     it->second->clean();
     if (it->second->active_clients() == 0)
@@ -148,13 +153,10 @@ void BiboumiComponent::handle_presence(const Stanza& stanza)
 
   try {
   if (iid.type == Iid::Type::Channel && !iid.get_server().empty())
-    { // presence toward a MUC that corresponds to an irc channel, or a
-      // dummy channel if iid.chan is empty
+    { // presence toward a MUC that corresponds to an irc channel
       if (type.empty())
         {
           const std::string own_nick = bridge->get_own_nick(iid);
-          if (!own_nick.empty() && own_nick != to.resource)
-            bridge->send_irc_nick_change(iid, to.resource, from.resource);
           const XmlNode* x = stanza.get_child("x", MUC_NS);
           const XmlNode* password = x ? x->get_child("password", MUC_NS): nullptr;
           const XmlNode* history = x ? x->get_child("history", MUC_NS): nullptr;
@@ -182,7 +184,9 @@ void BiboumiComponent::handle_presence(const Stanza& stanza)
                 history_limit.stanzas = 0;
             }
           bridge->join_irc_channel(iid, to.resource, password ? password->get_inner(): "",
-                                   from.resource, history_limit);
+                                   from.resource, history_limit, x != nullptr);
+          if (!own_nick.empty() && own_nick != to.resource)
+            bridge->send_irc_nick_change(iid, to.resource, from.resource);
         }
       else if (type == "unavailable")
         {
@@ -269,9 +273,10 @@ void BiboumiComponent::handle_message(const Stanza& stanza)
 
   std::string error_type("cancel");
   std::string error_name("internal-server-error");
-  utils::ScopeGuard stanza_error([this, &from_str, &to_str, &id, &error_type, &error_name](){
+  std::string error_text{};
+  utils::ScopeGuard stanza_error([this, &from_str, &to_str, &id, &error_type, &error_name, &error_text](){
       this->send_stanza_error("message", from_str, to_str, id,
-                              error_type, error_name, "");
+                              error_type, error_name, error_text);
     });
   const XmlNode* body = stanza.get_child("body", COMPONENT_NS);
 
@@ -280,7 +285,15 @@ void BiboumiComponent::handle_message(const Stanza& stanza)
     {
       if (body && !body->get_inner().empty())
         {
-          bridge->send_channel_message(iid, body->get_inner());
+          if (bridge->is_resource_in_chan(iid.to_tuple(), from.resource))
+            bridge->send_channel_message(iid, body->get_inner(), id);
+          else
+            {
+              error_type = "modify";
+              error_name = "not-acceptable";
+              error_text = "You are not a participant in this room.";
+              return;
+            }
         }
       const XmlNode* subject = stanza.get_child("subject", COMPONENT_NS);
       if (subject)
@@ -346,7 +359,6 @@ void BiboumiComponent::handle_message(const Stanza& stanza)
                   this->send_invitation_from_fulljid(std::to_string(iid), invite_to, from_str);
               }
           }
-
     }
   } catch (const IRCNotConnected& ex)
     {
@@ -467,8 +479,13 @@ void BiboumiComponent::handle_iq(const Stanza& stanza)
 #ifdef USE_DATABASE
       else if ((query = stanza.get_child("query", MAM_NS)))
         {
-          if (this->handle_mam_request(stanza))
-            stanza_error.disable();
+          try {
+              if (this->handle_mam_request(stanza))
+                stanza_error.disable();
+            } catch (const Database::RecordNotFound& exc) {
+              error_name = "item-not-found";
+              return;
+            }
         }
       else if ((query = stanza.get_child("query", MUC_OWNER_NS)))
         {
@@ -505,7 +522,11 @@ void BiboumiComponent::handle_iq(const Stanza& stanza)
             {
               if (node.empty())
                 {
-                  this->send_irc_channel_disco_info(id, from, to_str);
+                  const IrcClient* irc_client = bridge->find_irc_client(iid.get_server());
+                  const IrcChannel* irc_channel{};
+                  if (irc_client)
+                    irc_channel = irc_client->find_channel(iid.get_local());
+                  this->send_irc_channel_disco_info(id, from, to_str, irc_channel);
                   stanza_error.disable();
                 }
               else if (node == MUC_TRAFFIC_NS)
@@ -547,24 +568,21 @@ void BiboumiComponent::handle_iq(const Stanza& stanza)
               if (to.local.empty())
                 {               // Get biboumi's adhoc commands
                   this->send_adhoc_commands_list(id, from, this->served_hostname,
-                                                 (Config::get("admin", "") ==
-                                                  from_jid.bare()),
+                                                 Config::is_in_list("admin", from_jid.bare()),
                                                  this->adhoc_commands_handler);
                   stanza_error.disable();
                 }
               else if (iid.type == Iid::Type::Server)
                 {               // Get the server's adhoc commands
                   this->send_adhoc_commands_list(id, from, to_str,
-                                                 (Config::get("admin", "") ==
-                                                  from_jid.bare()),
+                                                 Config::is_in_list("admin", from_jid.bare()),
                                                  this->irc_server_adhoc_commands_handler);
                   stanza_error.disable();
                 }
               else if (iid.type == Iid::Type::Channel && to.resource.empty())
                 {               // Get the channel's adhoc commands
                   this->send_adhoc_commands_list(id, from, to_str,
-                                                 (Config::get("admin", "") ==
-                                                  from_jid.bare()),
+                                                 Config::is_in_list("admin", from_jid.bare()),
                                                  this->irc_channel_adhoc_commands_handler);
                   stanza_error.disable();
                 }
@@ -586,7 +604,6 @@ void BiboumiComponent::handle_iq(const Stanza& stanza)
                   const XmlNode* max = set_node->get_child("max", RSM_NS);
                   if (max)
                     rs_info.max = std::atoi(max->get_inner().data());
-
                 }
               if (rs_info.max == -1)
                 rs_info.max = 100;
@@ -715,32 +732,47 @@ bool BiboumiComponent::handle_mam_request(const Stanza& stanza)
           }
         const XmlNode* set = query->get_child("set", RSM_NS);
         int limit = -1;
+        Id::real_type reference_record_id{Id::unset_value};
+        Database::Paging paging_order{Database::Paging::first};
         if (set)
           {
             const XmlNode* max = set->get_child("max", RSM_NS);
             if (max)
               limit = std::atoi(max->get_inner().data());
+            const XmlNode* after = set->get_child("after", RSM_NS);
+            if (after)
+              {
+                auto after_record = Database::get_muc_log(from.bare(), iid.get_local(), iid.get_server(),
+                                                          after->get_inner(), start, end);
+                reference_record_id = after_record.col<Id>();
+              }
+            const XmlNode* before = set->get_child("before", RSM_NS);
+            if (before)
+              {
+                paging_order = Database::Paging::last;
+                if (!before->get_inner().empty())
+                  {
+                    auto before_record = Database::get_muc_log(from.bare(), iid.get_local(), iid.get_server(), before->get_inner(), start, end);
+                    reference_record_id = before_record.col<Id>();
+                  }
+              }
           }
-        // Do send more than 100 messages, even if the client asked for more,
+        // Do not send more than 100 messages, even if the client asked for more,
         // or if it didn’t specify any limit.
-        // 101 is just a trick to know if there are more available messages.
-        // If our query returns 101 message, we know it’s incomplete, but we
-        // still send only 100
-        if ((limit == -1 && start.empty() && end.empty())
-            || limit > 100)
-          limit = 101;
-        auto lines = Database::get_muc_logs(from.bare(), iid.get_local(), iid.get_server(), limit, start, end);
-        bool complete = true;
-        if (lines.size() > 100)
-          {
-            complete = false;
-            lines.erase(lines.begin(), std::prev(lines.end(), 100));
-          }
+        if (limit < 0 || limit > 100)
+          limit = 100;
+        auto result = Database::get_muc_logs(from.bare(), iid.get_local(), iid.get_server(),
+                                            static_cast<std::size_t>(limit),
+                                            start, end,
+                                            reference_record_id, paging_order);
+        bool complete = std::get<bool>(result);
+        auto& lines = std::get<1>(result);
+
         for (const Database::MucLogLine& line: lines)
-        {
-          if (!line.col<Database::Nick>().empty())
-            this->send_archived_message(line, to.full(), from.full(), query_id);
-        }
+          {
+            if (!line.col<Database::Nick>().empty())
+              this->send_archived_message(line, to.full(), from.full(), query_id);
+          }
         {
           auto fin_ptr = std::make_unique<XmlNode>("fin");
           {
@@ -892,7 +924,7 @@ void BiboumiComponent::send_self_disco_info(const std::string& id, const std::st
     identity["category"] = "conference";
     identity["type"] = "irc";
     identity["name"] = "Biboumi XMPP-IRC gateway";
-    for (const char *ns: {DISCO_INFO_NS, MUC_NS, ADHOC_NS, PING_NS, MAM_NS, VERSION_NS})
+    for (const char *ns: {DISCO_INFO_NS, MUC_NS, ADHOC_NS, PING_NS, MAM_NS, VERSION_NS, STABLE_MUC_ID_NS})
       {
         XmlSubNode feature(query, "feature");
         feature["var"] = ns;
@@ -916,7 +948,7 @@ void BiboumiComponent::send_irc_server_disco_info(const std::string& id, const s
     identity["category"] = "conference";
     identity["type"] = "irc";
     identity["name"] = "IRC server " + from.local + " over Biboumi";
-    for (const char *ns: {DISCO_INFO_NS, MUC_NS, ADHOC_NS, PING_NS, MAM_NS, VERSION_NS})
+    for (const char *ns: {DISCO_INFO_NS, MUC_NS, ADHOC_NS, PING_NS, MAM_NS, VERSION_NS, STABLE_MUC_ID_NS})
       {
         XmlSubNode feature(query, "feature");
         feature["var"] = ns;
@@ -943,7 +975,8 @@ void BiboumiComponent::send_irc_channel_muc_traffic_info(const std::string& id, 
   this->send_stanza(iq);
 }
 
-void BiboumiComponent::send_irc_channel_disco_info(const std::string& id, const std::string& jid_to, const std::string& jid_from)
+void BiboumiComponent::send_irc_channel_disco_info(const std::string& id, const std::string& jid_to,
+                                                   const std::string& jid_from, const IrcChannel* irc_channel)
 {
   Jid from(jid_from);
   Iid iid(from.local, {});
@@ -958,11 +991,31 @@ void BiboumiComponent::send_irc_channel_disco_info(const std::string& id, const 
     XmlSubNode identity(query, "identity");
     identity["category"] = "conference";
     identity["type"] = "irc";
-    identity["name"] = "IRC channel " + iid.get_local() + " from server " + iid.get_server() + " over biboumi";
-    for (const char *ns: {DISCO_INFO_NS, MUC_NS, ADHOC_NS, PING_NS, MAM_NS, VERSION_NS})
+    identity["name"] = ""s + iid.get_local() + " on " + iid.get_server();
+    for (const char *ns: {DISCO_INFO_NS, MUC_NS, ADHOC_NS, PING_NS, MAM_NS, VERSION_NS, STABLE_MUC_ID_NS})
       {
         XmlSubNode feature(query, "feature");
         feature["var"] = ns;
+      }
+
+    XmlSubNode x(query, "x");
+    x["xmlns"] = DATAFORM_NS;
+    x["type"] = "result";
+    {
+      XmlSubNode field(x, "field");
+      field["var"] = "FORM_TYPE";
+      field["type"] = "hidden";
+      XmlSubNode value(field, "value");
+      value.set_inner("http://jabber.org/protocol/muc#roominfo");
+    }
+
+    if (irc_channel && irc_channel->joined)
+      {
+        XmlSubNode field(x, "field");
+        field["var"] = "muc#roominfo_occupants";
+        field["label"] = "Number of occupants";
+        XmlSubNode value(field, "value");
+        value.set_inner(std::to_string(irc_channel->get_users().size()));
       }
   }
   this->send_stanza(iq);

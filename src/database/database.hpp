@@ -22,18 +22,20 @@ class Database
 {
  public:
   using time_point = std::chrono::system_clock::time_point;
+  struct RecordNotFound: public std::exception {};
+  enum class Paging { first, last };
 
   struct Uuid: Column<std::string> { static constexpr auto name = "uuid_"; };
 
-  struct Owner: Column<std::string> { static constexpr auto name = "owner_"; };
+  struct Owner: UnclearableColumn<std::string> { static constexpr auto name = "owner_"; };
 
-  struct IrcChanName: Column<std::string> { static constexpr auto name = "ircchanname_"; };
+  struct IrcChanName: UnclearableColumn<std::string> { static constexpr auto name = "ircchanname_"; };
 
-  struct Channel: Column<std::string> { static constexpr auto name = "channel_"; };
+  struct Channel: UnclearableColumn<std::string> { static constexpr auto name = "channel_"; };
 
-  struct IrcServerName: Column<std::string> { static constexpr auto name = "ircservername_"; };
+  struct IrcServerName: UnclearableColumn<std::string> { static constexpr auto name = "ircservername_"; };
 
-  struct Server: Column<std::string> { static constexpr auto name = "server_"; };
+  struct Server: UnclearableColumn<std::string> { static constexpr auto name = "server_"; };
 
   struct Date: Column<time_point::rep> { static constexpr auto name = "date_"; };
 
@@ -82,6 +84,10 @@ class Database
 
   struct RemoteJid: Column<std::string> { static constexpr auto name = "remote"; };
 
+  struct Address: Column<std::string> { static constexpr auto name = "address_"; };
+
+  struct ThrottleLimit: Column<long int> { static constexpr auto name = "throttlelimit_";
+      ThrottleLimit(): Column<long int>(10) {} };
 
   using MucLogLineTable = Table<Id, Uuid, Owner, IrcChanName, IrcServerName, Date, Body, Nick>;
   using MucLogLine = MucLogLineTable::RowType;
@@ -89,7 +95,7 @@ class Database
   using GlobalOptionsTable = Table<Id, Owner, MaxHistoryLength, RecordHistory, GlobalPersistent>;
   using GlobalOptions = GlobalOptionsTable::RowType;
 
-  using IrcServerOptionsTable = Table<Id, Owner, Server, Pass, AfterConnectionCommand, TlsPorts, Ports, Username, Realname, VerifyCert, TrustedFingerprint, EncodingOut, EncodingIn, MaxHistoryLength>;
+  using IrcServerOptionsTable = Table<Id, Owner, Server, Pass, TlsPorts, Ports, Username, Realname, VerifyCert, TrustedFingerprint, EncodingOut, EncodingIn, MaxHistoryLength, Address, Nick, ThrottleLimit>;
   using IrcServerOptions = IrcServerOptionsTable::RowType;
 
   using IrcChannelOptionsTable = Table<Id, Owner, Server, Channel, EncodingOut, EncodingIn, MaxHistoryLength, Persistent, RecordHistoryOptional>;
@@ -97,6 +103,9 @@ class Database
 
   using RosterTable = Table<LocalJid, RemoteJid>;
   using RosterItem = RosterTable::RowType;
+
+  using AfterConnectionCommandsTable = Table<Id, ForeignKey, AfterConnectionCommand>;
+  using AfterConnectionCommands = std::vector<AfterConnectionCommandsTable::RowType>;
 
   Database() = default;
   ~Database() = default;
@@ -118,8 +127,22 @@ class Database
   static IrcChannelOptions get_irc_channel_options_with_server_and_global_default(const std::string& owner,
                                                                                   const std::string& server,
                                                                                   const std::string& channel);
-  static std::vector<MucLogLine> get_muc_logs(const std::string& owner, const std::string& chan_name, const std::string& server,
-                                              int limit=-1, const std::string& start="", const std::string& end="");
+  static AfterConnectionCommands get_after_connection_commands(const IrcServerOptions& server_options);
+  static void set_after_connection_commands(const IrcServerOptions& server_options, AfterConnectionCommands& commands);
+
+  /**
+   * Get all the lines between (optional) start and end dates, with a (optional) limit.
+   * If after_id is set, only the records after it will be returned.
+   */
+  static std::tuple<bool, std::vector<MucLogLine>> get_muc_logs(const std::string& owner, const std::string& chan_name, const std::string& server,
+                                              std::size_t limit, const std::string& start="", const std::string& end="",
+                                              const Id::real_type reference_record_id=Id::unset_value, Paging=Paging::first);
+
+  /**
+   * Get just one single record matching the given uuid, between (optional) end and start.
+   * If it does not exist (or is not between end and start), throw a RecordNotFound exception.
+   */
+  static MucLogLine get_muc_log(const std::string& owner, const std::string& chan_name, const std::string& server, const std::string& uuid, const std::string& start="", const std::string& end="");
   static std::string store_muc_message(const std::string& owner, const std::string& chan_name, const std::string& server_name,
                                        time_point date, const std::string& body, const std::string& nick);
 
@@ -144,6 +167,8 @@ class Database
   static IrcServerOptionsTable irc_server_options;
   static IrcChannelOptionsTable irc_channel_options;
   static RosterTable roster;
+  static AfterConnectionCommandsTable after_connection_commands;
+
   static std::unique_ptr<DatabaseEngine> db;
 
   /**
@@ -181,11 +206,20 @@ class Database
 
   static auto raw_exec(const std::string& query)
   {
-    Database::db->raw_exec(query);
+    return Database::db->raw_exec(query);
   }
 
  private:
   static std::string gen_uuid();
   static std::map<CacheKey, EncodingIn::real_type> encoding_in_cache;
 };
+
+class Transaction
+{
+public:
+  Transaction();
+  ~Transaction();
+  bool success{false};
+};
+
 #endif /* USE_DATABASE */

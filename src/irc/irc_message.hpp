@@ -14,9 +14,9 @@ public:
   ~IrcMessage() = default;
 
   IrcMessage(const IrcMessage&) = delete;
-  IrcMessage(IrcMessage&&) = delete;
+  IrcMessage(IrcMessage&&) = default;
   IrcMessage& operator=(const IrcMessage&) = delete;
-  IrcMessage& operator=(IrcMessage&&) = delete;
+  IrcMessage& operator=(IrcMessage&&) = default;
 
   std::string prefix;
   std::string command;

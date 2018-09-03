@@ -13,6 +13,7 @@ BuildRequires: libuuid-devel
 BuildRequires: systemd-devel
 BuildRequires: sqlite-devel
 BuildRequires: postgresql-devel
+BuildRequires: botan2-devel
 BuildRequires: cmake
 BuildRequires: systemd
 BuildRequires: pandoc
@@ -37,7 +38,7 @@ cmake . -DCMAKE_CXX_FLAGS="%{optflags}" \
       -DCMAKE_BUILD_TYPE=release \
       -DCMAKE_INSTALL_PREFIX=/usr \
       -DPOLLER=EPOLL \
-      -DWITHOUT_BOTAN=1 \
+      -DWITH_BOTAN=1 \
       -DWITH_SYSTEMD=1 \
       -DWITH_LIBIDN=1 \
       -DWITH_SQLITE3=1 \
@@ -57,7 +58,7 @@ make check %{?_smp_mflags}
 %files
 %{_bindir}/%{name}
 %{_mandir}/man1/%{name}.1*
-%doc README.rst COPYING doc/biboumi.1.rst
+%doc README.rst COPYING doc/*.rst
 %{_unitdir}/%{name}.service
 %config(noreplace) %{biboumi_confdir}/*policy.txt
 
@@ -65,6 +66,19 @@ make check %{?_smp_mflags}
 %changelog
 * ${RPM_DATE} Le Coz Florent <louiz@louiz.org> - ${RPM_VERSION}-1
 - Build latest git revision
+- Build against botan2
+
+* Wed Jun 1 2018 Le Coz Florent <louiz@louiz.org> - 8.3-1
+  Update to version 8.3
+
+* Wed May 25 2018 Le Coz Florent <louiz@louiz.org> - 8.2-1
+  Update to version 8.2
+
+* Wed May 14 2018 Le Coz Florent <louiz@louiz.org> - 8.1-1
+  Update to version 8.1
+
+* Wed May 2 2018 Le Coz Florent <louiz@louiz.org> - 8.0-1
+  Update to version 8.0
 
 * Wed Jan 24 2018 Le Coz Florent <louiz@louiz.org> - 7.2-1
   Update to version 7.2

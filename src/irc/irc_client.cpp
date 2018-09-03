@@ -135,7 +135,7 @@ IrcClient::IrcClient(std::shared_ptr<Poller>& poller, std::string hostname,
                      std::string realname, std::string user_hostname,
                      Bridge& bridge):
   TCPClientSocketHandler(poller),
-  hostname(std::move(hostname)),
+  hostname(hostname),
   user_hostname(std::move(user_hostname)),
   username(std::move(username)),
   realname(std::move(realname)),
@@ -143,16 +143,15 @@ IrcClient::IrcClient(std::shared_ptr<Poller>& poller, std::string hostname,
   bridge(bridge),
   welcomed(false),
   chanmodes({"", "", "", ""}),
-  chantypes({'#', '&'})
+  chantypes({'#', '&'}),
+  tokens_bucket(this->get_throttle_limit(), 1s, [this]() {
+    if (message_queue.empty())
+      return true;
+    this->actual_send(std::move(this->message_queue.front()));
+    this->message_queue.pop_front();
+    return false;
+  }, "TokensBucket" + this->hostname + this->bridge.get_jid())
 {
-  this->dummy_channel.topic = "This is a virtual channel provided for "
-                              "convenience by biboumi, it is not connected "
-                              "to any actual IRC channel of the server '" + this->hostname +
-                              "', and sending messages in it has no effect. "
-                              "Its main goal is to keep the connection to the IRC server "
-                              "alive without having to join a real channel of that server. "
-                              "To disconnect from the IRC server, leave this room and all "
-                              "other IRC channels of that server.";
 #ifdef USE_DATABASE
   auto options = Database::get_irc_server_options(this->bridge.get_bare_jid(),
                                                   this->get_hostname());
@@ -179,6 +178,7 @@ IrcClient::~IrcClient()
   // This event may or may not exist (if we never got connected, it
   // doesn't), but it's ok
   TimedEventsManager::instance().cancel("PING" + this->hostname + this->bridge.get_jid());
+  TimedEventsManager::instance().cancel("TokensBucket" + this->hostname + this->bridge.get_jid());
 }
 
 void IrcClient::start()
@@ -194,20 +194,23 @@ void IrcClient::start()
   bool tls;
   std::tie(port, tls) = this->ports_to_try.top();
   this->ports_to_try.pop();
-  this->bridge.send_xmpp_message(this->hostname, "", "Connecting to " +
-                                  this->hostname + ":" + port + " (" +
-                                  (tls ? "encrypted" : "not encrypted") + ")");
-
   this->bind_addr = Config::get("outgoing_bind", "");
+  std::string address = this->hostname;
 
-#ifdef BOTAN_FOUND
-# ifdef USE_DATABASE
+#ifdef USE_DATABASE
   auto options = Database::get_irc_server_options(this->bridge.get_bare_jid(),
                                                   this->get_hostname());
+# ifdef BOTAN_FOUND
   this->credential_manager.set_trusted_fingerprint(options.col<Database::TrustedFingerprint>());
 # endif
+  if (Config::get("fixed_irc_server", "").empty() &&
+      !options.col<Database::Address>().empty())
+    address = options.col<Database::Address>();
 #endif
-  this->connect(this->hostname, port, tls);
+  this->bridge.send_xmpp_message(this->hostname, "", "Connecting to " +
+                                  address + ":" + port + " (" +
+                                  (tls ? "encrypted" : "not encrypted") + ")");
+  this->connect(address, port, tls);
 }
 
 void IrcClient::on_connection_failed(const std::string& reason)
@@ -315,8 +318,6 @@ void IrcClient::on_connection_close(const std::string& error_msg)
 
 IrcChannel* IrcClient::get_channel(const std::string& n)
 {
-  if (n.empty())
-    return &this->dummy_channel;
   const std::string name = utils::tolower(n);
   try
     {
@@ -324,8 +325,20 @@ IrcChannel* IrcClient::get_channel(const std::string& n)
     }
   catch (const std::out_of_range& exception)
     {
-      this->channels.emplace(name, std::make_unique<IrcChannel>());
+      return this->channels.emplace(name, std::make_unique<IrcChannel>()).first->second.get();
+    }
+}
+
+const IrcChannel* IrcClient::find_channel(const std::string& n) const
+{
+  const std::string name = utils::tolower(n);
+  try
+    {
       return this->channels.at(name).get();
+    }
+  catch (const std::out_of_range& exception)
+    {
+      return nullptr;
     }
 }
 
@@ -385,25 +398,39 @@ void IrcClient::parse_in_buffer(const size_t)
     }
 }
 
-void IrcClient::send_message(IrcMessage&& message)
+void IrcClient::actual_send(std::pair<IrcMessage, MessageCallback> message_pair)
 {
-  log_debug("IRC SENDING: (", this->get_hostname(), ") ", message);
-  std::string res;
-  if (!message.prefix.empty())
-    res += ":" + std::move(message.prefix) + " ";
-  res += message.command;
-  for (const std::string& arg: message.arguments)
-    {
-      if (arg.find(' ') != std::string::npos ||
-          (!arg.empty() && arg[0] == ':'))
-        {
-          res += " :" + arg;
-          break;
-        }
-      res += " " + arg;
-    }
-  res += "\r\n";
-  this->send_data(std::move(res));
+  const IrcMessage& message = message_pair.first;
+  const MessageCallback& callback = message_pair.second;
+   log_debug("IRC SENDING: (", this->get_hostname(), ") ", message);
+    std::string res;
+    if (!message.prefix.empty())
+      res += ":" + message.prefix + " ";
+    res += message.command;
+    for (const std::string& arg: message.arguments)
+      {
+        if (arg.find(' ') != std::string::npos
+            || (!arg.empty() && arg[0] == ':'))
+          {
+            res += " :" + arg;
+            break;
+          }
+        res += " " + arg;
+      }
+    res += "\r\n";
+    this->send_data(std::move(res));
+
+    if (callback)
+      callback(this, message);
+ }
+
+void IrcClient::send_message(IrcMessage message, MessageCallback callback, bool throttle)
+{
+  auto message_pair = std::make_pair(std::move(message), std::move(callback));
+  if (this->tokens_bucket.use_token() || !throttle)
+    this->actual_send(std::move(message_pair));
+  else
+    message_queue.push_back(std::move(message_pair));
 }
 
 void IrcClient::send_raw(const std::string& txt)
@@ -454,12 +481,12 @@ void IrcClient::send_topic_command(const std::string& chan_name, const std::stri
 
 void IrcClient::send_quit_command(const std::string& reason)
 {
-  this->send_message(IrcMessage("QUIT", {reason}));
+  this->send_message(IrcMessage("QUIT", {reason}), {}, false);
 }
 
 void IrcClient::send_join_command(const std::string& chan_name, const std::string& password)
 {
-  if (this->welcomed == false)
+  if (!this->welcomed)
     {
       const auto it = std::find_if(begin(this->channels_to_join), end(this->channels_to_join),
                                    [&chan_name](const auto& pair) { return std::get<0>(pair) == chan_name; });
@@ -473,10 +500,11 @@ void IrcClient::send_join_command(const std::string& chan_name, const std::strin
   this->start();
 }
 
-bool IrcClient::send_channel_message(const std::string& chan_name, const std::string& body)
+bool IrcClient::send_channel_message(const std::string& chan_name, const std::string& body,
+                                     MessageCallback callback)
 {
   IrcChannel* channel = this->get_channel(chan_name);
-  if (channel->joined == false)
+  if (!channel->joined)
     {
       log_warning("Cannot send message to channel ", chan_name, ", it is not joined");
       return false;
@@ -496,7 +524,7 @@ bool IrcClient::send_channel_message(const std::string& chan_name, const std::st
                          ::strlen(":!@ PRIVMSG ") - chan_name.length() - ::strlen(" :\r\n");
   const auto lines = cut(body, line_size);
   for (const auto& line: lines)
-    this->send_message(IrcMessage("PRIVMSG", {chan_name, line}));
+    this->send_message(IrcMessage("PRIVMSG", {chan_name, line}), callback);
   return true;
 }
 
@@ -544,7 +572,9 @@ void IrcClient::send_ping_command()
 void IrcClient::forward_server_message(const IrcMessage& message)
 {
   const std::string from = message.prefix;
-  const std::string body = message.arguments[1];
+  std::string body;
+  for (auto it = std::next(message.arguments.begin()); it != message.arguments.end(); ++it)
+    body += *it + ' ';
 
   this->bridge.send_xmpp_message(this->hostname, from, body);
 }
@@ -647,6 +677,11 @@ void IrcClient::set_and_forward_user_list(const IrcMessage& message)
 {
   const std::string chan_name = utils::tolower(message.arguments[2]);
   IrcChannel* channel = this->get_channel(chan_name);
+  if (channel->joined)
+    {
+      this->forward_server_message(message);
+      return;
+    }
   std::vector<std::string> nicks = utils::split(message.arguments[3], ' ');
   for (const std::string& nick: nicks)
     {
@@ -670,10 +705,7 @@ void IrcClient::on_channel_join(const IrcMessage& message)
 {
   const std::string chan_name = utils::tolower(message.arguments[0]);
   IrcChannel* channel;
-  if (chan_name.empty())
-    channel = &this->dummy_channel;
-  else
-    channel = this->get_channel(chan_name);
+  channel = this->get_channel(chan_name);
   const std::string nick = message.prefix;
   IrcUser* user = channel->add_user(nick, this->prefix_to_mode);
   if (channel->joined == false)
@@ -785,6 +817,16 @@ void IrcClient::on_channel_completely_joined(const IrcMessage& message)
 {
   const std::string chan_name = utils::tolower(message.arguments[1]);
   IrcChannel* channel = this->get_channel(chan_name);
+  if (chan_name == "*" || channel->joined)
+    {
+      this->forward_server_message(message);
+      return;
+    }
+  if (!channel->get_self())
+    {
+      log_error("End of NAMES list but we never received our own nick.");
+      return;
+    }
   channel->joined = true;
   this->bridge.send_user_join(this->hostname, chan_name, channel->get_self(),
                               channel->get_self()->get_most_significant_mode(this->sorted_user_modes), true);
@@ -900,8 +942,9 @@ void IrcClient::on_welcome_message(const IrcMessage& message)
 #ifdef USE_DATABASE
   auto options = Database::get_irc_server_options(this->bridge.get_bare_jid(),
                                                   this->get_hostname());
-  if (!options.col<Database::AfterConnectionCommand>().empty())
-    this->send_raw(options.col<Database::AfterConnectionCommand>());
+  const auto commands = Database::get_after_connection_commands(options);
+  for (const auto& command: commands)
+    this->send_raw(command.col<Database::AfterConnectionCommand>());
 #endif
   // Install a repeated events to regularly send a PING
   TimedEventsManager::instance().add_event(TimedEvent(240s, std::bind(&IrcClient::send_ping_command, this),
@@ -948,18 +991,6 @@ void IrcClient::on_welcome_message(const IrcMessage& message)
   if (!channels_with_key.empty())
     this->send_join_command(channels_with_key, keys);
   this->channels_to_join.clear();
-  // Indicate that the dummy channel is joined as well, if needed
-  if (this->dummy_channel.joining)
-    {
-      // Simulate a message coming from the IRC server saying that we joined
-      // the channel
-      const IrcMessage join_message(this->get_nick(), "JOIN", {""});
-      this->on_channel_join(join_message);
-      const IrcMessage end_join_message(std::string(this->hostname), "366",
-                                        {this->get_nick(),
-                                            "", "End of NAMES list"});
-      this->on_channel_completely_joined(end_join_message);
-    }
 }
 
 void IrcClient::on_part(const IrcMessage& message)
@@ -976,18 +1007,18 @@ void IrcClient::on_part(const IrcMessage& message)
     {
       std::string nick = user->nick;
       bool self = channel->get_self() && channel->get_self()->nick == nick;
-      channel->remove_user(user);
-      Iid iid;
-      iid.set_local(chan_name);
-      iid.set_server(this->hostname);
-      iid.type = Iid::Type::Channel;
+      auto user_ptr = channel->remove_user(user);
       if (self)
       {
         this->channels.erase(utils::tolower(chan_name));
         // channel pointer is now invalid
         channel = nullptr;
       }
-      this->bridge.send_muc_leave(iid, std::move(nick), txt, self, true);
+      Iid iid;
+      iid.set_local(chan_name);
+      iid.set_server(this->hostname);
+      iid.type = Iid::Type::Channel;
+      this->bridge.send_muc_leave(iid, *user_ptr, txt, self, true, {}, this);
     }
 }
 
@@ -1004,8 +1035,7 @@ void IrcClient::on_error(const IrcMessage& message)
     IrcChannel* channel = pair.second.get();
     if (!channel->joined)
       continue;
-    std::string own_nick = channel->get_self()->nick;
-      this->bridge.send_muc_leave(iid, std::move(own_nick), leave_message, true, false);
+    this->bridge.send_muc_leave(iid, *channel->get_self(), leave_message, true, false, {}, this);
   }
   this->channels.clear();
   this->send_gateway_message("ERROR: " + leave_message);
@@ -1030,7 +1060,7 @@ void IrcClient::on_quit(const IrcMessage& message)
       iid.set_local(chan_name);
       iid.set_server(this->hostname);
       iid.type = Iid::Type::Channel;
-      this->bridge.send_muc_leave(iid, user->nick, txt, self, false);
+      this->bridge.send_muc_leave(iid, *user, txt, self, false, {}, this);
       channel->remove_user(user);
     }
 }
@@ -1062,10 +1092,6 @@ void IrcClient::on_nick(const IrcMessage& message)
       }
   };
 
-  if (this->get_dummy_channel().joined)
-    {
-      change_nick_func("", &this->get_dummy_channel());
-    }
   for (const auto& pair: this->channels)
     {
       change_nick_func(pair.first, pair.second.get());
@@ -1132,8 +1158,6 @@ void IrcClient::on_channel_bad_key(const IrcMessage& message)
 
 void IrcClient::on_channel_mode(const IrcMessage& message)
 {
-  // For now, just transmit the modes so the user can know what happens
-  // TODO, actually interprete the mode.
   Iid iid;
   iid.set_local(message.arguments[0]);
   iid.set_server(this->hostname);
@@ -1151,7 +1175,7 @@ void IrcClient::on_channel_mode(const IrcMessage& message)
     }
   this->bridge.send_message(iid, "", "Mode " + iid.get_local() +
                                       " [" + mode_arguments + "] by " + user.nick,
-                             true);
+                             true, this->is_channel_joined(iid.get_local()));
   const IrcChannel* channel = this->get_channel(iid.get_local());
   if (!channel)
     return;
@@ -1224,6 +1248,11 @@ void IrcClient::on_channel_mode(const IrcMessage& message)
     }
 }
 
+void IrcClient::set_throttle_limit(long int limit)
+{
+  this->tokens_bucket.set_limit(limit);
+}
+
 void IrcClient::on_user_mode(const IrcMessage& message)
 {
   this->bridge.send_xmpp_message(this->hostname, "",
@@ -1248,25 +1277,7 @@ void IrcClient::on_unknown_message(const IrcMessage& message)
 
 size_t IrcClient::number_of_joined_channels() const
 {
-  if (this->dummy_channel.joined)
-    return this->channels.size() + 1;
-  else
-    return this->channels.size();
-}
-
-DummyIrcChannel& IrcClient::get_dummy_channel()
-{
-  return this->dummy_channel;
-}
-
-void IrcClient::leave_dummy_channel(const std::string& exit_message, const std::string& resource)
-{
-  if (!this->dummy_channel.joined)
-    return;
-  this->dummy_channel.joined = false;
-  this->dummy_channel.joining = false;
-  this->dummy_channel.remove_all_users();
-  this->bridge.send_muc_leave(Iid("%" + this->hostname, this->chantypes), std::string(this->current_nick), exit_message, true, true, resource);
+  return this->channels.size();
 }
 
 #ifdef BOTAN_FOUND
@@ -1279,3 +1290,12 @@ bool IrcClient::abort_on_invalid_cert() const
   return true;
 }
 #endif
+
+long int IrcClient::get_throttle_limit() const
+{
+#ifdef USE_DATABASE
+  return Database::get_irc_server_options(this->bridge.get_bare_jid(), this->hostname).col<Database::ThrottleLimit>();
+#else
+  return 10;
+#endif
+}

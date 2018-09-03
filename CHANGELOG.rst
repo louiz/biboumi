@@ -1,7 +1,70 @@
-Version 8.0
+Version 9.0
 ===========
 
+For users
+---------
+- Messages reflections are now properly cut if the body was cut before
+  being to sent to IRC
+- Messages from unjoined resources are now rejected instead of being accepted.
+  This helps clients understand that they are not in the room (because of
+  some connection issue for example).
+- All commands sent to IRC servers are now throttled to avoid being
+  disconnected for excess flood. The limit value can be customized using the
+  ad-hoc configuration form on a server JID.
+
+For admins
+----------
+- SIGHUP is now caught and reloads the configuration like SIGUSR1 and 2.
+- Add a verify_certificate policy option that lets the admin disable
+  certificate validation per-domain.
+
+Version 8.3 - 2018-06-01
+========================
+
+- The global ad-hoc configure command is now available on biboumi’s JID in
+  fixed_irc_server mode.
+
+Version 8.2 - 2018-05-23
+========================
+
+- The users are not able to bypass the fixed mode by just configuring a
+  different Address for the IRC server anymore.
+
+Version 8.1 - 2018-05-14
+========================
+
+- Fix a crash on a raw NAMES command
+
+Version 8.0 - 2018-05-02
+========================
+
+- GCC 4.9 or lower are not supported anymore. The minimal version is 5.0
 - Add a complete='true' in MAM’s iq result when appropriate
+- The archive ordering now only relies on the value of the ID, not the
+  date. This means that if you manually import archives in your database (or
+  mess with it somehow), biboumi will not work properly anymore, if you
+  don’t make sure the ID of everything in the muclogline table is
+  consistent.
+- The “virtual” channel with an empty name (for example
+  %irc.freenode.net@biboumi) has been entirely removed.
+- Add an “Address” field in the servers’ configure form. This lets
+  the user customize the address to use when connecting to a server.
+  See https://lab.louiz.org/louiz/biboumi/issues/3273 for more details.
+- Messages id are properly reflected to the sender
+- We now properly deal with a PostgreSQL server restart: whenever the
+  connection is lost with the server, we try to reconnect and re-execute the
+  query once.
+- A Nick field has been added in the IRC server configuration form, to let
+  the user force a nickname whenever a channel on the server is joined.
+- Multiple admins can now be listed in the admin field, separated with a colon.
+- Missing fields in a data-form response are now properly interpreted as
+  an empty value, and not the default value. Gajim users were not able to
+  empty a field of type text-multi because of this issue.
+- Fix an uncaught exception with botan, when policy does not allow any
+  available ciphersuite.
+- When the connection gets desynchronized and tries to re-join while
+  biboumi thinks it has never left, biboumi now sends the whole standard
+  join sequence (history, user-list, etc).
 
 Version 7.2 - 2018-01-24
 ========================

@@ -6,11 +6,6 @@ void actual_bind(Statement& statement, const std::string& value, int index)
   statement.bind_text(index, value);
 }
 
-void actual_bind(Statement& statement, const std::int64_t value, int index)
-{
-  statement.bind_int64(index, value);
-}
-
 void actual_bind(Statement& statement, const OptionalBool& value, int index)
 {
   if (!value.is_set)
@@ -20,7 +15,6 @@ void actual_bind(Statement& statement, const OptionalBool& value, int index)
   else
     statement.bind_int64(index, -1);
 }
-
 
 void actual_add_param(Query& query, const std::string& val)
 {

@@ -5,6 +5,7 @@
 #include <utils/empty_if_fixed_server.hpp>
 #include <utils/encoding.hpp>
 #include <utils/tolower.hpp>
+#include <utils/uuid.hpp>
 #include <logger/logger.hpp>
 #include <utils/revstr.hpp>
 #include <utils/split.hpp>
@@ -62,8 +63,8 @@ void Bridge::shutdown(const std::string& exit_message)
 {
   for (auto& pair: this->irc_clients)
   {
-    pair.second->send_quit_command(exit_message);
-    pair.second->leave_dummy_channel(exit_message, {});
+    std::unique_ptr<IrcClient>& irc = pair.second;
+    irc->send_quit_command(exit_message);
   }
 }
 
@@ -103,7 +104,7 @@ const std::string& Bridge::get_jid() const
 std::string Bridge::get_bare_jid() const
 {
   Jid jid(this->user_jid);
-  return jid.local + "@" + jid.domain;
+  return jid.bare();
 }
 
 Xmpp::body Bridge::make_xmpp_body(const std::string& str, const std::string& encoding)
@@ -133,11 +134,11 @@ IrcClient* Bridge::make_irc_client(const std::string& hostname, const std::strin
           realname = this->get_bare_jid();
         }
       this->irc_clients.emplace(hostname,
-                                std::make_shared<IrcClient>(this->poller, hostname,
+                                std::make_unique<IrcClient>(this->poller, hostname,
                                                             nickname, username,
                                                             realname, jid.domain,
                                                             *this));
-      std::shared_ptr<IrcClient> irc = this->irc_clients.at(hostname);
+      std::unique_ptr<IrcClient>& irc = this->irc_clients.at(hostname);
       return irc.get();
     }
 }
@@ -166,56 +167,36 @@ IrcClient* Bridge::find_irc_client(const std::string& hostname) const
     }
 }
 
-bool Bridge::join_irc_channel(const Iid& iid, const std::string& nickname, const std::string& password,
-                              const std::string& resource, HistoryLimit history_limit)
+bool Bridge::join_irc_channel(const Iid& iid, std::string nickname,
+                              const std::string& password,
+                              const std::string& resource,
+                              HistoryLimit history_limit,
+                              const bool force_join)
 {
   const auto& hostname = iid.get_server();
+#ifdef USE_DATABASE
+  auto soptions = Database::get_irc_server_options(this->get_bare_jid(), hostname);
+  if (!soptions.col<Database::Nick>().empty())
+    nickname = soptions.col<Database::Nick>();
+#endif
   IrcClient* irc = this->make_irc_client(hostname, nickname);
   irc->history_limit = history_limit;
   this->add_resource_to_server(hostname, resource);
   auto res_in_chan = this->is_resource_in_chan(ChannelKey{iid.get_local(), hostname}, resource);
   if (!res_in_chan)
     this->add_resource_to_chan(ChannelKey{iid.get_local(), hostname}, resource);
-  if (iid.get_local().empty())
-    { // Join the dummy channel
-      if (irc->is_welcomed())
-        {
-          if (res_in_chan)
-            return false;
-          // Immediately simulate a message coming from the IRC server saying that we
-          // joined the channel
-          if (irc->get_dummy_channel().joined)
-            {
-              this->generate_channel_join_for_resource(iid, resource);
-            }
-          else
-            {
-              const IrcMessage join_message(irc->get_nick(), "JOIN", {""});
-              irc->on_channel_join(join_message);
-              const IrcMessage end_join_message(std::string(iid.get_server()), "366",
-                                                {irc->get_nick(),
-                                                 "", "End of NAMES list"});
-              irc->on_channel_completely_joined(end_join_message);
-            }
-        }
-      else
-        {
-          irc->get_dummy_channel().joining = true;
-          irc->start();
-        }
-      return true;
-    }
   if (irc->is_channel_joined(iid.get_local()) == false)
     {
       irc->send_join_command(iid.get_local(), password);
       return true;
-    } else if (!res_in_chan) {
+    } else if (!res_in_chan || force_join) {
+      // See https://github.com/xsf/xeps/pull/499 for the force_join argument
       this->generate_channel_join_for_resource(iid, resource);
     }
   return false;
 }
 
-void Bridge::send_channel_message(const Iid& iid, const std::string& body)
+void Bridge::send_channel_message(const Iid& iid, const std::string& body, std::string id)
 {
   if (iid.get_server().empty())
     {
@@ -240,8 +221,26 @@ void Bridge::send_channel_message(const Iid& iid, const std::string& body)
   std::vector<std::string> lines = utils::split(body, '\n', true);
   if (lines.empty())
     return ;
+  bool first = true;
   for (const std::string& line: lines)
     {
+      std::string uuid;
+#ifdef USE_DATABASE
+      const auto xmpp_body = this->make_xmpp_body(line);
+      if (this->record_history)
+        uuid = Database::store_muc_message(this->get_bare_jid(), iid.get_local(), iid.get_server(), std::chrono::system_clock::now(),
+                                    std::get<0>(xmpp_body), irc->get_own_nick());
+#endif
+      if (!first || id.empty())
+        id = utils::gen_uuid();
+
+      MessageCallback mirror_to_all_resources = [this, iid, uuid, id](const IrcClient* irc, const IrcMessage& message) {
+        const std::string& line = message.arguments[1];
+        for (const auto& resource: this->resources_in_chan[iid.to_tuple()])
+          this->xmpp.send_muc_message(std::to_string(iid), irc->get_own_nick(), this->make_xmpp_body(line),
+                                      this->user_jid + "/" + resource, uuid, id);
+      };
+
       if (line.substr(0, 5) == "/mode")
         {
           std::vector<std::string> args = utils::split(line.substr(5), ' ', false);
@@ -250,20 +249,12 @@ void Bridge::send_channel_message(const Iid& iid, const std::string& body)
                                 // XMPP user, that’s not a textual message.
         }
       else if (line.substr(0, 4) == "/me ")
-        irc->send_channel_message(iid.get_local(), action_prefix + line.substr(4) + "\01");
+        irc->send_channel_message(iid.get_local(), action_prefix + line.substr(4) + "\01",
+                                  std::move(mirror_to_all_resources));
       else
-        irc->send_channel_message(iid.get_local(), line);
+        irc->send_channel_message(iid.get_local(), line, std::move(mirror_to_all_resources));
 
-      std::string uuid;
-#ifdef USE_DATABASE
-      const auto xmpp_body = this->make_xmpp_body(line);
-      if (this->record_history)
-        uuid = Database::store_muc_message(this->get_bare_jid(), iid.get_local(), iid.get_server(), std::chrono::system_clock::now(),
-                                    std::get<0>(xmpp_body), irc->get_own_nick());
-#endif
-      for (const auto& resource: this->resources_in_chan[iid.to_tuple()])
-        this->xmpp.send_muc_message(std::to_string(iid), irc->get_own_nick(), this->make_xmpp_body(line),
-                                    this->user_jid + "/" + resource, uuid);
+      first = false;
     }
 }
 
@@ -445,15 +436,11 @@ void Bridge::leave_irc_channel(Iid&& iid, const std::string& status_message, con
 #endif
       if (channel->joined && !channel->parting && !persistent)
         {
-          const auto& chan_name = iid.get_local();
-          if (chan_name.empty())
-            irc->leave_dummy_channel(status_message, resource);
-          else
-            irc->send_part_command(iid.get_local(), status_message);
+          irc->send_part_command(iid.get_local(), status_message);
         }
       else if (channel->joined)
         {
-          this->send_muc_leave(iid, channel->get_self()->nick, "", true, true, resource);
+          this->send_muc_leave(iid, *channel->get_self(), "", true, true, resource, irc);
         }
       if (persistent)
         this->remove_resource_from_chan(key, resource);
@@ -464,14 +451,13 @@ void Bridge::leave_irc_channel(Iid&& iid, const std::string& status_message, con
   else
     {
       if (channel && channel->joined)
-        this->send_muc_leave(iid, channel->get_self()->nick,
+        this->send_muc_leave(iid, *channel->get_self(),
                              "Biboumi note: " + std::to_string(resources - 1) + " resources are still in this channel.",
-                             true, true, resource);
+                             true, true, resource, irc);
       this->remove_resource_from_chan(key, resource);
     }
-      if (this->number_of_channels_the_resource_is_in(iid.get_server(), resource) == 0)
-        this->remove_resource_from_server(iid.get_server(), resource);
-
+  if (this->number_of_channels_the_resource_is_in(iid.get_server(), resource) == 0)
+    this->remove_resource_from_server(iid.get_server(), resource);
 }
 
 void Bridge::send_irc_nick_change(const Iid& iid, const std::string& new_nick, const std::string& requesting_resource)
@@ -836,22 +822,24 @@ void Bridge::send_irc_version_request(const std::string& irc_hostname, const std
   this->add_waiting_irc(std::move(cb));
 }
 
-void Bridge::send_message(const Iid& iid, const std::string& nick, const std::string& body, const bool muc)
+void Bridge::send_message(const Iid& iid, const std::string& nick, const std::string& body, const bool muc, const bool log)
 {
   const auto encoding = in_encoding_for(*this, iid);
+  std::string uuid{};
   if (muc)
     {
 #ifdef USE_DATABASE
       const auto xmpp_body = this->make_xmpp_body(body, encoding);
-      if (!nick.empty() && this->record_history)
-        Database::store_muc_message(this->get_bare_jid(), iid.get_local(), iid.get_server(), std::chrono::system_clock::now(),
-                                    std::get<0>(xmpp_body), nick);
+      if (log && this->record_history)
+        uuid = Database::store_muc_message(this->get_bare_jid(), iid.get_local(), iid.get_server(), std::chrono::system_clock::now(),
+                                           std::get<0>(xmpp_body), nick);
+#else
+      (void)log;
 #endif
       for (const auto& resource: this->resources_in_chan[iid.to_tuple()])
         {
           this->xmpp.send_muc_message(std::to_string(iid), nick, this->make_xmpp_body(body, encoding),
-                                      this->user_jid + "/" + resource, {});
-
+                                      this->user_jid + "/" + resource, uuid, utils::gen_uuid());
         }
     }
   else
@@ -881,19 +869,24 @@ void Bridge::send_presence_error(const Iid& iid, const std::string& nick,
   this->xmpp.send_presence_error(std::to_string(iid), nick, this->user_jid, type, condition, error_code, text);
 }
 
-void Bridge::send_muc_leave(const Iid& iid, const std::string& nick,
+void Bridge::send_muc_leave(const Iid& iid, const IrcUser& user,
                             const std::string& message, const bool self,
                             const bool user_requested,
-                            const std::string& resource)
+                            const std::string& resource,
+                            const IrcClient* client)
 {
+  std::string affiliation;
+  std::string role;
+  std::tie(role, affiliation) = get_role_affiliation_from_irc_mode(user.get_most_significant_mode(client->get_sorted_user_modes()));
+
   if (!resource.empty())
-    this->xmpp.send_muc_leave(std::to_string(iid), nick, this->make_xmpp_body(message),
-                              this->user_jid + "/" + resource, self, user_requested);
+    this->xmpp.send_muc_leave(std::to_string(iid), user.nick, this->make_xmpp_body(message),
+                              this->user_jid + "/" + resource, self, user_requested, affiliation, role);
   else
     {
       for (const auto &res: this->resources_in_chan[iid.to_tuple()])
-        this->xmpp.send_muc_leave(std::to_string(iid), nick, this->make_xmpp_body(message),
-                                  this->user_jid + "/" + res, self, user_requested);
+        this->xmpp.send_muc_leave(std::to_string(iid), user.nick, this->make_xmpp_body(message),
+                                  this->user_jid + "/" + res, self, user_requested, affiliation, role);
       if (self)
         {
           // Copy the resources currently in that channel
@@ -906,9 +899,7 @@ void Bridge::send_muc_leave(const Iid& iid, const std::string& nick,
           for (const auto& r: resources_in_chan)
           if (this->number_of_channels_the_resource_is_in(iid.get_server(), r) == 0)
             this->remove_resource_from_server(iid.get_server(), r);
-
         }
-
     }
   IrcClient* irc = this->find_irc_client(iid.get_server());
   if (self && irc && irc->number_of_joined_channels() == 0)
@@ -1016,11 +1007,14 @@ void Bridge::send_room_history(const std::string& hostname, const std::string& c
 void Bridge::send_room_history(const std::string& hostname, std::string chan_name, const std::string& resource, const HistoryLimit& history_limit)
 {
 #ifdef USE_DATABASE
-  const auto coptions = Database::get_irc_channel_options_with_server_and_global_default(this->user_jid, hostname, chan_name);
-  auto limit = coptions.col<Database::MaxHistoryLength>();
+  const auto goptions = Database::get_global_options(this->user_jid);
+  auto limit = goptions.col<Database::MaxHistoryLength>();
+  if (limit < 0)
+    limit = 20;
   if (history_limit.stanzas >= 0 && history_limit.stanzas < limit)
     limit = history_limit.stanzas;
-  const auto lines = Database::get_muc_logs(this->user_jid, chan_name, hostname, limit, history_limit.since);
+  const auto result = Database::get_muc_logs(this->user_jid, chan_name, hostname, static_cast<std::size_t>(limit), history_limit.since, {}, Id::unset_value, Database::Paging::last);
+  const auto& lines = std::get<1>(result);
   chan_name.append(utils::empty_if_fixed_server("%" + hostname));
   for (const auto& line: lines)
     {
@@ -1156,12 +1150,12 @@ void Bridge::trigger_on_irc_message(const std::string& irc_hostname, const IrcMe
     }
 }
 
-std::unordered_map<std::string, std::shared_ptr<IrcClient>>& Bridge::get_irc_clients()
+std::unordered_map<std::string, std::unique_ptr<IrcClient>>& Bridge::get_irc_clients()
 {
   return this->irc_clients;
 }
 
-const std::unordered_map<std::string, std::shared_ptr<IrcClient>>& Bridge::get_irc_clients() const
+const std::unordered_map<std::string, std::unique_ptr<IrcClient>>& Bridge::get_irc_clients() const
 {
   return this->irc_clients;
 }
@@ -1228,15 +1222,6 @@ void Bridge::remove_resource_from_server(const Bridge::IrcHostname& irc_hostname
     }
 }
 
-bool Bridge::is_resource_in_server(const Bridge::IrcHostname& irc_hostname, const std::string& resource) const
-{
-  auto it = this->resources_in_server.find(irc_hostname);
-  if (it != this->resources_in_server.end())
-    if (it->second.count(resource) == 1)
-      return true;
-  return false;
-}
-
 std::size_t Bridge::number_of_resources_in_chan(const Bridge::ChannelKey& channel) const
 {
   auto it = this->resources_in_chan.find(channel);
@@ -1254,9 +1239,6 @@ std::size_t Bridge::number_of_channels_the_resource_is_in(const std::string& irc
         res++;
     }
 
-  IrcClient* irc = this->find_irc_client(irc_hostname);
-  if (irc && (irc->get_dummy_channel().joined || irc->get_dummy_channel().joining))
-    res++;
   return res;
 }
 

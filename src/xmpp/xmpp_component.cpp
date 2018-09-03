@@ -2,6 +2,7 @@
 #include <utils/scopeguard.hpp>
 #include <utils/tolower.hpp>
 #include <logger/logger.hpp>
+#include <utils/uuid.hpp>
 
 #include <xmpp/xmpp_component.hpp>
 #include <config/config.hpp>
@@ -13,8 +14,6 @@
 #include <stdexcept>
 #include <iostream>
 #include <set>
-
-#include <uuid/uuid.h>
 
 #include <cstdlib>
 #include <set>
@@ -364,10 +363,11 @@ void XmppComponent::send_topic(const std::string& from, Xmpp::body&& topic, cons
   this->send_stanza(message);
 }
 
-void XmppComponent::send_muc_message(const std::string& muc_name, const std::string& nick, Xmpp::body&& xmpp_body, const std::string& jid_to, std::string uuid)
+void XmppComponent::send_muc_message(const std::string& muc_name, const std::string& nick, Xmpp::body&& xmpp_body, const std::string& jid_to, std::string uuid, std::string id)
 {
   Stanza message("message");
   message["to"] = jid_to;
+  message["id"] = std::move(id);
   if (!nick.empty())
     message["from"] = muc_name + "@" + this->served_hostname + "/" + nick;
   else // Message from the room itself
@@ -425,7 +425,8 @@ void XmppComponent::send_history_message(const std::string& muc_name, const std:
 #endif
 
 void XmppComponent::send_muc_leave(const std::string& muc_name, const std::string& nick, Xmpp::body&& message,
-                                   const std::string& jid_to, const bool self, const bool user_requested)
+                                   const std::string& jid_to, const bool self, const bool user_requested,
+                                   const std::string& affiliation, const std::string& role)
 {
   Stanza presence("presence");
   {
@@ -447,6 +448,9 @@ void XmppComponent::send_muc_leave(const std::string& muc_name, const std::strin
             status["code"] = "332";
           }
       }
+    XmlSubNode item(x, "item");
+    item["affiliation"] = affiliation;
+    item["role"] = role;
     if (!message_str.empty())
       {
         XmlSubNode status(presence, "status");
@@ -669,9 +673,5 @@ void XmppComponent::send_iq_result(const std::string& id, const std::string& to_
 
 std::string XmppComponent::next_id()
 {
-  char uuid_str[37];
-  uuid_t uuid;
-  uuid_generate(uuid);
-  uuid_unparse(uuid, uuid_str);
-  return uuid_str;
+  return utils::gen_uuid();
 }

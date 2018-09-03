@@ -106,7 +106,7 @@ std::string jidprep(const std::string& original)
           --domain_end;
         if (domain_end != domain && special_chars.count(domain[0]))
           {
-            std::memmove(domain, domain + 1, domain_end - domain + 1);
+            std::memmove(domain, domain + 1, static_cast<std::size_t>(domain_end - domain) + 1);
             --domain_end;
           }
         // And if the final result is an empty string, return a dummy hostname

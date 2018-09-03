@@ -25,7 +25,7 @@ void check_tls_certificate(const std::vector<Botan::X509_Certificate>& certs,
 class BasicCredentialsManager: public Botan::Credentials_Manager
 {
 public:
-  BasicCredentialsManager(const TCPSocketHandler* const socket_handler);
+  BasicCredentialsManager();
 
   BasicCredentialsManager(BasicCredentialsManager&&) = delete;
   BasicCredentialsManager(const BasicCredentialsManager&) = delete;
@@ -38,7 +38,6 @@ public:
   const std::string& get_trusted_fingerprint() const;
 
 private:
-  const TCPSocketHandler* const socket_handler;
 
   static bool try_to_open_one_ca_bundle(const std::vector<std::string>& paths);
   static void load_certs();

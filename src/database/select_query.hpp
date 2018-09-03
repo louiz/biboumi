@@ -2,6 +2,8 @@
 
 #include <database/engine.hpp>
 
+#include <database/table.hpp>
+#include <database/database.hpp>
 #include <database/statement.hpp>
 #include <database/query.hpp>
 #include <logger/logger.hpp>
@@ -115,6 +117,8 @@ struct SelectQuery: public Query
 #endif
 
       auto statement = db.prepare(this->body);
+      if (!statement)
+        return rows;
       statement->bind(std::move(this->params));
 
       while (statement->step() == StepResult::Row)
@@ -130,3 +134,9 @@ struct SelectQuery: public Query
     const std::string table_name;
 };
 
+template <typename... T>
+auto select(const Table<T...>& table)
+{
+  SelectQuery<T...> query(table.name);
+  return query;
+}

@@ -46,6 +46,11 @@ public:
   static int get_int(const std::string&, const int&);
   static bool get_bool(const std::string&, const bool);
   /**
+   * Returns true if value is present in a colon-separated list, otherwise
+   * false.
+   */
+  static bool is_in_list(const std::string& option, const std::string& value);
+  /**
    * Set a value for the given option. And write all the config
    * in the file from which it was read if save is true.
    */

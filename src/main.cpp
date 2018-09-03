@@ -55,45 +55,8 @@ static void sigusr_handler(int, siginfo_t*, void*)
   reload.store(true);
 }
 
-int main(int ac, char** av)
+static void setup_signals()
 {
-  if (ac > 1)
-    {
-      const std::string arg = av[1];
-      if (arg.size() >= 2 && arg[0] == '-' && arg[1] == '-')
-        {
-          if (arg == "--help")
-            return display_help();
-          else
-            {
-              std::cerr << "Unknow command line option: " << arg << std::endl;
-              return 1;
-            }
-        }
-    }
-  const std::string conf_filename = ac > 1 ? av[1] : xdg_config_path("biboumi.cfg");
-  std::cout << "Using configuration file: " << conf_filename << std::endl;
-
-  if (!Config::read_conf(conf_filename))
-    return config_help("");
-
-  const std::string password = Config::get("password", "");
-  if (password.empty())
-    return config_help("password");
-  const std::string hostname = Config::get("hostname", "");
-  if (hostname.empty())
-    return config_help("hostname");
-
-
-#ifdef USE_DATABASE
-  try {
-    open_database();
-  } catch (const std::exception& e) {
-    log_error(e.what());
-    return 1;
-  }
-#endif
-
   // Block the signals we want to manage. They will be unblocked only during
   // the epoll_pwait or ppoll calls. This avoids some race conditions,
   // explained in man 2 pselect on linux
@@ -103,6 +66,7 @@ int main(int ac, char** av)
   sigaddset(&mask, SIGTERM);
   sigaddset(&mask, SIGUSR1);
   sigaddset(&mask, SIGUSR2);
+  sigaddset(&mask, SIGHUP);
   sigprocmask(SIG_BLOCK, &mask, nullptr);
 
   // Install the signals used to exit the process cleanly, or reload the
@@ -113,7 +77,7 @@ int main(int ac, char** av)
   sigfillset(&on_sigint.sa_mask);
   // we want to catch that signal only once.
   // Sending SIGINT again will "force" an exit
-  on_sigint.sa_flags = SA_RESETHAND;
+  on_sigint.sa_flags = 0 & SA_RESETHAND;
   sigaction(SIGINT, &on_sigint, nullptr);
   sigaction(SIGTERM, &on_sigint, nullptr);
 
@@ -124,7 +88,11 @@ int main(int ac, char** av)
   on_sigusr.sa_flags = 0;
   sigaction(SIGUSR1, &on_sigusr, nullptr);
   sigaction(SIGUSR2, &on_sigusr, nullptr);
+  sigaction(SIGHUP, &on_sigusr, nullptr);
+}
 
+static int main_loop(std::string hostname, std::string password)
+{
   auto p = std::make_shared<Poller>();
 
 #ifdef UDNS_FOUND
@@ -135,7 +103,9 @@ int main(int ac, char** av)
     std::make_shared<BiboumiComponent>(p, hostname, password);
   xmpp_component->start();
 
-  IdentdServer identd(*xmpp_component, p, static_cast<uint16_t>(Config::get_int("identd_port", 113)));
+  std::unique_ptr<IdentdServer> identd;
+  if (Config::get_int("identd_port", 113) != 0)
+    identd = std::make_unique<IdentdServer>(*xmpp_component, p, static_cast<uint16_t>(Config::get_int("identd_port", 113)));
 
   auto timeout = TimedEventsManager::instance().get_timeout();
   while (p->poll(timeout) != -1)
@@ -144,7 +114,8 @@ int main(int ac, char** av)
     // Check for empty irc_clients (not connected, or with no joined
     // channel) and remove them
     xmpp_component->clean();
-    identd.clean();
+    if (identd)
+      identd->clean();
     if (stop)
     {
       log_info("Signal received, exiting...");
@@ -157,7 +128,8 @@ int main(int ac, char** av)
 #ifdef UDNS_FOUND
       dns_handler.destroy();
 #endif
-      identd.shutdown();
+      if (identd)
+        identd->shutdown();
       // Cancel the timer for a potential reconnection
       TimedEventsManager::instance().cancel("XMPP reconnection");
     }
@@ -199,7 +171,8 @@ int main(int ac, char** av)
 #ifdef UDNS_FOUND
           dns_handler.destroy();
 #endif
-          identd.shutdown();
+          if (identd)
+            identd->shutdown();
         }
     }
     // If the only existing connection is the one to the XMPP component:
@@ -217,4 +190,52 @@ int main(int ac, char** av)
     return 1; // To signal that the process did not properly start
   log_info("All connections cleanly closed, have a nice day.");
   return 0;
+}
+
+int main(int ac, char** av)
+{
+  if (ac > 1)
+    {
+      const std::string arg = av[1];
+      if (arg.size() >= 2 && arg[0] == '-' && arg[1] == '-')
+        {
+          if (arg == "--help")
+            return display_help();
+          else
+            {
+              std::cerr << "Unknow command line option: " << arg
+                        << std::endl;
+              return 1;
+            }
+        }
+    }
+  const std::string conf_filename =
+      ac > 1 ? av[1]: xdg_config_path("biboumi.cfg");
+  std::cout << "Using configuration file: " << conf_filename << std::endl;
+
+  if (!Config::read_conf(conf_filename))
+    return config_help("");
+
+  const std::string password = Config::get("password", "");
+  if (password.empty())
+    return config_help("password");
+  const std::string hostname = Config::get("hostname", "");
+  if (hostname.empty())
+    return config_help("hostname");
+
+#ifdef USE_DATABASE
+  try
+    {
+      open_database();
+    }
+  catch (const std::exception& e)
+    {
+      log_error(e.what());
+      return 1;
+    }
+#endif
+
+  setup_signals();
+
+  return main_loop(std::move(hostname), std::move(password));
 }

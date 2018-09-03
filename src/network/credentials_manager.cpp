@@ -21,9 +21,8 @@ static const std::vector<std::string> default_cert_files = {
 Botan::Certificate_Store_In_Memory BasicCredentialsManager::certificate_store;
 bool BasicCredentialsManager::certs_loaded = false;
 
-BasicCredentialsManager::BasicCredentialsManager(const TCPSocketHandler* const socket_handler):
+BasicCredentialsManager::BasicCredentialsManager():
     Botan::Credentials_Manager(),
-    socket_handler(socket_handler),
     trusted_fingerprint{}
 {
   BasicCredentialsManager::load_certs();

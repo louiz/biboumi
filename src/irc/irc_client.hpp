@@ -16,8 +16,14 @@
 #include <vector>
 #include <string>
 #include <stack>
+#include <deque>
 #include <map>
 #include <set>
+#include <utils/tokens_bucket.hpp>
+
+class IrcClient;
+
+using MessageCallback = std::function<void(const IrcClient*, const IrcMessage&)>;
 
 class Bridge;
 
@@ -28,7 +34,7 @@ class Bridge;
 class IrcClient: public TCPClientSocketHandler
 {
 public:
-  explicit IrcClient(std::shared_ptr<Poller>& poller, std::string  hostname,
+  explicit IrcClient(std::shared_ptr<Poller>& poller, std::string hostname,
                      std::string nickname, std::string username,
                      std::string realname, std::string user_hostname,
                      Bridge& bridge);
@@ -68,6 +74,10 @@ public:
    */
   IrcChannel* get_channel(const std::string& name);
   /**
+   * Return the channel with this name. Nullptr if it is not found
+   */
+   const IrcChannel* find_channel(const std::string& name) const;
+  /**
    * Returns true if the channel is joined
    */
   bool is_channel_joined(const std::string& name);
@@ -80,8 +90,9 @@ public:
    * (actually, into our out_buf and signal the poller that we want to wach
    * for send events to be ready)
    */
-  void send_message(IrcMessage&& message);
+  void send_message(IrcMessage message, MessageCallback callback={}, bool throttle=true);
   void send_raw(const std::string& txt);
+  void actual_send(std::pair<IrcMessage, MessageCallback> message_pair);
   /**
    * Send the PONG irc command
    */
@@ -110,7 +121,8 @@ public:
    * Send a PRIVMSG command for a channel
    * Return true if the message was actually sent
    */
-  bool send_channel_message(const std::string& chan_name, const std::string& body);
+  bool send_channel_message(const std::string& chan_name, const std::string& body,
+                            MessageCallback callback);
   /**
    * Send a PRIVMSG command for an user
    */
@@ -279,15 +291,6 @@ public:
    * Return the number of joined channels
    */
   size_t number_of_joined_channels() const;
-  /**
-   * Get a reference to the unique dummy channel
-   */
-  DummyIrcChannel& get_dummy_channel();
-  /**
-   * Leave the dummy channel: forward a message to the user to indicate that
-   * he left it, and mark it as not joined.
-   */
-  void leave_dummy_channel(const std::string& exit_message, const std::string& resource);
 
   const std::string& get_hostname() const { return this->hostname; }
   std::string get_nick() const { return this->current_nick; }
@@ -298,7 +301,7 @@ public:
   const std::vector<char>& get_sorted_user_modes() const { return this->sorted_user_modes; }
 
   std::set<char> get_chantypes() const { return this->chantypes; }
-
+  void set_throttle_limit(long int limit);
   /**
    * Store the history limit that the client asked when joining this room.
    */
@@ -336,14 +339,13 @@ private:
    */
   Bridge& bridge;
   /**
+   * Where messaged are stored when they are throttled.
+   */
+  std::deque<std::pair<IrcMessage, MessageCallback>> message_queue{};
+  /**
    * The list of joined channels, indexed by name
    */
   std::unordered_map<std::string, std::unique_ptr<IrcChannel>> channels;
-  /**
-   * A single channel with a iid of the form "hostname" (normal channel have
-   * an iid of the form "chan%hostname".
-   */
-  DummyIrcChannel dummy_channel;
   /**
    * A list of chan we want to join (tuples with the channel name and the
    * password, if any), but we need a response 001 from the server before
@@ -399,6 +401,8 @@ private:
    * the WebIRC protocole.
    */
   Resolver dns_resolver;
+  TokensBucket tokens_bucket;
+  long int get_throttle_limit() const;
 };
 
 

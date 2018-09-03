@@ -14,6 +14,14 @@
 
 #ifdef USE_DATABASE
 #include <database/database.hpp>
+#include <database/save.hpp>
+
+static void set_desc(XmlSubNode& field, const char* text)
+{
+  XmlSubNode desc(field, "desc");
+  desc.set_inner(text);
+}
+
 #endif
 
 #ifndef HAS_PUT_TIME
@@ -115,6 +123,7 @@ void ConfigureGlobalStep1(XmppComponent&, AdhocSession& session, XmlNode& comman
 
   auto options = Database::get_global_options(owner.bare());
 
+  command_node.delete_all_children();
   XmlSubNode x(command_node, "jabber:x:data:x");
   x["type"] = "form";
   XmlSubNode title(x, "title");
@@ -127,7 +136,7 @@ void ConfigureGlobalStep1(XmppComponent&, AdhocSession& session, XmlNode& comman
     max_histo_length["var"] = "max_history_length";
     max_histo_length["type"] = "text-single";
     max_histo_length["label"] = "Max history length";
-    max_histo_length["desc"] = "The maximum number of lines in the history that the server sends when joining a channel";
+    set_desc(max_histo_length, "The maximum number of lines in the history that the server sends when joining a channel");
     {
       XmlSubNode value(max_histo_length, "value");
       value.set_inner(std::to_string(options.col<Database::MaxHistoryLength>()));
@@ -139,7 +148,7 @@ void ConfigureGlobalStep1(XmppComponent&, AdhocSession& session, XmlNode& comman
     record_history["var"] = "record_history";
     record_history["type"] = "boolean";
     record_history["label"] = "Record history";
-    record_history["desc"] = "Whether to save the messages into the database, or not";
+    set_desc(record_history, "Whether to save the messages into the database, or not");
     {
       XmlSubNode value(record_history, "value");
       value.set_name("value");
@@ -155,7 +164,7 @@ void ConfigureGlobalStep1(XmppComponent&, AdhocSession& session, XmlNode& comman
     persistent["var"] = "persistent";
     persistent["type"] = "boolean";
     persistent["label"] = "Make all channels persistent";
-    persistent["desc"] = "If true, all channels will be persistent";
+    set_desc(persistent, "If true, all channels will be persistent");
     {
       XmlSubNode value(persistent, "value");
       value.set_name("value");
@@ -176,6 +185,7 @@ void ConfigureGlobalStep2(XmppComponent& xmpp_component, AdhocSession& session, 
     {
       const Jid owner(session.get_owner_jid());
       auto options = Database::get_global_options(owner.bare());
+      options.clear();
       for (const XmlNode* field: x->get_children("field", "jabber:x:data"))
         {
           const XmlNode* value = field->get_child("value", "jabber:x:data");
@@ -196,7 +206,7 @@ void ConfigureGlobalStep2(XmppComponent& xmpp_component, AdhocSession& session, 
             options.col<Database::GlobalPersistent>() = to_bool(value->get_inner());
         }
 
-      options.save(Database::db);
+      save(options, *Database::db);
 
       command_node.delete_all_children();
       XmlSubNode note(command_node, "note");
@@ -219,7 +229,9 @@ void ConfigureIrcServerStep1(XmppComponent&, AdhocSession& session, XmlNode& com
     server_domain = target.local;
   auto options = Database::get_irc_server_options(owner.local + "@" + owner.domain,
                                                   server_domain);
+  auto commands = Database::get_after_connection_commands(options);
 
+  command_node.delete_all_children();
   XmlSubNode x(command_node, "jabber:x:data:x");
   x["type"] = "form";
   XmlSubNode title(x, "title");
@@ -227,12 +239,26 @@ void ConfigureIrcServerStep1(XmppComponent&, AdhocSession& session, XmlNode& com
   XmlSubNode instructions(x, "instructions");
   instructions.set_inner("Edit the form, to configure the settings of the IRC server " + server_domain);
 
+  if (Config::get("fixed_irc_server", "").empty())
+  {
+    XmlSubNode field(x, "field");
+    field["var"] = "address";
+    field["type"] = "text-single";
+    field["label"] = "Address";
+      set_desc(field, "The address (hostname or IP) to connect to.");
+    XmlSubNode value(field, "value");
+    if (options.col<Database::Address>().empty())
+      value.set_inner(server_domain);
+    else
+      value.set_inner(options.col<Database::Address>());
+  }
+
   {
     XmlSubNode ports(x, "field");
     ports["var"] = "ports";
     ports["type"] = "text-multi";
     ports["label"] = "Ports";
-    ports["desc"] = "List of ports to try, without TLS. Defaults: 6667.";
+    set_desc(ports, "List of ports to try, without TLS. Defaults: 6667.");
     for (const auto& val: utils::split(options.col<Database::Ports>(), ';', false))
       {
         XmlSubNode ports_value(ports, "value");
@@ -246,7 +272,7 @@ void ConfigureIrcServerStep1(XmppComponent&, AdhocSession& session, XmlNode& com
     tls_ports["var"] = "tls_ports";
     tls_ports["type"] = "text-multi";
     tls_ports["label"] = "TLS ports";
-    tls_ports["desc"] = "List of ports to try, with TLS. Defaults: 6697, 6670.";
+    set_desc(tls_ports, "List of ports to try, with TLS. Defaults: 6697, 6670.");
     for (const auto& val: utils::split(options.col<Database::TlsPorts>(), ';', false))
       {
         XmlSubNode tls_ports_value(tls_ports, "value");
@@ -259,7 +285,7 @@ void ConfigureIrcServerStep1(XmppComponent&, AdhocSession& session, XmlNode& com
     verify_cert["var"] = "verify_cert";
     verify_cert["type"] = "boolean";
     verify_cert["label"] = "Verify certificate";
-    verify_cert["desc"] = "Whether or not to abort the connection if the server’s TLS certificate is invalid";
+    set_desc(verify_cert, "Whether or not to abort the connection if the server’s TLS certificate is invalid");
     XmlSubNode verify_cert_value(verify_cert, "value");
     if (options.col<Database::VerifyCert>())
       verify_cert_value.set_inner("true");
@@ -279,12 +305,26 @@ void ConfigureIrcServerStep1(XmppComponent&, AdhocSession& session, XmlNode& com
       }
   }
 #endif
+
+  {
+    XmlSubNode field(x, "field");
+    field["var"] = "nick";
+    field["type"] = "text-single";
+    field["label"] = "Nickname";
+    set_desc(field, "If set, will override the nickname provided in the initial presence sent to join the first server channel");
+    if (!options.col<Database::Nick>().empty())
+      {
+        XmlSubNode value(field, "value");
+        value.set_inner(options.col<Database::Nick>());
+      }
+  }
+
   {
     XmlSubNode pass(x, "field");
     pass["var"] = "pass";
     pass["type"] = "text-private";
     pass["label"] = "Server password";
-    pass["desc"] = "Will be used in a PASS command when connecting";
+    set_desc(pass, "Will be used in a PASS command when connecting");
     if (!options.col<Database::Pass>().empty())
       {
         XmlSubNode pass_value(pass, "value");
@@ -294,14 +334,14 @@ void ConfigureIrcServerStep1(XmppComponent&, AdhocSession& session, XmlNode& com
 
   {
     XmlSubNode after_cnt_cmd(x, "field");
-    after_cnt_cmd["var"] = "after_connect_command";
-    after_cnt_cmd["type"] = "text-single";
-    after_cnt_cmd["desc"] = "Custom IRC command sent after the connection is established with the server.";
-    after_cnt_cmd["label"] = "After-connection IRC command";
-    if (!options.col<Database::AfterConnectionCommand>().empty())
+    after_cnt_cmd["var"] = "after_connect_commands";
+    after_cnt_cmd["type"] = "text-multi";
+    set_desc(after_cnt_cmd, "Custom IRC commands sent after the connection is established with the server.");
+    after_cnt_cmd["label"] = "After-connection IRC commands";
+    for (const auto& command: commands)
       {
         XmlSubNode after_cnt_cmd_value(after_cnt_cmd, "value");
-        after_cnt_cmd_value.set_inner(options.col<Database::AfterConnectionCommand>());
+        after_cnt_cmd_value.set_inner(command.col<Database::AfterConnectionCommand>());
       }
   }
 
@@ -333,10 +373,19 @@ void ConfigureIrcServerStep1(XmppComponent&, AdhocSession& session, XmlNode& com
     }
 
   {
+    XmlSubNode throttle_limit(x, "field");
+    throttle_limit["var"] = "throttle_limit";
+    throttle_limit["type"] = "text-single";
+    throttle_limit["label"] = "Throttle limit";
+    XmlSubNode value(throttle_limit, "value");
+    value.set_inner(std::to_string(options.col<Database::ThrottleLimit>()));
+  }
+
+  {
   XmlSubNode encoding_out(x, "field");
   encoding_out["var"] = "encoding_out";
   encoding_out["type"] = "text-single";
-  encoding_out["desc"] = "The encoding used when sending messages to the IRC server.";
+    set_desc(encoding_out, "The encoding used when sending messages to the IRC server.");
   encoding_out["label"] = "Out encoding";
   if (!options.col<Database::EncodingOut>().empty())
     {
@@ -349,7 +398,7 @@ void ConfigureIrcServerStep1(XmppComponent&, AdhocSession& session, XmlNode& com
     XmlSubNode encoding_in(x, "field");
     encoding_in["var"] = "encoding_in";
     encoding_in["type"] = "text-single";
-    encoding_in["desc"] = "The encoding used to decode message received from the IRC server.";
+    set_desc(encoding_in, "The encoding used to decode message received from the IRC server.");
     encoding_in["label"] = "In encoding";
     if (!options.col<Database::EncodingIn>().empty())
       {
@@ -359,8 +408,10 @@ void ConfigureIrcServerStep1(XmppComponent&, AdhocSession& session, XmlNode& com
   }
 }
 
-void ConfigureIrcServerStep2(XmppComponent&, AdhocSession& session, XmlNode& command_node)
+void ConfigureIrcServerStep2(XmppComponent& xmpp_component, AdhocSession& session, XmlNode& command_node)
 {
+  auto& biboumi_component = dynamic_cast<BiboumiComponent&>(xmpp_component);
+
   const XmlNode* x = command_node.get_child("x", "jabber:x:data");
   if (x)
     {
@@ -371,10 +422,17 @@ void ConfigureIrcServerStep2(XmppComponent&, AdhocSession& session, XmlNode& com
         server_domain = target.local;
       auto options = Database::get_irc_server_options(owner.local + "@" + owner.domain,
                                                       server_domain);
+      options.clear();
+      Database::AfterConnectionCommands commands{};
+
       for (const XmlNode* field: x->get_children("field", "jabber:x:data"))
         {
           const XmlNode* value = field->get_child("value", "jabber:x:data");
           const std::vector<const XmlNode*> values = field->get_children("value", "jabber:x:data");
+
+          if (field->get_tag("var") == "address" && value && Config::get("fixed_irc_server", "").empty())
+            options.col<Database::Address>() = value->get_inner();
+
           if (field->get_tag("var") == "ports")
             {
               std::string ports;
@@ -406,11 +464,22 @@ void ConfigureIrcServerStep2(XmppComponent&, AdhocSession& session, XmlNode& com
 
 #endif // BOTAN_FOUND
 
+          else if (field->get_tag("var") == "nick" && value)
+            options.col<Database::Nick>() = value->get_inner();
+
           else if (field->get_tag("var") == "pass" && value)
             options.col<Database::Pass>() = value->get_inner();
 
-          else if (field->get_tag("var") == "after_connect_command" && value)
-            options.col<Database::AfterConnectionCommand>() = value->get_inner();
+          else if (field->get_tag("var") == "after_connect_commands")
+            {
+              commands.clear();
+              for (const auto& val: values)
+                {
+                  auto command = Database::after_connection_commands.row();
+                  command.col<Database::AfterConnectionCommand>() = val->get_inner();
+                  commands.push_back(std::move(command));
+                }
+            }
 
           else if (field->get_tag("var") == "username" && value)
             {
@@ -423,6 +492,22 @@ void ConfigureIrcServerStep2(XmppComponent&, AdhocSession& session, XmlNode& com
           else if (field->get_tag("var") == "realname" && value)
             options.col<Database::Realname>() = value->get_inner();
 
+          else if (field->get_tag("var") == "throttle_limit" && value)
+            {
+              try {
+                options.col<Database::ThrottleLimit>() = std::stol(value->get_inner());
+              } catch (const std::logic_error&) {
+                options.col<Database::ThrottleLimit>() = -1;
+              }
+              Bridge* bridge = biboumi_component.find_user_bridge(session.get_owner_jid());
+              if (bridge)
+                {
+                  IrcClient* client = bridge->find_irc_client(server_domain);
+                  if (client)
+                    client->set_throttle_limit(options.col<Database::ThrottleLimit>());
+                }
+            }
+
           else if (field->get_tag("var") == "encoding_out" && value)
             options.col<Database::EncodingOut>() = value->get_inner();
 
@@ -431,7 +516,8 @@ void ConfigureIrcServerStep2(XmppComponent&, AdhocSession& session, XmlNode& com
 
         }
       Database::invalidate_encoding_in_cache();
-      options.save(Database::db);
+      save(options, *Database::db);
+      Database::set_after_connection_commands(options, commands);
 
       command_node.delete_all_children();
       XmlSubNode note(command_node, "note");
@@ -459,6 +545,7 @@ void insert_irc_channel_configuration_form(XmlNode& node, const Jid& requester, 
 
   auto options = Database::get_irc_channel_options_with_server_default(requester.local + "@" + requester.domain,
                                                                        iid.get_server(), iid.get_local());
+  node.delete_all_children();
   XmlSubNode x(node, "jabber:x:data:x");
   x["type"] = "form";
   XmlSubNode title(x, "title");
@@ -471,7 +558,7 @@ void insert_irc_channel_configuration_form(XmlNode& node, const Jid& requester, 
     record_history["var"] = "record_history";
     record_history["type"] = "list-single";
     record_history["label"] = "Record history for this channel";
-    record_history["desc"] = "If unset, the value is the one configured globally";
+    set_desc(record_history, "If unset, the value is the one configured globally");
     {
       // Value selected by default
       XmlSubNode value(record_history, "value");
@@ -491,7 +578,7 @@ void insert_irc_channel_configuration_form(XmlNode& node, const Jid& requester, 
     XmlSubNode encoding_out(x, "field");
     encoding_out["var"] = "encoding_out";
     encoding_out["type"] = "text-single";
-    encoding_out["desc"] = "The encoding used when sending messages to the IRC server. Defaults to the server's “out encoding” if unset for the channel";
+    set_desc(encoding_out, "The encoding used when sending messages to the IRC server. Defaults to the server's “out encoding” if unset for the channel");
     encoding_out["label"] = "Out encoding";
     if (!options.col<Database::EncodingOut>().empty())
       {
@@ -504,7 +591,7 @@ void insert_irc_channel_configuration_form(XmlNode& node, const Jid& requester, 
     XmlSubNode encoding_in(x, "field");
     encoding_in["var"] = "encoding_in";
     encoding_in["type"] = "text-single";
-    encoding_in["desc"] = "The encoding used to decode message received from the IRC server. Defaults to the server's “in encoding” if unset for the channel";
+    set_desc(encoding_in, "The encoding used to decode message received from the IRC server. Defaults to the server's “in encoding” if unset for the channel");
     encoding_in["label"] = "In encoding";
     if (!options.col<Database::EncodingIn>().empty())
       {
@@ -517,7 +604,7 @@ void insert_irc_channel_configuration_form(XmlNode& node, const Jid& requester, 
     XmlSubNode persistent(x, "field");
     persistent["var"] = "persistent";
     persistent["type"] = "boolean";
-    persistent["desc"] = "If set to true, when all XMPP clients have left this channel, biboumi will stay idle in it, without sending a PART command.";
+    set_desc(persistent, "If set to true, when all XMPP clients have left this channel, biboumi will stay idle in it, without sending a PART command.");
     persistent["label"] = "Persistent";
     {
       XmlSubNode value(persistent, "value");
@@ -561,6 +648,7 @@ bool handle_irc_channel_configuration_form(XmppComponent& xmpp_component, const 
           const Iid iid(target.local, {});
           auto options = Database::get_irc_channel_options(requester.bare(),
                                                            iid.get_server(), iid.get_local());
+          options.clear();
           for (const XmlNode *field: x->get_children("field", "jabber:x:data"))
             {
               const XmlNode *value = field->get_child("value", "jabber:x:data");
@@ -600,7 +688,7 @@ bool handle_irc_channel_configuration_form(XmppComponent& xmpp_component, const 
 
             }
           Database::invalidate_encoding_in_cache(requester.bare(), iid.get_server(), iid.get_local());
-          options.save(Database::db);
+          save(options, *Database::db);
         }
       return true;
     }
@@ -611,7 +699,7 @@ bool handle_irc_channel_configuration_form(XmppComponent& xmpp_component, const 
 void DisconnectUserFromServerStep1(XmppComponent& xmpp_component, AdhocSession& session, XmlNode& command_node)
 {
   const Jid owner(session.get_owner_jid());
-  if (owner.bare() != Config::get("admin", ""))
+  if (!Config::is_in_list("admin", owner.bare()))
     { // A non-admin is not allowed to disconnect other users, only
       // him/herself, so we just skip this step
       auto next_step = session.get_next_step();

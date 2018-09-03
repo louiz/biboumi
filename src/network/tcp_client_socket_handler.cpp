@@ -146,15 +146,22 @@ void TCPClientSocketHandler::connect(const std::string& address, const std::stri
           || errno == EISCONN)
         {
           log_info("Connection success.");
+#ifdef BOTAN_FOUND
+          if (this->use_tls)
+            try {
+                this->start_tls(this->address, this->port);
+              } catch (const Botan::Exception& e)
+              {
+                this->on_connection_failed("TLS error: "s + e.what());
+                this->close();
+                return ;
+              }
+#endif
           TimedEventsManager::instance().cancel("connection_timeout" +
                                                 std::to_string(this->socket));
           this->poller->add_socket_handler(this);
           this->connected = true;
           this->connecting = false;
-#ifdef BOTAN_FOUND
-          if (this->use_tls)
-            this->start_tls(this->address, this->port);
-#endif
           this->connection_date = std::chrono::system_clock::now();
 
           // Get our local TCP port and store it

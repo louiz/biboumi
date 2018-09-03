@@ -11,6 +11,8 @@
 
 #include <logger/logger.hpp>
 
+#include <cstring>
+
 PostgresqlEngine::PostgresqlEngine(PGconn*const conn):
     conn(conn)
 {}
@@ -18,6 +20,15 @@ PostgresqlEngine::PostgresqlEngine(PGconn*const conn):
 PostgresqlEngine::~PostgresqlEngine()
 {
   PQfinish(this->conn);
+}
+
+static void logging_notice_processor(void*, const char* original)
+{
+  if (original && std::strlen(original) > 0)
+    {
+      std::string message{original, std::strlen(original) - 1};
+      log_warning("PostgreSQL: ", message);
+    }
 }
 
 std::unique_ptr<DatabaseEngine> PostgresqlEngine::open(const std::string& conninfo)
@@ -34,8 +45,10 @@ std::unique_ptr<DatabaseEngine> PostgresqlEngine::open(const std::string& connin
     {
       const char* errmsg = PQerrorMessage(con);
       log_error("Postgresql connection failed: ", errmsg);
+      PQfinish(con);
       throw std::runtime_error("failed to open connection.");
     }
+  PQsetNoticeProcessor(con, &logging_notice_processor, nullptr);
   return std::make_unique<PostgresqlEngine>(con);
 }
 

@@ -75,9 +75,13 @@ public:
    * Try to join an irc_channel, does nothing and return true if the channel
    * was already joined.
    */
-  bool join_irc_channel(const Iid& iid, const std::string& nickname, const std::string& password, const std::string& resource, HistoryLimit history_limit);
+  bool join_irc_channel(const Iid& iid, std::string nickname,
+                        const std::string& password,
+                        const std::string& resource,
+                        HistoryLimit history_limit,
+                        const bool force_join);
 
-  void send_channel_message(const Iid& iid, const std::string& body);
+  void send_channel_message(const Iid& iid, const std::string& body, std::string id);
   void send_private_message(const Iid& iid, const std::string& body, const std::string& type="PRIVMSG");
   void send_raw_message(const std::string& hostname, const std::string& body);
   void leave_irc_channel(Iid&& iid, const std::string& status_message, const std::string& resource);
@@ -162,7 +166,7 @@ public:
   /**
    * Send a MUC message from some participant
    */
-  void send_message(const Iid& iid, const std::string& nick, const std::string& body, const bool muc);
+  void send_message(const Iid& iid, const std::string& nick, const std::string& body, const bool muc, const bool log=true);
   /**
    * Send a presence of type error, from a room.
    */
@@ -170,10 +174,11 @@ public:
   /**
    * Send an unavailable presence from this participant
    */
-  void send_muc_leave(const Iid& iid, const std::string& nick,
+  void send_muc_leave(const Iid& iid, const IrcUser& nick,
                       const std::string& message, const bool self,
                       const bool user_requested,
-                      const std::string& resource="");
+                      const std::string& resource,
+                      const IrcClient* client);
   /**
    * Send presences to indicate that an user old_nick (ourself if self ==
    * true) changed his nick to new_nick.  The user_mode is needed because
@@ -236,8 +241,8 @@ public:
    * iq_responder_callback_t and remove the callback from the list.
    */
   void trigger_on_irc_message(const std::string& irc_hostname, const IrcMessage& message);
-  std::unordered_map<std::string, std::shared_ptr<IrcClient>>& get_irc_clients();
-  const std::unordered_map<std::string, std::shared_ptr<IrcClient>>& get_irc_clients() const;
+  std::unordered_map<std::string, std::unique_ptr<IrcClient>>& get_irc_clients();
+  const std::unordered_map<std::string, std::unique_ptr<IrcClient>>& get_irc_clients() const;
   std::set<char> get_chantypes(const std::string& hostname) const;
 #ifdef USE_DATABASE
   void set_record_history(const bool val);
@@ -270,7 +275,7 @@ private:
    * One IrcClient for each IRC server we need to be connected to.
    * The pointer is shared by the bridge and the poller.
    */
-  std::unordered_map<std::string, std::shared_ptr<IrcClient>> irc_clients;
+  std::unordered_map<std::string, std::unique_ptr<IrcClient>> irc_clients;
   /**
    * To communicate back with the XMPP component
    */
@@ -311,13 +316,14 @@ private:
    */
   void add_resource_to_chan(const ChannelKey& channel, const std::string& resource);
   void remove_resource_from_chan(const ChannelKey& channel, const std::string& resource);
+public:
   bool is_resource_in_chan(const ChannelKey& channel, const std::string& resource) const;
+private:
   void remove_all_resources_from_chan(const ChannelKey& channel);
   std::size_t number_of_resources_in_chan(const ChannelKey& channel) const;
 
   void add_resource_to_server(const IrcHostname& irc_hostname, const std::string& resource);
   void remove_resource_from_server(const IrcHostname& irc_hostname, const std::string& resource);
-  bool is_resource_in_server(const IrcHostname& irc_hostname, const std::string& resource) const;
   size_t number_of_channels_the_resource_is_in(const std::string& irc_hostname, const std::string& resource) const;
 
   /**

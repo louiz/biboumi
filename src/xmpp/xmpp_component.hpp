@@ -37,6 +37,7 @@
 #define RSM_NS           "http://jabber.org/protocol/rsm"
 #define MUC_TRAFFIC_NS   "http://jabber.org/protocol/muc#traffic"
 #define STABLE_ID_NS     "urn:xmpp:sid:0"
+#define STABLE_MUC_ID_NS "http://jabber.org/protocol/muc#stable_id"
 
 /**
  * An XMPP component, communicating with an XMPP server using the protocole
@@ -134,7 +135,7 @@ public:
    * Send a (non-private) message to the MUC
    */
   void send_muc_message(const std::string& muc_name, const std::string& nick, Xmpp::body&& body, const std::string& jid_to,
-                        std::string uuid);
+                        std::string uuid, std::string id);
 #ifdef USE_DATABASE
   /**
    * Send a message, with a <delay/> element, part of a MUC history
@@ -150,7 +151,8 @@ public:
                       Xmpp::body&& message,
                       const std::string& jid_to,
                       const bool self,
-                      const bool user_requested);
+                      const bool user_requested,
+                      const std::string& affiliation, const std::string& role);
   /**
    * Indicate that a participant changed his nick
    */

@@ -1,11 +1,5 @@
 #pragma once
 
-#include <database/insert_query.hpp>
-#include <database/update_query.hpp>
-#include <logger/logger.hpp>
-
-#include <utils/is_one_of.hpp>
-
 #include <type_traits>
 
 template <typename... T>
@@ -29,44 +23,24 @@ struct Row
     return col.value;
   }
 
-  template <bool Coucou=true>
-  void save(std::unique_ptr<DatabaseEngine>& db, typename std::enable_if<!is_one_of<Id, T...> && Coucou>::type* = nullptr)
+  void clear()
   {
-    this->insert(*db);
+    this->clear_col<0>();
   }
 
-  template <bool Coucou=true>
-  void save(std::unique_ptr<DatabaseEngine>& db, typename std::enable_if<is_one_of<Id, T...> && Coucou>::type* = nullptr)
-  {
-    const Id& id = std::get<Id>(this->columns);
-    if (id.value == Id::unset_value)
-      {
-        this->insert(*db);
-        if (db->last_inserted_rowid >= 0)
-          std::get<Id>(this->columns).value = static_cast<Id::real_type>(db->last_inserted_rowid);
-      }
-    else
-      this->update(*db);
-  }
-
- private:
-  void insert(DatabaseEngine& db)
-  {
-    InsertQuery query(this->table_name, this->columns);
-    // Ugly workaround for non portable stuff
-    query.body += db.get_returning_id_sql_string(Id::name);
-    query.execute(db, this->columns);
-  }
-
-  void update(DatabaseEngine& db)
-  {
-    UpdateQuery query(this->table_name, this->columns);
-
-    query.execute(db, this->columns);
-  }
-
-public:
-  std::tuple<T...> columns;
+  std::tuple<T...> columns{};
   std::string table_name;
 
+private:
+  template <std::size_t N>
+  typename std::enable_if<N < sizeof...(T), void>::type
+  clear_col()
+  {
+    std::get<N>(this->columns).clear();
+    this->clear_col<N+1>();
+  }
+  template <std::size_t N>
+  typename std::enable_if<N == sizeof...(T), void>::type
+  clear_col()
+  { }
 };

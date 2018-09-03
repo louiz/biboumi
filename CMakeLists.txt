@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.0)
 
 project(biboumi)
 
-set(${PROJECT_NAME}_VERSION_MAJOR 8)
+set(${PROJECT_NAME}_VERSION_MAJOR 9)
 set(${PROJECT_NAME}_VERSION_MINOR 0)
 set(${PROJECT_NAME}_VERSION_SUFFIX "~dev")
 
@@ -74,26 +74,8 @@ set(SOFTWARE_VERSION
 #
 ## The rule that generates the documentation
 #
-execute_process(COMMAND "date" "+%Y-%m-%d" OUTPUT_VARIABLE DOC_DATE
-                OUTPUT_STRIP_TRAILING_WHITESPACE)
-set(MAN_PAGE ${CMAKE_CURRENT_BINARY_DIR}/doc/${PROJECT_NAME}.1)
-set(DOC_PAGE ${CMAKE_CURRENT_SOURCE_DIR}/doc/${PROJECT_NAME}.1.rst)
-if (NOT PANDOC_EXECUTABLE)
-  find_program(PANDOC_EXECUTABLE NAMES pandoc
-    DOC "The pandoc software, to build the man page from the rst documentation")
-  if(PANDOC_EXECUTABLE)
-    message(STATUS "Found Pandoc: ${PANDOC_EXECUTABLE}")
-    set(WITH_DOC true)
-    file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/doc/)
-    add_custom_command(OUTPUT ${MAN_PAGE}
-      COMMAND ${PANDOC_EXECUTABLE} -M date="${DOC_DATE}" -s -t man ${DOC_PAGE} -o ${MAN_PAGE}
-      DEPENDS ${DOC_PAGE})
-    add_custom_target(doc ALL DEPENDS ${MAN_PAGE})
-  else()
-    message(STATUS "Pandoc not found, documentation cannot be built")
-  endif()
-endif()
-mark_as_advanced(PANDOC_EXECUTABLE)
+add_custom_target(doc COMMAND make html BUILDDIR=${CMAKE_CURRENT_BINARY_DIR}
+                  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/doc)
 
 #
 ## Set this search path for cmake, to find our custom search modules
@@ -218,8 +200,6 @@ if(SQLITE3_FOUND OR PQ_FOUND)
     include_directories(database ${PQ_INCLUDE_DIRS})
   endif()
   set(USE_DATABASE TRUE)
-else()
-  add_library(database OBJECT "")
 endif()
 
 #
@@ -235,8 +215,7 @@ add_executable(${PROJECT_NAME} src/main.cpp
         $<TARGET_OBJECTS:xmpp>
         $<TARGET_OBJECTS:bridge>
         $<TARGET_OBJECTS:irc>
-        $<TARGET_OBJECTS:identd>
-        $<TARGET_OBJECTS:database>)
+        $<TARGET_OBJECTS:identd>)
 
 ## test_suite
 file(GLOB source_tests
@@ -249,9 +228,12 @@ add_executable(test_suite ${source_tests}
         $<TARGET_OBJECTS:xmpp>
         $<TARGET_OBJECTS:bridge>
         $<TARGET_OBJECTS:irc>
-        $<TARGET_OBJECTS:identd>
-        $<TARGET_OBJECTS:database>)
+        $<TARGET_OBJECTS:identd>)
 set_target_properties(test_suite PROPERTIES EXCLUDE_FROM_ALL TRUE)
+if(USE_DATABASE)
+  target_sources(${PROJECT_NAME} PRIVATE $<TARGET_OBJECTS:database>)
+  target_sources(test_suite      PRIVATE $<TARGET_OBJECTS:database>)
+endif()
 
 #
 ## Link the executables with their libraries
@@ -318,7 +300,7 @@ set_target_properties(catch PROPERTIES EXCLUDE_FROM_ALL TRUE)
 ExternalProject_Get_Property(catch SOURCE_DIR)
 if(NOT EXISTS ${CMAKE_SOURCE_DIR}/tests/catch.hpp)
   target_include_directories(test_suite
-    PUBLIC "${SOURCE_DIR}/include/"
+    PUBLIC "${SOURCE_DIR}/single_include/"
     )
   add_dependencies(test_suite catch)
 endif()

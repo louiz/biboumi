@@ -1,5 +1,6 @@
 #include "catch.hpp"
 #include <network/tls_policy.hpp>
+#include <sstream>
 
 #ifdef BOTAN_FOUND
 TEST_CASE("tls_policy")

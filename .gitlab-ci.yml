@@ -2,6 +2,7 @@ stages:
   - build     # Build in various conf, keeps the artifacts
   - test      # Use the build artifacts to run the tests
   - packaging # Publish some packages (rpm, deb…)
+  - deploy    # Deploy things like the web doc
   - external  # Interact with some external service (coverity…)
 
 before_script:
@@ -32,7 +33,6 @@ variables:
     - cd build/
     - cmake .. -DCMAKE_CXX_FLAGS="-Werror -Wno-psabi" -DCMAKE_CXX_COMPILER=${COMPILER} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ${BOTAN} ${UDNS} ${SYSTEMD} ${LIBIDN} ${SQLITE3} ${POSTGRESQL}
     - make everything -j$(nproc || echo 1)
-    - make coverage_check -j$(nproc || echo 1)
   artifacts:
     expire_in: 2 weeks
     paths:
@@ -59,22 +59,28 @@ build:archlinux:
   <<: *basic_build
   only:
     - branches@louiz/biboumi
+  when: manual
   tags:
     - armv7l
   artifacts:
     paths: []
 
-build:1:
+build:no_botan:
   variables:
     BOTAN: "-DWITHOUT_BOTAN=1"
   <<: *fedora_build
 
-build:2:
+build:no_udns:
   variables:
     UDNS: "-DWITHOUT_UDNS=1"
   <<: *fedora_build
 
-build:3:
+build:no_libidn:
+  variables:
+    UDNS: "-DWITHOUT_UDNS=1"
+  <<: *fedora_build
+
+build:no_sqlite3:
   variables:
     SQLITE3: "-DWITHOUT_SQLITE3=1"
     TEST_POSTGRES_URI: "postgres@postgres/postgres"
@@ -82,31 +88,17 @@ build:3:
     - postgres:latest
   <<: *fedora_build
 
-build:4:
+build:no_db:
+  variables:
+    SQLITE3: "-DWITHOUT_SQLITE3=1"
+    POSTGRESQL: "-DWITHOUT_POSTGRESQL=1"
+  <<: *fedora_build
+
+build:no_db_botan:
   variables:
     SQLITE3: "-DWITHOUT_SQLITE3=1"
     POSTGRESQL: "-DWITHOUT_POSTGRESQL=1"
     BOTAN: "-DWITHOUT_BOTAN=1"
-    LIBIDN: "-DWITHOUT_LIBIDN=1"
-  <<: *fedora_build
-
-build:5:
-  variables:
-    UDNS: "-DWITHOUT_UDNS=1"
-    TEST_POSTGRES_URI: "postgres@postgres/postgres"
-  services:
-    - postgres:latest
-  <<: *fedora_build
-
-build:6:
-  variables:
-    BOTAN: "-DWITHOUT_BOTAN=1"
-    UDNS: "-DWITHOUT_UDNS=1"
-  <<: *fedora_build
-
-build:without_udns:
-  variables:
-    UDNS: "-DWITHOUT_UDNS=1"
   <<: *fedora_build
 
 #
@@ -119,8 +111,8 @@ build:without_udns:
     - docker
   script:
     - cd build/
-    - make coverage_e2e -j$(nproc || echo 1)
-    - make coverage
+    - make check -j$(nproc || echo 1)
+    - make e2e -j$(nproc || echo 1)
   artifacts:
     expire_in: 2 weeks
     paths:
@@ -140,58 +132,40 @@ test:debian:
 test:fedora:
   image: docker.louiz.org/louiz/biboumi/test-fedora:latest
   <<: *basic_test
+  script:
+    - cd build/
+    - make coverage_check -j$(nproc || echo 1)
+    - make coverage_e2e -j$(nproc || echo 1)
+    - make coverage
   dependencies:
     - build:fedora
 
-test:without_udns:
+test:no_udns:
   image: docker.louiz.org/louiz/biboumi/test-fedora:latest
   <<: *basic_test
   dependencies:
-    - build:without_udns
+    - build:no_udns
 
 test:alpine:
   image: docker.louiz.org/louiz/biboumi/test-alpine:latest
-  stage: test
-  tags:
-    - docker
-  script:
-    - cd build/
-    - make e2e
+  <<: *basic_test
   dependencies:
     - build:alpine
+  image: docker.louiz.org/louiz/biboumi/test-alpine:latest
 
 test:freebsd:
-  only:
-    - branches@louiz/biboumi
   tags:
     - freebsd
   variables:
+    GIT_STRATEGY: "clone"
     SYSTEMD: "-DWITHOUT_SYSTEMD=1"
   stage: test
   script:
     - mkdir build/
     - cd build/
-    - cmake .. -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ${BOTAN} ${UDNS} ${SYSTEMD} ${LIBIDN} ${SQLITE3}
+    - cmake .. -DCMAKE_CXX_FLAGS="-Werror" -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ${BOTAN} ${UDNS} ${SYSTEMD} ${LIBIDN} ${SQLITE3}
     - make check
     - make e2e
-
-coverity:
-  stage: external
-  only:
-    - branches@louiz/biboumi
-  tags:
-    - docker
-  image: docker.louiz.org/louiz/biboumi/test-fedora:latest
-  allow_failure: true
-  when: manual
-  script:
-    - export PATH=$PATH:~/coverity/bin
-    - mkdir build/
-    - cd build/
-    - cmake .. -DWITHOUT_SYSTEMD=1
-    - cov-build --dir cov-int   make everything -j$(nproc || echo 1)
-    - tar czvf biboumi_coverity.tgz cov-int
-    - curl --form token=$COVERITY_TOKEN   --form email=louiz@louiz.org   --form file=@biboumi_coverity.tgz  --form version="$(git rev-parse --short HEAD)" --form description="Automatic submission by gitlab-ci" https://scan.coverity.com/builds?project=louiz%2Fbiboumi
   dependencies: []
 
 #
@@ -259,4 +233,25 @@ packaging:archlinux:
     - cd biboumi-git
     - makepkg -si --noconfirm
     - test -e /usr/bin/biboumi
+  dependencies: []
+
+#
+# Deploy jobs
+#
+
+doc:
+  stage: deploy
+  only:
+    - branches@louiz/biboumi
+  tags:
+    - www
+  environment:
+    name: doc.latest
+    url: https://doc.biboumi.louiz.org
+  image: docker.louiz.org/louiz/biboumi/doc-builder
+  script:
+    - cd doc/
+    - make html
+    - rm -rf /www/latest
+    - mv _build/html /www/latest
   dependencies: []
