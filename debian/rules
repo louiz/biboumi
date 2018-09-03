@@ -34,7 +34,7 @@ DEB_CMAKE_EXTRA_FLAGS = \
 DEB_MAKE_CHECK_TARGET = check
 
 DEB_INSTALL_CHANGELOGS_ALL += CHANGELOG.rst
-DEB_INSTALL_DOCS_$(pkg) += README.rst CONTRIBUTING.rst
+DEB_INSTALL_DOCS_$(pkg) += README.rst doc/admin.rst doc/index.rst doc/user.rst doc/install.rst doc/contributing.rst
 DEB_INSTALL_EXAMPLES_$(pkg) = doc/example.conf
 
 binary-post-install/$(pkg)::
