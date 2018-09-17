@@ -185,8 +185,13 @@ void BiboumiComponent::handle_presence(const Stanza& stanza)
             }
           bridge->join_irc_channel(iid, to.resource, password ? password->get_inner(): "",
                                    from.resource, history_limit, x != nullptr);
-          if (!own_nick.empty() && own_nick != to.resource)
-            bridge->send_irc_nick_change(iid, to.resource, from.resource);
+          const IrcClient* irc = bridge->find_irc_client(iid.get_server());
+          if (irc)
+            {
+              const auto chan = irc->find_channel(iid.get_local());
+              if (chan->joined)
+                bridge->send_irc_nick_change(iid, to.resource, from.resource);
+            }
         }
       else if (type == "unavailable")
         {
