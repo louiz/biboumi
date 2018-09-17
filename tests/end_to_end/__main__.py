@@ -655,9 +655,9 @@ if __name__ == '__main__':
                      partial(send_stanza,
                              "<presence from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}/{nick_one}' />"),
                      partial(send_stanza,
-                             "<presence from='{jid_one}/{resource_one}' to='#bar%{irc_server_one}/{nick_one}' />"),
+                             "<presence from='{jid_one}/{resource_one}' to='#bar%{irc_server_one}/{nick_two}' />"),
                      partial(send_stanza,
-                             "<presence from='{jid_one}/{resource_one}' to='#baz%{irc_server_one}/{nick_one}'>  <x xmlns='http://jabber.org/protocol/muc'><password>SECRET</password></x></presence>"),
+                             "<presence from='{jid_one}/{resource_one}' to='#baz%{irc_server_one}/{nick_three}'>  <x xmlns='http://jabber.org/protocol/muc'><password>SECRET</password></x></presence>"),
 
                      connection_sequence("irc.localhost", '{jid_one}/{resource_one}'),
 
@@ -684,6 +684,40 @@ if __name__ == '__main__':
                               "/presence/muc_user:x/muc_user:status[@code='110']")
                              ),
                      partial(expect_stanza, "/message[@from='#baz%{irc_server_one}'][@type='groupchat']/subject[not(text())]"),
+                 ]),
+        Scenario("nick_change_in_join",
+                 [
+                    handshake_sequence(),
+                    partial(send_stanza,
+                             "<presence from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}/{nick_one}' />"),
+                    connection_sequence("irc.localhost", '{jid_one}/{resource_one}'),
+                    partial(expect_stanza,
+                             "/message/body[text()='Mode #foo [+nt] by {irc_host_one}']"),
+                    partial(expect_stanza,
+                            ("/presence[@to='{jid_one}/{resource_one}'][@from='#foo%{irc_server_one}/{nick_one}']/muc_user:x/muc_user:item[@affiliation='admin'][@role='moderator']",
+                             "/presence/muc_user:x/muc_user:status[@code='110']")
+                            ),
+                    partial(expect_stanza, "/message[@from='#foo%{irc_server_one}'][@type='groupchat']/subject[not(text())]"),
+
+                    partial(send_stanza,
+                             "<presence from='{jid_one}/{resource_one}' to='#bar%{irc_server_one}/{nick_two}' />"),
+                    partial(expect_stanza,
+                             "/message/body[text()='Mode #bar [+nt] by {irc_host_one}']"),
+                    partial(expect_stanza,
+                            ("/presence[@to='{jid_one}/{resource_one}'][@from='#bar%{irc_server_one}/{nick_one}']/muc_user:x/muc_user:item[@affiliation='admin'][@role='moderator']",
+                             "/presence/muc_user:x/muc_user:status[@code='110']")
+                            ),
+                    partial(expect_stanza, "/message[@from='#bar%{irc_server_one}'][@type='groupchat']/subject[not(text())]"),
+
+                    partial(send_stanza,
+                             "<presence from='{jid_one}/{resource_one}' to='#boule%{irc_server_one}/{nick_two}' />"),
+                    partial(expect_stanza,
+                             "/message/body[text()='Mode #boule [+nt] by {irc_host_one}']"),
+                    partial(expect_stanza,
+                            ("/presence[@to='{jid_one}/{resource_one}'][@from='#boule%{irc_server_one}/{nick_one}']/muc_user:x/muc_user:item[@affiliation='admin'][@role='moderator']",
+                             "/presence/muc_user:x/muc_user:status[@code='110']")
+                            ),
+                    partial(expect_stanza, "/message[@from='#boule%{irc_server_one}'][@type='groupchat']/subject[not(text())]"),
                  ]),
         Scenario("not_connected_error",
                  [
