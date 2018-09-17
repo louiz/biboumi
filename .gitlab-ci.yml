@@ -113,15 +113,6 @@ build:no_db_botan:
     - cd build/
     - make check -j$(nproc || echo 1)
     - make e2e -j$(nproc || echo 1)
-  artifacts:
-    expire_in: 2 weeks
-    paths:
-      - build/coverage_test_suite/
-      - build/coverage_e2e/
-      - build/coverage_total/
-      - build/coverage_e2e.info
-    when: always
-    name: $CI_PROJECT_NAME-test-$CI_JOB_ID
 
 test:debian:
   image: docker.louiz.org/louiz/biboumi/test-debian:latest
@@ -139,6 +130,15 @@ test:fedora:
     - make coverage
   dependencies:
     - build:fedora
+  artifacts:
+    expire_in: 2 weeks
+    paths:
+      - build/coverage_test_suite/
+      - build/coverage_e2e/
+      - build/coverage_total/
+      - build/coverage_e2e.info
+    when: always
+    name: $CI_PROJECT_NAME-test-$CI_JOB_ID
 
 test:no_udns:
   image: docker.louiz.org/louiz/biboumi/test-fedora:latest
