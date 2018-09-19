@@ -239,7 +239,7 @@ packaging:archlinux:
 # Deploy jobs
 #
 
-doc:
+deploy_doc:
   stage: deploy
   only:
     - branches@louiz/biboumi
@@ -254,4 +254,38 @@ doc:
     - make html
     - rm -rf /www/latest
     - mv _build/html /www/latest
+  dependencies: []
+
+deploy_doc_tag:
+  stage: deploy
+  only:
+    - tags@louiz/biboumi
+  tags:
+    - www
+  environment:
+    name: doc.$CI_COMMIT_TAG
+    url: https://doc.biboumi.louiz.org/$CI_COMMIT_TAG/
+    on_stop: undeploy_doc_tag
+  image: docker.louiz.org/louiz/biboumi/doc-builder
+  script:
+    - cd doc/
+    - make html
+    - mv _build/html /www/$CI_COMMIT_TAG
+  dependencies: []
+
+undeploy_doc_tag:
+  stage: deploy
+  only:
+    - tags@testing/biboumi
+  tags:
+    - www
+  variables:
+    GIT_STRATEGY: none
+  environment:
+    name: doc.$CI_COMMIT_TAG
+    action: stop
+  image: docker.louiz.org/louiz/biboumi/doc-builder
+  script:
+    - rm -rf /www/$CI_COMMIT_TAG
+  when: manual
   dependencies: []
