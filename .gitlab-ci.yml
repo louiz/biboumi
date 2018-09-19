@@ -30,3 +30,19 @@ doc_tag:
     - make html
     - mv _build/html /www/$CI_COMMIT_TAG
   dependencies: []
+
+undeploy_doc_tag:
+  stage: deploy
+  only:
+    - tags@testing/biboumi
+  tags:
+    - www
+  variables:
+    GIT_STRATEGY: none
+  environment:
+    name: doc.$CI_COMMIT_TAG
+    url: https://doc.biboumi.louiz.org/$CI_COMMIT_TAG/
+  image: docker.louiz.org/louiz/biboumi/doc-builder
+  script:
+    - rm -rf /www/$CI_COMMIT_TAG
+  dependencies: []
