@@ -330,6 +330,8 @@ Affiliation set to ``admin``
 Affiliation set to ``owner``
   Sets mode to +a-q
 
+.. _ad-hoc-commands:
+
 Ad-hoc commands
 ---------------
 

@@ -10,7 +10,7 @@ background for as long as it is needed.  Note that biboumi does not
 daemonize itself, this task should be done by your init system (SysVinit,
 systemd, upstart).
 
-When started, biboumi connects, without encryption (see :ref:`Security`), to the
+When started, biboumi connects, without encryption (see :ref:`security`), to the
 local XMPP server on the port ``5347`` and authenticates with the provided
 password.  Biboumi then serves the configured ``hostname``: this means that
 all XMPP stanza with a `to` JID on that domain will be forwarded to biboumi
@@ -34,7 +34,7 @@ Configuration happens in different places, with different purposes:
   configuration, and this is described in the next section.
 - A TLS configuration, also admin-only, that can be either global or
   per-domain. See `TLS configuration`_ section.
-- Using the :ref:`ad-hoc commands`, each user can configure various
+- Using the :ref:`ad-hoc-commands`, each user can configure various
   settings for themself
 
 Daemon configuration
@@ -157,7 +157,7 @@ If it is set to false (the default value), all rooms are not persistent by
 default.
 
 Each room can be configured individually by each user, to override this
-default value. See :ref:`Ad-hoc commands`.
+default value. See :ref:`ad-hoc-commands`.
 
 realname_customization
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -277,6 +277,7 @@ the certificate validity at all. The default value is true.
 By default, biboumi provides a few policy files, to work around some
 issues found with a few well-known IRC servers.
 
+.. _security:
 
 Security
 ========

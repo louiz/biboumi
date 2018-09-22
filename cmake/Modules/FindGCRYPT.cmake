@@ -16,7 +16,10 @@
 # This file is in the public domain
 
 include(FindPkgConfig)
-pkg_check_modules(GCRYPT gcrypt)
+
+if(NOT GCRYPT_FOUND)
+  pkg_check_modules(GCRYPT gcrypt)
+endif()
 
 if(NOT GCRYPT_FOUND)
   find_path(GCRYPT_INCLUDE_DIRS NAMES gcrypt.h

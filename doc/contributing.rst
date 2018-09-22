@@ -91,7 +91,7 @@ Please try to follow the existing style:
 - Use only spaces, not tabs.
 - Curly brackets are on their own lines.
 - Use this-> everywhere it’s possible.
-- Don’t start class attributes with “m_” or similar.
+- Don’t start class attributes with `m_` or similar.
 - Type names are in PascalCase.
 - Everything else is in snake_case.
 

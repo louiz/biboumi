@@ -2,9 +2,9 @@ cmake_minimum_required(VERSION 3.0)
 
 project(biboumi)
 
-set(${PROJECT_NAME}_VERSION_MAJOR 9)
-set(${PROJECT_NAME}_VERSION_MINOR 0)
-set(${PROJECT_NAME}_VERSION_SUFFIX "~dev")
+add_subdirectory(doc)
+
+include("version.cmake")
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 5.0)
@@ -47,12 +47,12 @@ endif()
 set(ARCHIVE_NAME ${CMAKE_PROJECT_NAME}-${${PROJECT_NAME}_VERSION_MAJOR}.${${PROJECT_NAME}_VERSION_MINOR})
 set(RPM_VERSION ${${PROJECT_NAME}_VERSION_MAJOR}.${${PROJECT_NAME}_VERSION_MINOR})
 
-if(${PROJECT_NAME}_VERSION_SUFFIX MATCHES ".+")
-  set(ARCHIVE_NAME ${ARCHIVE_NAME}${${PROJECT_NAME}_VERSION_SUFFIX})
-  set(RPM_VERSION ${RPM_VERSION}${${PROJECT_NAME}_VERSION_SUFFIX})
+if(${PROJECT_NAME}_VERSION_TWEAK MATCHES ".+")
+  set(ARCHIVE_NAME ${ARCHIVE_NAME}${${PROJECT_NAME}_VERSION_TWEAK})
+  set(RPM_VERSION ${RPM_VERSION}${${PROJECT_NAME}_VERSION_TWEAK})
 endif()
 
-if(${PROJECT_NAME}_VERSION_SUFFIX MATCHES "^~dev$")
+if(${PROJECT_NAME}_VERSION_TWEAK MATCHES "^~dev$")
   # If we are on a dev version, append the hash of the current git HEAD to
   # the version
   include(FindGit)
@@ -61,7 +61,7 @@ if(${PROJECT_NAME}_VERSION_SUFFIX MATCHES "^~dev$")
       OUTPUT_VARIABLE GIT_REVISION
       OUTPUT_STRIP_TRAILING_WHITESPACE)
     if(GIT_REVISION)
-      set(${PROJECT_NAME}_VERSION_SUFFIX "${${PROJECT_NAME}_VERSION_SUFFIX} (${GIT_REVISION})")
+      set(${PROJECT_NAME}_VERSION_TWEAK "${${PROJECT_NAME}_VERSION_TWEAK} (${GIT_REVISION})")
       set(ARCHIVE_NAME ${ARCHIVE_NAME}${GIT_REVISION})
       set(RPM_VERSION ${RPM_VERSION}${GIT_REVISION})
     endif()
@@ -69,13 +69,7 @@ if(${PROJECT_NAME}_VERSION_SUFFIX MATCHES "^~dev$")
 endif()
 
 set(SOFTWARE_VERSION
-  ${${PROJECT_NAME}_VERSION_MAJOR}.${${PROJECT_NAME}_VERSION_MINOR}${${PROJECT_NAME}_VERSION_SUFFIX})
-
-#
-## The rule that generates the documentation
-#
-add_custom_target(doc COMMAND make html BUILDDIR=${CMAKE_CURRENT_BINARY_DIR}
-                  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/doc)
+  ${${PROJECT_NAME}_VERSION_MAJOR}.${${PROJECT_NAME}_VERSION_MINOR}${${PROJECT_NAME}_VERSION_TWEAK})
 
 #
 ## Set this search path for cmake, to find our custom search modules
@@ -343,7 +337,7 @@ add_custom_target(everything DEPENDS test_suite biboumi)
 ## Install target
 #
 install(TARGETS ${PROJECT_NAME} RUNTIME                     DESTINATION bin)
-install(FILES   ${MAN_PAGE}                                 DESTINATION share/man/man1         OPTIONAL COMPONENT documentation)
+install(FILES   ${MAN_OUTPUT}                               DESTINATION share/man/man1         OPTIONAL COMPONENT documentation)
 install(FILES   ${CMAKE_CURRENT_BINARY_DIR}/biboumi.service DESTINATION lib/systemd/system     COMPONENT init)
 file(GLOB policy_files conf/*policy.txt)
 install(FILES   ${policy_files}                             DESTINATION /etc/biboumi           COMPONENT configuration)

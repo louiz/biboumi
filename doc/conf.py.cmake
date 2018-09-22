@@ -24,9 +24,9 @@ copyright = '2018, Florent Le Coz'
 author = 'Florent Le Coz'
 
 # The short X.Y version
-version = '8.3'
+version = '${biboumi_VERSION_MAJOR}.${biboumi_VERSION_MINOR}'
 # The full version, including alpha/beta/rc tags
-release = '8.3'
+release = version + '${biboumi_VERSION_TWEAK}'
 
 
 # -- General configuration ---------------------------------------------------
@@ -40,7 +40,6 @@ release = '8.3'
 # ones.
 extensions = [
     'sphinx.ext.coverage',
-    'sphinx.ext.autosectionlabel',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -87,7 +86,7 @@ html_theme = 'sphinx_rtd_theme'
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ['_static']
+html_static_path = []
 
 # Custom sidebar templates, must be a dictionary that maps document names
 # to template names.
@@ -140,7 +139,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'biboumi', 'biboumi Documentation',
+    ('admin', 'biboumi', 'Administrator documentation',
      [author], 1)
 ]
 
