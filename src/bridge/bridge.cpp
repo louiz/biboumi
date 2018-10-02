@@ -973,7 +973,11 @@ void Bridge::send_user_join(const std::string& hostname, const std::string& chan
   std::string encoded_chan_name(chan_name);
   xep0106::encode(encoded_chan_name);
 
-  this->xmpp.send_user_join(encoded_chan_name + utils::empty_if_fixed_server("%" + hostname), user->nick, user->host,
+  Iid iid(user->nick, utils::empty_if_fixed_server("%" + hostname), Iid::Type::User);
+
+  std::string full_jid = std::to_string(iid) + "/" + user->host;
+
+  this->xmpp.send_user_join(encoded_chan_name + utils::empty_if_fixed_server("%" + hostname), user->nick, full_jid,
                             affiliation, role, this->user_jid + "/" + resource, self);
 }
 
