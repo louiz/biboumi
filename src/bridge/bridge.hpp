@@ -164,7 +164,7 @@ public:
   void send_room_history(const std::string& hostname, const std::string& chan_name, const HistoryLimit& history_limit);
   void send_room_history(const std::string& hostname, std::string chan_name, const std::string& resource, const HistoryLimit& history_limit);
   /**
-   * Send a MUC message from some participant
+   * Send a message from a MUC participant or a direct message
    */
   void send_message(const Iid& iid, const std::string& nick, const std::string& body, const bool muc, const bool log=true);
   /**
