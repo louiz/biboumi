@@ -156,6 +156,8 @@ test:alpine:
 test:freebsd:
   tags:
     - freebsd
+  only:
+    - branches@louiz/biboumi
   variables:
     GIT_STRATEGY: "clone"
     SYSTEMD: "-DWITHOUT_SYSTEMD=1"
