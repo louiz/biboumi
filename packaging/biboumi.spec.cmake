@@ -68,13 +68,13 @@ make check %{?_smp_mflags}
 - Build latest git revision
 - Build against botan2
 
-* Wed Jun 1 2018 Le Coz Florent <louiz@louiz.org> - 8.3-1
+* Fri Jun 1 2018 Le Coz Florent <louiz@louiz.org> - 8.3-1
   Update to version 8.3
 
-* Wed May 25 2018 Le Coz Florent <louiz@louiz.org> - 8.2-1
+* Fri May 25 2018 Le Coz Florent <louiz@louiz.org> - 8.2-1
   Update to version 8.2
 
-* Wed May 14 2018 Le Coz Florent <louiz@louiz.org> - 8.1-1
+* Mon May 14 2018 Le Coz Florent <louiz@louiz.org> - 8.1-1
   Update to version 8.1
 
 * Wed May 2 2018 Le Coz Florent <louiz@louiz.org> - 8.0-1
@@ -83,7 +83,7 @@ make check %{?_smp_mflags}
 * Wed Jan 24 2018 Le Coz Florent <louiz@louiz.org> - 7.2-1
   Update to version 7.2
 
-* Wed Jan 22 2018 Le Coz Florent <louiz@louiz.org> - 7.1-1
+* Mon Jan 22 2018 Le Coz Florent <louiz@louiz.org> - 7.1-1
   Update to version 7.1
 
 * Wed Jan 17 2018 Le Coz Florent <louiz@louiz.org> - 7.0-1
