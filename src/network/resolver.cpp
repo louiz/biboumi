@@ -213,6 +213,12 @@ void Resolver::on_hostname6_resolved(dns_rr_a6 *result)
           this->call_getaddrinfo(buf, this->port.data(), AI_NUMERICHOST);
         }
     }
+  else
+    {
+      const auto error = dns_error_messages.find(status);
+      if (error != end(dns_error_messages))
+        this->error_msg = error->second;
+    }
 }
 
 void Resolver::after_resolved()
