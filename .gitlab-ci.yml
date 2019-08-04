@@ -244,7 +244,7 @@ packaging:archlinux:
 deploy_doc:
   stage: deploy
   only:
-    - branches@louiz/biboumi
+    - master@louiz/biboumi
   tags:
     - www
   environment:
