@@ -17,6 +17,10 @@ For admins
 - SIGHUP is now caught and reloads the configuration like SIGUSR1 and 2.
 - Add a verify_certificate policy option that lets the admin disable
   certificate validation per-domain.
+- The WatchdogSec value in the biboumi.service file (for systemd) now
+  defaults to the empty string, which means “disabled”.  This value can
+  still be set at configure time by passing the option "-DWATCHDOG_SEC=20”
+  to cmake, if you want to enable the systemd watchdog.
 
 Version 8.3 - 2018-06-01
 ========================

@@ -379,12 +379,11 @@ add_custom_target(rpm
 #
 set(SYSTEMD_SERVICE_TYPE_DOCSTRING "The value used as the Type= in the systemd unit file.")
 set(WATCHDOG_SEC_DOCSTRING "The value used as WatchdogSec= in the systemd unit file.")
+set(WATCHDOG_SEC "" CACHE STRING ${WATCHDOG_SEC_DOCSTRING})
 if(SYSTEMD_FOUND)
   set(SYSTEMD_SERVICE_TYPE "notify" CACHE STRING ${SYSTEMD_SERVICE_TYPE_DOCSTRING})
-  set(WATCHDOG_SEC "20" CACHE STRING ${WATCHDOG_SEC_DOCSTRING})
 else()
   set(SYSTEMD_SERVICE_TYPE "simple" CACHE STRING ${SYSTEMD_SERVICE_TYPE_DOCSTRING})
-  set(WATCHDOG_SEC "" CACHE STRING ${WATCHDOG_SEC_DOCSTRING})
 endif()
 set(SERVICE_USER_DOCSTRING "The value used as the User= in the systemd unit file.")
 if(NOT DEFINED SERVICE_USER)
