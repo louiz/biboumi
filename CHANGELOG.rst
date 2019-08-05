@@ -11,6 +11,9 @@ For users
 - All commands sent to IRC servers are now throttled to avoid being
   disconnected for excess flood. The limit value can be customized using the
   ad-hoc configuration form on a server JID.
+- Support for XEP-0410 Self-Ping Optimization. This will prevent clients
+  which use self-ping from dropping out of the MUC if another client with
+  bad connectivity is also joined from the same account.
 
 For admins
 ----------
