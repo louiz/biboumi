@@ -747,6 +747,13 @@ void Bridge::send_irc_participant_ping_request(const Iid& iid, const std::string
                                     "", true);
       return;
     }
+  if (chan->get_self()->nick == nick)
+    {
+      // XEP-0410 self-ping optimisation: always reply without going the full
+      // round-trip through IRC and possibly another XMPP client. See the XEP
+      // for details.
+      this->xmpp.send_iq_result(iq_id, to_jid, Jid(from_jid).local);
+    }
   if (chan->get_self()->nick != nick && !chan->find_user(nick))
     {
       this->xmpp.send_stanza_error("iq", to_jid, from_jid, iq_id, "cancel", "item-not-found",
