@@ -38,6 +38,7 @@
 #define MUC_TRAFFIC_NS   "http://jabber.org/protocol/muc#traffic"
 #define STABLE_ID_NS     "urn:xmpp:sid:0"
 #define STABLE_MUC_ID_NS "http://jabber.org/protocol/muc#stable_id"
+#define SELF_PING_FLAG   MUC_NS"#self-ping-optimization"
 
 /**
  * An XMPP component, communicating with an XMPP server using the protocole
