@@ -626,6 +626,7 @@ void BiboumiComponent::handle_iq(const Stanza& stanza)
             }
           else if (iid.type == Iid::Type::Channel && !to.resource.empty())
             { // Ping a room participant (we check if the nick is in the room)
+
               bridge->send_irc_participant_ping_request(iid,
                                                         to.resource, id, from, to_str);
             }
@@ -997,7 +998,7 @@ void BiboumiComponent::send_irc_channel_disco_info(const std::string& id, const 
     identity["category"] = "conference";
     identity["type"] = "irc";
     identity["name"] = ""s + iid.get_local() + " on " + iid.get_server();
-    for (const char *ns: {DISCO_INFO_NS, MUC_NS, ADHOC_NS, PING_NS, MAM_NS, VERSION_NS, STABLE_MUC_ID_NS})
+    for (const char *ns: {DISCO_INFO_NS, MUC_NS, ADHOC_NS, PING_NS, MAM_NS, VERSION_NS, STABLE_MUC_ID_NS, SELF_PING_FLAG})
       {
         XmlSubNode feature(query, "feature");
         feature["var"] = ns;
