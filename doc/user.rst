@@ -112,6 +112,21 @@ The connection to the IRC server is automatically made when the user tries
 to join any channel on that IRC server.  The connection is closed whenever
 the last channel on that server is left by the user.
 
+Additionally, you can manually connect to a server by sending a directed
+presence to its JID.  If biboumi receives an available presence for an IRC
+server JID, it will mark that server as force-connected: it will connect
+to it (if it is not already connected) and then will stay connected until
+an unavailable presence has been received, even if you leave the last
+channel on that server.  This is useful, for example, if you want to stay
+connected to a server just to communicate with users in private without
+joining any channel, or if you want to connect to a server and be able to
+send commands (like a NickServ authentication) before joining a channel.
+
+Note however that this feature will only work if you configured a
+:ref:`nickname <server_jid_configure>` for this server. If you did not, your
+presences will just be ignored.
+
+
 Roster
 ------
 
@@ -134,6 +149,10 @@ connected to that IRC server (see `Connect to an IRC server`_ for more
 details). This is useful to keep track of which server an user is connected
 to: this is sometimes hard to remember, when they have many clients, or if
 they are using persistent channels.
+
+Exchanging presence authorization with this server also allows you to
+automatically force-connect to that specific IRC server when your XMPP
+client goes online.
 
 Channel messages
 ----------------
@@ -388,6 +407,8 @@ On a server JID
 ~~~~~~~~~~~~~~~
 
 .. note:: For example on the JID chat.freenode.org@biboumi.example.com
+
+.. _server_jid_configure:
 
 configure
 ^^^^^^^^^

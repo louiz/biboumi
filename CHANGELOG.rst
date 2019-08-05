@@ -11,6 +11,8 @@ For users
 - All commands sent to IRC servers are now throttled to avoid being
   disconnected for excess flood. The limit value can be customized using the
   ad-hoc configuration form on a server JID.
+- It is now possible to force-connect an IRC server by sending a presence
+  to its JID
 
 For admins
 ----------

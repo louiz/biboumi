@@ -3383,6 +3383,71 @@ if __name__ == '__main__':
                      partial(send_stanza, "<presence type='unavailable' from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}/{nick_one}' />"),
                      partial(expect_stanza, "/presence[@type='unavailable'][@from='#foo%{irc_server_one}/{nick_one}']"),
                      partial(expect_stanza, "/presence[@from='{irc_server_one}'][@to='{jid_one}'][@type='unavailable']"),
+
+                     # Send a directed available presence to the IRC server JID
+                     partial(send_stanza, "<presence from='{jid_one}/{resource_one}' to='{irc_server_one}' />"),
+                     # Nothing happens because no Nick is configured.
+                     # Send a directed unavailable presence
+                     partial(send_stanza, "<presence from='{jid_one}/{resource_one}' to='{irc_server_one}' type='unavailable'/>"),
+                     # Now, configure a nick
+
+                     partial(send_stanza, "<iq type='set' id='id1' from='{jid_one}/{resource_one}' to='{irc_server_one}'><command xmlns='http://jabber.org/protocol/commands' node='configure' action='execute' /></iq>"),
+                     partial(expect_stanza, ("/iq[@type='result']/commands:command[@node='configure'][@sessionid][@status='executing']",
+                                             "/iq/commands:command/dataform:x[@type='form']/dataform:title[text()='Configure the IRC server irc.localhost']",
+                                             "/iq/commands:command/dataform:x[@type='form']/dataform:instructions[text()='Edit the form, to configure the settings of the IRC server irc.localhost']",
+                                             "/iq/commands:command/dataform:x[@type='form']/dataform:field[@type='text-single'][@var='nick']",
+                                             ),
+                             after = partial(save_value, "sessionid", partial(extract_attribute, "/iq[@type='result']/commands:command[@node='configure']", "sessionid"))
+                             ),
+                     partial(send_stanza, "<iq type='set' id='id2' from='{jid_one}/{resource_one}' to='{irc_server_one}'>"
+                                          "<command xmlns='http://jabber.org/protocol/commands' node='configure' sessionid='{sessionid}' action='next'>"
+                                          "<x xmlns='jabber:x:data' type='submit'>"
+                                          "<field var='nick'><value>{nick_one}</value></field>"
+                                          "<field var='ports'><value>6667</value></field>"
+                                          "<field var='tls_ports'><value>6697</value><value>6670</value></field>"
+                                          "<field var='throttle_limit'><value>9999</value><value>6670</value></field>"
+                                          "</x></command></iq>"),
+                     partial(expect_stanza, "/iq[@type='result']/commands:command[@node='configure'][@status='completed']/commands:note[@type='info'][text()='Configuration successfully applied.']"),
+
+                     # Send a directed available presence to the IRC server JID, again
+                     partial(send_stanza, "<presence from='{jid_one}/{resource_one}' to='{irc_server_one}' />"),
+                     connection_sequence("irc.localhost", '{jid_one}/{resource_one}', True),
+                     # also from a second resource
+                     partial(send_stanza, "<presence from='{jid_one}/{resource_two}' to='{irc_server_one}' />"),
+
+                     # Second resource stops being force connected. But we are not disconnected yet
+                     partial(send_stanza, "<presence from='{jid_one}/{resource_two}' to='{irc_server_one}' type='unavailable'/>"),
+                     # first (and last) resources stops being force connected
+                     partial(send_stanza, "<presence from='{jid_one}/{resource_one}' to='{irc_server_one}' type='unavailable'/>"),
+                     # we get disconnected from the server
+                     # TODO, these two next stanzas aren’t supposed to be there.
+                     partial(expect_stanza, "/message[@from='{irc_server_one}']/body[text()='ERROR: Closing Link: localhost (Client Quit)']"),
+                     partial(expect_stanza, "/message[@from='{irc_server_one}']/body[text()='ERROR: Connection closed.']"),
+                     partial(expect_stanza, "/presence[@from='{irc_server_one}'][@to='{jid_one}'][@type='unavailable']"),
+
+                     # Re-force connect from one resource
+                     partial(send_stanza, "<presence from='{jid_one}/{resource_one}' to='{irc_server_one}' />"),
+                     connection_sequence("irc.localhost", '{jid_one}/{resource_one}', True),
+
+                     # and then join some channel
+                     partial(send_stanza,
+                             "<presence from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}/{nick_one}' />"),
+                     partial(expect_stanza,
+                             "/message/body[text()='Mode #foo [+nt] by {irc_host_one}']"),
+                     partial(expect_stanza,
+                             ("/presence[@to='{jid_one}/{resource_one}'][@from='#foo%{irc_server_one}/{nick_one}']/muc_user:x/muc_user:item[@affiliation='admin'][@role='moderator']",
+                              "/presence/muc_user:x/muc_user:status[@code='110']")
+                             ),
+                     partial(expect_stanza, "/message[@from='#foo%{irc_server_one}'][@type='groupchat'][@to='{jid_one}/{resource_one}']/subject[not(text())]"),
+
+                     # leave that channel
+                     partial(send_stanza, "<presence from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}/{nick_one}' type='unavailable' />"),
+                     partial(expect_stanza, "/presence[@type='unavailable']/muc_user:x/muc_user:status[@code='110']"),
+
+                     # first (and last) resources stops being force connected
+                     partial(send_stanza, "<presence from='{jid_one}/{resource_one}' to='{irc_server_one}' type='unavailable'/>"),
+                     # we get disconnected from the server
+                     partial(expect_stanza, "/presence[@from='{irc_server_one}'][@to='{jid_one}'][@type='unavailable']"),
                  ])
     )
 
