@@ -626,8 +626,26 @@ void BiboumiComponent::handle_iq(const Stanza& stanza)
             }
           else if (iid.type == Iid::Type::Channel && !to.resource.empty())
             { // Ping a room participant (we check if the nick is in the room)
-              bridge->send_irc_participant_ping_request(iid,
-                                                        to.resource, id, from, to_str);
+
+              if (to.resource == bridge->get_own_nick(iid))
+                {
+                  // self ping -> optimize by replying right away, see XEP-0410
+                  Stanza response("iq");
+                  response["to"] = from;
+                  response["from"] = to_str;
+                  response["id"] = id;
+
+                  XmlSubNode body(response, "ping");
+                  body.set_attribute("xmlns", PING_NS);
+
+                  this->send_stanza(response);
+                  stanza_error.disable();
+                }
+              else
+                {
+                  bridge->send_irc_participant_ping_request(iid,
+                                                            to.resource, id, from, to_str);
+                }
             }
           else
             { // Ping a channel, a server or the gateway itself
@@ -997,7 +1015,7 @@ void BiboumiComponent::send_irc_channel_disco_info(const std::string& id, const 
     identity["category"] = "conference";
     identity["type"] = "irc";
     identity["name"] = ""s + iid.get_local() + " on " + iid.get_server();
-    for (const char *ns: {DISCO_INFO_NS, MUC_NS, ADHOC_NS, PING_NS, MAM_NS, VERSION_NS, STABLE_MUC_ID_NS})
+    for (const char *ns: {DISCO_INFO_NS, MUC_NS, ADHOC_NS, PING_NS, MAM_NS, VERSION_NS, STABLE_MUC_ID_NS, SELF_PING_FLAG})
       {
         XmlSubNode feature(query, "feature");
         feature["var"] = ns;
