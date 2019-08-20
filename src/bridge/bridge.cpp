@@ -743,7 +743,7 @@ void Bridge::send_irc_participant_ping_request(const Iid& iid, const std::string
   IrcChannel* chan = irc->get_channel(iid.get_local());
   if (!chan->joined || !this->is_resource_in_chan(iid.to_tuple(), from.resource))
     {
-      this->xmpp.send_stanza_error("iq", to_jid, from_jid, iq_id, "cancel", "not-allowed",
+      this->xmpp.send_stanza_error("iq", to_jid, from_jid, iq_id, "cancel", "not-acceptable",
                                     "", true);
       return;
     }
