@@ -1515,24 +1515,12 @@ if __name__ == '__main__':
                      # Send a ping to ourself
                      partial(send_stanza,
                              "<iq type='get' from='{jid_one}/{resource_one}' id='first_ping' to='#foo%{irc_server_one}/{nick_one}'><ping xmlns='urn:xmpp:ping' /></iq>"),
-                     # We receive our own ping request,
-                     partial(expect_stanza,
-                             "/iq[@from='{lower_nick_one}%{irc_server_one}'][@type='get'][@to='{jid_one}/{resource_one}'][@id='gnip_tsrif']"),
-                     # Respond to the request with an error
-                     partial(send_stanza,
-                             "<iq from='{jid_one}/{resource_one}' id='gnip_tsrif' to='{lower_nick_one}%{irc_server_one}' type='error'><error type='cancel'><feature-not-implemented xmlns='urn:ietf:params:xml:ns:xmpp-stanzas'/></error></iq>"),
                      partial(expect_stanza,
                              "/iq[@from='#foo%{irc_server_one}/{nick_one}'][@type='result'][@to='{jid_one}/{resource_one}'][@id='first_ping']"),
 
                      # Send a ping to ourself
                      partial(send_stanza,
                              "<iq type='get' from='{jid_one}/{resource_one}' id='first_ping' to='#foo%{irc_server_one}/{nick_one}'><ping xmlns='urn:xmpp:ping' /></iq>"),
-                     # We receive our own ping request,
-                     partial(expect_stanza,
-                             "/iq[@from='{lower_nick_one}%{irc_server_one}'][@type='get'][@to='{jid_one}/{resource_one}'][@id='gnip_tsrif']"),
-                     # Respond to the request with an error
-                     partial(send_stanza,
-                             "<iq from='{jid_one}/{resource_one}' id='gnip_tsrif' to='{lower_nick_one}%{irc_server_one}' type='error'><error type='cancel'><service-unavailable xmlns='urn:ietf:params:xml:ns:xmpp-stanzas'/></error></iq>"),
                      partial(expect_stanza,
                              "/iq[@from='#foo%{irc_server_one}/{nick_one}'][@type='result'][@to='{jid_one}/{resource_one}'][@id='first_ping']"),
                  ]),
@@ -1555,14 +1543,14 @@ if __name__ == '__main__':
                              "<iq type='get' from='{jid_one}/{resource_one}' id='first_ping' to='#nil%{irc_server_one}/{nick_one}'><ping xmlns='urn:xmpp:ping' /></iq>"),
                      # Immediately receive an error
                      partial(expect_stanza,
-                             "/iq[@from='#nil%{irc_server_one}/{nick_one}'][@type='error'][@to='{jid_one}/{resource_one}'][@id='first_ping']/error/stanza:not-allowed"),
+                             "/iq[@from='#nil%{irc_server_one}/{nick_one}'][@type='error'][@to='{jid_one}/{resource_one}'][@id='first_ping']/error/stanza:not-acceptable"),
 
                      # Send a ping to ourself, in a muc where we are, but not this resource
                      partial(send_stanza,
                              "<iq type='get' from='{jid_one}/{resource_two}' id='first_ping' to='#foo%{irc_server_one}/{nick_one}'><ping xmlns='urn:xmpp:ping' /></iq>"),
                      # Immediately receive an error
                      partial(expect_stanza,
-                             "/iq[@from='#foo%{irc_server_one}/{nick_one}'][@type='error'][@to='{jid_one}/{resource_two}'][@id='first_ping']/error/stanza:not-allowed"),
+                             "/iq[@from='#foo%{irc_server_one}/{nick_one}'][@type='error'][@to='{jid_one}/{resource_two}'][@id='first_ping']/error/stanza:not-acceptable"),
                  ]),
                 Scenario("self_ping_on_real_channel",
                  [
@@ -1581,12 +1569,6 @@ if __name__ == '__main__':
                      # Send a ping to ourself
                      partial(send_stanza,
                              "<iq type='get' from='{jid_one}/{resource_one}' id='first_ping' to='#foo%{irc_server_one}/{nick_one}'><ping xmlns='urn:xmpp:ping' /></iq>"),
-                     # We receive our own ping request,
-                     partial(expect_stanza,
-                             "/iq[@from='{lower_nick_one}%{irc_server_one}'][@type='get'][@to='{jid_one}/{resource_one}'][@id='gnip_tsrif']"),
-                     # Respond to the request
-                     partial(send_stanza,
-                             "<iq type='result' to='{lower_nick_one}%{irc_server_one}' id='gnip_tsrif' from='{jid_one}/{resource_one}'/>"),
                      partial(expect_stanza,
                              "/iq[@from='#foo%{irc_server_one}/{nick_one}'][@type='result'][@to='{jid_one}/{resource_one}'][@id='first_ping']"),
 
@@ -1602,23 +1584,11 @@ if __name__ == '__main__':
                      # And re-send a self ping
                      partial(send_stanza,
                              "<iq type='get' from='{jid_one}/{resource_one}' id='second_ping' to='#foo%{irc_server_one}/{nick_one}'><ping xmlns='urn:xmpp:ping' /></iq>"),
-                     # We receive our own ping request. Note that we don't know the to value, it could be one of our two resources.
-                     partial(expect_stanza,
-                             "/iq[@from='{lower_nick_one}%{irc_server_one}'][@type='get'][@to][@id='gnip_dnoces']",
-                             after = partial(save_value, "to", partial(extract_attribute, "/iq", "to"))),
-                     # Respond to the request, using the extracted 'to' value as our 'from'
-                     partial(send_stanza,
-                             "<iq type='result' to='{lower_nick_one}%{irc_server_one}' id='gnip_dnoces' from='{to}'/>"),
                      partial(expect_stanza,
                              "/iq[@from='#foo%{irc_server_one}/{nick_one}'][@type='result'][@to='{jid_one}/{resource_one}'][@id='second_ping']"),
                      ## And re-do exactly the same thing, just change the resource initiating the self ping
                      partial(send_stanza,
                              "<iq type='get' from='{jid_one}/{resource_two}' id='third_ping' to='#foo%{irc_server_one}/{nick_one}'><ping xmlns='urn:xmpp:ping' /></iq>"),
-                     partial(expect_stanza,
-                             "/iq[@from='{lower_nick_one}%{irc_server_one}'][@type='get'][@to][@id='gnip_driht']",
-                             after = partial(save_value, "to", partial(extract_attribute, "/iq", "to"))),
-                     partial(send_stanza,
-                             "<iq type='result' to='{lower_nick_one}%{irc_server_one}' id='gnip_driht' from='{to}'/>"),
                      partial(expect_stanza,
                              "/iq[@from='#foo%{irc_server_one}/{nick_one}'][@type='result'][@to='{jid_one}/{resource_two}'][@id='third_ping']"),
 
@@ -1639,12 +1609,6 @@ if __name__ == '__main__':
                      # Send a ping to ourself
                      partial(send_stanza,
                              "<iq type='get' from='{jid_one}/{resource_one}' id='first_ping' to='#foo@{biboumi_host}/{nick_one}'><ping xmlns='urn:xmpp:ping' /></iq>"),
-                     # We receive our own ping request,
-                     partial(expect_stanza,
-                             "/iq[@from='{lower_nick_one}@{biboumi_host}'][@type='get'][@to='{jid_one}/{resource_one}'][@id='gnip_tsrif']"),
-                     # Respond to the request
-                     partial(send_stanza,
-                     "<iq type='result' to='{lower_nick_one}@{biboumi_host}' id='gnip_tsrif' from='{jid_one}/{resource_one}'/>"),
                      partial(expect_stanza,
                      "/iq[@from='#foo@{biboumi_host}/{nick_one}'][@type='result'][@to='{jid_one}/{resource_one}'][@id='first_ping']"),
                 ], conf="fixed_server"),
