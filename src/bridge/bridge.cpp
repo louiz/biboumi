@@ -235,7 +235,11 @@ void Bridge::send_channel_message(const Iid& iid, const std::string& body, std::
         id = utils::gen_uuid();
 
       MessageCallback mirror_to_all_resources = [this, iid, uuid, id](const IrcClient* irc, const IrcMessage& message) {
-        const std::string& line = message.arguments[1];
+        std::string line = message.arguments[1];
+        // “temporary” workaround for \01ACTION…\01 -> /me messages
+        if ((line.size() > strlen("\01ACTION\01")) &&
+            (line.substr(0, 7) == "\01ACTION") && line[line.size() - 1] == '\01')
+          line = "/me " + line.substr(8, line.size() - 9);
         for (const auto& resource: this->resources_in_chan[iid.to_tuple()])
           this->xmpp.send_muc_message(std::to_string(iid), irc->get_own_nick(), this->make_xmpp_body(line),
                                       this->user_jid + "/" + resource, uuid, id);
