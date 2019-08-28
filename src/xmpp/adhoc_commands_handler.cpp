@@ -80,7 +80,10 @@ XmlNode AdhocCommandsHandler::handle_request(const std::string& executor_jid, co
             {
               command_node["status"] = "executing";
               XmlSubNode actions(command_node, "actions");
-              XmlSubNode next(actions, "next");
+              if (session.remaining_steps() == 1)
+                XmlSubNode next(actions, "complete");
+              else
+                XmlSubNode next(actions, "next");
             }
         }
       else if (session_it != this->sessions.end() && action == "cancel")
