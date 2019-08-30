@@ -21,6 +21,7 @@ static std::map<int, std::string> dns_error_messages {
     {DNS_E_TEMPFAIL, "Timeout while contacting DNS servers"},
     {DNS_E_PROTOCOL, "Misformatted DNS reply"},
     {DNS_E_NXDOMAIN, "Domain name not found"},
+    {DNS_E_NODATA, "Domain name not found"},
     {DNS_E_NOMEM, "Out of memory"},
     {DNS_E_BADQUERY, "Misformatted domain name"}
 };
