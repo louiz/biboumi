@@ -74,8 +74,11 @@ set(SOFTWARE_VERSION
 #
 ## The rule that generates the documentation
 #
-add_custom_target(doc COMMAND make html BUILDDIR=${CMAKE_CURRENT_BINARY_DIR}
+add_custom_target(html COMMAND make html BUILDDIR=${CMAKE_CURRENT_BINARY_DIR}
                   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/doc)
+add_custom_target(man COMMAND make man BUILDDIR=${CMAKE_CURRENT_BINARY_DIR}
+                  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/doc)
+add_custom_target(doc DEPENDS html man)
 
 #
 ## Set this search path for cmake, to find our custom search modules
@@ -309,7 +312,7 @@ endif()
 ## Add some custom rules to launch the tests
 #
 add_custom_target(check COMMAND "test_suite"
-  DEPENDS test_suite biboumi)
+  DEPENDS test_suite)
 set_target_properties(check PROPERTIES EXCLUDE_FROM_ALL TRUE)
 add_custom_target(e2e COMMAND "python3" "${CMAKE_CURRENT_SOURCE_DIR}/tests/end_to_end/"
   DEPENDS biboumi)
@@ -343,7 +346,7 @@ add_custom_target(everything DEPENDS test_suite biboumi)
 ## Install target
 #
 install(TARGETS ${PROJECT_NAME} RUNTIME                     DESTINATION bin)
-install(FILES   ${MAN_PAGE}                                 DESTINATION share/man/man1         OPTIONAL COMPONENT documentation)
+install(FILES   ${CMAKE_CURRENT_BINARY_DIR}/man/biboumi.1   DESTINATION share/man/man1         OPTIONAL COMPONENT documentation)
 install(FILES   ${CMAKE_CURRENT_BINARY_DIR}/biboumi.service DESTINATION lib/systemd/system     COMPONENT init)
 file(GLOB policy_files conf/*policy.txt)
 install(FILES   ${policy_files}                             DESTINATION /etc/biboumi           COMPONENT configuration)
