@@ -263,49 +263,75 @@ packaging:archlinux:
       - ".gitlab-ci.yml"
       - "doc/**/*"
 
-deploy:doc:latest:
+# The jobs with the secure tag need to access directories where important
+# files are stored: the latest doc, etc.'
+# Other jobs can not access these, otherwise anybody doing a merge request
+# could delete the official doc
+.deploy:doc:
   extends: .doc_changed
   stage: deploy
+  image: docker.louiz.org/louiz/biboumi/doc-builder
+  script:
+    - cd doc/
+    - make html
+    - rm -rf /www/$DOC_DEPLOY_DIR
+    - mv _build/html /www/$DOC_DEPLOY_DIR
+  dependencies: []
+
+deploy:doc:latest:
+  extends: .deploy:doc
+  only:
+    - master@louiz/biboumi
   tags:
     - www
+    - secure
   environment:
     name: doc.latest
     url: https://doc.biboumi.louiz.org
-  image: docker.louiz.org/louiz/biboumi/doc-builder
-  script:
-    - cd doc/
-    - make html
-    - rm -rf /www/latest
-    - mv _build/html /www/latest
-  dependencies: []
+  variables:
+    DOC_DEPLOY_DIR: "latest"
 
 deploy:doc:tag:
-  extends: .doc_changed
-  stage: deploy
+  extends: .deploy:doc
+  only:
+    - tags
   tags:
     - www
+    - secure
   environment:
     name: doc.$CI_COMMIT_TAG
     url: https://doc.biboumi.louiz.org/$CI_COMMIT_TAG/
-    on_stop: undeploy_doc_tag
-  image: docker.louiz.org/louiz/biboumi/doc-builder
-  script:
-    - cd doc/
-    - make html
-    - mv _build/html /www/$CI_COMMIT_TAG
-  dependencies: []
+  variables:
+    DOC_DEPLOY_DIR: $CI_COMMIT_TAG
 
-undeploy:doc:tag:
+deploy:doc:mr:
+  extends: .deploy:doc
+  only:
+    - merge_requests
+  tags:
+    - www
+    - unsecure
+  environment:
+    name: doc.mr.$CI_MERGE_REQUEST_ID
+    url: https://doc.biboumi.louiz.org/mr/$CI_MERGE_REQUEST_ID/
+    on_stop: undeploy:doc:mr
+  variables:
+    DOC_DEPLOY_DIR: $CI_MERGE_REQUEST_ID
+
+undeploy:doc:mr:
   stage: deploy
   tags:
     - www
+    - unsecure
+  only:
+    - merge_requests
+  image: docker.louiz.org/louiz/biboumi/doc-builder
   variables:
     GIT_STRATEGY: none
-  environment:
-    name: doc.$CI_COMMIT_TAG
-    action: stop
-  image: docker.louiz.org/louiz/biboumi/doc-builder
-  script:
-    - rm -rf /www/$CI_COMMIT_TAG
   when: manual
+  environment:
+    name: doc.mr.$CI_MERGE_REQUEST_ID
+    action: stop
+  script:
+    - rm -rf /www/$CI_MERGE_REQUEST_ID
   dependencies: []
