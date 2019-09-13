@@ -23,7 +23,7 @@ variables:
 ## Build jobs
 #
 
-.template:basic_build: &basic_build
+.basic_build:
   stage: build
   tags:
     - docker
@@ -38,25 +38,25 @@ variables:
     paths:
       - build/
 
-.template:fedora_build: &fedora_build
-  <<: *basic_build
+.fedora_build:
+  extends: .basic_build
   image: docker.louiz.org/louiz/biboumi/test-fedora:latest
 
 build:fedora:
-  <<: *fedora_build
+  extends: .fedora_build
 
 build:debian:
-  <<: *basic_build
+  extends: .basic_build
   image: docker.louiz.org/louiz/biboumi/test-debian:latest
 
 build:alpine:
+  extends: .basic_build
   variables:
     SYSTEMD: "-DWITHOUT_SYSTEMD=1"
-  <<: *basic_build
   image: docker.louiz.org/louiz/biboumi/test-alpine:latest
 
 build:archlinux:
-  <<: *basic_build
+  extends: .basic_build
   only:
     - branches@louiz/biboumi
     - triggers
@@ -66,46 +66,46 @@ build:archlinux:
     paths: []
 
 build:no_botan:
+  extends: .fedora_build
   variables:
     BOTAN: "-DWITHOUT_BOTAN=1"
-  <<: *fedora_build
 
 build:no_udns:
+  extends: .fedora_build
   variables:
     UDNS: "-DWITHOUT_UDNS=1"
-  <<: *fedora_build
 
 build:no_libidn:
+  extends: .fedora_build
   variables:
     UDNS: "-DWITHOUT_UDNS=1"
-  <<: *fedora_build
 
 build:no_sqlite3:
+  extends: .fedora_build
   variables:
     SQLITE3: "-DWITHOUT_SQLITE3=1"
     TEST_POSTGRES_URI: "postgres@postgres/postgres"
   services:
     - postgres:latest
-  <<: *fedora_build
 
 build:no_db:
+  extends: .fedora_build
   variables:
     SQLITE3: "-DWITHOUT_SQLITE3=1"
     POSTGRESQL: "-DWITHOUT_POSTGRESQL=1"
-  <<: *fedora_build
 
 build:no_db_botan:
+  extends: .fedora_build
   variables:
     SQLITE3: "-DWITHOUT_SQLITE3=1"
     POSTGRESQL: "-DWITHOUT_POSTGRESQL=1"
     BOTAN: "-DWITHOUT_BOTAN=1"
-  <<: *fedora_build
 
 #
 ## Test jobs
 #
 
-.template:basic_test: &basic_test
+.basic_test:
   stage: test
   tags:
     - docker
@@ -115,15 +115,15 @@ build:no_db_botan:
     - make e2e -j$(nproc || echo 1)
 
 test:debian:
+  extends: .basic_test
   image: docker.louiz.org/louiz/biboumi/test-debian:latest
-  <<: *basic_test
   dependencies:
     - build:debian
   needs: ["build:debian"]
 
 test:fedora:
+  extends: .basic_test
   image: docker.louiz.org/louiz/biboumi/test-fedora:latest
-  <<: *basic_test
   script:
     - cd build/
     - make coverage_check -j$(nproc || echo 1)
@@ -143,15 +143,15 @@ test:fedora:
     name: $CI_PROJECT_NAME-test-$CI_JOB_ID
 
 test:no_udns:
+  extends: .basic_test
   image: docker.louiz.org/louiz/biboumi/test-fedora:latest
-  <<: *basic_test
   dependencies:
     - build:no_udns
   needs: ["build:no_udns"]
 
 test:alpine:
+  extends: .basic_test
   image: docker.louiz.org/louiz/biboumi/test-alpine:latest
-  <<: *basic_test
   dependencies:
     - build:alpine
   needs: ["build:alpine"]
