@@ -263,7 +263,7 @@ packaging:archlinux:
       - ".gitlab-ci.yml"
       - "doc/**/*"
 
-deploy_doc:
+deploy:doc:latest:
   extends: .doc_changed
   stage: deploy
   tags:
@@ -279,7 +279,7 @@ deploy_doc:
     - mv _build/html /www/latest
   dependencies: []
 
-deploy_doc_tag:
+deploy:doc:tag:
   extends: .doc_changed
   stage: deploy
   tags:
@@ -295,7 +295,7 @@ deploy_doc_tag:
     - mv _build/html /www/$CI_COMMIT_TAG
   dependencies: []
 
-undeploy_doc_tag:
+undeploy:doc:tag:
   stage: deploy
   tags:
     - www
