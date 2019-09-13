@@ -119,6 +119,7 @@ test:debian:
   <<: *basic_test
   dependencies:
     - build:debian
+  needs: ["build:debian"]
 
 test:fedora:
   image: docker.louiz.org/louiz/biboumi/test-fedora:latest
@@ -130,6 +131,7 @@ test:fedora:
     - make coverage
   dependencies:
     - build:fedora
+  needs: ["build:fedora"]
   artifacts:
     expire_in: 2 weeks
     paths:
@@ -145,12 +147,14 @@ test:no_udns:
   <<: *basic_test
   dependencies:
     - build:no_udns
+  needs: ["build:no_udns"]
 
 test:alpine:
   image: docker.louiz.org/louiz/biboumi/test-alpine:latest
   <<: *basic_test
   dependencies:
     - build:alpine
+  needs: ["build:alpine"]
   image: docker.louiz.org/louiz/biboumi/test-alpine:latest
 
 test:freebsd:
@@ -169,6 +173,7 @@ test:freebsd:
     - make check
     - make e2e
   dependencies: []
+  needs: []
 
 #
 ## Packaging jobs
