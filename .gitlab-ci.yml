@@ -59,7 +59,7 @@ build:archlinux:
   <<: *basic_build
   only:
     - branches@louiz/biboumi
-  when: manual
+    - triggers
   tags:
     - armv7l
   artifacts:
