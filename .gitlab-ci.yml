@@ -23,7 +23,16 @@ variables:
 ## Build jobs
 #
 
+.sources_changed:
+  only:
+    changes:
+      - "CMakeLists.txt"
+      - ".gitlab-ci.yml"
+      - "src/**/*"
+      - "tests/**/*"
+
 .basic_build:
+  extends: .sources_changed
   stage: build
   tags:
     - docker
@@ -106,6 +115,7 @@ build:no_db_botan:
 #
 
 .basic_test:
+  extends: .sources_changed
   stage: test
   tags:
     - docker
@@ -246,10 +256,16 @@ packaging:archlinux:
 # Deploy jobs
 #
 
-deploy_doc:
-  stage: deploy
+.doc_changed:
   only:
-    - master@louiz/biboumi
+    changes:
+      - "CMakeLists.txt"
+      - ".gitlab-ci.yml"
+      - "doc/**/*"
+
+deploy_doc:
+  extends: .doc_changed
+  stage: deploy
   tags:
     - www
   environment:
@@ -264,9 +280,8 @@ deploy_doc:
   dependencies: []
 
 deploy_doc_tag:
+  extends: .doc_changed
   stage: deploy
-  only:
-    - tags@louiz/biboumi
   tags:
     - www
   environment:
@@ -282,8 +297,6 @@ deploy_doc_tag:
 
 undeploy_doc_tag:
   stage: deploy
-  only:
-    - tags@testing/biboumi
   tags:
     - www
   variables:
