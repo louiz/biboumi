@@ -982,11 +982,11 @@ if __name__ == '__main__':
                                              "/iq/commands:command/dataform:x[@type='form']/dataform:title[text()='Configure your name.']",
                                              "/iq/commands:command/dataform:x[@type='form']/dataform:instructions[text()='Please provide your name.']",
                                              "/iq/commands:command/dataform:x[@type='form']/dataform:field[@type='text-single']/dataform:required",
-                                             "/iq/commands:command/commands:actions/commands:next",
+                                             "/iq/commands:command/commands:actions/commands:complete",
                                              ),
                                              after = partial(save_value, "sessionid", partial(extract_attribute, "/iq[@type='result']/commands:command[@node='hello']", "sessionid"))
                              ),
-                     partial(send_stanza, "<iq type='set' id='hello-command2' from='{jid_one}/{resource_one}' to='{biboumi_host}'><command xmlns='http://jabber.org/protocol/commands' node='hello' sessionid='{sessionid}' action='next'><x xmlns='jabber:x:data' type='submit'><field var='name'><value>COUCOU</value></field></x></command></iq>"),
+                     partial(send_stanza, "<iq type='set' id='hello-command2' from='{jid_one}/{resource_one}' to='{biboumi_host}'><command xmlns='http://jabber.org/protocol/commands' node='hello' sessionid='{sessionid}' action='complete'><x xmlns='jabber:x:data' type='submit'><field var='name'><value>COUCOU</value></field></x></command></iq>"),
                      partial(expect_stanza, "/iq[@type='result']/commands:command[@node='hello'][@status='completed']/commands:note[@type='info'][text()='Hello COUCOU!']")
                  ]),
         Scenario("execute_incomplete_hello_adhoc_command",
@@ -994,11 +994,11 @@ if __name__ == '__main__':
                      handshake_sequence(),
                      partial(send_stanza, "<iq type='set' id='hello-command1' from='{jid_one}/{resource_one}' to='{biboumi_host}'><command xmlns='http://jabber.org/protocol/commands' node='hello' action='execute' /></iq>"),
                      partial(expect_stanza, ("/iq[@type='result']/commands:command[@node='hello'][@sessionid][@status='executing']",
-                                             "/iq/commands:command/commands:actions/commands:next",
+                                             "/iq/commands:command/commands:actions/commands:complete",
                                              ),
                              after = partial(save_value, "sessionid", partial(extract_attribute, "/iq[@type='result']/commands:command[@node='hello']", "sessionid"))
                              ),
-                     partial(send_stanza, "<iq type='set' id='hello-command2' from='{jid_one}/{resource_one}' to='{biboumi_host}'><command xmlns='http://jabber.org/protocol/commands' node='hello' sessionid='{sessionid}' action='next'><x xmlns='jabber:x:data' type='submit'></x></command></iq>"),
+                     partial(send_stanza, "<iq type='set' id='hello-command2' from='{jid_one}/{resource_one}' to='{biboumi_host}'><command xmlns='http://jabber.org/protocol/commands' node='hello' sessionid='{sessionid}' action='complete'><x xmlns='jabber:x:data' type='submit'></x></command></iq>"),
                      partial(expect_stanza, "/iq[@type='error']")
                  ]),
         Scenario("execute_ping_adhoc_command",
@@ -1032,11 +1032,11 @@ if __name__ == '__main__':
 
                      partial(send_stanza, "<iq type='set' id='command1' from='{jid_admin}/{resource_one}' to='{biboumi_host}'><command xmlns='http://jabber.org/protocol/commands' node='disconnect-user' action='execute' /></iq>"),
                      partial(expect_stanza, ("/iq[@type='result']/commands:command[@node='disconnect-user'][@sessionid][@status='executing']",
-                                             "/iq/commands:command/commands:actions/commands:next",
+                                             "/iq/commands:command/commands:actions/commands:complete",
                                              ),
                                              after = partial(save_value, "sessionid", partial(extract_attribute, "/iq/commands:command[@node='disconnect-user']", "sessionid"))
                              ),
-                     partial(send_stanza, "<iq type='set' id='command2' from='{jid_admin}/{resource_one}' to='{biboumi_host}'><command xmlns='http://jabber.org/protocol/commands' node='disconnect-user' sessionid='{sessionid}' action='next'><x xmlns='jabber:x:data' type='submit'><field var='jids'><value>{jid_admin}</value></field><field var='quit-message'><value>Disconnected by e2e</value></field></x></command></iq>"),
+                     partial(send_stanza, "<iq type='set' id='command2' from='{jid_admin}/{resource_one}' to='{biboumi_host}'><command xmlns='http://jabber.org/protocol/commands' node='disconnect-user' sessionid='{sessionid}' action='complete'><x xmlns='jabber:x:data' type='submit'><field var='jids'><value>{jid_admin}</value></field><field var='quit-message'><value>Disconnected by e2e</value></field></x></command></iq>"),
                      partial(expect_stanza, "/iq[@type='result']/commands:command[@node='disconnect-user'][@status='completed']/commands:note[@type='info'][text()='1 user has been disconnected.']"),
                      # Note, charybdis ignores our QUIT message, so we can't test it
                      partial(expect_stanza, "/presence[@type='unavailable'][@to='{jid_admin}/{resource_one}'][@from='#foo%{irc_server_one}/{nick_one}']"),
@@ -1082,11 +1082,11 @@ if __name__ == '__main__':
                                              "/iq/commands:command/dataform:x[@type='form']/dataform:field[@var='irc-servers'][@type='list-multi']",
                                              "/iq/commands:command/dataform:x[@type='form']/dataform:field[@var='irc-servers']/dataform:option[@label='localhost']/dataform:value[text()='localhost']",
                                              "/iq/commands:command/dataform:x[@type='form']/dataform:field[@var='irc-servers']/dataform:option[@label='irc.localhost']/dataform:value[text()='irc.localhost']",
-                                             "/iq/commands:command/commands:actions/commands:next",
+                                             "/iq/commands:command/commands:actions/commands:complete",
                                              ),
                              after = partial(save_value, "sessionid", partial(extract_attribute, "/iq/commands:command[@node='disconnect-from-irc-server']", "sessionid"))
                              ),
-                     partial(send_stanza, "<iq type='set' id='command2' from='{jid_admin}/{resource_one}' to='{biboumi_host}'><command xmlns='http://jabber.org/protocol/commands' node='disconnect-from-irc-server' sessionid='{sessionid}' action='next'><x xmlns='jabber:x:data' type='submit'><field var='irc-servers'><value>localhost</value></field><field var='quit-message'><value>Disconnected by e2e</value></field></x></command></iq>"),
+                     partial(send_stanza, "<iq type='set' id='command2' from='{jid_admin}/{resource_one}' to='{biboumi_host}'><command xmlns='http://jabber.org/protocol/commands' node='disconnect-from-irc-server' sessionid='{sessionid}' action='complete'><x xmlns='jabber:x:data' type='submit'><field var='irc-servers'><value>localhost</value></field><field var='quit-message'><value>Disconnected by e2e</value></field></x></command></iq>"),
                      partial(expect_unordered, [("/presence[@type='unavailable'][@to='{jid_one}/{resource_one}'][@from='#bon%{irc_server_two}/{nick_three}']",),
                                                 ("/iq[@type='result']/commands:command[@node='disconnect-from-irc-server'][@status='completed']/commands:note[@type='info'][text()='{jid_one} was disconnected from 1 IRC server.']",),
                                                 ]),
@@ -1099,11 +1099,11 @@ if __name__ == '__main__':
                                              "/iq/commands:command/dataform:x[@type='form']/dataform:field[@var='quit-message'][@type='text-single']",
                                              "/iq/commands:command/dataform:x[@type='form']/dataform:field[@var='irc-servers'][@type='list-multi']",
                                              "/iq/commands:command/dataform:x[@type='form']/dataform:field[@var='irc-servers']/dataform:option[@label='irc.localhost']/dataform:value[text()='irc.localhost']",
-                                             "/iq/commands:command/commands:actions/commands:next",
+                                             "/iq/commands:command/commands:actions/commands:complete",
                                              ),
                              after = partial(save_value, "sessionid", partial(extract_attribute, "/iq/commands:command[@node='disconnect-from-irc-server']", "sessionid"))
                              ),
-                     partial(send_stanza, "<iq type='set' id='command2' from='{jid_one}/{resource_one}' to='{biboumi_host}'><command xmlns='http://jabber.org/protocol/commands' node='disconnect-from-irc-server' sessionid='{sessionid}' action='next'><x xmlns='jabber:x:data' type='submit'><field var='irc-servers'><value>irc.localhost</value></field><field var='quit-message'><value>Disconnected by e2e</value></field></x></command></iq>"),
+                     partial(send_stanza, "<iq type='set' id='command2' from='{jid_one}/{resource_one}' to='{biboumi_host}'><command xmlns='http://jabber.org/protocol/commands' node='disconnect-from-irc-server' sessionid='{sessionid}' action='complete'><x xmlns='jabber:x:data' type='submit'><field var='irc-servers'><value>irc.localhost</value></field><field var='quit-message'><value>Disconnected by e2e</value></field></x></command></iq>"),
                      partial(expect_unordered, [("/presence[@type='unavailable'][@to='{jid_one}/{resource_one}'][@from='#foo%{irc_server_one}/{nick_two}']",),
                                                 ("/iq[@type='result']/commands:command[@node='disconnect-from-irc-server'][@status='completed']/commands:note[@type='info'][text()='{jid_one}/{resource_one} was disconnected from 1 IRC server.']",),
                                                 ]),
@@ -2928,11 +2928,11 @@ if __name__ == '__main__':
                                             "/iq/commands:command/dataform:x[@type='form']/dataform:field[@type='text-single'][@var='max_history_length']/dataform:value[text()='20']",
                                             "/iq/commands:command/dataform:x[@type='form']/dataform:field[@type='boolean'][@var='record_history']/dataform:value[text()='true']",
                                             "/iq/commands:command/dataform:x[@type='form']/dataform:field[@type='boolean'][@var='persistent']/dataform:value[text()='false']",
-                                            "/iq/commands:command/commands:actions/commands:next",
+                                            "/iq/commands:command/commands:actions/commands:complete",
                                             ),
                             after = partial(save_value, "sessionid", partial(extract_attribute, "/iq[@type='result']/commands:command[@node='configure']", "sessionid"))
                     ),
-                    partial(send_stanza, "<iq type='set' id='id2' from='{jid_one}/{resource_one}' to='{biboumi_host}'><command xmlns='http://jabber.org/protocol/commands' node='configure' sessionid='{sessionid}' action='next'><x xmlns='jabber:x:data' type='submit'><field var='record_history'><value>0</value></field><field var='max_history_length'><value>42</value></field></x></command></iq>"),
+                    partial(send_stanza, "<iq type='set' id='id2' from='{jid_one}/{resource_one}' to='{biboumi_host}'><command xmlns='http://jabber.org/protocol/commands' node='configure' sessionid='{sessionid}' action='complete'><x xmlns='jabber:x:data' type='submit'><field var='record_history'><value>0</value></field><field var='max_history_length'><value>42</value></field></x></command></iq>"),
                     partial(expect_stanza, "/iq[@type='result']/commands:command[@node='configure'][@status='completed']/commands:note[@type='info'][text()='Configuration successfully applied.']"),
 
                     partial(send_stanza, "<iq type='set' id='id3' from='{jid_one}/{resource_one}' to='{biboumi_host}'><command xmlns='http://jabber.org/protocol/commands' node='configure' action='execute' /></iq>"),
@@ -2942,7 +2942,7 @@ if __name__ == '__main__':
                                             "/iq/commands:command/dataform:x[@type='form']/dataform:field[@type='text-single'][@var='max_history_length']/dataform:value[text()='42']",
                                             "/iq/commands:command/dataform:x[@type='form']/dataform:field[@type='boolean'][@var='record_history']/dataform:value[text()='false']",
                                             "/iq/commands:command/dataform:x[@type='form']/dataform:field[@type='boolean'][@var='persistent']/dataform:value[text()='false']",
-                                            "/iq/commands:command/commands:actions/commands:next",
+                                            "/iq/commands:command/commands:actions/commands:complete",
                                             ),
                             after = partial(save_value, "sessionid", partial(extract_attribute, "/iq[@type='result']/commands:command[@node='configure']", "sessionid"))
                             ),
@@ -2959,11 +2959,11 @@ if __name__ == '__main__':
                                             "/iq/commands:command/dataform:x[@type='form']/dataform:field[@type='text-single'][@var='max_history_length']/dataform:value[text()='20']",
                                             "/iq/commands:command/dataform:x[@type='form']/dataform:field[@type='boolean'][@var='record_history']/dataform:value[text()='true']",
                                             "/iq/commands:command/dataform:x[@type='form']/dataform:field[@type='boolean'][@var='persistent']/dataform:value[text()='false']",
-                                            "/iq/commands:command/commands:actions/commands:next",
+                                            "/iq/commands:command/commands:actions/commands:complete",
                                             ),
                             after = partial(save_value, "sessionid", partial(extract_attribute, "/iq[@type='result']/commands:command[@node='global-configure']", "sessionid"))
                     ),
-                    partial(send_stanza, "<iq type='set' id='id2' from='{jid_one}/{resource_one}' to='{biboumi_host}'><command xmlns='http://jabber.org/protocol/commands' node='global-configure' sessionid='{sessionid}' action='next'><x xmlns='jabber:x:data' type='submit'><field var='record_history'><value>0</value></field><field var='max_history_length'><value>42</value></field></x></command></iq>"),
+                    partial(send_stanza, "<iq type='set' id='id2' from='{jid_one}/{resource_one}' to='{biboumi_host}'><command xmlns='http://jabber.org/protocol/commands' node='global-configure' sessionid='{sessionid}' action='complete'><x xmlns='jabber:x:data' type='submit'><field var='record_history'><value>0</value></field><field var='max_history_length'><value>42</value></field></x></command></iq>"),
                     partial(expect_stanza, "/iq[@type='result']/commands:command[@node='global-configure'][@status='completed']/commands:note[@type='info'][text()='Configuration successfully applied.']"),
 
                     partial(send_stanza, "<iq type='set' id='id3' from='{jid_one}/{resource_one}' to='{biboumi_host}'><command xmlns='http://jabber.org/protocol/commands' node='global-configure' action='execute' /></iq>"),
@@ -2973,7 +2973,7 @@ if __name__ == '__main__':
                                             "/iq/commands:command/dataform:x[@type='form']/dataform:field[@type='text-single'][@var='max_history_length']/dataform:value[text()='42']",
                                             "/iq/commands:command/dataform:x[@type='form']/dataform:field[@type='boolean'][@var='record_history']/dataform:value[text()='false']",
                                             "/iq/commands:command/dataform:x[@type='form']/dataform:field[@type='boolean'][@var='persistent']/dataform:value[text()='false']",
-                                            "/iq/commands:command/commands:actions/commands:next",
+                                            "/iq/commands:command/commands:actions/commands:complete",
                                             ),
                             after = partial(save_value, "sessionid", partial(extract_attribute, "/iq[@type='result']/commands:command[@node='global-configure']", "sessionid"))
                             ),
@@ -2993,7 +2993,7 @@ if __name__ == '__main__':
                                             "/iq/commands:command/dataform:x[@type='form']/dataform:field[@type='text-single'][@var='max_history_length']/dataform:value[text()='20']",
                                             "/iq/commands:command/dataform:x[@type='form']/dataform:field[@type='boolean'][@var='record_history']/dataform:value[text()='true']",
                                             "/iq/commands:command/dataform:x[@type='form']/dataform:field[@type='boolean'][@var='persistent']/dataform:value[text()='true']",
-                                            "/iq/commands:command/commands:actions/commands:next",
+                                            "/iq/commands:command/commands:actions/commands:complete",
                                             ),
                     ),
                 ],conf='persistent_by_default'),
@@ -3017,12 +3017,12 @@ if __name__ == '__main__':
                                              "/iq/commands:command/dataform:x[@type='form']/dataform:field[@type='text-single'][@var='realname']",
                                              "/iq/commands:command/dataform:x[@type='form']/dataform:field[@type='text-single'][@var='encoding_in']",
                                              "/iq/commands:command/dataform:x[@type='form']/dataform:field[@type='text-single'][@var='encoding_out']",
-                                             "/iq/commands:command/commands:actions/commands:next",
+                                             "/iq/commands:command/commands:actions/commands:complete",
                                              ),
                              after = partial(save_value, "sessionid", partial(extract_attribute, "/iq[@type='result']/commands:command[@node='configure']", "sessionid"))
                              ),
                      partial(send_stanza, "<iq type='set' id='id2' from='{jid_one}/{resource_one}' to='{irc_server_one}'>"
-                                          "<command xmlns='http://jabber.org/protocol/commands' node='configure' sessionid='{sessionid}' action='next'>"
+                                          "<command xmlns='http://jabber.org/protocol/commands' node='configure' sessionid='{sessionid}' action='complete'>"
                                           "<x xmlns='jabber:x:data' type='submit'>"
                                           "<field var='ports' />"
                                           "<field var='tls_ports'><value>6697</value><value>6698</value></field>"
@@ -3057,7 +3057,7 @@ if __name__ == '__main__':
                                              "/iq/commands:command/dataform:x[@type='form']/dataform:field[@type='text-single'][@var='throttle_limit']/dataform:value[text()='42']",
                                              "/iq/commands:command/dataform:x[@type='form']/dataform:field[@type='text-single'][@var='encoding_in']/dataform:value[text()='latin-1']",
                                              "/iq/commands:command/dataform:x[@type='form']/dataform:field[@type='text-single'][@var='encoding_out']/dataform:value[text()='UTF-8']",
-                                             "/iq/commands:command/commands:actions/commands:next",
+                                             "/iq/commands:command/commands:actions/commands:complete",
                                              ),
                              after = partial(save_value, "sessionid", partial(extract_attribute, "/iq[@type='result']/commands:command[@node='configure']", "sessionid"))
                              ),
@@ -3070,7 +3070,7 @@ if __name__ == '__main__':
                              after = partial(save_value, "sessionid", partial(extract_attribute, "/iq[@type='result']/commands:command[@node='configure']", "sessionid"))
                              ),
                      partial(send_stanza, "<iq type='set' id='id2' from='{jid_one}/{resource_one}' to='{irc_server_one}'>"
-                                          "<command xmlns='http://jabber.org/protocol/commands' node='configure' sessionid='{sessionid}' action='next'>"
+                                          "<command xmlns='http://jabber.org/protocol/commands' node='configure' sessionid='{sessionid}' action='complete'>"
                                           "<x xmlns='jabber:x:data' type='submit'>"
                                           "<field var='pass'><value></value></field>"
                                           "<field var='after_connect_commands'></field>"
@@ -3093,7 +3093,7 @@ if __name__ == '__main__':
                                              "!/iq/commands:command/dataform:x[@type='form']/dataform:field[@var='realname']/dataform:value",
                                              "!/iq/commands:command/dataform:x[@type='form']/dataform:field[@var='encoding_in']/dataform:value",
                                              "!/iq/commands:command/dataform:x[@type='form']/dataform:field[@var='encoding_out']/dataform:value",
-                                             "/iq/commands:command/commands:actions/commands:next",
+                                             "/iq/commands:command/commands:actions/commands:complete",
                                              "/iq/commands:command/dataform:x[@type='form']/dataform:field[@type='text-single'][@var='throttle_limit']/dataform:value[text()='-1']",  # An invalid value sets this field to -1, aka disabled
                                              ),
                              after = partial(save_value, "sessionid", partial(extract_attribute, "/iq[@type='result']/commands:command[@node='configure']", "sessionid"))
@@ -3115,7 +3115,7 @@ if __name__ == '__main__':
                                              after = partial(save_value, "sessionid", partial(extract_attribute, "/iq[@type='result']/commands:command[@node='configure']", "sessionid"))
                              ),
                      partial(send_stanza, "<iq type='set' id='id2' from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}'>"
-                                          "<command xmlns='http://jabber.org/protocol/commands' node='configure' sessionid='{sessionid}' action='next'>"
+                                          "<command xmlns='http://jabber.org/protocol/commands' node='configure' sessionid='{sessionid}' action='complete'>"
                                           "<x xmlns='jabber:x:data' type='submit'>"
                                           "<field var='ports' />"
                                           "<field var='encoding_out'><value>UTF-8</value></field>"
@@ -3130,7 +3130,7 @@ if __name__ == '__main__':
                                              "/iq/commands:command/dataform:x[@type='form']/dataform:field[@type='text-single'][@var='encoding_in']/dataform:value[text()='latin-1']",
                                              "/iq/commands:command/dataform:x[@type='form']/dataform:field[@type='text-single'][@var='encoding_out']/dataform:value[text()='UTF-8']",
                                              "/iq/commands:command/dataform:x[@type='form']/dataform:field[@type='list-single'][@var='record_history']/dataform:value[text()='true']",
-                                             "/iq/commands:command/commands:actions/commands:next",
+                                             "/iq/commands:command/commands:actions/commands:complete",
                                              ),
                              after = partial(save_value, "sessionid", partial(extract_attribute, "/iq[@type='result']/commands:command[@node='configure']", "sessionid"))
                              ),
@@ -3168,7 +3168,7 @@ if __name__ == '__main__':
                              after = partial(save_value, "sessionid", partial(extract_attribute, "/iq[@type='result']/commands:command[@node='configure']", "sessionid"))
                              ),
                      partial(send_stanza, "<iq type='set' id='id2' from='{jid_one}/{resource_one}' to='#foo@{biboumi_host}'>"
-                                          "<command xmlns='http://jabber.org/protocol/commands' node='configure' sessionid='{sessionid}' action='next'>"
+                                          "<command xmlns='http://jabber.org/protocol/commands' node='configure' sessionid='{sessionid}' action='complete'>"
                                           "<x xmlns='jabber:x:data' type='submit'>"
                                           "<field var='ports' />"
                                           "<field var='encoding_out'><value>UTF-8</value></field>"
@@ -3181,7 +3181,7 @@ if __name__ == '__main__':
                                              "/iq/commands:command/dataform:x[@type='form']/dataform:title[text()='Configure the IRC channel #foo on server irc.localhost']",
                                              "/iq/commands:command/dataform:x[@type='form']/dataform:field[@type='text-single'][@var='encoding_in']/dataform:value[text()='latin-1']",
                                              "/iq/commands:command/dataform:x[@type='form']/dataform:field[@type='text-single'][@var='encoding_out']/dataform:value[text()='UTF-8']",
-                                             "/iq/commands:command/commands:actions/commands:next",
+                                             "/iq/commands:command/commands:actions/commands:complete",
                                              ),
                              after = partial(save_value, "sessionid", partial(extract_attribute, "/iq[@type='result']/commands:command[@node='configure']", "sessionid"))
                              ),
