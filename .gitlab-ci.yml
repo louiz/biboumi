@@ -181,14 +181,11 @@ test:freebsd:
   extends: .basic_test
   tags:
     - freebsd
-#  only:
-#    - branches@louiz/biboumi
-  script:
-    - cd build/
-    - make check
-    - make e2e
+  only:
+    - branches@louiz/biboumi
   dependencies:
     - build:freebsd
+  needs: ["build:freebsd"]
 
 #
 ## Packaging jobs
