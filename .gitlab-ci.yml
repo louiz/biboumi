@@ -69,7 +69,7 @@ build:archlinux:
   extends: .basic_build
   only:
     - branches@louiz/biboumi
-    - triggers
+    - schedules
   tags:
     - armv7l
   artifacts:
