@@ -68,7 +68,6 @@ build:alpine:
 build:archlinux:
   extends: .basic_build
   only:
-    - branches@louiz/biboumi
     - schedules
   tags:
     - armv7l
