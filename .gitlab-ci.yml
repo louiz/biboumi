@@ -131,8 +131,11 @@ build:no_db_botan:
     - docker
   script:
     - cd build/
-    - make check -j$(nproc || echo 1)
-    - make e2e -j$(nproc || echo 1)
+    - make check_junit || true; make check;
+    - make e2e
+  artifacts:
+    reports:
+      junit: ["build/check_result.xml"]
 
 test:debian:
   extends: .basic_test
@@ -146,8 +149,8 @@ test:fedora:
   image: docker.louiz.org/louiz/biboumi/test-fedora:latest
   script:
     - cd build/
-    - make coverage_check -j$(nproc || echo 1)
-    - make coverage_e2e -j$(nproc || echo 1)
+    - make coverage_check
+    - make coverage_e2e
     - make coverage
   dependencies:
     - build:fedora

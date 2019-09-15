@@ -313,6 +313,8 @@ endif()
 #
 add_custom_target(check COMMAND "test_suite"
   DEPENDS test_suite)
+add_custom_target(check_junit COMMAND test_suite -r junit -o check_result.xml
+  DEPENDS test_suite)
 set_target_properties(check PROPERTIES EXCLUDE_FROM_ALL TRUE)
 add_custom_target(e2e COMMAND "python3" "${CMAKE_CURRENT_SOURCE_DIR}/tests/end_to_end/"
   DEPENDS biboumi)
@@ -323,13 +325,14 @@ if(CMAKE_BUILD_TYPE MATCHES Debug)
   include(CodeCoverage)
   SETUP_TARGET_FOR_COVERAGE(coverage_check
     ./test_suite
-    coverage_test_suite)
+    coverage_test_suite
+    "-r junit -o check_result.xml")
   add_dependencies(coverage_check test_suite)
 
   SETUP_TARGET_FOR_COVERAGE(coverage_e2e
     python3
     coverage_e2e
-    ${CMAKE_CURRENT_SOURCE_DIR}/tests/end_to_end/)
+    "${CMAKE_CURRENT_SOURCE_DIR}/tests/end_to_end/")
   add_dependencies(coverage_e2e biboumi)
 
   ADD_CUSTOM_TARGET(coverage
