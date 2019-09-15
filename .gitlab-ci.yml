@@ -83,6 +83,7 @@ build:freebsd:
     CXX_FLAGS: "-Werror"
     SYSTEMD: "-DWITHOUT_SYSTEMD=1"
     GIT_STRATEGY: "clone"
+    COMPILER: "clang++"
 
 build:no_botan:
   extends: .fedora_build
