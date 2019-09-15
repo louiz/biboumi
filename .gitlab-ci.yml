@@ -18,6 +18,7 @@ variables:
   LIBIDN: "-DWITH_LIBIDN=1"
   SQLITE3: "-DWITH_SQLITE3=1"
   POSTGRESQL: "-WITH_POSTGRESQL=1"
+  CXX_FLAGS: "-Werror -Wno-psabi"
 
 #
 ## Build jobs
@@ -40,7 +41,7 @@ variables:
     - "echo Running cmake with the following parameters: -DCMAKE_CXX_COMPILER=${COMPILER} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ${BOTAN} ${UDNS} ${SYSTEMD} ${LIBIDN} ${SQLITE3} ${POSTGRESQL}"
     - mkdir build/
     - cd build/
-    - cmake .. -DCMAKE_CXX_FLAGS="-Werror -Wno-psabi" -DCMAKE_CXX_COMPILER=${COMPILER} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ${BOTAN} ${UDNS} ${SYSTEMD} ${LIBIDN} ${SQLITE3} ${POSTGRESQL}
+    - cmake .. -DCMAKE_CXX_FLAGS="${CXX_FLAGS}" -DCMAKE_CXX_COMPILER=${COMPILER} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ${BOTAN} ${UDNS} ${SYSTEMD} ${LIBIDN} ${SQLITE3} ${POSTGRESQL}
     - make everything -j$(nproc || echo 1)
   artifacts:
     expire_in: 2 weeks
@@ -73,6 +74,15 @@ build:archlinux:
     - armv7l
   artifacts:
     paths: []
+
+build:freebsd:
+  extends: .basic_build
+  tags:
+    - freebsd
+  variables:
+    CXX_FLAGS: "-Werror"
+    SYSTEMD: "-DWITHOUT_SYSTEMD=1"
+    GIT_STRATEGY: "clone"
 
 build:no_botan:
   extends: .fedora_build
@@ -168,22 +178,17 @@ test:alpine:
   image: docker.louiz.org/louiz/biboumi/test-alpine:latest
 
 test:freebsd:
+  extends: .basic_test
   tags:
     - freebsd
-  only:
-    - branches@louiz/biboumi
-  variables:
-    GIT_STRATEGY: "clone"
-    SYSTEMD: "-DWITHOUT_SYSTEMD=1"
-  stage: test
+#  only:
+#    - branches@louiz/biboumi
   script:
-    - mkdir build/
     - cd build/
-    - cmake .. -DCMAKE_CXX_FLAGS="-Werror" -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ${BOTAN} ${UDNS} ${SYSTEMD} ${LIBIDN} ${SQLITE3}
     - make check
     - make e2e
-  dependencies: []
-  needs: []
+  dependencies:
+    - build:freebsd
 
 #
 ## Packaging jobs
@@ -239,6 +244,7 @@ packaging:archlinux:
   stage: packaging
   only:
     - master@louiz/biboumi
+    - triggers
   tags:
     - docker
   allow_failure: true
