@@ -306,35 +306,3 @@ deploy:doc:tag:
     url: https://doc.biboumi.louiz.org/$CI_COMMIT_TAG/
   variables:
     DOC_DEPLOY_DIR: $CI_COMMIT_TAG
-
-deploy:doc:mr:
-  extends: .deploy:doc
-  only:
-    - merge_requests
-  tags:
-    - www
-    - unsecure
-  environment:
-    name: doc.mr.$CI_MERGE_REQUEST_ID
-    url: https://doc.biboumi.louiz.org/mr/$CI_MERGE_REQUEST_ID/
-    on_stop: undeploy:doc:mr
-  variables:
-    DOC_DEPLOY_DIR: $CI_MERGE_REQUEST_ID
-
-undeploy:doc:mr:
-  stage: deploy
-  tags:
-    - www
-    - unsecure
-  only:
-    - merge_requests
-  image: docker.louiz.org/louiz/biboumi/doc-builder
-  variables:
-    GIT_STRATEGY: none
-  when: manual
-  environment:
-    name: doc.mr.$CI_MERGE_REQUEST_ID
-    action: stop
-  script:
-    - rm -rf /www/$CI_MERGE_REQUEST_ID
-  dependencies: []
