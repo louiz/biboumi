@@ -326,7 +326,7 @@ if(CMAKE_BUILD_TYPE MATCHES Debug)
   SETUP_TARGET_FOR_COVERAGE(coverage_check
     ./test_suite
     coverage_test_suite
-    "-r junit -o check_result.xml")
+    "-o;check_result.xml;-r;junit")
   add_dependencies(coverage_check test_suite)
 
   SETUP_TARGET_FOR_COVERAGE(coverage_e2e
