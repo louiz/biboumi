@@ -16,7 +16,7 @@ BuildRequires: postgresql-devel
 BuildRequires: botan2-devel
 BuildRequires: cmake
 BuildRequires: systemd
-BuildRequires: pandoc
+BuildRequires: python3-sphinx
 
 %global _hardened_build 1
 
@@ -67,6 +67,7 @@ make check %{?_smp_mflags}
 * ${RPM_DATE} Le Coz Florent <louiz@louiz.org> - ${RPM_VERSION}-1
 - Build latest git revision
 - Build against botan2
+- Build with sphinx instead of pandoc
 
 * Fri Jun 1 2018 Le Coz Florent <louiz@louiz.org> - 8.3-1
   Update to version 8.3

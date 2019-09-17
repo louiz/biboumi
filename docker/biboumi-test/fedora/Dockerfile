@@ -20,7 +20,7 @@ RUN dnf --refresh install -y\
     libidn-devel\
     uuid-devel\
     systemd-devel\
-    pandoc\
+    python3-sphinx\
     libasan\
     libubsan\
     git\

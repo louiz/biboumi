@@ -26,6 +26,7 @@ RUN apk add --no-cache g++\
     python3-dev\
     automake\
     autoconf\
+    libffi-dev\
     flex\
     bison\
     libltdl\

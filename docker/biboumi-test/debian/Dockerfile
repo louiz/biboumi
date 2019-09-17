@@ -1,7 +1,7 @@
 # This Dockerfile creates a docker image suitable to run biboumi’s build and
 # tests.  For example, it can be used on with gitlab-ci.
 
-FROM docker.io/debian:latest
+FROM docker.io/debian:buster
 
 ENV LC_ALL C.UTF-8
 
@@ -22,8 +22,8 @@ RUN apt install -y g++\
     libidn11-dev\
     uuid-dev\
     libsystemd-dev\
-    pandoc\
-    libasan3\
+    python3-sphinx\
+    libasan5\
     libubsan0\
     git\
     python3-lxml\
@@ -46,7 +46,7 @@ RUN apt install -y g++\
 RUN git clone https://github.com/randombit/botan.git && cd botan && ./configure.py --prefix=/usr && make -j8 && make install && rm -rf /botan
 
 # Install slixmpp, for e2e tests
-RUN git clone https://github.com/saghul/aiodns.git && cd aiodns && git checkout 7ee13f9bea25784322~ && python3 setup.py build && python3 setup.py install && git clone git://git.louiz.org/slixmpp && pip3 install pyasn1==0.4.2 && cd slixmpp && python3 setup.py build && python3 setup.py install
+RUN git clone https://github.com/saghul/aiodns.git && cd aiodns && git checkout 7ee13f9bea25784322~ && python3 setup.py build && python3 setup.py install && git clone git://git.louiz.org/slixmpp && pip3 install pyasn1 && cd slixmpp && python3 setup.py build && python3 setup.py install
 
 RUN useradd tester -m
 
