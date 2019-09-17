@@ -214,32 +214,6 @@ packaging:rpm:
   dependencies:
     - build:fedora
 
-packaging:deb:
-  stage: packaging
-  only:
-    - master@louiz/biboumi
-    - debian@louiz/biboumi
-  tags:
-    - docker
-  allow_failure: true
-  image: docker.louiz.org/louiz/biboumi/packaging-debian:latest
-  before_script: []
-  script:
-    - git checkout debian
-    - git pull
-    - git merge --no-commit --no-ff master
-    - mk-build-deps
-    - apt update -y
-    - apt install -y ./biboumi-build-deps*.deb
-    - debuild -b -us -uc
-    - mv ../*.deb .
-    - mv ../*.build .
-    - mv ../*.buildinfo .
-  dependencies: []
-  artifacts:
-    untracked: true
-    name: $CI_PROJECT_NAME-deb-$CI_BUILD_ID
-
 packaging:archlinux:
   stage: packaging
   only:
