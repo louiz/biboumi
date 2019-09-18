@@ -54,7 +54,7 @@ class XMPPComponent(slixmpp.BaseXMPP):
         self.stream_header = '<stream:stream %s %s from="%s" id="%s">' % (
             'xmlns="jabber:component:accept"',
             'xmlns:stream="%s"' % self.stream_ns,
-            self.boundjid, self.get_id())
+            self.boundjid, self.new_id())
         self.stream_footer = "</stream:stream>"
 
         self.register_handler(slixmpp.Callback('Match All',
