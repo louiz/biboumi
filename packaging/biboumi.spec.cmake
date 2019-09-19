@@ -45,7 +45,7 @@ cmake . -DCMAKE_CXX_FLAGS="%{optflags}" \
       -DWITH_POSTGRESQL=1
 
 make %{?_smp_mflags}
-make man
+make man SPHINXBUILD=sphinx-build-3
 
 %install
 make install DESTDIR=%{buildroot}
