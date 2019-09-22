@@ -15,7 +15,7 @@ class PostgresqlStatement: public Statement
       body(std::move(body)),
       conn(conn)
   {}
-  ~PostgresqlStatement()
+  virtual ~PostgresqlStatement()
   {
     PQclear(this->result);
     this->result = nullptr;
@@ -88,8 +88,6 @@ class PostgresqlStatement: public Statement
     this->params.push_back("NULL");
     return true;
   }
-
- private:
 
 private:
   bool execute(const bool second_attempt=false)
