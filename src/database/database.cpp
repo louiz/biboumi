@@ -238,9 +238,9 @@ std::tuple<bool, std::vector<Database::MucLogLine>> Database::get_muc_logs(const
     }
 
   if (paging == Database::Paging::first)
-    return std::make_tuple(complete, result);
+    return {complete, result};
   else
-    return std::make_tuple(complete, std::vector<Database::MucLogLine>(result.crbegin(), result.crend()));
+    return {complete, {result.crbegin(), result.crend()}};
 }
 
 Database::MucLogLine Database::get_muc_log(const std::string& owner, const std::string& chan_name, const std::string& server,
