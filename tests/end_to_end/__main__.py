@@ -705,7 +705,8 @@ if __name__ == '__main__':
                              "/message/body[text()='Mode #bar [+nt] by {irc_host_one}']"),
                     partial(expect_stanza,
                             ("/presence[@to='{jid_one}/{resource_one}'][@from='#bar%{irc_server_one}/{nick_one}']/muc_user:x/muc_user:item[@affiliation='admin'][@role='moderator']",
-                             "/presence/muc_user:x/muc_user:status[@code='110']")
+                             "/presence/muc_user:x/muc_user:status[@code='110']",
+                             "/presence/muc_user:x/muc_user:status[@code='210']")
                             ),
                     partial(expect_stanza, "/message[@from='#bar%{irc_server_one}'][@type='groupchat']/subject[not(text())]"),
 
@@ -715,7 +716,8 @@ if __name__ == '__main__':
                              "/message/body[text()='Mode #boule [+nt] by {irc_host_one}']"),
                     partial(expect_stanza,
                             ("/presence[@to='{jid_one}/{resource_one}'][@from='#boule%{irc_server_one}/{nick_one}']/muc_user:x/muc_user:item[@affiliation='admin'][@role='moderator']",
-                             "/presence/muc_user:x/muc_user:status[@code='110']")
+                             "/presence/muc_user:x/muc_user:status[@code='110']",
+                             "/presence/muc_user:x/muc_user:status[@code='210']")
                             ),
                     partial(expect_stanza, "/message[@from='#boule%{irc_server_one}'][@type='groupchat']/subject[not(text())]"),
                  ]),
