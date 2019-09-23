@@ -3,7 +3,6 @@
 
 #include <sstream>
 #include <iomanip>
-#include <locale>
 
 #include "biboumi.h"
 
@@ -12,7 +11,7 @@ namespace utils
 std::string to_string(const std::chrono::system_clock::time_point::rep& time)
 {
   constexpr std::size_t stamp_size = 21;
-  const std::time_t timestamp = static_cast<std::time_t>(time);
+  const auto timestamp = static_cast<std::time_t>(time);
   char date_buf[stamp_size];
   struct tm tm;
   if (std::strftime(date_buf, stamp_size, "%FT%TZ", gmtime_r(&timestamp, &tm)) != stamp_size - 1)
