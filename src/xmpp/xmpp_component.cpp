@@ -344,6 +344,8 @@ void XmppComponent::send_user_join(const std::string& from,
         status_self["code"] = "110";
         XmlSubNode status_nick_modified(x, "status");
         status_nick_modified["code"] = "210";
+        XmlSubNode status_nonanonymous(x, "status");
+        status_nonanonymous["code"] = "100";
       }
   }
   this->send_stanza(presence);
