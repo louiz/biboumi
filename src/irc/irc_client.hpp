@@ -92,7 +92,7 @@ public:
    */
   void send_message(IrcMessage message, MessageCallback callback={}, bool throttle=true);
   void send_raw(const std::string& txt);
-  void actual_send(std::pair<IrcMessage, MessageCallback> message_pair);
+  void actual_send(std::pair<IrcMessage, MessageCallback>&& message_pair);
   /**
    * Send the PONG irc command
    */

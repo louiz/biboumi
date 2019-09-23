@@ -398,7 +398,7 @@ void IrcClient::parse_in_buffer(const size_t)
     }
 }
 
-void IrcClient::actual_send(std::pair<IrcMessage, MessageCallback> message_pair)
+void IrcClient::actual_send(std::pair<IrcMessage, MessageCallback>&& message_pair)
 {
   const IrcMessage& message = message_pair.first;
   const MessageCallback& callback = message_pair.second;

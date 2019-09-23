@@ -298,8 +298,8 @@ void XmppComponent::send_message(const std::string& from, Xmpp::body&& body, con
       {
         XmlSubNode private_node(message, "private");
         private_node["xmlns"] = "urn:xmpp:carbons:2";
-        XmlSubNode nocopy(message, "no-copy");
-        nocopy["xmlns"] = "urn:xmpp:hints";
+        XmlSubNode nocopy_node(message, "no-copy");
+        nocopy_node["xmlns"] = "urn:xmpp:hints";
       }
     if (muc_private)
       {
@@ -590,8 +590,8 @@ void XmppComponent::send_version(const std::string& id, const std::string& jid_t
           name.set_inner("biboumi");
         }
         {
-          XmlSubNode version(query, "version");
-          version.set_inner(SOFTWARE_VERSION);
+          XmlSubNode version_node(query, "version");
+          version_node.set_inner(SOFTWARE_VERSION);
         }
         {
           XmlSubNode os(query, "os");
