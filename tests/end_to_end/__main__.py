@@ -609,6 +609,7 @@ if __name__ == '__main__':
                              "/message/body[text()='Mode #foo [+nt] by {irc_host_one}']"),
                      partial(expect_stanza,
                              ("/presence[@to='{jid_one}/{resource_one}'][@from='#foo%{irc_server_one}/{nick_one}']/muc_user:x/muc_user:item[@affiliation='admin'][@role='moderator']",
+                             "/presence/muc_user:x/muc_user:status[@code='100']", # Rooms are all non-anonymous
                              "/presence/muc_user:x/muc_user:status[@code='110']")
                              ),
                      partial(expect_stanza, "/message[@from='#foo%{irc_server_one}'][@type='groupchat']/subject[not(text())]"),
@@ -2823,6 +2824,7 @@ if __name__ == '__main__':
                               "/iq/disco_info:query/disco_info:feature[@var='urn:xmpp:ping']",
                               "/iq/disco_info:query/disco_info:feature[@var='urn:xmpp:mam:2']",
                               "/iq/disco_info:query/disco_info:feature[@var='jabber:iq:version']",
+                              "/iq/disco_info:query/disco_info:feature[@var='muc_nonanonymous']",
                               "!/iq/disco_info:query/dataform:x/dataform:field[@var='muc#roominfo_occupants']"
                              )),
 
