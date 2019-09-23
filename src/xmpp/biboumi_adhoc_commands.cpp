@@ -25,7 +25,7 @@ static void set_desc(XmlSubNode& field, const char* text)
 #endif
 
 #ifndef HAS_PUT_TIME
-#include <ctime>
+# include <time.h>
 #endif
 
 using namespace std::string_literals;
@@ -884,12 +884,13 @@ void GetIrcConnectionInfoStep1(XmppComponent& component, AdhocSession& session, 
   if (irc->is_using_tls())
     ss << " (using TLS)";
   const std::time_t now_c = std::chrono::system_clock::to_time_t(irc->connection_date);
+  struct tm tm;
 #ifdef HAS_PUT_TIME
-  ss << " since " << std::put_time(std::localtime(&now_c), "%F %T");
+  ss << " since " << std::put_time(localtime_r(&now_c, &tm), "%F %T");
 #else
   constexpr std::size_t timestamp_size{10 + 1 + 8 + 1};
   char buf[timestamp_size] = {};
-  const auto res = std::strftime(buf, timestamp_size, "%F %T", std::localtime(&now_c));
+  const auto res = std::strftime(buf, timestamp_size, "%F %T", localtime(&now_c, &tm));
   if (res > 0)
     ss << " since " << buf;
 #endif

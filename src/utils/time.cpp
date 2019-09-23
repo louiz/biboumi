@@ -1,5 +1,5 @@
 #include <utils/time.hpp>
-#include <ctime>
+#include <time.h>
 
 #include <sstream>
 #include <iomanip>
@@ -14,7 +14,8 @@ std::string to_string(const std::chrono::system_clock::time_point::rep& time)
   constexpr std::size_t stamp_size = 21;
   const std::time_t timestamp = static_cast<std::time_t>(time);
   char date_buf[stamp_size];
-  if (std::strftime(date_buf, stamp_size, "%FT%TZ", std::gmtime(&timestamp)) != stamp_size - 1)
+  struct tm tm;
+  if (std::strftime(date_buf, stamp_size, "%FT%TZ", gmtime_r(&timestamp, &tm)) != stamp_size - 1)
     return "";
   return {std::begin(date_buf), std::end(date_buf) - 1};
 }
