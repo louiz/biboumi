@@ -8,6 +8,7 @@
 
 #include <database/database.hpp>
 #include <database/save.hpp>
+#include <database/select_query.hpp>
 
 #include <config/config.hpp>
 
@@ -163,6 +164,28 @@ TEST_CASE("Database")
       CHECK(after_connection_commands.size() == 1);
       after_connection_commands =  Database::get_after_connection_commands(soptions2);
       CHECK(after_connection_commands.size() == 2);
+    }
+
+  SECTION("async_select")
+    {
+      constexpr auto db_size = 8;
+      CHECK(Database::count(Database::muc_log_lines) == 0);
+      auto uuid = Database::store_muc_message("owner", "#chan", "irc.example.com", std::chrono::system_clock::now(), "hello!", "louiz'");
+      CHECK(Database::count(Database::muc_log_lines) == 1);
+      CHECK(uuid.size() == 36);
+
+      for (int i = 1; i < db_size; ++i)
+        Database::store_muc_message("owner", "#chan", "irc.example.com", std::chrono::system_clock::now(), "hello "s + std::to_string(i) + "!"s, "louiz'");
+      CHECK(Database::count(Database::muc_log_lines) == db_size);
+
+      auto query = select(Database::muc_log_lines);
+      query.where() << Database::Owner{} << "=" << "owner"s;
+      auto async_result = query.execute_async(*Database::db);
+
+      int i = 0;
+      for (auto rows: async_result)
+        ++i;
+      CHECK(i == db_size);
     }
 
   Database::close();
