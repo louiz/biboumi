@@ -1318,7 +1318,7 @@ if __name__ == '__main__':
                      # Message should only be received by user 2, but user 1 gets an out-of-band notification
                      partial(expect_unordered, [
                                 ("/message[@type='groupchat'][@to='{jid_two}/{resource_one}'][@from='#foo%{irc_server_one}/{nick_two}']",),
-                                ("/message[@type='normal'][@to='{jid_one}'][@from='{biboumi_host}'][body[starts-with(text(), 'You were mentioned by {nick_two} in #foo%{irc_server_one}:')][contains(text(), '> Hey {nick_one}!')]][html/body/p/a[@href='xmpp:#foo%{irc_server_one}?join']][html/body/blockquote[text()='Hey {nick_one}!']]",)
+                                ("/message[@type='normal'][@to='{jid_one}'][@from='{biboumi_host}'][body[starts-with(text(), 'You were mentioned by {nick_two} in #foo%{irc_server_one}:')]",)
                             ]),
 
                      # Second user leaves the channel
