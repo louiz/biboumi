@@ -22,6 +22,8 @@
 #define IRC_FORMAT_UNDERLINE_CHAR  '\x1F' // done
 #define IRC_FORMAT_NEWLINE_CHAR    '\n'   // done
 
+#define XHTML_NS "http://www.w3.org/1999/xhtml"
+
 static const char irc_format_char[] = {
   IRC_FORMAT_BOLD_CHAR,
   IRC_FORMAT_COLOR_CHAR,

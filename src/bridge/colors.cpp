@@ -29,8 +29,6 @@ static const char* irc_colors_to_css[IRC_NUM_COLORS] = {
   "white",
 };
 
-#define XHTML_NS "http://www.w3.org/1999/xhtml"
-
 struct styles_t
 {
   bool strong;
