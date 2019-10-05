@@ -857,10 +857,35 @@ void Bridge::send_message(const Iid& iid, const std::string& nick, const std::st
 #else
       (void)log;
 #endif
-      for (const auto& resource: this->resources_in_chan[iid.to_tuple()])
+      const auto resources = this->resources_in_chan[iid.to_tuple()];
+      if (resources.empty())
         {
-          this->xmpp.send_muc_message(std::to_string(iid), nick, this->make_xmpp_body(body, encoding),
-                                      this->user_jid + "/" + resource, uuid, utils::gen_uuid());
+          const std::string our_nick = irc_clients[iid.get_server()]->get_own_nick();
+          if (body.find(our_nick) != std::string::npos)
+            {
+              const std::string orig_body = std::get<0>(this->make_xmpp_body(body, encoding));
+              std::string channel_jid;
+              if (Config::get("fixed_irc_server", "").empty())
+                {
+                  /* multi server mode -> ensure the IRC network is part of the JID */
+                  channel_jid = std::to_string(iid) + "@" + this->xmpp.get_served_hostname();
+                }
+              else
+                {
+                  /* fixed server mode -> do not append the IRC network */
+                  channel_jid = iid.get_local() + "@" + this->xmpp.get_served_hostname();
+                }
+              const std::string notify_body = "You were mentioned by " + nick + " in " + channel_jid + ":\n> " + orig_body;
+              this->xmpp.send_message("", std::make_tuple(notify_body, nullptr), this->user_jid, "normal", false, false, false);
+            }
+        }
+      else
+        {
+          for (const auto& resource: resources)
+            {
+              this->xmpp.send_muc_message(std::to_string(iid), nick, this->make_xmpp_body(body, encoding),
+                                          this->user_jid + "/" + resource, uuid, utils::gen_uuid());
+            }
         }
     }
   else
