@@ -857,10 +857,20 @@ void Bridge::send_message(const Iid& iid, const std::string& nick, const std::st
 #else
       (void)log;
 #endif
-      for (const auto& resource: this->resources_in_chan[iid.to_tuple()])
+      const auto resources = this->resources_in_chan[iid.to_tuple()];
+      if (resources.empty())
         {
-          this->xmpp.send_muc_message(std::to_string(iid), nick, this->make_xmpp_body(body, encoding),
-                                      this->user_jid + "/" + resource, uuid, utils::gen_uuid());
+          const std::string orig_body = std::get<0>(this->make_xmpp_body(body, encoding));
+          const std::string notify_body = "You were mentioned by " + nick + " in " + std::to_string(iid) + "\n> " + orig_body;
+          this->xmpp.send_message("", std::make_tuple(notify_body, nullptr), this->user_jid, "normal", false, false, false);
+        }
+      else
+        {
+          for (const auto& resource: resources)
+            {
+              this->xmpp.send_muc_message(std::to_string(iid), nick, this->make_xmpp_body(body, encoding),
+                                          this->user_jid + "/" + resource, uuid, utils::gen_uuid());
+            }
         }
     }
   else
