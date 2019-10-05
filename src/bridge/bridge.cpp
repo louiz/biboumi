@@ -59,6 +59,40 @@ static std::tuple<std::string, std::string> get_role_affiliation_from_irc_mode(c
     return std::make_tuple("participant", "none");
 }
 
+static Xmpp::body wrap_absent_mention_notify_body(
+    Xmpp::body &&src,
+    const std::string &nick,
+    const std::string &channel_jid)
+{
+  /* TODO: re-use styling from Xmpp::body instead of just plaintext */
+  static const char *snippet_you_were_mentioned = "You were mentioned by ";
+  static const char *snippet_in = " in ";
+
+  const std::string orig_body = std::get<0>(src);
+  const std::string plaintext_body = snippet_you_were_mentioned + nick + snippet_in + channel_jid + ":\n> " + orig_body;
+
+  std::unique_ptr<XmlNode> result = std::make_unique<XmlNode>("body");
+  (*result)["xmlns"] = XHTML_NS;
+
+  std::unique_ptr<XmlNode> p = std::make_unique<XmlNode>("p");
+  p->add_to_inner(snippet_you_were_mentioned + nick + snippet_in);
+
+  {
+    std::unique_ptr<XmlNode> a = std::make_unique<XmlNode>("a");
+    a->add_to_inner(channel_jid);
+    (*a)["href"] = "xmpp:" + channel_jid + "?join";
+    a->add_to_tail(":");
+    p->add_child(std::move(a));
+  }
+  result->add_child(std::move(p));
+
+  p = std::make_unique<XmlNode>("blockquote");
+  p->add_to_inner(orig_body);
+  result->add_child(std::move(p));
+
+  return std::make_tuple(plaintext_body, std::move(result));
+}
+
 void Bridge::shutdown(const std::string& exit_message)
 {
   for (auto& pair: this->irc_clients)
@@ -857,10 +891,40 @@ void Bridge::send_message(const Iid& iid, const std::string& nick, const std::st
 #else
       (void)log;
 #endif
-      for (const auto& resource: this->resources_in_chan[iid.to_tuple()])
+      const auto resources = this->resources_in_chan[iid.to_tuple()];
+      if (resources.empty())
         {
-          this->xmpp.send_muc_message(std::to_string(iid), nick, this->make_xmpp_body(body, encoding),
-                                      this->user_jid + "/" + resource, uuid, utils::gen_uuid());
+          const std::string our_nick = irc_clients[iid.get_server()]->get_own_nick();
+          if (body.find(our_nick) != std::string::npos)
+            {
+              Xmpp::body orig_body = this->make_xmpp_body(body, encoding);
+              std::string channel_jid;
+              if (Config::get("fixed_irc_server", "").empty())
+                {
+                  /* multi server mode -> ensure the IRC network is part of the JID */
+                  const Iid author_iid(nick, iid.get_server(), Iid::Type::User);
+                  channel_jid = std::to_string(iid) + "@" + this->xmpp.get_served_hostname();
+                }
+              else
+                {
+                  /* fixed server mode -> do not append the IRC network */
+                  channel_jid = iid.get_local() + "@" + this->xmpp.get_served_hostname();
+                }
+              Xmpp::body notify_body = wrap_absent_mention_notify_body(
+                    std::move(orig_body),
+                    nick,
+                    channel_jid
+                    );
+              this->xmpp.send_message("", std::move(notify_body), this->user_jid, "normal", false, false, false);
+            }
+        }
+      else
+        {
+          for (const auto& resource: resources)
+            {
+              this->xmpp.send_muc_message(std::to_string(iid), nick, this->make_xmpp_body(body, encoding),
+                                          this->user_jid + "/" + resource, uuid, utils::gen_uuid());
+            }
         }
     }
   else
