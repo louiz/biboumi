@@ -37,12 +37,12 @@ scenario = (
     # Send a private message, to a in-room JID
     send_stanza("<message from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}/{nick_two}' type='chat'><body>coucou in private</body></message>"),
     # Message is received with a server-wide JID
-    expect_stanza("/message[@from='{lower_nick_one}%{irc_server_one}'][@to='{jid_two}/{resource_one}'][@type='chat']/body[text()='coucou in private']"),
+    expect_stanza("/message[@from='{lower_nick_one}%{irc_server_one}'][@to='{jid_two}'][@type='chat']/body[text()='coucou in private']"),
     # Respond to the message, to the server-wide JID
     send_stanza("<message from='{jid_two}/{resource_one}' to='{lower_nick_one}%{irc_server_one}' type='chat'><body>yes</body></message>"),
-    # The response is received from the in-room JID
-    expect_stanza("/message[@from='#foo%{irc_server_one}/{nick_two}'][@to='{jid_one}/{resource_one}'][@type='chat']/body[text()='yes']",
-                  "/message/muc_user:x"),
+    # The response is received from the server-wide JID without MUC PM marker
+    expect_stanza("/message[@from='{lower_nick_two}%{irc_server_one}'][@to='{jid_one}'][@type='chat']/body[text()='yes']",
+                  "!/message/muc_user:x"),
     # Do the exact same thing, from a different chan,
     # to check if the response comes from the right JID
     send_stanza("<presence from='{jid_one}/{resource_one}' to='#dummy%{irc_server_one}/{nick_one}' ><x xmlns='http://jabber.org/protocol/muc'/></presence>"),
@@ -52,12 +52,12 @@ scenario = (
     send_stanza("<message from='{jid_one}/{resource_one}' to='#dummy%{irc_server_one}/{nick_two}' type='chat'><body>re in private</body></message>"),
 
     # Message is received with a server-wide JID
-    expect_stanza("/message[@from='{lower_nick_one}%{irc_server_one}'][@to='{jid_two}/{resource_one}'][@type='chat']/body[text()='re in private']"),
+    expect_stanza("/message[@from='{lower_nick_one}%{irc_server_one}'][@to='{jid_two}'][@type='chat']/body[text()='re in private']"),
 
     # Respond to the message, to the server-wide JID
     send_stanza("<message from='{jid_two}/{resource_one}' to='{lower_nick_one}%{irc_server_one}' type='chat'><body>re</body></message>"),
-    # The response is received from the in-room JID
-    expect_stanza("/message[@from='#dummy%{irc_server_one}/{nick_two}'][@to='{jid_one}/{resource_one}'][@type='chat']/body[text()='re']"),
+    # The response is received from the server-wide JID
+    expect_stanza("/message[@from='{lower_nick_two}%{irc_server_one}'][@to='{jid_one}'][@type='chat']/body[text()='re']"),
 
     # Now we leave the room, to check if the subsequent private messages are still received properly
     send_stanza("<presence from='{jid_one}/{resource_one}' to='#dummy%{irc_server_one}/{nick_one}' type='unavailable' />"),
@@ -65,5 +65,5 @@ scenario = (
 
     # The private messages from this nick should now come (again) from the server-wide JID
     send_stanza("<message from='{jid_two}/{resource_one}' to='{lower_nick_one}%{irc_server_one}' type='chat'><body>hihihoho</body></message>"),
-    expect_stanza("/message[@from='{lower_nick_two}%{irc_server_one}'][@to='{jid_one}/{resource_one}']"),
+    expect_stanza("/message[@from='{lower_nick_two}%{irc_server_one}'][@to='{jid_one}']"),
 )
