@@ -865,21 +865,10 @@ void Bridge::send_message(const Iid& iid, const std::string& nick, const std::st
     }
   else
     {
-      const auto it = this->preferred_user_from.find(iid.get_local());
-      if (it != this->preferred_user_from.end())
-        {
-          const auto chan_name = Iid(Jid(it->second).local, {}).get_local();
-          for (const auto& resource: this->resources_in_chan[ChannelKey{chan_name, iid.get_server()}])
-            this->xmpp.send_message(it->second, this->make_xmpp_body(body, encoding),
-                                    this->user_jid + "/"
-                                    + resource, "chat", true, true, true);
-        }
-      else
-        {
-          for (const auto& resource: this->resources_in_server[iid.get_server()])
-            this->xmpp.send_message(std::to_string(iid), this->make_xmpp_body(body, encoding),
-                                    this->user_jid + "/" + resource, "chat", false, true);
-        }
+      this->xmpp.send_message(std::to_string(iid),
+                              this->make_xmpp_body(body, encoding),
+                              this->user_jid,
+                              "chat", false, true);
     }
 }
 
