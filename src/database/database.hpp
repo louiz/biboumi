@@ -63,8 +63,8 @@ class Database
 
   struct EncodingIn: Column<std::string> { static constexpr auto name = "encodingin_"; };
 
-  struct MaxHistoryLength: Column<int> { static constexpr auto name = "maxhistorylength_";
-    MaxHistoryLength(): Column<int>(20) {} };
+  struct MaxHistoryLength: Column<std::int64_t> { static constexpr auto name = "maxhistorylength_";
+    MaxHistoryLength(): Column<std::int64_t>(20) {} };
 
   struct RecordHistory: Column<bool> { static constexpr auto name = "recordhistory_";
     RecordHistory(): Column<bool>(true) {}};
@@ -86,8 +86,8 @@ class Database
 
   struct Address: Column<std::string> { static constexpr auto name = "address_"; };
 
-  struct ThrottleLimit: Column<long int> { static constexpr auto name = "throttlelimit_";
-      ThrottleLimit(): Column<long int>(10) {} };
+  struct ThrottleLimit: Column<std::int64_t> { static constexpr auto name = "throttlelimit_";
+      ThrottleLimit(): Column<std::int64_t>(10) {} };
 
   using MucLogLineTable = Table<Id, Uuid, Owner, IrcChanName, IrcServerName, Date, Body, Nick>;
   using MucLogLine = MucLogLineTable::RowType;

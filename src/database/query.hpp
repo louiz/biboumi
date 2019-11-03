@@ -18,7 +18,7 @@ void actual_bind(Statement& statement, const T& value, int index)
 {
   static_assert(std::is_integral<T>::value,
                 "Only a string, an optional-bool or an integer can be used.");
-  statement.bind_int64(index, static_cast<int>(value));
+  statement.bind_int64(index, static_cast<std::int64_t>(value));
 }
 
 #ifdef DEBUG_SQL_QUERIES
