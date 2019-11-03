@@ -40,4 +40,24 @@ scenario = (
 
     expect_stanza("/iq[@type='result'][@id='id8'][@from='#foo%{irc_server_one}'][@to='{jid_one}/{resource_one}']",
                   "/iq/mam:fin[@complete='true']/rsm:set"),
+
+    # Try the same thing, but only with the 'start' value, omitting the end
+    send_stanza("""<iq from='{jid_one}/{resource_one}' id='id888' to='#foo%{irc_server_one}' type='set'>
+                      <query queryid='qid17' xmlns='urn:xmpp:mam:2'>
+                          <x type='submit' xmlns='jabber:x:data'>
+                              <field type='hidden' var='FORM_TYPE' xmlns='jabber:x:data'><value xmlns='jabber:x:data'>urn:xmpp:mam:2</value></field>
+                              <field var='start' xmlns='jabber:x:data'><value xmlns='jabber:x:data'>{first_timestamp}</value></field>
+                          </x>
+                       </query>
+                   </iq>"""),
+
+    expect_stanza("/message/mam:result[@queryid='qid17']/forward:forwarded/delay:delay",
+                  "/message/mam:result/forward:forwarded/client:message[@from='#foo%{irc_server_one}/{nick_one}'][@type='groupchat']/client:body[text()='coucou 3']"),
+
+    expect_stanza("/message/mam:result[@queryid='qid17']/forward:forwarded/delay:delay",
+                  "/message/mam:result/forward:forwarded/client:message[@from='#foo%{irc_server_one}/{nick_one}'][@type='groupchat']/client:body[text()='coucou 4']"),
+
+    expect_stanza("/iq[@type='result'][@id='id888'][@from='#foo%{irc_server_one}'][@to='{jid_one}/{resource_one}']",
+                  "/iq/mam:fin[@complete='true']/rsm:set"),
+
 )
