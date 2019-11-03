@@ -117,11 +117,7 @@ private:
             PQreset(this->conn);
             return this->execute(true);
           }
-        else
-          {
-            log_error("Givin up.");
-            return false;
-          }
+        return false;
       }
     return true;
   }
