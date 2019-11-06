@@ -192,7 +192,13 @@ void ConfigureGlobalStep2(XmppComponent& xmpp_component, AdhocSession& session, 
 
           if (field->get_tag("var") == "max_history_length" &&
               value && !value->get_inner().empty())
-            options.col<Database::MaxHistoryLength>() = atoi(value->get_inner().data());
+            {
+              try {
+                  options.col<Database::MaxHistoryLength>() = std::stol(value->get_inner().data());
+              } catch (const std::logic_error&) {
+                  options.col<Database::MaxHistoryLength>() = 20;
+              }
+            }
           else if (field->get_tag("var") == "record_history" &&
                    value && !value->get_inner().empty())
             {
@@ -497,7 +503,7 @@ void ConfigureIrcServerStep2(XmppComponent& xmpp_component, AdhocSession& sessio
               try {
                 options.col<Database::ThrottleLimit>() = std::stol(value->get_inner());
               } catch (const std::logic_error&) {
-                options.col<Database::ThrottleLimit>() = -1;
+                options.col<Database::ThrottleLimit>() = 10;
               }
               Bridge* bridge = biboumi_component.find_user_bridge(session.get_owner_jid());
               if (bridge)
