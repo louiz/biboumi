@@ -14,6 +14,7 @@ scenario = (
                   "/iq/commands:command/dataform:x[@type='form']/dataform:field[@type='text-single'][@var='throttle_limit']",
                   "/iq/commands:command/dataform:x[@type='form']/dataform:field[@type='text-private'][@var='pass']",
                   "/iq/commands:command/dataform:x[@type='form']/dataform:field[@type='text-multi'][@var='after_connect_commands']",
+                  "/iq/commands:command/dataform:x[@type='form']/dataform:field[@type='text-single'][@var='max_history_length']",
                   "/iq/commands:command/dataform:x[@type='form']/dataform:field[@type='text-single'][@var='nick']",
                   "/iq/commands:command/dataform:x[@type='form']/dataform:field[@type='text-single'][@var='username']",
                   "/iq/commands:command/dataform:x[@type='form']/dataform:field[@type='text-single'][@var='realname']",
@@ -34,6 +35,7 @@ scenario = (
                 "<field var='nick'><value>my_nickname</value></field>"
                 "<field var='username'><value>username</value></field>"
                 "<field var='throttle_limit'><value>42</value></field>"
+                "<field var='max_history_length'><value>69</value></field>"
                 "<field var='realname'><value>realname</value></field>"
                 "<field var='encoding_out'><value>UTF-8</value></field>"
                 "<field var='encoding_in'><value>latin-1</value></field>"
@@ -56,6 +58,7 @@ scenario = (
                   "/iq/commands:command/dataform:x[@type='form']/dataform:field[@type='text-single'][@var='username']/dataform:value[text()='username']",
                   "/iq/commands:command/dataform:x[@type='form']/dataform:field[@type='text-single'][@var='realname']/dataform:value[text()='realname']",
                   "/iq/commands:command/dataform:x[@type='form']/dataform:field[@type='text-single'][@var='throttle_limit']/dataform:value[text()='42']",
+                  "/iq/commands:command/dataform:x[@type='form']/dataform:field[@type='text-single'][@var='max_history_length']/dataform:value[text()='69']",
                   "/iq/commands:command/dataform:x[@type='form']/dataform:field[@type='text-single'][@var='encoding_in']/dataform:value[text()='latin-1']",
                   "/iq/commands:command/dataform:x[@type='form']/dataform:field[@type='text-single'][@var='encoding_out']/dataform:value[text()='UTF-8']",
                   "/iq/commands:command/commands:actions/commands:complete",
@@ -94,7 +97,7 @@ scenario = (
                   "!/iq/commands:command/dataform:x[@type='form']/dataform:field[@var='encoding_in']/dataform:value",
                   "!/iq/commands:command/dataform:x[@type='form']/dataform:field[@var='encoding_out']/dataform:value",
                   "/iq/commands:command/commands:actions/commands:complete",
-                  "/iq/commands:command/dataform:x[@type='form']/dataform:field[@type='text-single'][@var='throttle_limit']/dataform:value[text()='-1']",  # An invalid value sets this field to -1, aka disabled
+                  "/iq/commands:command/dataform:x[@type='form']/dataform:field[@type='text-single'][@var='throttle_limit']/dataform:value[text()='10']",  # An invalid value sets this field to its default value
                   after = save_value("sessionid", extract_attribute("/iq[@type='result']/commands:command[@node='configure']", "sessionid"))
                   ),
     send_stanza("<iq type='set' id='id4' from='{jid_one}/{resource_one}' to='{irc_server_one}'><command xmlns='http://jabber.org/protocol/commands' action='cancel' node='configure' sessionid='{sessionid}' /></iq>"),

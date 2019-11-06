@@ -388,6 +388,15 @@ void ConfigureIrcServerStep1(XmppComponent&, AdhocSession& session, XmlNode& com
   }
 
   {
+    XmlSubNode max_history_length(x, "field");
+    max_history_length["var"] = "max_history_length";
+    max_history_length["type"] = "text-single";
+    max_history_length["label"] = "Throttle limit";
+    XmlSubNode value(max_history_length, "value");
+    value.set_inner(std::to_string(options.col<Database::MaxHistoryLength>()));
+  }
+
+  {
   XmlSubNode encoding_out(x, "field");
   encoding_out["var"] = "encoding_out";
   encoding_out["type"] = "text-single";
@@ -512,6 +521,15 @@ void ConfigureIrcServerStep2(XmppComponent& xmpp_component, AdhocSession& sessio
                   if (client)
                     client->set_throttle_limit(options.col<Database::ThrottleLimit>());
                 }
+            }
+
+          else if (field->get_tag("var") == "max_history_length" && value)
+            {
+              try {
+                options.col<Database::MaxHistoryLength>() = std::stol(value->get_inner());
+              } catch (const std::logic_error&) {
+                options.col<Database::MaxHistoryLength>() = 20;
+              }
             }
 
           else if (field->get_tag("var") == "encoding_out" && value)
