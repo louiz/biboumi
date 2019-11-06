@@ -8,10 +8,10 @@
 
 struct CountQuery: public Query
 {
-    CountQuery(std::string name):
+    CountQuery(const std::string& name):
         Query("SELECT count(*) FROM ")
     {
-      this->body += std::move(name);
+      this->body += name;
     }
 
     int64_t execute(DatabaseEngine& db)
