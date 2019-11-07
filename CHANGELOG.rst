@@ -25,6 +25,12 @@ For admins
   still be set at configure time by passing the option "-DWATCHDOG_SEC=20”
   to cmake, if you want to enable the systemd watchdog.
 
+For developers
+--------------
+- The end-to-end tests have been refactored, cleaned and simplified a lot.
+  A tutorial and a documentation have been written. It should now be easy
+  to write a test that demonstrates a bug or a missing feature.
+
 Version 8.3 - 2018-06-01
 ========================
 
