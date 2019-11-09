@@ -3,19 +3,17 @@
 from functions import StanzaError, SkipStepError
 
 import collections
-import lxml.etree
 import importlib
+import sequences
 import datetime
 import slixmpp
 import asyncio
 import logging
 import signal
 import atexit
-import time
 import sys
-import io
 import os
-from functools import partial
+
 from slixmpp.xmlstream.matcher.base import MatcherBase
 
 if not hasattr(asyncio, "ensure_future"):
@@ -131,32 +129,6 @@ class XMPPComponent(slixmpp.BaseXMPP):
         self.accepting_server = yield from self.loop.create_server(lambda: self,
                                                                    "127.0.0.1", 8811, reuse_address=True)
 
-    def check_stanza_against_all_expected_xpaths(self):
-        pass
-
-
-def all_xpaths_match(stanza, xpaths):
-    for xpath in xpaths:
-        matched = match(stanza, xpath)
-        if not matched:
-            return False
-    return True
-
-def check_list_of_xpath(list_of_xpaths, xmpp, stanza):
-    found = None
-    for i, xpaths in enumerate(list_of_xpaths):
-        if all_xpaths_match(stanza, xpaths):
-            found = True
-            list_of_xpaths.pop(i)
-            break
-
-    if not found:
-        raise StanzaError("Received stanza “%s” did not match any of the expected xpaths:\n%s" % (stanza, list_of_xpaths))
-
-    if list_of_xpaths:
-        step = partial(expect_unordered_already_formatted, list_of_xpaths)
-        xmpp.scenario.steps.insert(0, step)
-
 
 class ProcessRunner:
     def __init__(self):
@@ -204,30 +176,6 @@ class IrcServerRunner(ProcessRunner):
         super().__init__()
         self.create = asyncio.create_subprocess_exec("charybdis", "-foreground", "-configfile", os.getcwd() + "/../tests/end_to_end/ircd.conf",
                                                      stderr=asyncio.subprocess.PIPE)
-
-
-def save_current_timestamp_plus_delta(key, delta, message, xmpp):
-    now_plus_delta = datetime.datetime.utcnow() + delta
-    xmpp.saved_values[key] = now_plus_delta.strftime("%FT%T.967Z")
-
-def sleep_for(duration, xmpp, biboumi):
-    time.sleep(duration)
-    asyncio.get_event_loop().call_soon(xmpp.run_scenario)
-
-# list_of_xpaths: [(xpath, xpath), (xpath, xpath), (xpath)]
-def expect_unordered(list_of_xpaths, xmpp, biboumi):
-    formatted_list_of_xpaths = []
-    for xpaths in list_of_xpaths:
-        formatted_xpaths = []
-        for xpath in xpaths:
-            formatted_xpath = xpath.format_map(common_replacements)
-            formatted_xpaths.append(formatted_xpath)
-        formatted_list_of_xpaths.append(tuple(formatted_xpaths))
-    expect_unordered_already_formatted(formatted_list_of_xpaths, xmpp, biboumi)
-
-def expect_unordered_already_formatted(formatted_list_of_xpaths, xmpp, biboumi):
-    xmpp.stanza_checker = partial(check_list_of_xpath, formatted_list_of_xpaths, xmpp)
-
 
 class BiboumiTest:
     """
@@ -322,10 +270,15 @@ persistent_by_default=true
 """,}
 
 
-def chan_name_from_jid(jid):
-    return jid[1:jid.find('%')]
-
 def get_scenarios(test_path, provided_scenar_names):
+    """
+    :param test_path: The path containing all the tests
+    :param provided_scenar_names: a list of scenario names provided on the
+    command line by the user. May be empty
+    :return: The list of scenarios to be run. If provided_scenar_names is
+    empty, we return all the existing scenarios, otherwise we just return
+    the one from that list
+    """
     scenarios = []
     for entry in os.scandir(os.path.join(test_path, "scenarios")):
         if entry.is_file() and not entry.name.startswith('.') and entry.name.endswith('.py'):

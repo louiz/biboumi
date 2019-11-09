@@ -3,7 +3,7 @@ import collections
 import datetime
 import asyncio
 import time
-import lxml
+import lxml.etree
 import io
 
 common_replacements = {
