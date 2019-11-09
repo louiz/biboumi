@@ -1,8 +1,6 @@
 from scenarios import *
 
 scenario = (
-    sequences.handshake(),
-
     send_stanza("<iq type='set' id='command1' from='{jid_one}/{resource_one}' to='{irc_server_one}'><command xmlns='http://jabber.org/protocol/commands' node='get-irc-connection-info' action='execute' /></iq>"),
     expect_stanza("/iq/commands:command/commands:note[text()='You are not connected to the IRC server irc.localhost']"),
 

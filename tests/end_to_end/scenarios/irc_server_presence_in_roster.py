@@ -1,8 +1,6 @@
 from scenarios import *
 
 scenario = (
-    sequences.handshake(),
-
     # Mutual subscription exchange
     send_stanza("<presence from='{jid_one}' to='{irc_server_one}' type='subscribe' id='subid1' />"),
     expect_stanza("/presence[@type='subscribed'][@id='subid1']"),

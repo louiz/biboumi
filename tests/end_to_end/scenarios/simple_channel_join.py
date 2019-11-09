@@ -12,7 +12,6 @@ def expect_self_join_presence(jid, chan, nick, irc_server="{irc_server_one}"):
 
 
 scenario = (
-    sequences.handshake(),
     send_stanza("<presence from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}/{nick_one}' />"),
     sequences.connection(),
 

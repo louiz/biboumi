@@ -11,8 +11,6 @@ def incr_counter():
 counter = incr_counter()
 
 scenario = (
-    sequences.handshake(),
-    
     # Disable the throttling, otherwise it’s way too long
     send_stanza("<iq type='set' id='id1' from='{jid_one}/{resource_one}' to='{irc_server_one}'><command xmlns='http://jabber.org/protocol/commands' node='configure' action='execute' /></iq>"),
     expect_stanza("/iq[@type='result']",

@@ -1,7 +1,6 @@
 from scenarios import *
 
 scenario = (
-    sequences.handshake(),
     send_stanza("<iq type='get' id='id1' from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}'><query xmlns='http://jabber.org/protocol/muc#owner'/></iq>"),
     expect_stanza("/iq[@type='result']/muc_owner:query",
                   "/iq/muc_owner:query/dataform:x[@type='form']/dataform:field[@type='text-single'][@var='encoding_in']",

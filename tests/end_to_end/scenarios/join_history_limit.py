@@ -1,8 +1,6 @@
 from scenarios import *
 
 scenario = (
-    sequences.handshake(),
-
     # Disable the throttling because the test is based on timings
     send_stanza("<iq type='set' id='id1' from='{jid_one}/{resource_one}' to='{irc_server_one}'><command xmlns='http://jabber.org/protocol/commands' node='configure' action='execute' /></iq>"),
     expect_stanza("/iq[@type='result']",

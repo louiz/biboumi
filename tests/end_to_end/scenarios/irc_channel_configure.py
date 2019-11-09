@@ -1,7 +1,6 @@
 from scenarios import *
 
 scenario = (
-    sequences.handshake(),
     send_stanza("<iq type='set' id='id1' from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}'><command xmlns='http://jabber.org/protocol/commands' node='configure' action='execute'><dummy/></command></iq>"),
     expect_stanza("/iq[@type='result']/commands:command[@node='configure'][@sessionid][@status='executing']",
                   "/iq/commands:command/dataform:x[@type='form']/dataform:field[@type='text-single'][@var='encoding_in']",

@@ -1,8 +1,6 @@
 from scenarios import *
 
 scenario = (
-    sequences.handshake(),
-
     send_stanza("<presence from='{jid_one}/{resource_one}' to='#aaa%{irc_server_one}/{nick_one}' />"),
     sequences.connection("irc.localhost", '{jid_one}/{resource_one}'),
     expect_stanza("/message"),

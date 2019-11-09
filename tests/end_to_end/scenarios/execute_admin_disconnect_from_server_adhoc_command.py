@@ -3,8 +3,6 @@ from scenarios import *
 from scenarios.simple_channel_join import expect_self_join_presence
 
 scenario = (
-    sequences.handshake(),
-
     # Admin connects to first server
     send_stanza("<presence from='{jid_admin}/{resource_one}' to='#bar%{irc_server_one}/{nick_one}' />"),
     sequences.connection("irc.localhost", '{jid_admin}/{resource_one}'),

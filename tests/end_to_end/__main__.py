@@ -292,7 +292,10 @@ def get_scenarios(test_path, provided_scenar_names):
             conf = "basic"
             if hasattr(mod, "conf"):
                 conf = mod.conf
-            scenarios.append(Scenario(module_name, mod.scenario, conf))
+            # Every scenario needs to start with the handshake sequence.
+            # Instead of repeating it everytime, we add it implicitely. This
+            # is done here.
+            scenarios.append(Scenario(module_name, (sequences.handshake(),) + mod.scenario, conf))
     return scenarios
 
 

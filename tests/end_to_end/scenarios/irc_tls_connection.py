@@ -1,7 +1,6 @@
 from scenarios import *
 
 scenario = (
-    sequences.handshake(),
     # First, use an adhoc command to configure how we connect to the irc server, configure
     # only one TLS port, and disable the cert verification.
     send_stanza("<iq type='set' id='id1' from='{jid_one}/{resource_one}' to='{irc_server_one}'><command xmlns='http://jabber.org/protocol/commands' node='configure' action='execute' /></iq>"),

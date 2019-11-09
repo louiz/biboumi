@@ -1,7 +1,7 @@
 from scenarios import *
 
 scenario = (
-    sequences.handshake(),
+
 
     # Mutual subscription exchange
     send_stanza("<presence from='{jid_one}' to='{biboumi_host}' type='subscribe' id='subid1' />"),

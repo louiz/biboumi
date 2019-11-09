@@ -1,7 +1,6 @@
 from scenarios import *
 
 scenario = (
-    sequences.handshake(),
     send_stanza("<iq type='set' id='id1' from='{jid_one}/{resource_one}' to='{biboumi_host}'><command xmlns='http://jabber.org/protocol/commands' node='configure' action='execute' /></iq>"),
     expect_stanza("/iq[@type='result']/commands:command[@node='configure'][@sessionid][@status='executing']",
                   "/iq/commands:command/dataform:x[@type='form']/dataform:title[text()='Configure some global default settings.']",
