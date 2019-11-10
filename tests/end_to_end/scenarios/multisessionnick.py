@@ -119,7 +119,7 @@ scenario = (
 
     # The first user receives the two messages, on the connected resource, once each
     expect_unordered(
-        ["/message[@from='{lower_nick_two}%{irc_server_one}'][@to='{jid_one}/{resource_one}'][@type='chat']/body[text()='first']"],
-        ["/message[@from='{lower_nick_two}%{irc_server_one}'][@to='{jid_one}/{resource_one}'][@type='chat']/body[text()='second']"]
+        ["/message[@from='{lower_nick_two}%{irc_server_one}'][@to='{jid_one}'][@type='chat']/body[text()='first']"],
+        ["/message[@from='{lower_nick_two}%{irc_server_one}'][@to='{jid_one}'][@type='chat']/body[text()='second']"]
     ),
 )
