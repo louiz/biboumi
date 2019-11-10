@@ -51,20 +51,12 @@ scenario = (
     # That second user sends a private message to the first one
     send_stanza("<message from='{jid_two}/{resource_one}' to='#foo%{irc_server_one}/{nick_one}' type='chat'><body>RELLO</body></message>"),
 
-    # Message is received with a server-wide JID, by the two resources behind nick_one
-    expect_unordered(
+    # Message is received with a server-wide JID to the bare JID as non-MUC-PM
+    expect_stanza(
         [
-            "/message[@from='{lower_nick_two}%{irc_server_one}'][@to='{jid_one}/{resource_one}'][@type='chat']/body[text()='RELLO']",
-            "/message/hints:no-copy",
-            "/message/carbon:private",
+            "/message[@from='{lower_nick_two}%{irc_server_one}'][@to='{jid_one}'][@type='chat']/body[text()='RELLO']",
             "!/message/muc_user:x",
         ],
-        [
-            "/message[@from='{lower_nick_two}%{irc_server_one}'][@to='{jid_one}/{resource_two}'][@type='chat']/body[text()='RELLO']",
-            "/message/hints:no-copy",
-            "/message/carbon:private",
-            "!/message/muc_user:x",
-        ]
     ),
 
     # First occupant (with the two resources) changes her/his nick to a conflicting one
@@ -117,9 +109,9 @@ scenario = (
     send_stanza("<message from='{jid_two}/{resource_one}' to='#foo%{irc_server_one}/{nick_three}' type='chat'><body>first</body></message>"),
     send_stanza("<message from='{jid_two}/{resource_one}' to='#foo%{irc_server_one}/{nick_three}' type='chat'><body>second</body></message>"),
 
-    # The first user receives the two messages, on the connected resource, once each
+    # The first user receives the two messages to the bare JID
     expect_unordered(
-        ["/message[@from='{lower_nick_two}%{irc_server_one}'][@to='{jid_one}/{resource_one}'][@type='chat']/body[text()='first']"],
-        ["/message[@from='{lower_nick_two}%{irc_server_one}'][@to='{jid_one}/{resource_one}'][@type='chat']/body[text()='second']"]
+        ["/message[@from='{lower_nick_two}%{irc_server_one}'][@to='{jid_one}'][@type='chat']/body[text()='first']"],
+        ["/message[@from='{lower_nick_two}%{irc_server_one}'][@to='{jid_one}'][@type='chat']/body[text()='second']"]
     ),
 )
