@@ -21,4 +21,4 @@ XMPP client as if these channels were XMPP MUCs.
    admin
    user
    contributing
-   developper
+   developer

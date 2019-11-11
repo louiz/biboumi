@@ -132,7 +132,7 @@ common scenarios that you often need to re-use.
     # …
   )
 
-This is the only required element of your scenario. This object is a tuple of funcion calls OR other scenarios.
+This is the only required element of your scenario. This object is a tuple of function calls OR other scenarios.
 
 .. code-block:: python
 
