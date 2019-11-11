@@ -1,5 +1,5 @@
 ########################
-Developper documentation
+Developer documentation
 ########################
 
 End-to-end test suite
