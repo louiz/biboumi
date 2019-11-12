@@ -170,8 +170,7 @@ IrcClient* Bridge::find_irc_client(const std::string& hostname) const
 bool Bridge::join_irc_channel(const Iid& iid, std::string nickname,
                               const std::string& password,
                               const std::string& resource,
-                              HistoryLimit history_limit,
-                              const bool force_join)
+                              HistoryLimit history_limit)
 {
   const auto& hostname = iid.get_server();
 #ifdef USE_DATABASE
@@ -189,8 +188,8 @@ bool Bridge::join_irc_channel(const Iid& iid, std::string nickname,
     {
       irc->send_join_command(iid.get_local(), password);
       return true;
-    } else if (!res_in_chan || force_join) {
-      // See https://github.com/xsf/xeps/pull/499 for the force_join argument
+    } else {
+      // See https://github.com/xsf/xeps/pull/499
       this->generate_channel_join_for_resource(iid, resource);
     }
   return false;
