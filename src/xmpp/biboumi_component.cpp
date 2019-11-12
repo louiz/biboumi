@@ -158,8 +158,25 @@ void BiboumiComponent::handle_presence(const Stanza& stanza)
         {
           const std::string own_nick = bridge->get_own_nick(iid);
           const XmlNode* x = stanza.get_child("x", MUC_NS);
-          const XmlNode* password = x ? x->get_child("password", MUC_NS): nullptr;
-          const XmlNode* history = x ? x->get_child("history", MUC_NS): nullptr;
+          const IrcClient* irc = bridge->find_irc_client(iid.get_server());
+          if (irc)
+            {
+              const auto chan = irc->find_channel(iid.get_local());
+              if (chan->joined)
+                bridge->send_irc_nick_change(iid, to.resource, from.resource);
+              else if (!x)
+                { // send an error if we are not joined yet, instead of treating it as a join
+                  this->send_stanza_error("presence", from_str, to_str, id,
+                                          "modify", "not-acceptable",
+                                          "You are not joined to this MUC.");
+                  return;
+                }
+            }
+          // if there is no <x/>, this is a presence status update, we don’t care about those
+          if (!x)
+            return;
+          const XmlNode* password = x->get_child("password", MUC_NS);
+          const XmlNode* history = x->get_child("history", MUC_NS);
           HistoryLimit history_limit;
           if (history)
             {
@@ -184,14 +201,7 @@ void BiboumiComponent::handle_presence(const Stanza& stanza)
                 history_limit.stanzas = 0;
             }
           bridge->join_irc_channel(iid, to.resource, password ? password->get_inner(): "",
-                                   from.resource, history_limit, x != nullptr);
-          const IrcClient* irc = bridge->find_irc_client(iid.get_server());
-          if (irc)
-            {
-              const auto chan = irc->find_channel(iid.get_local());
-              if (chan->joined)
-                bridge->send_irc_nick_change(iid, to.resource, from.resource);
-            }
+                                   from.resource, history_limit);
         }
       else if (type == "unavailable")
         {
