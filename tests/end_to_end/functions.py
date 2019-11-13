@@ -127,7 +127,9 @@ def expect_stanza(*args, optional=False, after=None):
         replacements = common_replacements
         replacements.update(xmpp.saved_values)
         check_func = check_xpath if not optional else check_xpath_optional
-        xmpp.stanza_checker = partial(check_func, [xpath.format_map(replacements) for xpath in xpaths], xmpp, after)
+        formatted_xpaths = [xpath.format_map(replacements) for xpath in xpaths]
+        xmpp.stanza_checker = partial(check_func, formatted_xpaths, xmpp, after)
+        xmpp.timeout_handler = asyncio.get_event_loop().call_later(10, partial(xmpp.on_timeout, formatted_xpaths))
     return partial(f, *args, optional=optional, after=after)
 
 def send_stanza(stanza):
@@ -148,6 +150,7 @@ def expect_unordered(*args):
                 formatted_xpaths.append(formatted_xpath)
             formatted_list_of_xpaths.append(tuple(formatted_xpaths))
         expect_unordered_already_formatted(formatted_list_of_xpaths, xmpp, biboumi)
+        xmpp.timeout_handler = asyncio.get_event_loop().call_later(10, partial(xmpp.on_timeout, formatted_list_of_xpaths))
     return partial(f, *args)
 
 def expect_unordered_already_formatted(formatted_list_of_xpaths, xmpp, biboumi):

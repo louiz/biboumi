@@ -83,6 +83,7 @@ class XMPPComponent(slixmpp.BaseXMPP):
 
         self.scenario = scenario
         self.biboumi = biboumi
+        self.timeout_handler = None
         # A callable, taking a stanza as argument and raising a StanzaError
         # exception if the test should fail.
         self.stanza_checker = None
@@ -95,6 +96,13 @@ class XMPPComponent(slixmpp.BaseXMPP):
         print("[31;1mFailure[0m: %s" % (message,))
         self.scenario.steps = []
         self.failed = True
+
+    def on_timeout(self, xpaths):
+        error_msg = "Timeout while waiting for a stanza that would match the expected xpath(s):"
+        for xpath in xpaths:
+            error_msg += "\n" + xpath
+        self.error(error_msg)
+        self.run_scenario()
 
     def on_end_session(self, _):
         self.loop.stop()
@@ -113,6 +121,9 @@ class XMPPComponent(slixmpp.BaseXMPP):
         self.run_scenario()
 
     def run_scenario(self):
+        if self.timeout_handler is not None:
+            self.timeout_handler.cancel()
+            self.timeout_handler = None
         if self.scenario.steps:
             step = self.scenario.steps.pop(0)
             try:
