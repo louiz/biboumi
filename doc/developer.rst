@@ -35,8 +35,10 @@ certificate, slixmpp, many libraries…), it might be cumbersome to get
 everything on your machine to be able to run them.
 
 The simplest solution (as long as you have docker installed and properly
-configured to be able to run as your developer user…) is to follow these
-instructions:
+configured to be able to run as your developer user… It’s as simple as
+“dnf install docker” and “chmod o+rw /var/run/docker.sock”, but that’s not
+recommended, because this lets anybody on the system use docker, and
+docker is very unsecure) is to follow these instructions:
 
 .. code-block:: bash
   :caption: Start a docker container with everything installed
