@@ -263,6 +263,8 @@ std::string TCPClientSocketHandler::get_port() const
 
 bool TCPClientSocketHandler::match_port_pair(const uint16_t local, const uint16_t remote) const
 {
+  if (!this->is_connected())
+    return false;
   const auto remote_port = static_cast<uint16_t>(std::stoi(this->port));
-  return this->is_connected() && local == this->local_port && remote == remote_port;
+  return local == this->local_port && remote == remote_port;
 }
