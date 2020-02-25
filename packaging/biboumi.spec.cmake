@@ -69,7 +69,10 @@ make check %{?_smp_mflags}
 - Build against botan2
 - Build with sphinx instead of pandoc
 
-* Fri Jun 1 2018 Le Coz Florent <louiz@louiz.org> - 8.3-1
+* Tue Feb 25 2020 Le Coz Florent <louiz@louiz.org> - 8.4-1
+  Update to version 8.4
+
+* Wed Jun 1 2018 Le Coz Florent <louiz@louiz.org> - 8.3-1
   Update to version 8.3
 
 * Fri May 25 2018 Le Coz Florent <louiz@louiz.org> - 8.2-1
