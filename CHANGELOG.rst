@@ -1,3 +1,9 @@
+Version 8.4 - 2020-02-25
+========================
+
+- Fix a possible crash that could be caused by a very well timed identd
+  query
+
 Version 8.3 - 2018-06-01
 ========================
 
