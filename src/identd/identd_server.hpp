@@ -24,6 +24,7 @@ class IdentdServer: public TcpSocketServer<IdentdSocket>
     if (this->poller->is_managing_socket(this->socket))
       this->poller->remove_socket_handler(this->socket);
     ::close(this->socket);
+    this->sockets.clear();
   }
   void clean()
   {
