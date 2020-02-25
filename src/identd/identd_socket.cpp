@@ -25,10 +25,12 @@ void IdentdSocket::parse_in_buffer(const std::size_t)
       std::istringstream line(this->in_buf.substr(0, line_end));
       this->consume_in_buffer(line_end + 1);
 
-      uint16_t local_port;
-      uint16_t remote_port;
+      uint16_t local_port{};
+      uint16_t remote_port{};
       char sep;
       line >> local_port >> sep >> remote_port;
+      if (line.fail()) // Data did not match the expected format, ignore the line entirely
+        continue;
       const auto& xmpp = this->server.get_biboumi_component();
       auto response = this->generate_answer(xmpp, local_port, remote_port);
 
