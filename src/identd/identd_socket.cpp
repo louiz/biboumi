@@ -47,7 +47,7 @@ std::string IdentdSocket::generate_answer(const BiboumiComponent& biboumi, uint1
     {
       for (const auto& pair: bridge->get_irc_clients())
         {
-          if (pair.second->match_port_pairt(local, remote))
+          if (pair.second->match_port_pair(local, remote))
             {
               std::ostringstream os;
               os << local << " , " << remote << " : USERID : OTHER : " << hash_jid(bridge->get_bare_jid()) << "\r\n";
