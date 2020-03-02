@@ -18,10 +18,10 @@ common_replacements = {
     'jid_one': 'first@example.com',
     'jid_two': 'second@example.com',
     'jid_admin': 'admin@example.com',
-    'nick_two': 'Bobby',
-    'nick_three': 'Bernard',
+    'nick_two': 'Nick2',
+    'nick_three': 'Nick3',
     'lower_nick_one': 'nick',
-    'lower_nick_two': 'bobby',
+    'lower_nick_two': 'nick2',
 }
 
 class SkipStepError(Exception):

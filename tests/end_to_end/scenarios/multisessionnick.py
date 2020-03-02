@@ -70,8 +70,8 @@ scenario = (
     # First occupant (with the two resources) changes her/his nick to a conflicting one
     send_stanza("<presence from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}/{nick_two}' />"),
     expect_unordered(
-        ["/message[@to='{jid_one}/{resource_one}'][@type='chat']/body[text()='irc.localhost: Bobby: Nickname is already in use.']"],
-        ["/message[@to='{jid_one}/{resource_two}'][@type='chat']/body[text()='irc.localhost: Bobby: Nickname is already in use.']"],
+        ["/message[@to='{jid_one}/{resource_one}'][@type='chat']/body[text()='irc.localhost: Nick2: Nickname is already in use.']"],
+        ["/message[@to='{jid_one}/{resource_two}'][@type='chat']/body[text()='irc.localhost: Nick2: Nickname is already in use.']"],
         ["/presence[@to='{jid_one}/{resource_one}'][@from='#foo%{irc_server_one}/{nick_two}'][@type='error']"],
         ["/presence[@to='{jid_one}/{resource_two}'][@from='#foo%{irc_server_one}/{nick_two}'][@type='error']"]
     ),
@@ -80,14 +80,14 @@ scenario = (
     send_stanza("<presence from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}/{nick_three}' />"),
     expect_unordered(
         [
-            "/presence[@from='#foo%{irc_server_one}/{nick_one}'][@to='{jid_two}/{resource_one}'][@type='unavailable']/muc_user:x/muc_user:item[@nick='Bernard']",
+            "/presence[@from='#foo%{irc_server_one}/{nick_one}'][@to='{jid_two}/{resource_one}'][@type='unavailable']/muc_user:x/muc_user:item[@nick='Nick3']",
             "/presence/muc_user:x/muc_user:status[@code='303']"
         ],
         [
             "/presence[@from='#foo%{irc_server_one}/{nick_three}'][@to='{jid_two}/{resource_one}']"
         ],
         [
-            "/presence[@from='#foo%{irc_server_one}/{nick_one}'][@to='{jid_one}/{resource_one}'][@type='unavailable']/muc_user:x/muc_user:item[@nick='Bernard']",
+            "/presence[@from='#foo%{irc_server_one}/{nick_one}'][@to='{jid_one}/{resource_one}'][@type='unavailable']/muc_user:x/muc_user:item[@nick='Nick3']",
             "/presence/muc_user:x/muc_user:status[@code='303']",
             "/presence/muc_user:x/muc_user:status[@code='110']"
         ],
@@ -96,7 +96,7 @@ scenario = (
             "/presence/muc_user:x/muc_user:status[@code='110']"
         ],
         [
-            "/presence[@from='#foo%{irc_server_one}/{nick_one}'][@to='{jid_one}/{resource_two}'][@type='unavailable']/muc_user:x/muc_user:item[@nick='Bernard']",
+            "/presence[@from='#foo%{irc_server_one}/{nick_one}'][@to='{jid_one}/{resource_two}'][@type='unavailable']/muc_user:x/muc_user:item[@nick='Nick3']",
             "/presence/muc_user:x/muc_user:status[@code='303']",
             "/presence/muc_user:x/muc_user:status[@code='110']"
         ],
