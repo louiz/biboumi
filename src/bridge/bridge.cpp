@@ -185,7 +185,7 @@ bool Bridge::join_irc_channel(const Iid& iid, std::string nickname,
   auto res_in_chan = this->is_resource_in_chan(ChannelKey{iid.get_local(), hostname}, resource);
   if (!res_in_chan)
     this->add_resource_to_chan(ChannelKey{iid.get_local(), hostname}, resource);
-  if (irc->is_channel_joined(iid.get_local()) == false)
+  if (!irc->is_channel_joined(iid.get_local()))
     {
       irc->send_join_command(iid.get_local(), password);
       return true;
