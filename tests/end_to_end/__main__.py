@@ -100,7 +100,7 @@ class XMPPComponent(slixmpp.BaseXMPP):
     def on_timeout(self, xpaths):
         error_msg = "Timeout while waiting for a stanza that would match the expected xpath(s):"
         for xpath in xpaths:
-            error_msg += "\n" + xpath
+            error_msg += "\n" + str(xpath)
         self.error(error_msg)
         self.run_scenario()
 
