@@ -183,15 +183,10 @@ void BiboumiComponent::handle_presence(const Stanza& stanza)
               if (history->get_tag("maxchars") == "0")
                 history_limit.stanzas = 0;
             }
-          bridge->join_irc_channel(iid, to.resource, password ? password->get_inner(): "",
+          const bool was_really_a_join = bridge->join_irc_channel(iid, to.resource, password ? password->get_inner(): "",
                                    from.resource, history_limit, x != nullptr);
-          const IrcClient* irc = bridge->find_irc_client(iid.get_server());
-          if (irc)
-            {
-              const auto chan = irc->find_channel(iid.get_local());
-              if (chan->joined)
-                bridge->send_irc_nick_change(iid, to.resource, from.resource);
-            }
+          if (!was_really_a_join)
+            bridge->send_irc_nick_change(iid, to.resource, from.resource);
         }
       else if (type == "unavailable")
         {
