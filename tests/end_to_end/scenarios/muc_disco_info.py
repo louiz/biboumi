@@ -10,6 +10,7 @@ scenario = (
                   "/iq/disco_info:query/disco_info:feature[@var='urn:xmpp:mam:2']",
                   "/iq/disco_info:query/disco_info:feature[@var='jabber:iq:version']",
                   "/iq/disco_info:query/disco_info:feature[@var='muc_nonanonymous']",
+                  "/iq/disco_info:query/disco_info:feature[@var='urn:xmpp:sid:0']",
                   "!/iq/disco_info:query/dataform:x/dataform:field[@var='muc#roominfo_occupants']"),
 
     # Join the channel, and re-do the same query
