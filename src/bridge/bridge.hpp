@@ -81,7 +81,7 @@ public:
                         HistoryLimit history_limit,
                         const bool force_join);
 
-  void send_channel_message(const Iid& iid, const std::string& body, std::string id);
+  void send_channel_message(const Iid& iid, const std::string& body, std::string id, std::vector<XmlNode> nodes_to_reflect);
   void send_private_message(const Iid& iid, const std::string& body, const std::string& type="PRIVMSG");
   void send_raw_message(const std::string& hostname, const std::string& body);
   void leave_irc_channel(Iid&& iid, const std::string& status_message, const std::string& resource);

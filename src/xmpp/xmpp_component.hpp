@@ -135,8 +135,8 @@ public:
   /**
    * Send a (non-private) message to the MUC
    */
-  void send_muc_message(const std::string& muc_name, const std::string& nick, Xmpp::body&& body, const std::string& jid_to,
-                        std::string uuid, std::string id);
+  Stanza make_muc_message(const std::string& muc_name, const std::string& nick, Xmpp::body&& xmpp_body, const std::string& jid_to,
+                          std::string uuid, std::string id);
 #ifdef USE_DATABASE
   /**
    * Send a message, with a <delay/> element, part of a MUC history

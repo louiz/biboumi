@@ -196,7 +196,7 @@ bool Bridge::join_irc_channel(const Iid& iid, std::string nickname,
   return false;
 }
 
-void Bridge::send_channel_message(const Iid& iid, const std::string& body, std::string id)
+void Bridge::send_channel_message(const Iid& iid, const std::string& body, std::string id, std::vector<XmlNode> nodes_to_reflect)
 {
   if (iid.get_server().empty())
     {
@@ -234,15 +234,21 @@ void Bridge::send_channel_message(const Iid& iid, const std::string& body, std::
       if (!first || id.empty())
         id = utils::gen_uuid();
 
-      MessageCallback mirror_to_all_resources = [this, iid, uuid, id](const IrcClient* irc, const IrcMessage& message) {
+      MessageCallback mirror_to_all_resources = [this, iid, uuid, id, nodes_to_reflect](const IrcClient* irc, const IrcMessage& message) {
         std::string line = message.arguments[1];
         // “temporary” workaround for \01ACTION…\01 -> /me messages
         if ((line.size() > strlen("\01ACTION\01")) &&
             (line.substr(0, 7) == "\01ACTION") && line[line.size() - 1] == '\01')
           line = "/me " + line.substr(8, line.size() - 9);
         for (const auto& resource: this->resources_in_chan[iid.to_tuple()])
-          this->xmpp.send_muc_message(std::to_string(iid), irc->get_own_nick(), this->make_xmpp_body(line),
-                                      this->user_jid + "/" + resource, uuid, id);
+          {
+            auto stanza = this->xmpp.make_muc_message(std::to_string(iid), irc->get_own_nick(), this->make_xmpp_body(line),
+                                                       this->user_jid + "/"
+                                                       + resource, uuid, id);
+            for (const auto& node: nodes_to_reflect)
+              stanza.add_child(node);
+            this->xmpp.send_stanza(stanza);
+          }
       };
 
       if (line.substr(0, 5) == "/mode")
@@ -859,8 +865,10 @@ void Bridge::send_message(const Iid& iid, const std::string& nick, const std::st
 #endif
       for (const auto& resource: this->resources_in_chan[iid.to_tuple()])
         {
-          this->xmpp.send_muc_message(std::to_string(iid), nick, this->make_xmpp_body(body, encoding),
-                                      this->user_jid + "/" + resource, uuid, utils::gen_uuid());
+          auto stanza = this->xmpp.make_muc_message(std::to_string(iid), nick, this->make_xmpp_body(body, encoding),
+                                                     this->user_jid + "/"
+                                                     + resource, uuid, utils::gen_uuid());
+          this->xmpp.send_stanza(stanza);
         }
     }
   else

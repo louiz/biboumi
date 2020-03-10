@@ -367,7 +367,7 @@ void XmppComponent::send_topic(const std::string& from, Xmpp::body&& topic, cons
   this->send_stanza(message);
 }
 
-void XmppComponent::send_muc_message(const std::string& muc_name, const std::string& nick, Xmpp::body&& xmpp_body, const std::string& jid_to, std::string uuid, std::string id)
+Stanza XmppComponent::make_muc_message(const std::string& muc_name, const std::string& nick, Xmpp::body&& xmpp_body, const std::string& jid_to, std::string uuid, std::string id)
 {
   Stanza message("message");
   message["to"] = jid_to;
@@ -399,7 +399,7 @@ void XmppComponent::send_muc_message(const std::string& muc_name, const std::str
       stanza_id["id"] = std::move(uuid);
     }
 
-  this->send_stanza(message);
+  return message;
 }
 
 #ifdef USE_DATABASE
