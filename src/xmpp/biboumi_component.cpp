@@ -294,15 +294,15 @@ void BiboumiComponent::handle_message(const Stanza& stanza)
               if (origin_id)
                 nodes_to_reflect.push_back(*origin_id);
               const auto own_address = std::to_string(iid) + '@' + this->served_hostname;
-              for (const XmlNode* stable_id: stanza.get_children("stable-id", STABLE_ID_NS))
+              for (const XmlNode* stanza_id: stanza.get_children("stanza-id", STABLE_ID_NS))
                 {
                   // Stanza ID generating entities, which encounter a
                   // <stanza-id/> element where the 'by' attribute matches
                   // the 'by' attribute they would otherwise set, MUST
                   // delete that element even if they are not adding their
                   // own stanza ID.
-                  if (stable_id->get_tag("by") != own_address)
-                    nodes_to_reflect.push_back(*stable_id);
+                  if (stanza_id->get_tag("by") != own_address)
+                    nodes_to_reflect.push_back(*stanza_id);
                 }
               bridge->send_channel_message(iid, body->get_inner(), id, std::move(nodes_to_reflect));
             }
