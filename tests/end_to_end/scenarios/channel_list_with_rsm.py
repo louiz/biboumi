@@ -3,12 +3,12 @@ from scenarios import *
 scenario = (
     scenarios.simple_channel_join.scenario,
 
-    send_stanza("<presence from='{jid_one}/{resource_one}' to='#bar%{irc_server_one}/{nick_one}' />"),
+    send_stanza("<presence from='{jid_one}/{resource_one}' to='#bar%{irc_server_one}/{nick_one}' ><x xmlns='http://jabber.org/protocol/muc'/></presence>"),
     expect_stanza("/message/body[text()='Mode #bar [+nt] by {irc_host_one}']"),
     expect_stanza("/presence"),
     expect_stanza("/message[@from='#bar%{irc_server_one}'][@type='groupchat']/subject[not(text())]"),
 
-    send_stanza("<presence from='{jid_one}/{resource_one}' to='#coucou%{irc_server_one}/{nick_one}' />"),
+    send_stanza("<presence from='{jid_one}/{resource_one}' to='#coucou%{irc_server_one}/{nick_one}' ><x xmlns='http://jabber.org/protocol/muc'/></presence>"),
     expect_stanza("/message/body[text()='Mode #coucou [+nt] by {irc_host_one}']"),
     expect_stanza("/presence"),
     expect_stanza("/message[@from='#coucou%{irc_server_one}'][@type='groupchat']/subject[not(text())]"),

@@ -3,7 +3,7 @@ from scenarios import *
 from scenarios.simple_channel_join import expect_self_join_presence
 
 scenario = (
-    send_stanza("<presence from='{jid_admin}/{resource_one}' to='#foo%{irc_server_one}/{nick_one}' />"),
+    send_stanza("<presence from='{jid_admin}/{resource_one}' to='#foo%{irc_server_one}/{nick_one}' ><x xmlns='http://jabber.org/protocol/muc'/></presence>"),
     sequences.connection("irc.localhost", '{jid_admin}/{resource_one}'),
     expect_self_join_presence(jid = '{jid_admin}/{resource_one}', chan = "#foo", nick = "{nick_one}"),
 

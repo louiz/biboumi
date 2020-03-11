@@ -10,7 +10,7 @@ scenario = (
     expect_stanza("/message[@from='#foo%{irc_server_one}'][@to='{jid_one}/{resource_one}'][@type='groupchat']/body[text()='Mode #foo [+k SECRET] by {nick_one}']"),
 
     # Second user tries to join, without a password (error ensues)
-    send_stanza("<presence from='{jid_two}/{resource_one}' to='#foo%{irc_server_one}/{nick_two}'/>"),
+    send_stanza("<presence from='{jid_two}/{resource_one}' to='#foo%{irc_server_one}/{nick_two}'><x xmlns='http://jabber.org/protocol/muc'/></presence>"),
     sequences.connection("irc.localhost", '{jid_two}/{resource_one}'),
     expect_stanza("/message/body[text()='{irc_host_one}: #foo: Cannot join channel (+k) - bad key']"),
     expect_stanza("/presence[@type='error'][@from='#foo%{irc_server_one}/{nick_two}']/error[@type='auth']/stanza:not-authorized"),

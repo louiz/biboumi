@@ -26,14 +26,14 @@ scenario = (
                   after = save_value("counter", counter)),
 
 
-    send_stanza("<presence from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}/{nick_one}' />"),
+    send_stanza("<presence from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}/{nick_one}' ><x xmlns='http://jabber.org/protocol/muc'/></presence>"),
     sequences.connection(),
 
     scenarios.simple_channel_join.expect_self_join_presence(jid = '{jid_one}/{resource_one}', chan = "#foo", nick = "{nick_one}"),
 
 
     (
-        send_stanza("<presence from='{jid_one}/{resource_one}' to='#{counter}%{irc_server_one}/{nick_one}' />"),
+        send_stanza("<presence from='{jid_one}/{resource_one}' to='#{counter}%{irc_server_one}/{nick_one}' ><x xmlns='http://jabber.org/protocol/muc'/></presence>"),
         expect_stanza("/message"),
         expect_stanza("/presence",
                       after = save_value("counter", counter)),

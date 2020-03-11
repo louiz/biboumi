@@ -4,17 +4,17 @@ from scenarios.simple_channel_join import expect_self_join_presence
 
 scenario = (
     # Admin connects to first server
-    send_stanza("<presence from='{jid_admin}/{resource_one}' to='#bar%{irc_server_one}/{nick_one}' />"),
+    send_stanza("<presence from='{jid_admin}/{resource_one}' to='#bar%{irc_server_one}/{nick_one}' ><x xmlns='http://jabber.org/protocol/muc'/></presence>"),
     sequences.connection("irc.localhost", '{jid_admin}/{resource_one}'),
     expect_self_join_presence(jid = '{jid_admin}/{resource_one}', chan = "#bar", nick = "{nick_one}"),
 
     # Non-Admin connects to first server
-    send_stanza("<presence from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}/{nick_two}' />"),
+    send_stanza("<presence from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}/{nick_two}' ><x xmlns='http://jabber.org/protocol/muc'/></presence>"),
     sequences.connection("irc.localhost", '{jid_one}/{resource_one}'),
     expect_self_join_presence(jid = '{jid_one}/{resource_one}', chan = "#foo", nick = "{nick_two}"),
 
     # Non-admin connects to second server
-    send_stanza("<presence from='{jid_one}/{resource_two}' to='#bon%{irc_server_two}/{nick_three}' />"),
+    send_stanza("<presence from='{jid_one}/{resource_two}' to='#bon%{irc_server_two}/{nick_three}' ><x xmlns='http://jabber.org/protocol/muc'/></presence>"),
     sequences.connection("{irc_host_two}", '{jid_one}/{resource_two}'),
     expect_self_join_presence(jid = '{jid_one}/{resource_two}', chan = "#bon", nick = "{nick_three}", irc_server = "{irc_server_two}"),
 

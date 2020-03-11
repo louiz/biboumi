@@ -4,8 +4,8 @@ from scenarios.simple_channel_join import expect_self_join_presence
 
 scenario = (
     # Join 3 rooms, on the same server, with three different nicks
-    send_stanza("<presence from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}/{nick_one}' />"),
-    send_stanza("<presence from='{jid_one}/{resource_one}' to='#bar%{irc_server_one}/{nick_two}' />"),
+    send_stanza("<presence from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}/{nick_one}' ><x xmlns='http://jabber.org/protocol/muc'/></presence>"),
+    send_stanza("<presence from='{jid_one}/{resource_one}' to='#bar%{irc_server_one}/{nick_two}' ><x xmlns='http://jabber.org/protocol/muc'/></presence>"),
     send_stanza("<presence from='{jid_one}/{resource_one}' to='#baz%{irc_server_one}/{nick_three}'>  <x xmlns='http://jabber.org/protocol/muc'><password>SECRET</password></x></presence>"),
 
     sequences.connection(),

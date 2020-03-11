@@ -1,53 +1,53 @@
 from scenarios import *
 
 scenario = (
-    send_stanza("<presence from='{jid_one}/{resource_one}' to='#aaa%{irc_server_one}/{nick_one}' />"),
+    send_stanza("<presence from='{jid_one}/{resource_one}' to='#aaa%{irc_server_one}/{nick_one}' ><x xmlns='http://jabber.org/protocol/muc'/></presence>"),
     sequences.connection("irc.localhost", '{jid_one}/{resource_one}'),
     expect_stanza("/message"),
     expect_stanza("/presence"),
     expect_stanza("/message"),
 
-    send_stanza("<presence from='{jid_one}/{resource_one}' to='#bbb%{irc_server_one}/{nick_one}' />"),
+    send_stanza("<presence from='{jid_one}/{resource_one}' to='#bbb%{irc_server_one}/{nick_one}' ><x xmlns='http://jabber.org/protocol/muc'/></presence>"),
     expect_stanza("/message"),
     expect_stanza("/presence"),
     expect_stanza("/message"),
 
-    send_stanza("<presence from='{jid_one}/{resource_one}' to='#ccc%{irc_server_one}/{nick_one}' />"),
+    send_stanza("<presence from='{jid_one}/{resource_one}' to='#ccc%{irc_server_one}/{nick_one}' ><x xmlns='http://jabber.org/protocol/muc'/></presence>"),
     expect_stanza("/message"),
     expect_stanza("/presence"),
     expect_stanza("/message"),
 
-    send_stanza("<presence from='{jid_one}/{resource_one}' to='#ddd%{irc_server_one}/{nick_one}' />"),
+    send_stanza("<presence from='{jid_one}/{resource_one}' to='#ddd%{irc_server_one}/{nick_one}' ><x xmlns='http://jabber.org/protocol/muc'/></presence>"),
     expect_stanza("/message"),
     expect_stanza("/presence"),
     expect_stanza("/message"),
 
-    send_stanza("<presence from='{jid_one}/{resource_one}' to='#eee%{irc_server_one}/{nick_one}' />"),
+    send_stanza("<presence from='{jid_one}/{resource_one}' to='#eee%{irc_server_one}/{nick_one}' ><x xmlns='http://jabber.org/protocol/muc'/></presence>"),
     expect_stanza("/message"),
     expect_stanza("/presence"),
     expect_stanza("/message"),
 
-    send_stanza("<presence from='{jid_one}/{resource_one}' to='#fff%{irc_server_one}/{nick_one}' />"),
+    send_stanza("<presence from='{jid_one}/{resource_one}' to='#fff%{irc_server_one}/{nick_one}' ><x xmlns='http://jabber.org/protocol/muc'/></presence>"),
     expect_stanza("/message"),
     expect_stanza("/presence"),
     expect_stanza("/message"),
 
-    send_stanza("<presence from='{jid_one}/{resource_one}' to='#ggg%{irc_server_one}/{nick_one}' />"),
+    send_stanza("<presence from='{jid_one}/{resource_one}' to='#ggg%{irc_server_one}/{nick_one}' ><x xmlns='http://jabber.org/protocol/muc'/></presence>"),
     expect_stanza("/message"),
     expect_stanza("/presence"),
     expect_stanza("/message"),
 
-    send_stanza("<presence from='{jid_one}/{resource_one}' to='#hhh%{irc_server_one}/{nick_one}' />"),
+    send_stanza("<presence from='{jid_one}/{resource_one}' to='#hhh%{irc_server_one}/{nick_one}' ><x xmlns='http://jabber.org/protocol/muc'/></presence>"),
     expect_stanza("/message"),
     expect_stanza("/presence"),
     expect_stanza("/message"),
 
-    send_stanza("<presence from='{jid_one}/{resource_one}' to='#iii%{irc_server_one}/{nick_one}' />"),
+    send_stanza("<presence from='{jid_one}/{resource_one}' to='#iii%{irc_server_one}/{nick_one}' ><x xmlns='http://jabber.org/protocol/muc'/></presence>"),
     expect_stanza("/message"),
     expect_stanza("/presence"),
     expect_stanza("/message"),
 
-    send_stanza("<presence from='{jid_one}/{resource_one}' to='#jjj%{irc_server_one}/{nick_one}' />"),
+    send_stanza("<presence from='{jid_one}/{resource_one}' to='#jjj%{irc_server_one}/{nick_one}' ><x xmlns='http://jabber.org/protocol/muc'/></presence>"),
     expect_stanza("/message"),
     expect_stanza("/presence"),
     expect_stanza("/message"),

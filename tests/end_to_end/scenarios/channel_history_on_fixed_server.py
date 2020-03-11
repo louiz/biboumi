@@ -10,7 +10,7 @@ scenario = (
     expect_stanza("/message[@from='#foo@{biboumi_host}/{nick_one}'][@to='{jid_one}/{resource_one}'][@type='groupchat']/body[text()='coucou']"),
 
     # Second user joins
-    send_stanza("<presence from='{jid_one}/{resource_two}' to='#foo@{biboumi_host}/{nick_one}' />"),
+    send_stanza("<presence from='{jid_one}/{resource_two}' to='#foo@{biboumi_host}/{nick_one}' ><x xmlns='http://jabber.org/protocol/muc'/></presence>"),
     expect_stanza("/presence[@to='{jid_one}/{resource_two}'][@from='#foo@{biboumi_host}/{nick_one}']/muc_user:x/muc_user:item[@affiliation='admin'][@jid='{lower_nick_one}@{biboumi_host}/~{nick_one}@localhost'][@role='moderator']",
                   "/presence/muc_user:x/muc_user:status[@code='110']"),
     # Receive the history message

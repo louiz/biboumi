@@ -4,7 +4,7 @@ scenario = (
     scenarios.simple_channel_join.scenario,
 
     # Second user joins, from two resources
-    send_stanza("<presence from='{jid_two}/{resource_one}' to='#foo%{irc_server_one}/{nick_two}' />"),
+    send_stanza("<presence from='{jid_two}/{resource_one}' to='#foo%{irc_server_one}/{nick_two}' ><x xmlns='http://jabber.org/protocol/muc'/></presence>"),
     sequences.connection("irc.localhost", '{jid_two}/{resource_one}'),
     expect_unordered(
                      ["/presence/muc_user:x/muc_user:item[@affiliation='none'][@role='participant']"],
@@ -13,7 +13,7 @@ scenario = (
                      ["/message/subject"]
     ),
     # Second resource
-    send_stanza("<presence from='{jid_two}/{resource_two}' to='#foo%{irc_server_one}/{nick_two}' />"),
+    send_stanza("<presence from='{jid_two}/{resource_two}' to='#foo%{irc_server_one}/{nick_two}' ><x xmlns='http://jabber.org/protocol/muc'/></presence>"),
     expect_stanza("/presence[@to='{jid_two}/{resource_two}'][@from='#foo%{irc_server_one}/{nick_one}']"),
     expect_stanza("/presence[@to='{jid_two}/{resource_two}'][@from='#foo%{irc_server_one}/{nick_two}']",
                   "/presence/muc_user:x/muc_user:status[@code='110']"

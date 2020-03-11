@@ -6,7 +6,7 @@ scenario = (
     scenarios.simple_channel_join.scenario,
 
     # Second user joins
-    send_stanza("<presence from='{jid_two}/{resource_one}' to='#foo%{irc_server_one}/{nick_two}' />"),
+    send_stanza("<presence from='{jid_two}/{resource_one}' to='#foo%{irc_server_one}/{nick_two}' ><x xmlns='http://jabber.org/protocol/muc'/></presence>"),
     sequences.connection("irc.localhost", '{jid_two}/{resource_one}'),
 
     # Our presence, sent to the other user, and ourself
@@ -45,7 +45,7 @@ scenario = (
                   "/message/muc_user:x"),
     # Do the exact same thing, from a different chan,
     # to check if the response comes from the right JID
-    send_stanza("<presence from='{jid_one}/{resource_one}' to='#dummy%{irc_server_one}/{nick_one}' />"),
+    send_stanza("<presence from='{jid_one}/{resource_one}' to='#dummy%{irc_server_one}/{nick_one}' ><x xmlns='http://jabber.org/protocol/muc'/></presence>"),
     expect_stanza("/message"),
     expect_stanza("/presence/muc_user:x/muc_user:status[@code='110']"),
     expect_stanza("/message[@from='#dummy%{irc_server_one}'][@type='groupchat']/subject"),

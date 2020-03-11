@@ -15,7 +15,7 @@ scenario = (
     expect_stanza("/iq[@type='result']/commands:command[@node='configure'][@status='completed']/commands:note[@type='info'][text()='Configuration successfully applied.']"),
 
 
-    send_stanza("<presence from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}/{nick_one}' />"),
+    send_stanza("<presence from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}/{nick_one}' ><x xmlns='http://jabber.org/protocol/muc'/></presence>"),
     sequences.connection("irc.localhost", '{jid_one}/{resource_one}'),
     expect_stanza("/message/body[text()='Mode #foo [+nt] by {irc_host_one}']"),
     expect_stanza("/presence[@to='{jid_one}/{resource_one}'][@from='#foo%{irc_server_one}/{nick_one}']/muc_user:x/muc_user:item[@affiliation='admin'][@role='moderator']",
@@ -41,7 +41,7 @@ scenario = (
                   after = save_current_timestamp_plus_delta("second_timestamp", datetime.timedelta(seconds=1))),
 
     # join some other channel, to stay connected to the server even after leaving #foo
-    send_stanza("<presence from='{jid_one}/{resource_one}' to='#DUMMY%{irc_server_one}/{nick_one}' />"),
+    send_stanza("<presence from='{jid_one}/{resource_one}' to='#DUMMY%{irc_server_one}/{nick_one}' ><x xmlns='http://jabber.org/protocol/muc'/></presence>"),
     expect_stanza("/message"),
     expect_stanza("/presence/muc_user:x/muc_user:status[@code='110']"),
     expect_stanza("/message/subject"),
