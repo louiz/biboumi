@@ -9,7 +9,7 @@ scenario = (
     send_stanza("<presence from='{jid_one}' to='{irc_server_one}' type='subscribed' />"),
 
     # Join a channel on that server
-    send_stanza("<presence from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}/{nick_one}' />"),
+    send_stanza("<presence from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}/{nick_one}' ><x xmlns='http://jabber.org/protocol/muc'/></presence>"),
 
     # We must receive the IRC server presence, in the connection sequence
     sequences.connection("irc.localhost", '{jid_one}/{resource_one}', expected_irc_presence=True),

@@ -4,12 +4,12 @@ from scenarios.simple_channel_join import expect_self_join_presence
 
 scenario = (
     # Resource one joins a channel
-    send_stanza("<presence from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}/{nick_one}' />"),
+    send_stanza("<presence from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}/{nick_one}' ><x xmlns='http://jabber.org/protocol/muc'/></presence>"),
     sequences.connection(),
     expect_self_join_presence(jid = '{jid_one}/{resource_one}', chan = "#foo", nick = "{nick_one}"),
 
     # The other resources joins the same room, with the same nick
-    send_stanza("<presence from='{jid_one}/{resource_two}' to='#foo%{irc_server_one}/{nick_one}' />"),
+    send_stanza("<presence from='{jid_one}/{resource_two}' to='#foo%{irc_server_one}/{nick_one}' ><x xmlns='http://jabber.org/protocol/muc'/></presence>"),
 
     # We receive our own join
     expect_unordered(
@@ -24,7 +24,7 @@ scenario = (
     ),
 
     # A different user joins the same room
-    send_stanza("<presence from='{jid_two}/{resource_one}' to='#foo%{irc_server_one}/{nick_two}' />"),
+    send_stanza("<presence from='{jid_two}/{resource_one}' to='#foo%{irc_server_one}/{nick_two}' ><x xmlns='http://jabber.org/protocol/muc'/></presence>"),
     sequences.connection("irc.localhost", '{jid_two}/{resource_one}'),
     expect_unordered(
         # The new user’s presence is sent to the the existing occupant (two resources)

@@ -72,14 +72,12 @@ public:
    **/
 
   /**
-   * Try to join an irc_channel, does nothing and return true if the channel
-   * was already joined.
+   * Try to join an irc_channel.
    */
   bool join_irc_channel(const Iid& iid, std::string nickname,
                         const std::string& password,
                         const std::string& resource,
-                        HistoryLimit history_limit,
-                        const bool force_join);
+                        HistoryLimit history_limit);
 
   void send_channel_message(const Iid& iid, const std::string& body, std::string id, std::vector<XmlNode> nodes_to_reflect);
   void send_private_message(const Iid& iid, const std::string& body, const std::string& type="PRIVMSG");

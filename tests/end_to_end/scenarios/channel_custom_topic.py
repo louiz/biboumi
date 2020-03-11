@@ -10,7 +10,7 @@ scenario = (
     expect_stanza("/message[@from='#foo%{irc_server_one}/{nick_one}'][@type='groupchat'][@to='{jid_one}/{resource_one}']/subject[text()='TOPIC TEST']"),
 
     # Second user joins
-    send_stanza("<presence from='{jid_two}/{resource_one}' to='#foo%{irc_server_one}/{nick_two}' />"),
+    send_stanza("<presence from='{jid_two}/{resource_one}' to='#foo%{irc_server_one}/{nick_two}' ><x xmlns='http://jabber.org/protocol/muc'/></presence>"),
     sequences.connection("irc.localhost", '{jid_two}/{resource_one}'),
     expect_unordered(
         [

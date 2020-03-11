@@ -17,7 +17,7 @@ scenario = (
     expect_stanza("/iq[@type='result']/muc_owner:query/dataform:x/dataform:field[@var='persistent'][@type='boolean']/dataform:value[text()='true']"),
 
     # A second user joins the same channel
-    send_stanza("<presence from='{jid_two}/{resource_one}' to='#foo%{irc_server_one}/{nick_two}' />"),
+    send_stanza("<presence from='{jid_two}/{resource_one}' to='#foo%{irc_server_one}/{nick_two}' ><x xmlns='http://jabber.org/protocol/muc'/></presence>"),
     sequences.connection("irc.localhost", '{jid_two}/{resource_one}'),
     expect_unordered(
         ["/presence[@to='{jid_one}/{resource_one}'][@from='#foo%{irc_server_one}/{nick_two}']"],
@@ -26,8 +26,8 @@ scenario = (
             "/presence/muc_user:x/muc_user:status[@code='110']"
         ],
         ["/presence[@to='{jid_two}/{resource_one}'][@from='#foo%{irc_server_one}/{nick_one}']"],
+        ["/message[@from='#foo%{irc_server_one}'][@type='groupchat']/subject[not(text())]"]
     ),
-    expect_stanza("/message[@from='#foo%{irc_server_one}'][@type='groupchat']/subject[not(text())]"),
 
     # First user leaves the room (but biboumi will stay in the channel)
     send_stanza("<presence from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}/{nick_one}' type='unavailable' />"),
