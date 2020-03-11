@@ -11,6 +11,7 @@ WatchdogSec=${WATCHDOG_SEC}
 Restart=always
 User=${SERVICE_USER}
 Group=${SERVICE_GROUP}
+AmbientCapabilities=CAP_NET_BIND_SERVICE
 
 [Install]
 WantedBy=multi-user.target
