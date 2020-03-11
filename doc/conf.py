@@ -24,9 +24,9 @@ copyright = '2018, Florent Le Coz'
 author = 'Florent Le Coz'
 
 # The short X.Y version
-version = '8.3'
+version = '8.4'
 # The full version, including alpha/beta/rc tags
-release = '8.3'
+release = '8.4'
 
 
 # -- General configuration ---------------------------------------------------
