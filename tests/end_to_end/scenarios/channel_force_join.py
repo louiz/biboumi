@@ -21,25 +21,5 @@ scenario = (
                   "/message[@from='#foo%{irc_server_one}'][@type='groupchat']/subject[not(text())]"
              ]
     ),
-
-    # And also, that was not the same nickname, so everyone receives a nick change
-    expect_unordered(
-             [
-                  "/presence[@from='#foo%{irc_server_one}/{nick_one}'][@to='{jid_two}/{resource_one}'][@type='unavailable']/muc_user:x/muc_user:item[@nick='Bernard']",
-                  "/presence/muc_user:x/muc_user:status[@code='303']",
-             ],
-             [
-                  "/presence[@from='#foo%{irc_server_one}/{nick_three}'][@to='{jid_two}/{resource_one}']",
-             ],
-             [
-                  "/presence[@from='#foo%{irc_server_one}/{nick_one}'][@to='{jid_one}/{resource_one}'][@type='unavailable']/muc_user:x/muc_user:item[@nick='Bernard']",
-                  "/presence/muc_user:x/muc_user:status[@code='303']",
-                  "/presence/muc_user:x/muc_user:status[@code='110']",
-             ],
-             [
-                  "/presence[@from='#foo%{irc_server_one}/{nick_three}'][@to='{jid_one}/{resource_one}']",
-                  "/presence/muc_user:x/muc_user:status[@code='110']",
-             ],
-    ),
 )
 
