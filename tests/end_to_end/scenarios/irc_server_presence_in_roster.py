@@ -13,7 +13,6 @@ scenario = (
 
     # We must receive the IRC server presence, in the connection sequence
     sequences.connection("irc.localhost", '{jid_one}/{resource_one}', expected_irc_presence=True),
-    expect_stanza("/message/body[text()='Mode #foo [+nt] by {irc_host_one}']"),
     expect_stanza("/presence[@to='{jid_one}/{resource_one}'][@from='#foo%{irc_server_one}/{nick_one}']/muc_user:x/muc_user:item[@affiliation='admin'][@role='moderator']",
                   "/presence/muc_user:x/muc_user:status[@code='110']"),
     expect_stanza("/message[@from='#foo%{irc_server_one}'][@type='groupchat']/subject[not(text())]"),

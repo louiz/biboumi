@@ -70,8 +70,8 @@ scenario = (
     # First occupant (with the two resources) changes her/his nick to a conflicting one
     send_stanza("<presence from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}/{nick_two}' />"),
     expect_unordered(
-        ["/message[@to='{jid_one}/{resource_one}'][@type='chat']/body[text()='irc.localhost: Nick2: Nickname is already in use.']"],
-        ["/message[@to='{jid_one}/{resource_two}'][@type='chat']/body[text()='irc.localhost: Nick2: Nickname is already in use.']"],
+        ["/message[@to='{jid_one}/{resource_one}'][@type='chat']/body[text()='irc.localhost: Nick2: Nickname is already in use']"],
+        ["/message[@to='{jid_one}/{resource_two}'][@type='chat']/body[text()='irc.localhost: Nick2: Nickname is already in use']"],
         ["/presence[@to='{jid_one}/{resource_one}'][@from='#foo%{irc_server_one}/{nick_two}'][@type='error']"],
         ["/presence[@to='{jid_one}/{resource_two}'][@from='#foo%{irc_server_one}/{nick_two}'][@type='error']"]
     ),
