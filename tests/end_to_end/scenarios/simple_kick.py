@@ -5,7 +5,6 @@ scenario = (
     # demonstrate bug https://lab.louiz.org/louiz/biboumi/issues/3291
     # First user joins an other channel
     send_stanza("<presence from='{jid_one}/{resource_one}' to='#bar%{irc_server_one}/{nick_one}' ><x xmlns='http://jabber.org/protocol/muc'/></presence>"),
-    expect_stanza("/message"),
     expect_stanza("/presence/muc_user:x/muc_user:status[@code='110']"),
     expect_stanza("/message[@type='groupchat']/subject"),
 

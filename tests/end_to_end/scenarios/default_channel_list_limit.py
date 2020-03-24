@@ -34,19 +34,11 @@ scenario = (
 
     (
         send_stanza("<presence from='{jid_one}/{resource_one}' to='#{counter}%{irc_server_one}/{nick_one}' ><x xmlns='http://jabber.org/protocol/muc'/></presence>"),
-        expect_stanza("/message"),
         expect_stanza("/presence",
                       after = save_value("counter", counter)),
         expect_stanza("/message"),
     ) * 110,
 
     send_stanza("<iq from='{jid_one}/{resource_one}' id='id1' to='{irc_server_one}' type='get'><query xmlns='http://jabber.org/protocol/disco#items'/></iq>"),
-    # charybdis sends the list in alphabetic order, so #foo is the last, and #99 is after #120
-    expect_stanza("/iq/disco_items:query/disco_items:item[@jid='#0%{irc_server_one}']",
-                  "/iq/disco_items:query/disco_items:item[@jid='#1%{irc_server_one}']",
-                  "/iq/disco_items:query/disco_items:item[@jid='#109%{irc_server_one}']",
-                  "/iq/disco_items:query/disco_items:item[@jid='#9%{irc_server_one}']",
-                  "!/iq/disco_items:query/disco_items:item[@jid='#foo%{irc_server_one}']",
-                  "!/iq/disco_items:query/disco_items:item[@jid='#99%{irc_server_one}']",
-                  "!/iq/disco_items:query/disco_items:item[@jid='#90%{irc_server_one}']"),
+    expect_stanza("count(/iq/disco_items:query/disco_items:item[@jid])=100")
 )

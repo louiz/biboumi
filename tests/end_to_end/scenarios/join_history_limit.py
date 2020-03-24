@@ -17,7 +17,6 @@ scenario = (
 
     send_stanza("<presence from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}/{nick_one}' ><x xmlns='http://jabber.org/protocol/muc'/></presence>"),
     sequences.connection("irc.localhost", '{jid_one}/{resource_one}'),
-    expect_stanza("/message/body[text()='Mode #foo [+nt] by {irc_host_one}']"),
     expect_stanza("/presence[@to='{jid_one}/{resource_one}'][@from='#foo%{irc_server_one}/{nick_one}']/muc_user:x/muc_user:item[@affiliation='admin'][@role='moderator']",
                   "/presence/muc_user:x/muc_user:status[@code='110']"),
     expect_stanza("/message[@from='#foo%{irc_server_one}'][@type='groupchat']/subject[not(text())]"),
@@ -42,7 +41,6 @@ scenario = (
 
     # join some other channel, to stay connected to the server even after leaving #foo
     send_stanza("<presence from='{jid_one}/{resource_one}' to='#DUMMY%{irc_server_one}/{nick_one}' ><x xmlns='http://jabber.org/protocol/muc'/></presence>"),
-    expect_stanza("/message"),
     expect_stanza("/presence/muc_user:x/muc_user:status[@code='110']"),
     expect_stanza("/message/subject"),
 
@@ -54,7 +52,6 @@ scenario = (
 
     # Rejoin #foo, with some history limit
     send_stanza("<presence from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}/{nick_one}'><x xmlns='http://jabber.org/protocol/muc'><history maxchars='0'/></x></presence>"),
-    expect_stanza("/message"),
     expect_stanza("/presence/muc_user:x/muc_user:status[@code='110']"),
     expect_stanza("/message/subject"),
 
@@ -65,7 +62,6 @@ scenario = (
 
     # Rejoin #foo, with some history limit
     send_stanza("<presence from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}/{nick_one}'><x xmlns='http://jabber.org/protocol/muc'><history maxstanzas='3'/></x></presence>"),
-    expect_stanza("/message"),
     expect_stanza("/presence/muc_user:x/muc_user:status[@code='110']"),
     expect_stanza("/message[@from='#foo%{irc_server_one}/{nick_one}'][@type='groupchat']/body[text()='coucou 2']"),
     expect_stanza("/message[@from='#foo%{irc_server_one}/{nick_one}'][@type='groupchat']/body[text()='coucou 3']"),
@@ -77,7 +73,6 @@ scenario = (
 
     # Rejoin #foo, with some history limit
     send_stanza("<presence from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}/{nick_one}'><x xmlns='http://jabber.org/protocol/muc'><history since='{first_timestamp}'/></x></presence>"),
-    expect_stanza("/message"),
     expect_stanza("/presence/muc_user:x/muc_user:status[@code='110']"),
     expect_stanza("/message[@from='#foo%{irc_server_one}/{nick_one}'][@type='groupchat']/body[text()='coucou 3']"),
     expect_stanza("/message[@from='#foo%{irc_server_one}/{nick_one}'][@type='groupchat']/body[text()='coucou 4']"),
@@ -87,7 +82,6 @@ scenario = (
 
     # Rejoin #foo, with some history limit
     send_stanza("<presence from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}/{nick_one}'><x xmlns='http://jabber.org/protocol/muc'><history seconds='1'/></x></presence>"),
-    expect_stanza("/message"),
     expect_stanza("/presence/muc_user:x/muc_user:status[@code='110']"),
     expect_stanza("/message[@from='#foo%{irc_server_one}/{nick_one}'][@type='groupchat']/body[text()='coucou 3']"),
     expect_stanza("/message[@from='#foo%{irc_server_one}/{nick_one}'][@type='groupchat']/body[text()='coucou 4']"),
@@ -97,7 +91,6 @@ scenario = (
 
     # Rejoin #foo, with some history limit
     send_stanza("<presence from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}/{nick_one}'><x xmlns='http://jabber.org/protocol/muc'><history seconds='5'/></x></presence>"),
-    expect_stanza("/message"),
     expect_stanza("/presence/muc_user:x/muc_user:status[@code='110']"),
     expect_stanza("/message[@from='#foo%{irc_server_one}/{nick_one}'][@type='groupchat']/body[text()='coucou']"),                     expect_stanza("/message[@from='#foo%{irc_server_one}/{nick_one}'][@type='groupchat']/body[text()='coucou 2']"),
     expect_stanza("/message[@from='#foo%{irc_server_one}/{nick_one}'][@type='groupchat']/body[text()='coucou 3']"),
