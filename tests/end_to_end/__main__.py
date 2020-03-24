@@ -183,7 +183,7 @@ class BiboumiRunner(ProcessRunner):
 class IrcServerRunner(ProcessRunner):
     def __init__(self):
         super().__init__()
-        self.create = asyncio.create_subprocess_exec("charybdis", "-foreground", "-configfile", os.getcwd() + "/../tests/end_to_end/ircd.conf",
+        self.create = asyncio.create_subprocess_exec("oragono", "run", "--conf", os.getcwd() + "/../tests/end_to_end/ircd.yaml",
                                                      stderr=asyncio.subprocess.PIPE)
 
 class BiboumiTest:
@@ -324,7 +324,7 @@ if __name__ == '__main__':
         if not res:
             print("IRC server failed to start, see irc_output.txt for more details. Exiting…")
             sys.exit(1)
-        if b"now running in foreground mode" in res:
+        if b"Server running" in res:
             break
     print("irc server started.")
 
