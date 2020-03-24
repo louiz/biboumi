@@ -4,7 +4,6 @@ scenario = (
     # Join the channel
     send_stanza("<presence from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}/{nick_one}' ><x xmlns='http://jabber.org/protocol/muc'/></presence>"),
     sequences.connection("irc.localhost", '{jid_one}/{resource_one}'),
-    expect_stanza("/message/body[text()='Mode #foo [+nt] by {irc_host_one}']"),
     expect_stanza("/presence[@to='{jid_one}/{resource_one}'][@from='#foo%{irc_server_one}/{nick_one}']/muc_user:x/muc_user:item[@affiliation='admin'][@role='moderator']",
                   "/presence/muc_user:x/muc_user:status[@code='110']"),
     expect_stanza("/message[@from='#foo%{irc_server_one}'][@type='groupchat'][@to='{jid_one}/{resource_one}']/subject[not(text())]"),
@@ -27,7 +26,6 @@ scenario = (
     # Join some other channel with someone else
     send_stanza("<presence from='{jid_two}/{resource_one}' to='#bar%{irc_server_one}/{nick_two}' ><x xmlns='http://jabber.org/protocol/muc'/></presence>"),
     sequences.connection("irc.localhost", '{jid_two}/{resource_one}'),
-    expect_stanza("/message/body[text()='Mode #bar [+nt] by {irc_host_one}']"),
     expect_stanza("/presence[@to='{jid_two}/{resource_one}'][@from='#bar%{irc_server_one}/{nick_two}']/muc_user:x/muc_user:item[@affiliation='admin'][@role='moderator']",
                   "/presence/muc_user:x/muc_user:status[@code='110']"),
     expect_stanza("/message[@from='#bar%{irc_server_one}'][@type='groupchat'][@to='{jid_two}/{resource_one}']/subject[not(text())]"),
