@@ -3,30 +3,30 @@
 # network configuration
 network:
     # name of the network
-    name: OragonoTest
+    name: BiboumiTest
 
 # server configuration
 server:
     # server name
-    name: oragono.test
+    name: irc.localhost
 
     # addresses to listen on
     listeners:
         # The standard plaintext port for IRC is 6667. Allowing plaintext over the
         # public Internet poses serious security and privacy issues. Accordingly,
         # we recommend using plaintext only on local (loopback) interfaces:
-        "127.0.0.1:6667": # (loopback ipv4, localhost-only)
-        "[::1]:6667":     # (loopback ipv6, localhost-only)
+        # "127.0.0.1:6667": # (loopback ipv4, localhost-only)
+        # "[::1]:6667":     # (loopback ipv6, localhost-only)
         # If you need to serve plaintext on public interfaces, comment out the above
         # two lines and uncomment the line below (which listens on all interfaces):
-        # ":6667":
+        ":6667":
         # Alternately, if you have a TLS certificate issued by a recognized CA,
         # you can configure port 6667 as an STS-only listener that only serves
         # "redirects" to the TLS port, but doesn't allow chat. See the manual
         # for details.
 
         # The standard SSL/TLS port for IRC is 6697. This will listen on all interfaces:
-        ":6697":
+        ":7778":
             tls:
                 key: tls.key
                 cert: tls.crt
@@ -114,7 +114,7 @@ server:
 
     # motd filename
     # if you change the motd, you should move it to ircd.motd
-    motd: oragono.motd
+    motd:
 
     # motd formatting codes
     # if this is true, the motd is escaped using formatting codes like $c, $b, and $i
@@ -172,12 +172,12 @@ server:
     # IP-based DoS protection
     ip-limits:
         # whether to limit the total number of concurrent connections per IP/CIDR
-        count: true
+        count: false
         # maximum concurrent connections per IP/CIDR
         max-concurrent-connections: 16
 
         # whether to restrict the rate of new connections per IP/CIDR
-        throttle: true
+        throttle: false
         # how long to keep track of connections for
         window: 10m
         # maximum number of new connections per IP/CIDR within the given duration
@@ -354,7 +354,7 @@ accounts:
         # typical behavior of IRC servers). when enabled, a new connection that
         # has authenticated with SASL can associate itself with an existing
         # client
-        enabled: true
+        enabled: false
 
         # if this is disabled, clients have to opt in to bouncer functionality
         # using nickserv or the cap system. if it's enabled, they can opt out
@@ -443,7 +443,7 @@ channels:
     default-modes: +nt
 
     # how many channels can a client be in at once?
-    max-channels-per-client: 100
+    max-channels-per-client: 1000
 
     # if this is true, new channels can only be created by operators with the
     # `chanreg` operator capability
@@ -614,7 +614,7 @@ datastore:
 # languages config
 languages:
     # whether to load languages
-    enabled: true
+    enabled: false
 
     # default language to use for new clients
     # 'en' is the default English language in the code
@@ -650,7 +650,7 @@ limits:
     whowas-entries: 100
 
     # maximum length of channel lists (beI modes)
-    chan-list-modes: 60
+    chan-list-modes: 1000
 
     # maximum number of messages to accept during registration (prevents
     # DoS / resource exhaustion attacks):
@@ -664,7 +664,7 @@ limits:
 # fakelag: prevents clients from spamming commands too rapidly
 fakelag:
     # whether to enforce fakelag
-    enabled: true
+    enabled: false
 
     # time unit for counting command rates
     window: 1s
