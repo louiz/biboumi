@@ -9,6 +9,6 @@ scenario = (
     expect_stanza("/message"),
     
     send_stanza("<message from='{jid_one}/{resource_one}' to='{biboumi_host}' type='chat'><body>WHOIS {nick_one}</body></message>"),
-    expect_stanza("/message[@from='{biboumi_host}'][@type='chat']/body[text()='irc.localhost: {nick_one} ~{nick_one} localhost * {nick_one}']"),
+    expect_stanza("/message[@from='{biboumi_host}'][@type='chat']/body[text()='irc.localhost: {nick_one} ~{nick_one} localhost.localdomain * {nick_one}']"),
     
 )
