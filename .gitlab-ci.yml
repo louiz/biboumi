@@ -74,18 +74,6 @@ build:archlinux:
   artifacts:
     paths: []
 
-build:freebsd:
-  extends: .basic_build
-  tags:
-    - freebsd
-  only:
-    - branches@louiz/biboumi
-  variables:
-    CXX_FLAGS: "-Werror"
-    SYSTEMD: "-DWITHOUT_SYSTEMD=1"
-    GIT_STRATEGY: "clone"
-    COMPILER: "clang++"
-
 build:no_botan:
   extends: .fedora_build
   variables:
@@ -181,16 +169,6 @@ test:alpine:
     - build:alpine
   needs: ["build:alpine"]
   image: docker.louiz.org/louiz/biboumi/test-alpine:latest
-
-test:freebsd:
-  extends: .basic_test
-  tags:
-    - freebsd
-  only:
-    - branches@louiz/biboumi
-  dependencies:
-    - build:freebsd
-  needs: ["build:freebsd"]
 
 #
 ## Packaging jobs
