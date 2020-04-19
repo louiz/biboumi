@@ -481,6 +481,8 @@ void XmppComponent::send_nick_change(const std::string& muc_name,
     x["xmlns"] = MUC_USER_NS;
     XmlSubNode item(x, "item");
     item["nick"] = new_nick;
+    item["affiliation"] = affiliation;
+    item["role"] = role;
     XmlSubNode status(x, "status");
     status["code"] = "303";
     if (self)
