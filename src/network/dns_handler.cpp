@@ -9,6 +9,7 @@
 
 #include <udns.h>
 #include <cerrno>
+#include <stdexcept>
 #include <cstring>
 
 class Resolver;
