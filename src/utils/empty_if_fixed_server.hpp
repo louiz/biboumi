@@ -11,7 +11,7 @@ namespace utils
   {
     if (!Config::get("fixed_irc_server", "").empty())
       return {};
-    return str;
+    return std::move(str);
   }
 
   inline std::string empty_if_fixed_server(const std::string& str)
