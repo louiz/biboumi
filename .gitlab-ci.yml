@@ -50,7 +50,7 @@ variables:
 
 .fedora_build:
   extends: .basic_build
-  image: docker.louiz.org/louiz/biboumi/test-fedora:latest
+  image: docker.louiz.org/louiz/biboumi/test-fedora:oragono
 
 build:fedora:
   extends: .fedora_build
@@ -148,7 +148,7 @@ test:debian:
 
 test:fedora:
   extends: .basic_test
-  image: docker.louiz.org/louiz/biboumi/test-fedora:latest
+  image: docker.louiz.org/louiz/biboumi/test-fedora:oragono
   script:
     - cd build/
     - make coverage_check
@@ -169,7 +169,7 @@ test:fedora:
 
 test:no_udns:
   extends: .basic_test
-  image: docker.louiz.org/louiz/biboumi/test-fedora:latest
+  image: docker.louiz.org/louiz/biboumi/test-fedora:oragono
   dependencies:
     - build:no_udns
   needs: ["build:no_udns"]
@@ -203,7 +203,7 @@ packaging:rpm:
   tags:
     - docker
   allow_failure: true
-  image: docker.louiz.org/louiz/biboumi/test-fedora:latest
+  image: docker.louiz.org/louiz/biboumi/test-fedora:oragono
   script:
     - cd build/
     - make rpm -j$(nproc || echo 1)
