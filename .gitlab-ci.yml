@@ -124,8 +124,11 @@ build:no_db_botan:
     - make check_junit || true; make check;
     - make e2e
   artifacts:
-    reports:
-      junit: ["build/check_result.xml"]
+    expire_in: 2 weeks
+    paths:
+      - build/
+    name: $CI_PROJECT_NAME-test-$CI_JOB_ID
+    when: always
 
 test:debian:
   extends: .basic_test
@@ -145,15 +148,6 @@ test:fedora:
   dependencies:
     - build:fedora
   needs: ["build:fedora"]
-  artifacts:
-    expire_in: 2 weeks
-    paths:
-      - build/coverage_test_suite/
-      - build/coverage_e2e/
-      - build/coverage_total/
-      - build/coverage_e2e.info
-    when: always
-    name: $CI_PROJECT_NAME-test-$CI_JOB_ID
 
 test:no_udns:
   extends: .basic_test
@@ -168,7 +162,6 @@ test:alpine:
   dependencies:
     - build:alpine
   needs: ["build:alpine"]
-  image: docker.louiz.org/louiz/biboumi/test-alpine:latest
 
 #
 ## Packaging jobs
