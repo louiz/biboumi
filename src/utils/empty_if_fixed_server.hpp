@@ -7,17 +7,11 @@
 
 namespace utils
 {
-  inline std::string empty_if_fixed_server(std::string&& str)
+  inline const std::string& empty_if_fixed_server(const std::string& str)
   {
+    static const std::string empty{};
     if (!Config::get("fixed_irc_server", "").empty())
-      return {};
-    return std::move(str);
-  }
-
-  inline std::string empty_if_fixed_server(const std::string& str)
-  {
-    if (!Config::get("fixed_irc_server", "").empty())
-      return {};
+      return empty;
     return str;
   }
 
