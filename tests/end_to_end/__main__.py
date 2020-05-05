@@ -135,10 +135,10 @@ class XMPPComponent(slixmpp.BaseXMPP):
             if self.biboumi:
                 self.biboumi.stop()
 
-    @asyncio.coroutine
-    def accept_routine(self):
-        self.accepting_server = yield from self.loop.create_server(lambda: self,
-                                                                   "127.0.0.1", 8811, reuse_address=True)
+
+    async def accept_routine(self):
+        self.accepting_server = await self.loop.create_server(lambda: self,
+                                                              "127.0.0.1", 8811, reuse_address=True)
 
 
 class ProcessRunner:
@@ -147,13 +147,11 @@ class ProcessRunner:
         self.signal_sent = False
         self.create = None
 
-    @asyncio.coroutine
-    def start(self):
-        self.process = yield from self.create
+    async def start(self):
+        self.process = await self.create
 
-    @asyncio.coroutine
-    def wait(self):
-        code = yield from self.process.wait()
+    async def wait(self):
+        code = await self.process.wait()
         return code
 
     def stop(self):
