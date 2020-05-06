@@ -57,13 +57,13 @@ build:fedora:
 
 build:debian:
   extends: .basic_build
-  image: docker.louiz.org/louiz/biboumi/test-debian:latest
+  image: docker.louiz.org/louiz/biboumi/test-debian:oragono
 
 build:alpine:
   extends: .basic_build
   variables:
     SYSTEMD: "-DWITHOUT_SYSTEMD=1"
-  image: docker.louiz.org/louiz/biboumi/test-alpine:latest
+  image: docker.louiz.org/louiz/biboumi/test-alpine:oragono
 
 build:archlinux:
   extends: .basic_build
@@ -144,7 +144,7 @@ build:no_db_botan:
 
 test:debian:
   extends: .basic_test
-  image: docker.louiz.org/louiz/biboumi/test-debian:latest
+  image: docker.louiz.org/louiz/biboumi/test-debian:oragono
   dependencies:
     - build:debian
   needs: ["build:debian"]
@@ -170,7 +170,7 @@ test:no_udns:
 
 test:alpine:
   extends: .basic_test
-  image: docker.louiz.org/louiz/biboumi/test-alpine:latest
+  image: docker.louiz.org/louiz/biboumi/test-alpine:oragono
   dependencies:
     - build:alpine
   needs: ["build:alpine"]
