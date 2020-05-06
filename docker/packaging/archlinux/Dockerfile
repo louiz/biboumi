@@ -1,4 +1,4 @@
-FROM docker.io/base/archlinux:latest
+FROM docker.io/archlinux:latest
 
 RUN pacman -Syuuuu --noconfirm
 
