@@ -62,7 +62,7 @@ def connection_end(irc_host, jid, fixed_irc_server=False):
         xpath_re = "/message[@to='" + jid + "'][@from='" + irc_host + "@biboumi.localhost']/body[re:test(text(), '%s')]"
     irc_host = 'irc.localhost'
     return (
-    expect_stanza("/message/body[text()='%s: Your host is %s, running version oragono-2.0.0-8fd326fd33f29f19c8c9aa121b9b4e9ebf931879 ']" % (irc_host, irc_host)),
+    expect_stanza("/message/body[re:test(text(), '%s')]" % (r'^%s: Your host is %s, running version oragono-2\.0\.0(-[a-z0-9]+)? $' % (irc_host, irc_host))),
     expect_stanza(xpath_re % (r'^%s: This server was created .*$' % irc_host)),
     expect_stanza(xpath_re % (r'^%s: There are \d+ users and \d+ invisible on \d+ server\(s\)$' % irc_host)),
     expect_stanza(xpath_re % ("%s: \d+ IRC Operators online" % irc_host,)),
