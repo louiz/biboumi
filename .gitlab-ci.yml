@@ -50,20 +50,20 @@ variables:
 
 .fedora_build:
   extends: .basic_build
-  image: docker.louiz.org/louiz/biboumi/test-fedora:latest
+  image: docker.louiz.org/louiz/biboumi/test-fedora:oragono
 
 build:fedora:
   extends: .fedora_build
 
 build:debian:
   extends: .basic_build
-  image: docker.louiz.org/louiz/biboumi/test-debian:latest
+  image: docker.louiz.org/louiz/biboumi/test-debian:oragono
 
 build:alpine:
   extends: .basic_build
   variables:
     SYSTEMD: "-DWITHOUT_SYSTEMD=1"
-  image: docker.louiz.org/louiz/biboumi/test-alpine:latest
+  image: docker.louiz.org/louiz/biboumi/test-alpine:oragono
 
 build:archlinux:
   extends: .basic_build
@@ -144,14 +144,14 @@ build:no_db_botan:
 
 test:debian:
   extends: .basic_test
-  image: docker.louiz.org/louiz/biboumi/test-debian:latest
+  image: docker.louiz.org/louiz/biboumi/test-debian:oragono
   dependencies:
     - build:debian
   needs: ["build:debian"]
 
 test:fedora:
   extends: .basic_test
-  image: docker.louiz.org/louiz/biboumi/test-fedora:latest
+  image: docker.louiz.org/louiz/biboumi/test-fedora:oragono
   script:
     - cd build/
     - make coverage_check
@@ -163,14 +163,14 @@ test:fedora:
 
 test:no_udns:
   extends: .basic_test
-  image: docker.louiz.org/louiz/biboumi/test-fedora:latest
+  image: docker.louiz.org/louiz/biboumi/test-fedora:oragono
   dependencies:
     - build:no_udns
   needs: ["build:no_udns"]
 
 test:alpine:
   extends: .basic_test
-  image: docker.louiz.org/louiz/biboumi/test-alpine:latest
+  image: docker.louiz.org/louiz/biboumi/test-alpine:oragono
   dependencies:
     - build:alpine
   needs: ["build:alpine"]
@@ -196,7 +196,7 @@ packaging:rpm:
   tags:
     - docker
   allow_failure: true
-  image: docker.louiz.org/louiz/biboumi/test-fedora:latest
+  image: docker.louiz.org/louiz/biboumi/test-fedora:oragono
   script:
     - cd build/
     - make rpm -j$(nproc || echo 1)

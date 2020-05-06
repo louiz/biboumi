@@ -16,7 +16,6 @@ scenario = (
     # Join the channel, and re-do the same query
     send_stanza("<presence from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}/{nick_one}' ><x xmlns='http://jabber.org/protocol/muc'/></presence>"),
     sequences.connection("irc.localhost", '{jid_one}/{resource_one}'),
-    expect_stanza("/message/body[text()='Mode #foo [+nt] by {irc_host_one}']"),
     expect_stanza("/presence[@to='{jid_one}/{resource_one}'][@from='#foo%{irc_server_one}/{nick_one}']/muc_user:x/muc_user:item[@affiliation='admin'][@role='moderator']",
                   "/presence/muc_user:x/muc_user:status[@code='110']"),
 
