@@ -31,6 +31,11 @@ For developers
   A tutorial and a documentation have been written. It should now be easy
   to write a test that demonstrates a bug or a missing feature.
 
+Version 8.5 - 2020-05-09
+========================
+
+- Fix a build failure with GCC 10
+
 Version 8.4 - 2020-02-25
 ========================
 
