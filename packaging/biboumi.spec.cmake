@@ -63,6 +63,9 @@ make check %{?_smp_mflags}
 
 
 %changelog
+* Sat May 9 2020 Le Coz Florent <louiz@louiz.org> - 8.5-1
+  Update to version 8.5
+
 * Tue Feb 25 2020 Le Coz Florent <louiz@louiz.org> - 8.4-1
   Update to version 8.4
 
