@@ -28,7 +28,7 @@ python3-pip \
 python3-lxml \
 python3-devel \
 python3-sphinx \
-python-sphinx_rtd_theme-doc \
+python-sphinx_rtd_theme \
 wget \
 fedora-packager \
 rpmdevtools \
