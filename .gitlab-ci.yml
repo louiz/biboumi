@@ -50,20 +50,20 @@ variables:
 
 .fedora_build:
   extends: .basic_build
-  image: docker.louiz.org/louiz/biboumi/test-fedora:oragono
+  image: docker.louiz.org/louiz/biboumi/test-fedora:latest
 
 build:fedora:
   extends: .fedora_build
 
 build:debian:
   extends: .basic_build
-  image: docker.louiz.org/louiz/biboumi/test-debian:oragono
+  image: docker.louiz.org/louiz/biboumi/test-debian:latest
 
 build:alpine:
   extends: .basic_build
   variables:
     SYSTEMD: "-DWITHOUT_SYSTEMD=1"
-  image: docker.louiz.org/louiz/biboumi/test-alpine:oragono
+  image: docker.louiz.org/louiz/biboumi/test-alpine:latest
 
 build:archlinux:
   extends: .basic_build
@@ -144,14 +144,14 @@ build:no_db_botan:
 
 test:debian:
   extends: .basic_test
-  image: docker.louiz.org/louiz/biboumi/test-debian:oragono
+  image: docker.louiz.org/louiz/biboumi/test-debian:latest
   dependencies:
     - build:debian
   needs: ["build:debian"]
 
 test:fedora:
   extends: .basic_test
-  image: docker.louiz.org/louiz/biboumi/test-fedora:oragono
+  image: docker.louiz.org/louiz/biboumi/test-fedora:latest
   script:
     - cd build/
     - make coverage_check
@@ -163,14 +163,14 @@ test:fedora:
 
 test:no_udns:
   extends: .basic_test
-  image: docker.louiz.org/louiz/biboumi/test-fedora:oragono
+  image: docker.louiz.org/louiz/biboumi/test-fedora:latest
   dependencies:
     - build:no_udns
   needs: ["build:no_udns"]
 
 test:alpine:
   extends: .basic_test
-  image: docker.louiz.org/louiz/biboumi/test-alpine:oragono
+  image: docker.louiz.org/louiz/biboumi/test-alpine:latest
   dependencies:
     - build:alpine
   needs: ["build:alpine"]
@@ -196,7 +196,7 @@ packaging:rpm:
   tags:
     - docker
   allow_failure: true
-  image: docker.louiz.org/louiz/biboumi/test-fedora:oragono
+  image: docker.louiz.org/louiz/biboumi/test-fedora:latest
   script:
     - cd build/
     - make rpm -j$(nproc || echo 1)
@@ -239,13 +239,16 @@ packaging:archlinux:
       - "doc/**/*"
 
 # The jobs with the secure tag need to access directories where important
-# files are stored: the latest doc, etc.'
+# files are stored: the latest doc, etc.
 # Other jobs can not access these, otherwise anybody doing a merge request
 # could delete the official doc
 .deploy:doc:
   extends: .doc_changed
   stage: deploy
-  image: docker.louiz.org/louiz/biboumi/doc-builder
+  image: docker.louiz.org/louiz/biboumi/test-fedora:latest
+  tags:
+    - www
+    - secure
   script:
     - cd doc/
     - make html
@@ -257,9 +260,6 @@ deploy:doc:latest:
   extends: .deploy:doc
   only:
     - master@louiz/biboumi
-  tags:
-    - www
-    - secure
   environment:
     name: doc.latest
     url: https://doc.biboumi.louiz.org
@@ -270,9 +270,6 @@ deploy:doc:tag:
   extends: .deploy:doc
   only:
     - tags
-  tags:
-    - www
-    - secure
   environment:
     name: doc.$CI_COMMIT_TAG
     url: https://doc.biboumi.louiz.org/$CI_COMMIT_TAG/
