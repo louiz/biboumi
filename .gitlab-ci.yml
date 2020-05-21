@@ -36,7 +36,7 @@ variables:
   extends: .sources_changed
   stage: build
   tags:
-    - docker
+    - container
   script:
     - "echo Running cmake with the following parameters: -DCMAKE_CXX_COMPILER=${COMPILER} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ${BOTAN} ${UDNS} ${SYSTEMD} ${LIBIDN} ${SQLITE3} ${POSTGRESQL}"
     - mkdir build/
