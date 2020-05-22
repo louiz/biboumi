@@ -197,6 +197,7 @@ packaging:rpm:
     - docker
   image: docker.louiz.org/louiz/biboumi/test-fedora:latest
   script:
+    - mkdir -p build/
     - cd build/
     - make rpm -j$(nproc || echo 1)
   artifacts:
