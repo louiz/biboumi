@@ -195,7 +195,6 @@ packaging:rpm:
     - master@louiz/biboumi
   tags:
     - docker
-  allow_failure: true
   image: docker.louiz.org/louiz/biboumi/test-fedora:latest
   script:
     - cd build/
@@ -213,10 +212,8 @@ packaging:archlinux:
   stage: packaging
   only:
     - master@louiz/biboumi
-    - triggers
   tags:
     - docker
-  allow_failure: true
   image: docker.louiz.org/louiz/biboumi/packaging-archlinux:latest
   before_script: []
   script:
