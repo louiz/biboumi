@@ -185,7 +185,10 @@ class IrcServerRunner(ProcessRunner):
     def __init__(self):
         super().__init__()
         # Always start with a fresh state
-        os.remove("ircd.db")
+        try:
+            os.remove("ircd.db")
+        except FileNotFoundError:
+            pass
         subprocess.run(["oragono", "mkcerts", "--conf", os.getcwd() + "/../tests/end_to_end/ircd.yaml"])
         self.create = asyncio.create_subprocess_exec("oragono", "run", "--conf", os.getcwd() + "/../tests/end_to_end/ircd.yaml",
                                                      stderr=asyncio.subprocess.PIPE)
