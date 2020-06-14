@@ -6,7 +6,7 @@ def handshake():
             send_stanza("<handshake xmlns='jabber:component:accept'/>")
            )
 
-def connection_begin(irc_host, jid, expected_irc_presence=False, fixed_irc_server=False):
+def connection_begin(irc_host, jid, expected_irc_presence=False, fixed_irc_server=False, login=None):
     jid = jid.format_map(common_replacements)
     if fixed_irc_server:
         xpath    = "/message[@to='" + jid + "'][@from='biboumi.localhost']/body[text()='%s']"
@@ -26,12 +26,12 @@ def connection_begin(irc_host, jid, expected_irc_presence=False, fixed_irc_serve
     if expected_irc_presence:
         result += (expect_stanza("/presence[@from='" + irc_host + "@biboumi.localhost']"),)
 
+    if login is not None:
+        result += (expect_stanza("/message/body[text()='irc.localhost: You are now logged in as %s']" % (login,)),)
     result += (
-    expect_stanza("/message/body[text()='irc.localhost: ACK multi-prefix']"),
     expect_stanza("/message/body[text()='irc.localhost: *** Looking up your hostname...']"),
-    expect_stanza("/message/body[text()='irc.localhost: *** Found your hostname']"),
-              ),
-
+    expect_stanza("/message/body[text()='irc.localhost: *** Found your hostname']")
+    )
     return result
 
 def connection_tls_begin(irc_host, jid, fixed_irc_server):
@@ -47,9 +47,8 @@ def connection_tls_begin(irc_host, jid, fixed_irc_server):
                       "/message/carbon:private",
                ),
         expect_stanza(xpath % 'Connected to IRC server (encrypted).'),
-        expect_stanza("/message/body[text()='irc.localhost: ACK multi-prefix']"),
         expect_stanza("/message/body[text()='irc.localhost: *** Looking up your hostname...']"),
-        expect_stanza("/message/body[text()='irc.localhost: *** Found your hostname']"),
+        expect_stanza("/message/body[text()='irc.localhost: *** Found your hostname']")
     )
 
 def connection_end(irc_host, jid, fixed_irc_server=False):
@@ -75,8 +74,9 @@ def connection_end(irc_host, jid, fixed_irc_server=False):
     expect_stanza(xpath_re % (r'.+? \+Z',)),
     )
 
-def connection(irc_host="irc.localhost", jid="{jid_one}/{resource_one}", expected_irc_presence=False, fixed_irc_server=False):
-    return connection_begin(irc_host, jid, expected_irc_presence, fixed_irc_server=fixed_irc_server) + \
+
+def connection(irc_host="irc.localhost", jid="{jid_one}/{resource_one}", expected_irc_presence=False, fixed_irc_server=False, login=None):
+    return connection_begin(irc_host, jid, expected_irc_presence, fixed_irc_server=fixed_irc_server, login=login) + \
            connection_end(irc_host, jid, fixed_irc_server=fixed_irc_server)
 
 def connection_tls(irc_host="irc.localhost", jid="{jid_one}/{resource_one}", fixed_irc_server=False):

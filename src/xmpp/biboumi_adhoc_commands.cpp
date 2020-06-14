@@ -326,6 +326,19 @@ void ConfigureIrcServerStep1(XmppComponent&, AdhocSession& session, XmlNode& com
   }
 
   {
+    XmlSubNode field(x, "field");
+    field["var"] = "sasl_password";
+    field["type"] = "text-private";
+    field["label"] = "SASL Password";
+    set_desc(field, "Use it to authenticate with your nick.");
+    if (!options.col<Database::SaslPassword>().empty())
+      {
+        XmlSubNode value(field, "value");
+        value.set_inner(options.col<Database::SaslPassword>());
+      }
+  }
+
+  {
     XmlSubNode pass(x, "field");
     pass["var"] = "pass";
     pass["type"] = "text-private";
@@ -481,6 +494,9 @@ void ConfigureIrcServerStep2(XmppComponent& xmpp_component, AdhocSession& sessio
 
           else if (field->get_tag("var") == "nick" && value)
             options.col<Database::Nick>() = value->get_inner();
+
+          else if (field->get_tag("var") == "sasl_password" && value)
+            options.col<Database::SaslPassword>() = value->get_inner();
 
           else if (field->get_tag("var") == "pass" && value)
             options.col<Database::Pass>() = value->get_inner();

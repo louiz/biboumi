@@ -43,6 +43,8 @@ class Database
 
   struct Nick: Column<std::string> { static constexpr auto name = "nick_"; };
 
+  struct SaslPassword: Column<std::string> { static constexpr auto name = "saslpassword_"; };
+
   struct Pass: Column<std::string> { static constexpr auto name = "pass_"; };
 
   struct Ports: Column<std::string> { static constexpr auto name = "ports_";
@@ -95,7 +97,7 @@ class Database
   using GlobalOptionsTable = Table<Id, Owner, MaxHistoryLength, RecordHistory, GlobalPersistent>;
   using GlobalOptions = GlobalOptionsTable::RowType;
 
-  using IrcServerOptionsTable = Table<Id, Owner, Server, Pass, TlsPorts, Ports, Username, Realname, VerifyCert, TrustedFingerprint, EncodingOut, EncodingIn, MaxHistoryLength, Address, Nick, ThrottleLimit>;
+  using IrcServerOptionsTable = Table<Id, Owner, Server, Pass, TlsPorts, Ports, Username, Realname, VerifyCert, TrustedFingerprint, EncodingOut, EncodingIn, MaxHistoryLength, Address, Nick, SaslPassword, ThrottleLimit>;
   using IrcServerOptions = IrcServerOptionsTable::RowType;
 
   using IrcChannelOptionsTable = Table<Id, Owner, Server, Channel, EncodingOut, EncodingIn, MaxHistoryLength, Persistent, RecordHistoryOptional>;
