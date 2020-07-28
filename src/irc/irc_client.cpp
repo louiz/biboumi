@@ -83,11 +83,11 @@ static const std::unordered_map<std::string,
   {"KICK", {&IrcClient::on_kick, {3, 0}}},
   {"INVITE", {&IrcClient::on_invite, {2, 0}}},
   {"CAP", {&IrcClient::on_cap, {3, 0}}},
+#ifdef WITH_SASL
   {"AUTHENTICATE", {&IrcClient::on_authenticate, {1, 0}}},
   {"903", {&IrcClient::on_sasl_success, {0, 0}}},
   {"900", {&IrcClient::on_sasl_login, {3, 0}}},
-
-
+#endif
   {"401", {&IrcClient::on_generic_error, {2, 0}}},
   {"402", {&IrcClient::on_generic_error, {2, 0}}},
   {"403", {&IrcClient::on_generic_error, {2, 0}}},
@@ -286,12 +286,14 @@ void IrcClient::on_connected()
   auto options = Database::get_irc_server_options(this->bridge.get_bare_jid(),
                                                   this->get_hostname());
 
-  const auto& sasl_password = options.col<Database::SaslPassword>();
   const auto& server_password = options.col<Database::Pass>();
 
   if (!server_password.empty())
     this->send_pass_command(options.col<Database::Pass>());
+#endif
 
+#ifdef WITH_SASL
+  const auto& sasl_password = options.col<Database::SaslPassword>();
   if (!sasl_password.empty())
     {
       this->capabilities["sasl"] = {
@@ -325,10 +327,8 @@ void IrcClient::on_connected()
       this->send_user_command(username, realname);
     }
   else
-    this->send_user_command(this->username, this->realname);
-#else
-  this->send_user_command(this->username, this->realname);
 #endif
+  this->send_user_command(this->username, this->realname);
 }
 
 void IrcClient::on_connection_close(const std::string& error_msg)
@@ -1346,9 +1346,11 @@ void IrcClient::on_cap(const IrcMessage &message)
   else if (sub_command == "NACK")
     capability.on_nack();
   this->capabilities.erase(it);
-  this->cap_end();
+  if (this->capabilities.empty())
+    this->cap_end();
 }
 
+#ifdef WITH_SASL
 void IrcClient::on_authenticate(const IrcMessage &)
 {
   if (this->sasl_state == SaslState::unneeded)
@@ -1356,13 +1358,12 @@ void IrcClient::on_authenticate(const IrcMessage &)
       log_warning("Received an AUTHENTICATE command but we don’t intend to authenticate…");
       return;
     }
-#ifdef USE_DATABASE
+
   auto options = Database::get_irc_server_options(this->bridge.get_bare_jid(),
                                                   this->get_hostname());
   const auto auth_string = '\0' + options.col<Database::Nick>() + '\0' + options.col<Database::SaslPassword>();
   const auto base64_auth_string = base64::encode(auth_string);
   this->send_message({"AUTHENTICATE", {base64_auth_string}});
-#endif
 }
 
 void IrcClient::on_sasl_success(const IrcMessage &)
@@ -1379,15 +1380,15 @@ void IrcClient::on_sasl_login(const IrcMessage &message)
     text = message.arguments[3];
   this->bridge.send_xmpp_message(this->hostname, message.prefix, text);
 }
+#endif
 
 void IrcClient::cap_end()
 {
-  if (!this->capabilities.empty())
-    return;
+#ifdef WITH_SASL
   // If we are currently authenticating through sasl, finish that before sending CAP END
   if (this->sasl_state == SaslState::needed)
     return;
-
+#endif
   this->send_message({"CAP", {"END"}});
   this->bridge.on_irc_client_connected(this->get_hostname());
 }
