@@ -85,8 +85,14 @@ static const std::unordered_map<std::string,
   {"CAP", {&IrcClient::on_cap, {3, 0}}},
 #ifdef WITH_SASL
   {"AUTHENTICATE", {&IrcClient::on_authenticate, {1, 0}}},
-  {"903", {&IrcClient::on_sasl_success, {0, 0}}},
   {"900", {&IrcClient::on_sasl_login, {3, 0}}},
+  {"902", {&IrcClient::on_sasl_failure, {2, 0}}},
+  {"903", {&IrcClient::on_sasl_success, {0, 0}}},
+  {"904", {&IrcClient::on_sasl_failure, {2, 0}}},
+  {"905", {&IrcClient::on_sasl_failure, {2, 0}}},
+  {"906", {&IrcClient::on_sasl_failure, {2, 0}}},
+  {"907", {&IrcClient::on_sasl_failure, {2, 0}}},
+  {"908", {&IrcClient::on_sasl_failure, {2, 0}}},
 #endif
   {"401", {&IrcClient::on_generic_error, {2, 0}}},
   {"402", {&IrcClient::on_generic_error, {2, 0}}},
@@ -238,6 +244,7 @@ void IrcClient::on_connection_failed(const std::string& reason)
                                             "cancel", "item-not-found",
                                             "", reason);
         }
+      this->channels_to_join.clear();
     }
   else                          // try the next port
     this->start();
@@ -1370,6 +1377,22 @@ void IrcClient::on_sasl_success(const IrcMessage &)
 {
   this->sasl_state = SaslState::success;
   this->cap_end();
+}
+
+void IrcClient::on_sasl_failure(const IrcMessage& message)
+{
+  this->sasl_state = SaslState::failure;
+  const auto reason = message.arguments[1];
+  // Send an error message for all room that the user wanted to join
+  for (const auto& tuple: this->channels_to_join)
+  {
+    Iid iid(std::get<0>(tuple) + "%" + this->hostname, this->chantypes);
+    this->bridge.send_presence_error(iid, this->current_nick,
+                                     "cancel", "item-not-found",
+                                     "", reason);
+  }
+  this->channels_to_join.clear();
+  this->send_quit_command(reason);
 }
 
 void IrcClient::on_sasl_login(const IrcMessage &message)

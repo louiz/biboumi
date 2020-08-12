@@ -247,8 +247,9 @@ private:
 public:
 #ifdef WITH_SASL
   void on_authenticate(const IrcMessage& message);
-  void on_sasl_success(const IrcMessage& message);
   void on_sasl_login(const IrcMessage& message);
+  void on_sasl_success(const IrcMessage& message);
+  void on_sasl_failure(const IrcMessage& message);
 #endif
   /**
    * The channel has been completely joined (self presence, topic, all names
