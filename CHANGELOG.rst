@@ -14,6 +14,9 @@ For users
 - Support for XEP-0410 Self-Ping Optimization. This will prevent clients
   which use self-ping from dropping out of the MUC if another client with
   bad connectivity is also joined from the same account.
+- SASL support has been added. A new field in the Configure ad-hoc command
+  lets you set a password that will be used to authenticate to the nick
+  service. This replaces the cumbersome and imperfect NickServ method.
 
 For admins
 ----------
