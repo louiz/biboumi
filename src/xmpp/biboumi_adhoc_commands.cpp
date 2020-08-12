@@ -310,6 +310,20 @@ void ConfigureIrcServerStep1(XmppComponent&, AdhocSession& session, XmlNode& com
         fingerprint_value.set_inner(options.col<Database::TrustedFingerprint>());
       }
   }
+
+  {
+    XmlSubNode field(x, "field");
+    field["var"] = "sasl_password";
+    field["type"] = "text-private";
+    field["label"] = "SASL Password";
+    set_desc(field, "Use it to authenticate with your nick.");
+    if (!options.col<Database::SaslPassword>().empty())
+      {
+        XmlSubNode value(field, "value");
+        value.set_inner(options.col<Database::SaslPassword>());
+      }
+  }
+
 #endif
 
   {
@@ -473,9 +487,11 @@ void ConfigureIrcServerStep2(XmppComponent& xmpp_component, AdhocSession& sessio
             }
 
           else if (field->get_tag("var") == "fingerprint" && value)
-            {
-              options.col<Database::TrustedFingerprint>() = value->get_inner();
-            }
+            options.col<Database::TrustedFingerprint>() = value->get_inner();
+
+          else if (field->get_tag("var") == "sasl_password" && value)
+            options.col<Database::SaslPassword>() = value->get_inner();
+
 
 #endif // BOTAN_FOUND
 

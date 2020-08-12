@@ -15,6 +15,5 @@ scenario = (
     sequences.connection(),
 
     expect_self_join_presence(jid = '{jid_one}/{resource_one}', chan = "#foo", nick = "{nick_one}"),
-
 )
 

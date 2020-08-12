@@ -14,3 +14,6 @@
 #cmakedefine HAS_PUT_TIME
 #cmakedefine DEBUG_SQL_QUERIES
 
+#if defined(USE_DATABASE) && defined(BOTAN_FOUND)
+# define WITH_SASL
+#endif

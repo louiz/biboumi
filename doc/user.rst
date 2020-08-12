@@ -205,6 +205,27 @@ whole server by mistake.  If you want to have a different nickname in the
 channel you’re going to join, you need to do it explicitly with the NICK
 command before joining the channel.
 
+Authentication
+--------------
+
+There are multiple different ways to authenticate to an IRC service. The
+most commonly used is to send some command with your password to some
+special user on the server, often called NickServ. This can be done
+manually by talking to this user in private and sending the appropriate
+messages, or this can be done automatically using the `After-connection
+IRC commands`_. The biggest issue with this method is that you need to
+first be connected and logged (nick and username selected) to the server
+before you can start this authentication method, and this often creates a
+race condition if you need to be authenticated before joining a channel.
+
+A new method has been introduced to improve this: SASL authentication. You
+just need to configure your password into the “Sasl password” field of the
+IRC server, and biboumi will automatically authenticate when you connect
+to that server. If the authentication fails, the connection to the server
+is aborted. To fix this, check the error message and fix your nick and/or
+password, or remove your password entirely (empty that field) if you don’t
+want to use SASL at all.
+
 Private messages
 ----------------
 
@@ -439,6 +460,10 @@ server.  The provided configuration form contains these fields:
 - **SHA-1 fingerprint of the TLS certificate to trust**: if you know the hash
   of the certificate that the server is supposed to use, and you only want
   to accept this one, set its SHA-1 hash in this field.
+- **SASL Password**: The password to authenticate with your nickname, on
+  that server. Authentication will be tried with the nick that is used when
+  connecting to the server. This is the Nickname_ field if it is set, otherwise
+  it’s simply the nickname specified in the first room you join.
 - **Nickname**: A nickname that will be used instead of the nickname provided
   in the initial presence sent to join a channel. This can be used if the
   user always wants to have the same nickname on a given server, and not
@@ -448,9 +473,10 @@ server.  The provided configuration form contains these fields:
 - **Server password**: A password that will be sent just after the connection,
   in a PASS command. This is usually used in private servers, where you’re
   only allowed to connect if you have the password. Note that, although
-  this is NOT a password that will be sent to NickServ (or some author
+  this is NOT a password that will be sent to NickServ (or some other
   authentication service), some server (notably Freenode) use it as if it
-  was sent to NickServ to identify your nickname.
+  was sent to NickServ to identify your nickname. See SASL password if you
+  need to authenticate.
 - **Throttle limit**: specifies a number of messages that can be sent
   without a limit, before the throttling takes place. When messages
   are throttled, only one command per second is sent to the server.

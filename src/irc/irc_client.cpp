@@ -5,6 +5,7 @@
 #include <irc/irc_client.hpp>
 #include <bridge/bridge.hpp>
 #include <irc/irc_user.hpp>
+#include <utils/base64.hpp>
 
 #include <logger/logger.hpp>
 #include <config/config.hpp>
@@ -81,7 +82,18 @@ static const std::unordered_map<std::string,
   {"PONG", {&IrcClient::on_pong, {0, 0}}},
   {"KICK", {&IrcClient::on_kick, {3, 0}}},
   {"INVITE", {&IrcClient::on_invite, {2, 0}}},
-
+  {"CAP", {&IrcClient::on_cap, {3, 0}}},
+#ifdef WITH_SASL
+  {"AUTHENTICATE", {&IrcClient::on_authenticate, {1, 0}}},
+  {"900", {&IrcClient::on_sasl_login, {3, 0}}},
+  {"902", {&IrcClient::on_sasl_failure, {2, 0}}},
+  {"903", {&IrcClient::on_sasl_success, {0, 0}}},
+  {"904", {&IrcClient::on_sasl_failure, {2, 0}}},
+  {"905", {&IrcClient::on_sasl_failure, {2, 0}}},
+  {"906", {&IrcClient::on_sasl_failure, {2, 0}}},
+  {"907", {&IrcClient::on_sasl_failure, {2, 0}}},
+  {"908", {&IrcClient::on_sasl_failure, {2, 0}}},
+#endif
   {"401", {&IrcClient::on_generic_error, {2, 0}}},
   {"402", {&IrcClient::on_generic_error, {2, 0}}},
   {"403", {&IrcClient::on_generic_error, {2, 0}}},
@@ -232,6 +244,7 @@ void IrcClient::on_connection_failed(const std::string& reason)
                                             "cancel", "item-not-found",
                                             "", reason);
         }
+      this->channels_to_join.clear();
     }
   else                          // try the next port
     this->start();
@@ -272,18 +285,45 @@ void IrcClient::on_connected()
         }
     }
 
-  this->send_message({"CAP", {"REQ", "multi-prefix"}});
-  this->send_message({"CAP", {"END"}});
+  this->send_gateway_message("Connected to IRC server"s + (this->use_tls ? " (encrypted)": "") + ".");
+
+  this->capabilities["multi-prefix"] = {[]{}, []{}};
 
 #ifdef USE_DATABASE
   auto options = Database::get_irc_server_options(this->bridge.get_bare_jid(),
                                                   this->get_hostname());
-  if (!options.col<Database::Pass>().empty())
+
+  const auto& server_password = options.col<Database::Pass>();
+
+  if (!server_password.empty())
     this->send_pass_command(options.col<Database::Pass>());
 #endif
 
-  this->send_nick_command(this->current_nick);
+#ifdef WITH_SASL
+  const auto& sasl_password = options.col<Database::SaslPassword>();
+  if (!sasl_password.empty())
+    {
+      this->capabilities["sasl"] = {
+          [this]
+          {
+            this->send_message({"AUTHENTICATE", {"PLAIN"}});
+            log_warning("negociating SASL now...");
+          },
+          []
+          {
+            log_warning("SASL not supported by the server, disconnecting.");
+          }
+      };
+      this->sasl_state = SaslState::needed;
+    }
+#endif
 
+  {
+    for (const auto &pair : this->capabilities)
+      this->send_message({ "CAP", {"REQ", pair.first}});
+  }
+
+  this->send_nick_command(this->current_nick);
 #ifdef USE_DATABASE
   if (Config::get("realname_customization", "true") == "true")
     {
@@ -294,13 +334,8 @@ void IrcClient::on_connected()
       this->send_user_command(username, realname);
     }
   else
-    this->send_user_command(this->username, this->realname);
-#else
-  this->send_user_command(this->username, this->realname);
 #endif
-  this->send_gateway_message("Connected to IRC server"s + (this->use_tls ? " (encrypted)": "") + ".");
-  this->send_pending_data();
-  this->bridge.on_irc_client_connected(this->get_hostname());
+  this->send_user_command(this->username, this->realname);
 }
 
 void IrcClient::on_connection_close(const std::string& error_msg)
@@ -371,12 +406,14 @@ void IrcClient::parse_in_buffer(const size_t)
         {
           const auto& limits = it->second.second;
           // Check that the Message is well formed before actually calling
-          // the callback. limits.first is the min number of arguments,
-          // second is the max
-          if (message.arguments.size() < limits.first ||
-              (limits.second > 0 && message.arguments.size() > limits.second))
+          // the callback.
+          const auto args_size = message.arguments.size();
+          const auto min = limits.first;
+          const auto max = limits.second;
+          if (args_size < min ||
+              (max > 0 && args_size > max))
             log_warning("Invalid number of arguments for IRC command “", message.command,
-                        "”: ", message.arguments.size());
+                        "”: ", args_size);
           else
             {
               const auto& cb = it->second.first;
@@ -1266,7 +1303,7 @@ void IrcClient::on_unknown_message(const IrcMessage& message)
     return ;
   std::string from = message.prefix;
   std::stringstream ss;
-  for (auto it = message.arguments.begin() + 1; it != message.arguments.end(); ++it)
+  for (auto it = std::next(message.arguments.begin()); it != message.arguments.end(); ++it)
     {
       ss << *it;
       if (it + 1 != message.arguments.end())
@@ -1298,4 +1335,83 @@ long int IrcClient::get_throttle_limit() const
 #else
   return 10;
 #endif
+}
+
+void IrcClient::on_cap(const IrcMessage &message)
+{
+  const auto& sub_command = message.arguments[1];
+  const auto& cap = message.arguments[2];
+  auto it = this->capabilities.find(cap);
+  if (it == this->capabilities.end())
+    {
+      log_warning("Received a CAP message for something we didn’t ask, or that we already handled.");
+      return;
+    }
+  Capability& capability = it->second;
+  if (sub_command == "ACK")
+    capability.on_ack();
+  else if (sub_command == "NACK")
+    capability.on_nack();
+  this->capabilities.erase(it);
+  if (this->capabilities.empty())
+    this->cap_end();
+}
+
+#ifdef WITH_SASL
+void IrcClient::on_authenticate(const IrcMessage &)
+{
+  if (this->sasl_state == SaslState::unneeded)
+    {
+      log_warning("Received an AUTHENTICATE command but we don’t intend to authenticate…");
+      return;
+    }
+
+  auto options = Database::get_irc_server_options(this->bridge.get_bare_jid(),
+                                                  this->get_hostname());
+  const auto auth_string = '\0' + options.col<Database::Nick>() + '\0' + options.col<Database::SaslPassword>();
+  const auto base64_auth_string = base64::encode(auth_string);
+  this->send_message({"AUTHENTICATE", {base64_auth_string}});
+}
+
+void IrcClient::on_sasl_success(const IrcMessage &)
+{
+  this->sasl_state = SaslState::success;
+  this->cap_end();
+}
+
+void IrcClient::on_sasl_failure(const IrcMessage& message)
+{
+  this->sasl_state = SaslState::failure;
+  const auto reason = message.arguments[1];
+  // Send an error message for all room that the user wanted to join
+  for (const auto& tuple: this->channels_to_join)
+  {
+    Iid iid(std::get<0>(tuple) + "%" + this->hostname, this->chantypes);
+    this->bridge.send_presence_error(iid, this->current_nick,
+                                     "cancel", "item-not-found",
+                                     "", reason);
+  }
+  this->channels_to_join.clear();
+  this->send_quit_command(reason);
+}
+
+void IrcClient::on_sasl_login(const IrcMessage &message)
+{
+  const auto& login = message.arguments[2];
+  std::string text = "Your are now logged in as " + login;
+  if (message.arguments.size() > 3)
+    text = message.arguments[3];
+  this->bridge.send_xmpp_message(this->hostname, message.prefix, text);
+}
+#endif
+
+void IrcClient::cap_end()
+{
+#ifdef WITH_SASL
+  // If we are currently authenticating through sasl, finish that before sending CAP END
+  if (this->sasl_state == SaslState::needed)
+    return;
+#endif
+  this->send_message({"CAP", {"END"}});
+  this->bridge.on_irc_client_connected(this->get_hostname());
 }

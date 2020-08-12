@@ -1,8 +1,14 @@
 #pragma once
 
-
 #include <irc/irc_message.hpp>
 #include <irc/irc_channel.hpp>
+#include <irc/capability.hpp>
+
+#include "biboumi.h"
+
+#ifdef WITH_SASL
+# include <irc/sasl.hpp>
+#endif
 #include <irc/iid.hpp>
 
 #include <bridge/history_limit.hpp>
@@ -232,6 +238,20 @@ public:
    */
   void on_invited(const IrcMessage& message);
   /**
+   *  The IRC server sends a CAP message, as part of capabilities negociation. It could be a ACK,
+   *  NACK, or something else
+   */
+  void on_cap(const IrcMessage& message);
+private:
+  void cap_end();
+public:
+#ifdef WITH_SASL
+  void on_authenticate(const IrcMessage& message);
+  void on_sasl_login(const IrcMessage& message);
+  void on_sasl_success(const IrcMessage& message);
+  void on_sasl_failure(const IrcMessage& message);
+#endif
+  /**
    * The channel has been completely joined (self presence, topic, all names
    * received etc), send the self presence and topic to the XMPP user.
    */
@@ -359,6 +379,14 @@ private:
    * has been established, we are authentified and we have a nick)
    */
   bool welcomed;
+#ifdef WITH_SASL
+  /**
+   * Whether or not we are trying to authenticate using sasl. If this is true we need to wait for a
+   * successful auth
+   */
+  SaslState sasl_state{SaslState::unneeded};
+#endif
+  std::map<std::string, Capability> capabilities;
   /**
    * See http://www.irc.org/tech_docs/draft-brocklesby-irc-isupport-03.txt section 3.3
    * We store the possible chanmodes in this object.
