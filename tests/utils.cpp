@@ -28,6 +28,9 @@ TEST_CASE("String split")
   CHECK(splitted.size() == 2);
   CHECK(splitted[0] == "");
   CHECK(splitted[1] == "a");
+  splitted = utils::split("multi-prefix ", ' ');
+  CHECK(splitted[0] == "multi-prefix");
+  CHECK(splitted.size() == 1);
 }
 
 TEST_CASE("tolower")

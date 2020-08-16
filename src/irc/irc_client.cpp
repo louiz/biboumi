@@ -1340,19 +1340,22 @@ long int IrcClient::get_throttle_limit() const
 void IrcClient::on_cap(const IrcMessage &message)
 {
   const auto& sub_command = message.arguments[1];
-  const auto& cap = message.arguments[2];
-  auto it = this->capabilities.find(cap);
-  if (it == this->capabilities.end())
+  const auto& caps = utils::split(message.arguments[2], ' ', false);
+  for (const auto& cap: caps)
     {
-      log_warning("Received a CAP message for something we didn’t ask, or that we already handled.");
-      return;
+      auto it = this->capabilities.find(cap);
+      if (it == this->capabilities.end())
+        {
+          log_warning("Received a CAP message for something we didn’t ask, or that we already handled: [", cap, "]");
+          return;
+        }
+      Capability& capability = it->second;
+      if (sub_command == "ACK")
+        capability.on_ack();
+      else if (sub_command == "NACK")
+        capability.on_nack();
+      this->capabilities.erase(it);
     }
-  Capability& capability = it->second;
-  if (sub_command == "ACK")
-    capability.on_ack();
-  else if (sub_command == "NACK")
-    capability.on_nack();
-  this->capabilities.erase(it);
   if (this->capabilities.empty())
     this->cap_end();
 }
