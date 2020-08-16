@@ -4,11 +4,13 @@
 #include <vector>
 #include <string>
 #include <ostream>
+#include <sstream>
 
 class IrcMessage
 {
 public:
-  IrcMessage(std::string&& line);
+  IrcMessage(std::stringstream ss);
+  IrcMessage(std::string str): IrcMessage{std::stringstream{str}} {}
   IrcMessage(std::string&& prefix, std::string&& command, std::vector<std::string>&& args);
   IrcMessage(std::string&& command, std::vector<std::string>&& args);
   ~IrcMessage() = default;

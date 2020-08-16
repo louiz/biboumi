@@ -14,5 +14,9 @@ scenario = (
     expect_self_join_presence(jid='{jid_one}/{resource_one}', chan="#foo", nick="{nick_one}"),
     expect_self_join_presence(jid='{jid_one}/{resource_one}', chan="#bar", nick="{nick_one}"),
     expect_self_join_presence(jid='{jid_one}/{resource_one}', chan="#baz", nick="{nick_one}"),
+
+    send_stanza("<message from='{jid_one}/{resource_one}' to='#foo%{irc_server_one}' type='groupchat'><subject>Le topic</subject></message>"),
+    expect_stanza("/message"),
+
 )
 

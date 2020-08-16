@@ -1,33 +1,30 @@
 #include <irc/irc_message.hpp>
 #include <iostream>
 
-IrcMessage::IrcMessage(std::string&& line)
+IrcMessage::IrcMessage(std::stringstream ss)
 {
-  std::string::size_type pos;
-
-  // optional prefix
-  if (line[0] == ':')
+  if (ss.peek() == ':')
     {
-      pos = line.find(' ');
-      this->prefix = line.substr(1, pos - 1);
-      line = line.substr(pos + 1, std::string::npos);
+      ss.ignore();
+      ss >> this->prefix;
     }
-  // command
-  pos = line.find(' ');
-  this->command = line.substr(0, pos);
-  line = line.substr(pos + 1, std::string::npos);
-  // arguments
-  do
+  ss >> this->command;
+  while (ss >> std::ws)
     {
-      if (line[0] == ':')
+      std::string arg;
+      if (ss.peek() == ':')
         {
-          this->arguments.emplace_back(line.substr(1, std::string::npos));
-          break ;
+          ss.ignore();
+          std::getline(ss, arg);
         }
-      pos = line.find(' ');
-      this->arguments.emplace_back(line.substr(0, pos));
-      line = line.substr(pos + 1, std::string::npos);
-    } while (pos != std::string::npos);
+      else
+        {
+          ss >> arg;
+          if (arg.empty())
+            break;
+        }
+      this->arguments.push_back(std::move(arg));
+    }
 }
 
 IrcMessage::IrcMessage(std::string&& prefix,
