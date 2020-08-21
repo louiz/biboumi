@@ -875,7 +875,7 @@ void Bridge::send_message(const Iid& iid, const std::string& nick, const std::st
       this->xmpp.send_message(std::to_string(iid),
                               this->make_xmpp_body(body, encoding),
                               this->user_jid,
-                              "chat", false, true);
+                              "chat", false, false);
     }
 }
 
