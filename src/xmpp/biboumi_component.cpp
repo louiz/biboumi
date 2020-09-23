@@ -360,7 +360,6 @@ void BiboumiComponent::handle_message(const Stanza& stanza)
           if (iid.type == Iid::Type::User && !iid.get_local().empty())
             {
               bridge->send_private_message(iid, body->get_inner());
-              bridge->remove_preferred_from_jid(iid.get_local());
             }
           else if (iid.type != Iid::Type::User && !to.resource.empty())
             { // a message for chan%server@biboumi/Nick or
@@ -368,7 +367,6 @@ void BiboumiComponent::handle_message(const Stanza& stanza)
               // Convert that into a message to nick!server
               Iid user_iid(utils::tolower(to.resource), iid.get_server(), Iid::Type::User);
               bridge->send_private_message(user_iid, body->get_inner());
-              bridge->set_preferred_from_jid(user_iid.get_local(), to_str);
             }
           else if (iid.type == Iid::Type::Server)
             bridge->send_raw_message(iid.get_server(), body->get_inner());
