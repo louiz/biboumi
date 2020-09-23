@@ -63,7 +63,7 @@ scenario = (
     send_stanza("<presence from='{jid_one}/{resource_one}' to='#dummy%{irc_server_one}/{nick_one}' type='unavailable' />"),
     expect_stanza("/presence[@type='unavailable']/muc_user:x/muc_user:status[@code='110']"),
 
-    # The private messages from this nick should now come (again) from the server-wide JID
+    # The private messages from this nick should still come from the server-wide JID
     send_stanza("<message from='{jid_two}/{resource_one}' to='{lower_nick_one}%{irc_server_one}' type='chat'><body>hihihoho</body></message>"),
     expect_stanza("/message[@from='{lower_nick_two}%{irc_server_one}'][@to='{jid_one}']"),
 )
