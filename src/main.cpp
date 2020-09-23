@@ -194,7 +194,7 @@ static int main_loop(std::string hostname, std::string password)
 
 int main(int ac, char** av)
 {
-  std::string cli_conf_filename;
+  std::string conf_filename{};
   bool test_conf = false;
   if (ac > 1)
     {
@@ -206,7 +206,7 @@ int main(int ac, char** av)
           else if ((arg == "-t") || (arg == "--test-config"))
             test_conf = true;
           else if (i + 1 == ac)
-            cli_conf_filename = arg;
+            conf_filename = arg;
           else
             {
               std::cerr << "Unknow command line option: " << arg
@@ -215,8 +215,8 @@ int main(int ac, char** av)
             }
         }
     }
-  const std::string conf_filename =
-      cli_conf_filename.empty() ? xdg_config_path("biboumi.cfg"): cli_conf_filename;
+  if (conf_filename.empty())
+    conf_filename = xdg_config_path("biboumi.cfg");
   std::cout << "Using configuration file: " << conf_filename << std::endl;
 
   if (!Config::read_conf(conf_filename))
