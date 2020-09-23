@@ -38,7 +38,7 @@ int config_help(const std::string& missing_option)
 
 int display_help()
 {
-  std::cout << "Usage: biboumi [configuration_file]" << std::endl;
+  std::cout << "Usage: biboumi [-ht] [configuration_file]" << std::endl;
   return 0;
 }
 
@@ -194,13 +194,19 @@ static int main_loop(std::string hostname, std::string password)
 
 int main(int ac, char** av)
 {
+  std::string conf_filename{};
+  bool test_conf = false;
   if (ac > 1)
     {
-      const std::string arg = av[1];
-      if (arg.size() >= 2 && arg[0] == '-' && arg[1] == '-')
+      for (int i = 1; i < ac; i++)
         {
-          if (arg == "--help")
+          const std::string arg = av[i];
+          if ((arg == "-h") || (arg == "--help"))
             return display_help();
+          else if ((arg == "-t") || (arg == "--test-config"))
+            test_conf = true;
+          else if (i + 1 == ac)
+            conf_filename = arg;
           else
             {
               std::cerr << "Unknow command line option: " << arg
@@ -209,8 +215,8 @@ int main(int ac, char** av)
             }
         }
     }
-  const std::string conf_filename =
-      ac > 1 ? av[1]: xdg_config_path("biboumi.cfg");
+  if (conf_filename.empty())
+    conf_filename = xdg_config_path("biboumi.cfg");
   std::cout << "Using configuration file: " << conf_filename << std::endl;
 
   if (!Config::read_conf(conf_filename))
@@ -222,6 +228,12 @@ int main(int ac, char** av)
   const std::string hostname = Config::get("hostname", "");
   if (hostname.empty())
     return config_help("hostname");
+  if (test_conf)
+    {
+      std::cout << "biboumi: the configuration file " << conf_filename
+        << " syntax is ok" << std::endl;
+      return 0;
+    }
 
 #ifdef USE_DATABASE
   try
