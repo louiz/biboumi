@@ -10,6 +10,11 @@ For users
   private message but the response you will receive will come from
   nickname%irc@biboumi.
 
+For admins
+----------
+- Command line option --test-config (or -t) has been added. When used,
+  biboumi will just exit without any error if the configuration is correct
+
 Version 9.0 - 2020-09-22
 ========================
 
