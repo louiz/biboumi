@@ -453,9 +453,6 @@ void Bridge::leave_irc_channel(Iid&& iid, const std::string& status_message, con
         }
       if (persistent)
         this->remove_resource_from_chan(key, resource);
-      // Since there are no resources left in that channel, we don't
-      // want to receive private messages using this room's JID
-      this->remove_all_preferred_from_jid_of_room(iid.get_local());
     }
   else
     {
@@ -872,21 +869,10 @@ void Bridge::send_message(const Iid& iid, const std::string& nick, const std::st
     }
   else
     {
-      const auto it = this->preferred_user_from.find(iid.get_local());
-      if (it != this->preferred_user_from.end())
-        {
-          const auto chan_name = Iid(Jid(it->second).local, {}).get_local();
-          for (const auto& resource: this->resources_in_chan[ChannelKey{chan_name, iid.get_server()}])
-            this->xmpp.send_message(it->second, this->make_xmpp_body(body, encoding),
-                                    this->user_jid + "/"
-                                    + resource, "chat", true, true, true);
-        }
-      else
-        {
-          for (const auto& resource: this->resources_in_server[iid.get_server()])
-            this->xmpp.send_message(std::to_string(iid), this->make_xmpp_body(body, encoding),
-                                    this->user_jid + "/" + resource, "chat", false, true);
-        }
+      this->xmpp.send_message(std::to_string(iid),
+                              this->make_xmpp_body(body, encoding),
+                              this->user_jid,
+                              "chat", false, false);
     }
 }
 
@@ -1141,34 +1127,6 @@ void Bridge::on_irc_client_connected(const std::string& hostname)
 void Bridge::on_irc_client_disconnected(const std::string& hostname)
 {
   this->xmpp.on_irc_client_disconnected(hostname, this->user_jid);
-}
-
-void Bridge::set_preferred_from_jid(const std::string& nick, const std::string& full_jid)
-{
-  auto it = this->preferred_user_from.find(nick);
-  if (it == this->preferred_user_from.end())
-    this->preferred_user_from.emplace(nick, full_jid);
-  else
-    this->preferred_user_from[nick] = full_jid;
-}
-
-void Bridge::remove_preferred_from_jid(const std::string& nick)
-{
-  auto it = this->preferred_user_from.find(nick);
-  if (it != this->preferred_user_from.end())
-    this->preferred_user_from.erase(it);
-}
-
-void Bridge::remove_all_preferred_from_jid_of_room(const std::string& channel_name)
-{
-  for (auto it = this->preferred_user_from.begin(); it != this->preferred_user_from.end();)
-    {
-      Iid iid(Jid(it->second).local, {});
-      if (iid.get_local() == channel_name)
-        it = this->preferred_user_from.erase(it);
-      else
-        ++it;
-    }
 }
 
 void Bridge::add_waiting_irc(irc_responder_callback_t&& callback)

@@ -217,19 +217,6 @@ public:
    */
   size_t active_clients() const;
   /**
-   * Add (or replace the existing) <nick, jid> into the preferred_user_from map
-   */
-  void set_preferred_from_jid(const std::string& nick, const std::string& full_jid);
-  /**
-   * Remove the preferred jid for the given IRC nick
-   */
-  void remove_preferred_from_jid(const std::string& nick);
-  /**
-   * Given a channel_name, remove all preferred from_jid that come
-   * from this chan.
-   */
-  void remove_all_preferred_from_jid_of_room(const std::string& channel_name);
-  /**
    * Add a callback to the waiting list of irc callbacks.
    */
   void add_waiting_irc(irc_responder_callback_t&& callback);
@@ -283,14 +270,6 @@ private:
    * their sockets.
    */
   std::shared_ptr<Poller> poller;
-  /**
-   * A map of <nick, full_jid>. For example if this map contains <"toto",
-   * "#somechan%server@biboumi/ToTo">, whenever a private message is
-   * received from the user "toto", instead of forwarding it to XMPP with
-   * from='toto!server@biboumi', we use instead
-   * from='#somechan%server@biboumi/ToTo'
-   */
-  std::unordered_map<std::string, std::string> preferred_user_from;
   /**
    * A list of callbacks that are waiting for some IrcMessage to trigger a
    * response.  We add callbacks in this list whenever we received an IQ
