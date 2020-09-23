@@ -64,10 +64,8 @@ make check %{?_smp_mflags}
 
 
 %changelog
-* ${RPM_DATE} Le Coz Florent <louiz@louiz.org> - ${RPM_VERSION}-1
-- Build latest git revision
-- Build against botan2
-- Build with sphinx instead of pandoc
+* Tue Sep 22 2020 Le Coz Florent <louiz@louiz.org> - 9.0-1
+  Update to version 9.0
 
 * Sat May 9 2020 Le Coz Florent <louiz@louiz.org> - 8.5-1
   Update to version 8.5
