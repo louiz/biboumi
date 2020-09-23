@@ -1,6 +1,15 @@
 Version 10.0
 ============
 
+For users
+---------
+- Direct messages are always sent to the user's bare JID. It’s now the job
+  of the XMPP server to forward these messages to all online resources.
+- Private messages are now always received from the server-wide JID. You
+  can still use the in-room JID (#chan%irc@biboumi/NickName) to send a
+  private message but the response you will receive will come from
+  nickname%irc@biboumi.
+
 Version 9.0 - 2020-09-22
 ========================
 
