@@ -930,7 +930,7 @@ void GetIrcConnectionInfoStep1(XmppComponent& component, AdhocSession& session, 
 #else
   constexpr std::size_t timestamp_size{10 + 1 + 8 + 1};
   char buf[timestamp_size] = {};
-  const auto res = std::strftime(buf, timestamp_size, "%F %T", localtime(&now_c, &tm));
+  const auto res = std::strftime(buf, timestamp_size, "%F %T", localtime_r(&now_c, &tm));
   if (res > 0)
     ss << " since " << buf;
 #endif
