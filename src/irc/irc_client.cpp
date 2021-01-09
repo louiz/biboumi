@@ -307,7 +307,7 @@ void IrcClient::on_connected()
           [this]
           {
             this->send_message({"AUTHENTICATE", {"PLAIN"}});
-            log_warning("negociating SASL now...");
+            log_warning("negotiating SASL now...");
           },
           []
           {

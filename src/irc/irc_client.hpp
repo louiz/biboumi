@@ -238,7 +238,7 @@ public:
    */
   void on_invited(const IrcMessage& message);
   /**
-   *  The IRC server sends a CAP message, as part of capabilities negociation. It could be a ACK,
+   *  The IRC server sends a CAP message, as part of capabilities negotiation. It could be a ACK,
    *  NACK, or something else
    */
   void on_cap(const IrcMessage& message);

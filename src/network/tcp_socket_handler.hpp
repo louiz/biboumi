@@ -212,7 +212,7 @@ private:
    * calls the output_fn callback with it as soon as it is created.
    * Therefore, we do not want to create it if we do not intend to send any
    * TLS-encrypted message. We create the object only when needed (for
-   * example after we have negociated a TLS session using a STARTTLS
+   * example after we have negotiated a TLS session using a STARTTLS
    * message, or stuf like that).
    *
    * See start_tls for the method where this object is created.

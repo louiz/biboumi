@@ -102,7 +102,7 @@ void BasicCredentialsManager::load_certs()
   if (BasicCredentialsManager::try_to_open_one_ca_bundle(paths))
     BasicCredentialsManager::certs_loaded = true;
   else
-    log_warning("The CA could not be loaded, TLS negociation will probably fail.");
+    log_warning("The CA could not be loaded, TLS negotiation will probably fail.");
 }
 
 std::vector<Botan::Certificate_Store*> BasicCredentialsManager::trusted_certificate_authorities(const std::string&, const std::string&)

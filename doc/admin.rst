@@ -205,7 +205,7 @@ ca_file
 ~~~~~~~
 
 Specifies which file should be used as the list of trusted CA when
-negociating a TLS session. By default this value is unset and biboumi
+negotiating a TLS session. By default this value is unset and biboumi
 tries a list of well-known paths.
 
 outgoing_bind
@@ -242,7 +242,7 @@ policy_directory
 ~~~~~~~~~~~~~~~~
 
 A directory that should contain the policy files, used to customize
-Botan’s behaviour when negociating the TLS connections with the IRC
+Botan’s behaviour when negotiating the TLS connections with the IRC
 servers. If not specified, the directory is the one where biboumi’s
 configuration file is located: for example if biboumi reads its
 configuration from /etc/biboumi/biboumi.cfg, the policy_directory value
