@@ -8,6 +8,7 @@
 #include <database/query.hpp>
 #include <logger/logger.hpp>
 #include <database/row.hpp>
+#include <database/async_result.hpp>
 
 #include <utils/optional_bool.hpp>
 
@@ -129,6 +130,15 @@ struct SelectQuery: public Query
         }
 
       return rows;
+    }
+
+    AsyncResult<T...> execute_async(DatabaseEngine& db)
+    {
+      auto statement = db.prepare(this->body);
+      if (!statement)
+        return {{}, {}};
+      statement->bind(std::move(this->params));
+      return {std::move(statement), this->table_name};
     }
 
     const std::string table_name;
