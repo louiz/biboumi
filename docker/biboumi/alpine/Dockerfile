@@ -11,7 +11,7 @@ RUN apk add --no-cache --virtual .build cmake expat-dev g++ git libidn-dev \
         make postgresql-dev python2 sqlite-dev udns-dev util-linux-dev botan-dev
 
 
-RUN git clone git://git.louiz.org/biboumi && \
+RUN git clone https://lab.louiz.org/louiz/biboumi && \
     mkdir ./biboumi/build && \
     cd ./biboumi/build && \
     cmake .. -DCMAKE_INSTALL_PREFIX=/usr \

@@ -35,7 +35,7 @@ rpmdevtools \
 && dnf clean all
 
 # Install slixmpp, for e2e tests
-RUN git clone git://git.louiz.org/slixmpp && pip3 install pyasn1 && cd slixmpp && python3 setup.py build && python3 setup.py install
+RUN git clone https://lab.louiz.org/poezioi/slixmpp && pip3 install pyasn1 && cd slixmpp && python3 setup.py build && python3 setup.py install
 
 # Install oragono, for e2e tests
 RUN wget "https://github.com/oragono/oragono/releases/download/v2.0.0/oragono-2.0.0-linux-x64.tar.gz" && tar xvf oragono-2.0.0-linux-x64.tar.gz && cp oragono-2.0.0-linux-x64/oragono /usr/local/bin
