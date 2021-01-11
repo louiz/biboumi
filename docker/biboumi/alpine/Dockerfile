@@ -8,13 +8,8 @@
 FROM docker.io/alpine:latest as builder
 
 RUN apk add --no-cache --virtual .build cmake expat-dev g++ git libidn-dev \
-        make postgresql-dev python2 sqlite-dev udns-dev util-linux-dev
+        make postgresql-dev python2 sqlite-dev udns-dev util-linux-dev botan-dev
 
-RUN git clone https://github.com/randombit/botan.git && \
-    cd botan && \
-    ./configure.py --prefix=/usr && \
-    make -j8 && \
-    make install
 
 RUN git clone git://git.louiz.org/biboumi && \
     mkdir ./biboumi/build && \
@@ -33,11 +28,7 @@ RUN git clone git://git.louiz.org/biboumi && \
 FROM docker.io/alpine:latest
 
 RUN apk add --no-cache libidn libpq libstdc++ libuuid postgresql-libs \
-        sqlite-libs udns expat ca-certificates
-
-COPY --from=builder /usr/bin/botan /usr/bin/botan
-COPY --from=builder /usr/lib/libbotan* /usr/lib/
-COPY --from=builder /usr/lib/pkgconfig/botan-2.pc /usr/lib/pkgconfig/botan-2.pc
+        sqlite-libs udns expat ca-certificates botan
 
 COPY --from=builder /etc/biboumi /etc/biboumi
 COPY --from=builder /usr/bin/biboumi /usr/bin/biboumi
