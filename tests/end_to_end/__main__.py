@@ -206,7 +206,8 @@ class BiboumiTest:
 
     def run(self):
         with_valgrind = os.environ.get("E2E_WITH_VALGRIND") is not None
-        print("Running scenario: [33;1m%s[0m%s" % (self.scenario.name, " (with valgrind)" if with_valgrind else ''))
+        print("Running scenario: [33;1m%s[0m%s… " % (self.scenario.name, " (with valgrind)" if with_valgrind else ''), end='')
+        sys.stdout.flush()
         # Redirect the slixmpp logging into a specific file
         output_filename = "slixmpp_%s_output.txt" % (self.scenario.name,)
         with open(output_filename, "w"):
