@@ -264,7 +264,7 @@ void BiboumiComponent::handle_presence(const Stanza& stanza)
     {
       if (type != "unavailable")
         this->send_stanza_error("presence", from_str, to_str, id,
-                                "cancel", "remote-server-not-found",
+                                "cancel", "recipient-unavailable",
                                 "Not connected to IRC server " + ex.hostname,
                                 true);
     }
@@ -396,7 +396,7 @@ void BiboumiComponent::handle_message(const Stanza& stanza)
   } catch (const IRCNotConnected& ex)
     {
       this->send_stanza_error("message", from_str, to_str, id,
-                              "cancel", "remote-server-not-found",
+                              "cancel", "recipient-unavailable",
                               "Not connected to IRC server " + ex.hostname,
                               true);
     }
@@ -717,7 +717,7 @@ void BiboumiComponent::handle_iq(const Stanza& stanza)
   catch (const IRCNotConnected& ex)
     {
       this->send_stanza_error("iq", from, to_str, id,
-                              "cancel", "remote-server-not-found",
+                              "cancel", "recipient-unavailable",
                               "Not connected to IRC server " + ex.hostname,
                               true);
       stanza_error.disable();
