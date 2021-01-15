@@ -1371,7 +1371,8 @@ void IrcClient::on_authenticate(const IrcMessage &)
 
   auto options = Database::get_irc_server_options(this->bridge.get_bare_jid(),
                                                   this->get_hostname());
-  const auto auth_string = '\0' + options.col<Database::Nick>() + '\0' + options.col<Database::SaslPassword>();
+  const auto& nick = !options.col<Database::Nick>().empty() ? options.col<Database::Nick>() : this->get_own_nick();
+  const auto auth_string = '\0' + nick + '\0' + options.col<Database::SaslPassword>();
   const auto base64_auth_string = base64::encode(auth_string);
   this->send_message({"AUTHENTICATE", {base64_auth_string}});
 }
