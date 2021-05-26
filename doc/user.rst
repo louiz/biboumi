@@ -408,7 +408,7 @@ The provided configuration form contains these fields:
 On a server JID
 ~~~~~~~~~~~~~~~
 
-.. note:: For example on the JID chat.freenode.org@biboumi.example.com
+.. note:: For example on the JID irc.libera.chat@biboumi.example.com
 
 configure
 ^^^^^^^^^
@@ -421,10 +421,10 @@ server.  The provided configuration form contains these fields:
   custom name for a network, and be able to edit the address to use
   if one endpoint for that server is dead, but continue using the same
   JID. For example, a user could configure the server
-  “freenode@biboumi.example.com”, set “chat.freenode.net” in its
-  “Address” field, and then they would be able to use “freenode” as
-  the network name forever: if “chat.freenode.net” breaks for some
-  reason, it can be changed to “irc.freenode.org” instead, and the user
+  “libera@biboumi.example.com”, set “irc.libera.chat” in its
+  “Address” field, and then they would be able to use “libera” as
+  the network name forever: if “irc.libera.chat” breaks for some
+  reason, it can be changed to “mercury.libera.chat” instead, and the user
   would not need to change all their bookmarks and settings.
 - **Realname**: The customized “real name” as it will appear on the
   user’s whois. This option is not available if biboumi is configured
@@ -495,7 +495,7 @@ detailed list of which resource is in which channel.
 On a channel JID
 ~~~~~~~~~~~~~~~~
 
-.. note:: For example on the JID #test%chat.freenode.org@biboumi.example.com
+.. note:: For example on the JID #test%irc.libera.chat@biboumi.example.com
 
 configure
 ^^^^^^^^^
