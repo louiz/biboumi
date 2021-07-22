@@ -313,6 +313,19 @@ void ConfigureIrcServerStep1(XmppComponent&, AdhocSession& session, XmlNode& com
 
   {
     XmlSubNode field(x, "field");
+    field["var"] = "sasl_username";
+    field["type"] = "text-single";
+    field["label"] = "SASL Username";
+    set_desc(field, "Account name to authenticate for. Defaults to nickname if unset.");
+    if (!options.col<Database::SaslUsername>().empty())
+      {
+        XmlSubNode value(field, "value");
+        value.set_inner(options.col<Database::SaslUsername>());
+      }
+  }
+
+  {
+    XmlSubNode field(x, "field");
     field["var"] = "sasl_password";
     field["type"] = "text-private";
     field["label"] = "SASL Password";
@@ -488,6 +501,9 @@ void ConfigureIrcServerStep2(XmppComponent& xmpp_component, AdhocSession& sessio
 
           else if (field->get_tag("var") == "fingerprint" && value)
             options.col<Database::TrustedFingerprint>() = value->get_inner();
+
+          else if (field->get_tag("var") == "sasl_username" && value)
+            options.col<Database::SaslUsername>() = value->get_inner();
 
           else if (field->get_tag("var") == "sasl_password" && value)
             options.col<Database::SaslPassword>() = value->get_inner();

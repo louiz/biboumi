@@ -9,6 +9,9 @@ For users
   can still use the in-room JID (#chan%irc@biboumi/NickName) to send a
   private message but the response you will receive will come from
   nickname%irc@biboumi.
+- New SASL Username field added to adhoc server configuration. Use this if
+  your account name differs from the nick you want to connect with. Defaults
+  to the configured nick or the nick you're using if unset.
 
 For admins
 ----------

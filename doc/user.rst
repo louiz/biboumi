@@ -460,10 +460,10 @@ server.  The provided configuration form contains these fields:
 - **SHA-1 fingerprint of the TLS certificate to trust**: if you know the hash
   of the certificate that the server is supposed to use, and you only want
   to accept this one, set its SHA-1 hash in this field.
+- **SASL Username**: The account to authenticate for. Set this to the name
+  of your NickServ account. Defaults to Nickname_ if unset.
 - **SASL Password**: The password to authenticate with your nickname, on
-  that server. Authentication will be tried with the nick that is used when
-  connecting to the server. This is the Nickname_ field if it is set, otherwise
-  it’s simply the nickname specified in the first room you join.
+  that server.
 - **Nickname**: A nickname that will be used instead of the nickname provided
   in the initial presence sent to join a channel. This can be used if the
   user always wants to have the same nickname on a given server, and not
