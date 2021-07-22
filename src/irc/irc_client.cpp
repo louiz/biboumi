@@ -1373,8 +1373,8 @@ void IrcClient::on_authenticate(const IrcMessage &)
                                                   this->get_hostname());
   //
   // use sasl_username if set, then nick, then get_own_nick()
-  const auto& nick = !options.col<Database::SaslUsername>.empty()
-      ? options.col<Database::SaslUsername>
+  const auto& nick = !options.col<Database::SaslUsername>().empty()
+      ? options.col<Database::SaslUsername>()
       : !options.col<Database::Nick>().empty()
         ? options.col<Database::Nick>()
         : this->get_own_nick();
