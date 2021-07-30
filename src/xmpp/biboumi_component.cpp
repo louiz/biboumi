@@ -375,6 +375,12 @@ void BiboumiComponent::handle_message(const Stanza& stanza)
               // Convert the message body into a raw IRC message
               bridge->send_raw_message(fixed_irc_server, body->get_inner());
             }
+          else
+            {
+              this->send_stanza_error("message", from_str, to_str, id,
+                                      "cancel", "not-acceptable",
+                                      "This is a regular chat rather than a groupchat. To join an IRC channel, join a groupchat instead.");
+            }
         }
     }
   else if (type == "normal" && iid.type == Iid::Type::Channel)
