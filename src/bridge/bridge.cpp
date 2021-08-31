@@ -13,6 +13,7 @@
 #include <database/database.hpp>
 #include "result_set_management.hpp"
 #include <algorithm>
+#include <cstring>
 
 using namespace std::string_literals;
 
