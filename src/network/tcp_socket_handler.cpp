@@ -261,7 +261,7 @@ void TCPSocketHandler::tls_recv()
       const bool was_active = this->tls->is_active();
       try {
         this->tls->received_data(recv_buf, static_cast<size_t>(size));
-      } catch (const Botan::TLS::TLS_Exception& e) {
+      } catch (const Botan::Exception& e) {
         // May happen if the server sends malformed TLS data (buggy server,
         // or more probably we are just connected to a server that sends
         // plain-text)
