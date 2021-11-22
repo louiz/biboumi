@@ -194,7 +194,7 @@ void TCPSocketHandler::send_data(std::string&& data)
   if (this->use_tls)
     try {
       this->tls_send(std::move(data));
-    } catch (const Botan::TLS::TLS_Exception& e) {
+    } catch (const Botan::Exception& e) {
       this->on_connection_close("TLS error: "s + e.what());
       this->close();
       return ;
