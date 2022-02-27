@@ -1,4 +1,4 @@
-#include "catch.hpp"
+#include "catch2/catch.hpp"
 
 #include <bridge/colors.hpp>
 #include <xmpp/xmpp_stanza.hpp>

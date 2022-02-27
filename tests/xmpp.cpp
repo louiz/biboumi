@@ -1,4 +1,4 @@
-#include "catch.hpp"
+#include "catch2/catch.hpp"
 
 #include <xmpp/xmpp_parser.hpp>
 #include <xmpp/auth.hpp>
