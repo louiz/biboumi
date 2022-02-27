@@ -288,24 +288,31 @@ foreach(file ${source_all})
 endforeach()
 
 #
-## Add a rule to download the catch unit test framework
+## Catch unit test framework
 #
-include(ExternalProject)
-ExternalProject_Add(catch
-  GIT_REPOSITORY "https://lab.louiz.org/louiz/Catch.git"
-  PREFIX "external"
-  UPDATE_COMMAND ""
-  CONFIGURE_COMMAND ""
-  BUILD_COMMAND ""
-  INSTALL_COMMAND ""
-  )
-set_target_properties(catch PROPERTIES EXCLUDE_FROM_ALL TRUE)
-ExternalProject_Get_Property(catch SOURCE_DIR)
-if(NOT EXISTS ${CMAKE_SOURCE_DIR}/tests/catch.hpp)
-  target_include_directories(test_suite
-    PUBLIC "${SOURCE_DIR}/single_include/"
-    )
-  add_dependencies(test_suite catch)
+find_package(Catch2 2.2.1)
+if(Catch2_FOUND)
+  target_link_libraries(test_suite Catch2::Catch2)
+else()
+  # No system-wide installation of the catch unit test framework was
+  # found, download it.
+  include(ExternalProject)
+  ExternalProject_Add(catch
+	GIT_REPOSITORY "https://lab.louiz.org/louiz/Catch.git"
+	PREFIX "external"
+	UPDATE_COMMAND ""
+	CONFIGURE_COMMAND ""
+	BUILD_COMMAND ""
+	INSTALL_COMMAND ""
+	)
+  set_target_properties(catch PROPERTIES EXCLUDE_FROM_ALL TRUE)
+  ExternalProject_Get_Property(catch SOURCE_DIR)
+  if(NOT EXISTS ${CMAKE_SOURCE_DIR}/tests/catch.hpp)
+	target_include_directories(test_suite
+      PUBLIC "${SOURCE_DIR}/single_include/"
+      )
+	add_dependencies(test_suite catch)
+  endif()
 endif()
 
 #

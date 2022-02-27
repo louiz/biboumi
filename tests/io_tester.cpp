@@ -1,5 +1,5 @@
 #include "io_tester.hpp"
-#include "catch.hpp"
+#include "catch2/catch.hpp"
 #include <iostream>
 
 /**

@@ -1,4 +1,4 @@
-#include "catch.hpp"
+#include "catch2/catch.hpp"
 
 #include <irc/iid.hpp>
 #include <irc/irc_user.hpp>
