@@ -25,6 +25,8 @@ class XmlNode
 public:
   explicit XmlNode(const std::string& name, XmlNode* parent);
   explicit XmlNode(const std::string& name);
+  explicit XmlNode(const std::string& xmlns, const std::string& name, XmlNode* parent);
+  explicit XmlNode(const std::string& xmlns, const std::string& name);
   /**
    * The copy constructor does not copy the parent attribute. The children
    * nodes are all copied recursively.
@@ -149,6 +151,10 @@ public:
     XmlSubNode(XmlNode& parent_ref, const std::string& name):
             XmlNode(name),
             parent_to_add(parent_ref)
+    {}
+    XmlSubNode(XmlNode& parent_ref, const std::string& xmlns, const std::string& name):
+        XmlNode(xmlns, name),
+        parent_to_add(parent_ref)
     {}
 
     ~XmlSubNode()

@@ -36,16 +36,16 @@ XmlNode AdhocCommandsHandler::handle_request(const std::string& executor_jid, co
   auto command_it = this->commands.find(node);
   if (command_it == this->commands.end())
     {
-      XmlSubNode error(command_node, ADHOC_NS":error");
+      XmlSubNode error(command_node, ADHOC_NS, "error");
       error["type"] = "cancel";
-      XmlSubNode condition(error, STANZA_NS":item-not-found");
+      XmlSubNode condition(error, STANZA_NS, "item-not-found");
     }
   else if (command_it->second.is_admin_only() &&
            !Config::is_in_list("admin", jid.bare()))
     {
-      XmlSubNode error(command_node, ADHOC_NS":error");
+      XmlSubNode error(command_node, ADHOC_NS, "error");
       error["type"] = "cancel";
-      XmlSubNode condition(error, STANZA_NS":forbidden");
+      XmlSubNode condition(error, STANZA_NS, "forbidden");
     }
   else
     {
@@ -94,9 +94,9 @@ XmlNode AdhocCommandsHandler::handle_request(const std::string& executor_jid, co
         }
       else                      // unsupported action
         {
-          XmlSubNode error(command_node, ADHOC_NS":error");
+          XmlSubNode error(command_node, ADHOC_NS, "error");
           error["type"] = "modify";
-          XmlSubNode condition(error, STANZA_NS":bad-request");
+          XmlSubNode condition(error, STANZA_NS, "bad-request");
         }
     }
   return command_node;

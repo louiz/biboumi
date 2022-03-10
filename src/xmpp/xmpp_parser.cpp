@@ -38,7 +38,7 @@ XmppParser::XmppParser():
 void XmppParser::init_xml_parser()
 {
   // Create the expat parser
-  this->parser = XML_ParserCreateNS("UTF-8", ':');
+  this->parser = XML_ParserCreateNS("UTF-8", '\1');
   XML_SetUserData(this->parser, static_cast<void*>(this));
 
   // Install Expat handlers

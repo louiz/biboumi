@@ -67,6 +67,8 @@ TEST_CASE("substanzas")
       CHECK(!d.has_children());
     }
     CHECK(b.has_children());
+    XmlSubNode e(a, "namespace", "name");
+    CHECK(e.get_tag("xmlns") == "namespace");
   }
   CHECK(a.has_children());
 }

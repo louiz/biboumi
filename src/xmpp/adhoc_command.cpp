@@ -26,7 +26,7 @@ void PingStep1(XmppComponent&, AdhocSession&, XmlNode& command_node)
 
 void HelloStep1(XmppComponent&, AdhocSession&, XmlNode& command_node)
 {
-  XmlSubNode x(command_node, "jabber:x:data:x");
+  XmlSubNode x(command_node, "jabber:x:data", "x");
   x["type"] = "form";
   XmlSubNode title(x, "title");
   title.set_inner("Configure your name.");
@@ -65,9 +65,9 @@ void HelloStep2(XmppComponent&, AdhocSession& session, XmlNode& command_node)
         }
     }
   command_node.delete_all_children();
-  XmlSubNode error(command_node, ADHOC_NS":error");
+  XmlSubNode error(command_node, ADHOC_NS, "error");
   error["type"] = "modify";
-  XmlSubNode condition(error, STANZA_NS":bad-request");
+  XmlSubNode condition(error, STANZA_NS, "bad-request");
   session.terminate();
 }
 

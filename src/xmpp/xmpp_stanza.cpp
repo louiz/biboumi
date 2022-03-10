@@ -52,7 +52,7 @@ XmlNode::XmlNode(const std::string& name, XmlNode* parent):
   parent(parent)
 {
   // split the namespace and the name
-  auto n = name.rfind(':');
+  auto n = name.rfind('\1');
   if (n == std::string::npos)
     this->name = name;
   else
@@ -64,6 +64,18 @@ XmlNode::XmlNode(const std::string& name, XmlNode* parent):
 
 XmlNode::XmlNode(const std::string& name):
   XmlNode(name, nullptr)
+{
+}
+
+XmlNode::XmlNode(const std::string& xmlns, const std::string& name, XmlNode* parent):
+    name(name),
+    parent(parent)
+{
+  this->attributes["xmlns"] = xmlns;
+}
+
+XmlNode::XmlNode(const std::string& xmlns, const std::string& name):
+    XmlNode(xmlns, name, nullptr)
 {
 }
 

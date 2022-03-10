@@ -34,7 +34,7 @@ void DisconnectUserStep1(XmppComponent& xmpp_component, AdhocSession&, XmlNode& 
 {
   auto& biboumi_component = dynamic_cast<BiboumiComponent&>(xmpp_component);
 
-  XmlSubNode x(command_node, "jabber:x:data:x");
+  XmlSubNode x(command_node, "jabber:x:data", "x");
   x["type"] = "form";
   XmlSubNode title(x, "title");
   title.set_inner("Disconnect a user from the gateway");
@@ -108,9 +108,9 @@ void DisconnectUserStep2(XmppComponent& xmpp_component, AdhocSession& session, X
           return;
         }
     }
-  XmlSubNode error(command_node, ADHOC_NS":error");
+  XmlSubNode error(command_node, ADHOC_NS, "error");
   error["type"] = "modify";
-  XmlSubNode condition(error, STANZA_NS":bad-request");
+  XmlSubNode condition(error, STANZA_NS, "bad-request");
   session.terminate();
 }
 
@@ -124,7 +124,7 @@ void ConfigureGlobalStep1(XmppComponent&, AdhocSession& session, XmlNode& comman
   auto options = Database::get_global_options(owner.bare());
 
   command_node.delete_all_children();
-  XmlSubNode x(command_node, "jabber:x:data:x");
+  XmlSubNode x(command_node, "jabber:x:data", "x");
   x["type"] = "form";
   XmlSubNode title(x, "title");
   title.set_inner("Configure some global default settings.");
@@ -220,9 +220,9 @@ void ConfigureGlobalStep2(XmppComponent& xmpp_component, AdhocSession& session, 
       note.set_inner("Configuration successfully applied.");
       return;
     }
-  XmlSubNode error(command_node, ADHOC_NS":error");
+  XmlSubNode error(command_node, ADHOC_NS, "error");
   error["type"] = "modify";
-  XmlSubNode condition(error, STANZA_NS":bad-request");
+  XmlSubNode condition(error, STANZA_NS, "bad-request");
   session.terminate();
 }
 
@@ -238,7 +238,7 @@ void ConfigureIrcServerStep1(XmppComponent&, AdhocSession& session, XmlNode& com
   auto commands = Database::get_after_connection_commands(options);
 
   command_node.delete_all_children();
-  XmlSubNode x(command_node, "jabber:x:data:x");
+  XmlSubNode x(command_node, "jabber:x:data", "x");
   x["type"] = "form";
   XmlSubNode title(x, "title");
   title.set_inner("Configure the IRC server " + server_domain);
@@ -565,9 +565,9 @@ void ConfigureIrcServerStep2(XmppComponent& xmpp_component, AdhocSession& sessio
       note.set_inner("Configuration successfully applied.");
       return;
     }
-  XmlSubNode error(command_node, ADHOC_NS":error");
+  XmlSubNode error(command_node, ADHOC_NS, "error");
   error["type"] = "modify";
-  XmlSubNode condition(error, STANZA_NS":bad-request");
+  XmlSubNode condition(error, STANZA_NS, "bad-request");
   session.terminate();
 }
 
@@ -586,7 +586,7 @@ void insert_irc_channel_configuration_form(XmlNode& node, const Jid& requester, 
   auto options = Database::get_irc_channel_options_with_server_default(requester.local + "@" + requester.domain,
                                                                        iid.get_server(), iid.get_local());
   node.delete_all_children();
-  XmlSubNode x(node, "jabber:x:data:x");
+  XmlSubNode x(node, "jabber:x:data", "x");
   x["type"] = "form";
   XmlSubNode title(x, "title");
   title.set_inner("Configure the IRC channel " + iid.get_local() + " on server " + iid.get_server());
@@ -671,9 +671,9 @@ void ConfigureIrcChannelStep2(XmppComponent& xmpp_component, AdhocSession& sessi
     }
   else
     {
-      XmlSubNode error(command_node, ADHOC_NS":error");
+      XmlSubNode error(command_node, ADHOC_NS, "error");
       error["type"] = "modify";
-      XmlSubNode condition(error, STANZA_NS":bad-request");
+      XmlSubNode condition(error, STANZA_NS, "bad-request");
       session.terminate();
     }
 }
@@ -749,7 +749,7 @@ void DisconnectUserFromServerStep1(XmppComponent& xmpp_component, AdhocSession& 
     { // Send a form to select the user to disconnect
       auto& biboumi_component = dynamic_cast<BiboumiComponent&>(xmpp_component);
 
-      XmlSubNode x(command_node, "jabber:x:data:x");
+      XmlSubNode x(command_node, "jabber:x:data", "x");
       x["type"] = "form";
       XmlSubNode title(x, "title");
       title.set_inner("Disconnect a user from selected IRC servers");
@@ -794,7 +794,7 @@ void DisconnectUserFromServerStep2(XmppComponent& xmpp_component, AdhocSession& 
   command_node.delete_all_children();
   auto& biboumi_component = dynamic_cast<BiboumiComponent&>(xmpp_component);
 
-  XmlSubNode x(command_node, "jabber:x:data:x");
+  XmlSubNode x(command_node, "jabber:x:data", "x");
   x["type"] = "form";
   XmlSubNode title(x, "title");
   title.set_inner("Disconnect a user from selected IRC servers");
